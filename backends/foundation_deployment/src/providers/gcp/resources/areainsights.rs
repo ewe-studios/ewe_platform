@@ -151,3 +151,26 @@ pub struct LatLng {
     #[serde(default)]
     pub longitude: ::core::option::Option<f64>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeInsightsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AreainsightsComputeInsightsArgs> for ComputeInsightsResponse {
+    fn generate_resource_id(&self, input: &AreainsightsComputeInsightsArgs) -> String {
+        "gcp::ComputeInsightsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ComputeInsightsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

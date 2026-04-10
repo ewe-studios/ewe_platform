@@ -203,3 +203,102 @@ pub struct GamesPlayerLevelResource {
     #[serde(default, rename = "minExperiencePoints")]
     pub min_experience_points: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementResetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementAchievementsResetArgs> for AchievementResetResponse {
+    fn generate_resource_id(&self, input: &GamesManagementAchievementsResetArgs) -> String {
+        format!("gcp::AchievementResetResponse/{}", input.achievement_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementResetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementResetAllResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementAchievementsResetAllArgs> for AchievementResetAllResponse {
+    fn generate_resource_id(&self, input: &GamesManagementAchievementsResetAllArgs) -> String {
+        "gcp::AchievementResetAllResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementResetAllResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HiddenPlayerList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementApplicationsListHiddenArgs> for HiddenPlayerList {
+    fn generate_resource_id(&self, input: &GamesManagementApplicationsListHiddenArgs) -> String {
+        format!("gcp::HiddenPlayerList/{}", input.application_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HiddenPlayerList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerScoreResetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementScoresResetArgs> for PlayerScoreResetResponse {
+    fn generate_resource_id(&self, input: &GamesManagementScoresResetArgs) -> String {
+        format!("gcp::PlayerScoreResetResponse/{}", input.leaderboard_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerScoreResetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerScoreResetAllResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementScoresResetAllArgs> for PlayerScoreResetAllResponse {
+    fn generate_resource_id(&self, input: &GamesManagementScoresResetAllArgs) -> String {
+        "gcp::PlayerScoreResetAllResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerScoreResetAllResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

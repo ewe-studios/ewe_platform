@@ -419,3 +419,104 @@ pub struct ProductReviewItemLevelIssue {
     #[serde(default)]
     pub severity: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MerchantapiAccountsMerchantReviewsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &MerchantapiAccountsMerchantReviewsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MerchantReview.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MerchantapiAccountsMerchantReviewsGetArgs> for MerchantReview {
+    fn generate_resource_id(&self, input: &MerchantapiAccountsMerchantReviewsGetArgs) -> String {
+        format!("gcp::MerchantReview/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MerchantReview"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMerchantReviewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MerchantapiAccountsMerchantReviewsListArgs>
+    for ListMerchantReviewsResponse
+{
+    fn generate_resource_id(&self, input: &MerchantapiAccountsMerchantReviewsListArgs) -> String {
+        format!("gcp::ListMerchantReviewsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMerchantReviewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductReview.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MerchantapiAccountsProductReviewsGetArgs> for ProductReview {
+    fn generate_resource_id(&self, input: &MerchantapiAccountsProductReviewsGetArgs) -> String {
+        format!("gcp::ProductReview/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductReview"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProductReviewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MerchantapiAccountsProductReviewsListArgs> for ListProductReviewsResponse {
+    fn generate_resource_id(&self, input: &MerchantapiAccountsProductReviewsListArgs) -> String {
+        format!("gcp::ListProductReviewsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProductReviewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

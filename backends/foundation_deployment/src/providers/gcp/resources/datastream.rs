@@ -2320,3 +2320,431 @@ pub struct SqlServerColumn {
     #[serde(default)]
     pub scale: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchStaticIpsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsFetchStaticIpsArgs> for FetchStaticIpsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsFetchStaticIpsArgs,
+    ) -> String {
+        format!("gcp::FetchStaticIpsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchStaticIpsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &DatastreamProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &DatastreamProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsConnectionProfilesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsConnectionProfilesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiscoverConnectionProfileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsConnectionProfilesDiscoverArgs>
+    for DiscoverConnectionProfileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsConnectionProfilesDiscoverArgs,
+    ) -> String {
+        format!("gcp::DiscoverConnectionProfileResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiscoverConnectionProfileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConnectionProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsConnectionProfilesGetArgs>
+    for ConnectionProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsConnectionProfilesGetArgs,
+    ) -> String {
+        format!("gcp::ConnectionProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConnectionProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConnectionProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsConnectionProfilesListArgs>
+    for ListConnectionProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsConnectionProfilesListArgs,
+    ) -> String {
+        format!("gcp::ListConnectionProfilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConnectionProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PrivateConnection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsPrivateConnectionsGetArgs>
+    for PrivateConnection
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsPrivateConnectionsGetArgs,
+    ) -> String {
+        format!("gcp::PrivateConnection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PrivateConnection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPrivateConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsPrivateConnectionsListArgs>
+    for ListPrivateConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsPrivateConnectionsListArgs,
+    ) -> String {
+        format!("gcp::ListPrivateConnectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPrivateConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Route.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsPrivateConnectionsRoutesGetArgs> for Route {
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsPrivateConnectionsRoutesGetArgs,
+    ) -> String {
+        format!("gcp::Route/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Route"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRoutesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsPrivateConnectionsRoutesListArgs>
+    for ListRoutesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsPrivateConnectionsRoutesListArgs,
+    ) -> String {
+        format!("gcp::ListRoutesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRoutesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Stream.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsStreamsGetArgs> for Stream {
+    fn generate_resource_id(&self, input: &DatastreamProjectsLocationsStreamsGetArgs) -> String {
+        format!("gcp::Stream/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Stream"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListStreamsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsStreamsListArgs> for ListStreamsResponse {
+    fn generate_resource_id(&self, input: &DatastreamProjectsLocationsStreamsListArgs) -> String {
+        format!("gcp::ListStreamsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListStreamsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamObject.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsStreamsObjectsGetArgs> for StreamObject {
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsStreamsObjectsGetArgs,
+    ) -> String {
+        format!("gcp::StreamObject/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StreamObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListStreamObjectsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsStreamsObjectsListArgs>
+    for ListStreamObjectsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsStreamsObjectsListArgs,
+    ) -> String {
+        format!("gcp::ListStreamObjectsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListStreamObjectsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StartBackfillJobResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsStreamsObjectsStartBackfillJobArgs>
+    for StartBackfillJobResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsStreamsObjectsStartBackfillJobArgs,
+    ) -> String {
+        format!("gcp::StartBackfillJobResponse/{}", input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StartBackfillJobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StopBackfillJobResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastreamProjectsLocationsStreamsObjectsStopBackfillJobArgs>
+    for StopBackfillJobResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatastreamProjectsLocationsStreamsObjectsStopBackfillJobArgs,
+    ) -> String {
+        format!("gcp::StopBackfillJobResponse/{}", input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StopBackfillJobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

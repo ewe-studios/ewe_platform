@@ -461,3 +461,113 @@ pub struct ITunesConnectAnalytics {
     #[serde(default)]
     pub pt: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateManagedShortLinkResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksManagedShortLinksCreateArgs>
+    for CreateManagedShortLinkResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedynamiclinksManagedShortLinksCreateArgs,
+    ) -> String {
+        "gcp::CreateManagedShortLinkResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreateManagedShortLinkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreateShortDynamicLinkResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksShortLinksCreateArgs>
+    for CreateShortDynamicLinkResponse
+{
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksShortLinksCreateArgs) -> String {
+        "gcp::CreateShortDynamicLinkResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreateShortDynamicLinkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DynamicLinkStats.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksGetLinkStatsArgs> for DynamicLinkStats {
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksGetLinkStatsArgs) -> String {
+        format!("gcp::DynamicLinkStats/{}", input.dynamic_link)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DynamicLinkStats"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetIosPostInstallAttributionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksInstallAttributionArgs>
+    for GetIosPostInstallAttributionResponse
+{
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksInstallAttributionArgs) -> String {
+        "gcp::GetIosPostInstallAttributionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetIosPostInstallAttributionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetIosReopenAttributionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksReopenAttributionArgs>
+    for GetIosReopenAttributionResponse
+{
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksReopenAttributionArgs) -> String {
+        "gcp::GetIosReopenAttributionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetIosReopenAttributionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

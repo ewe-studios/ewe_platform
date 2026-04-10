@@ -8272,3 +8272,1599 @@ pub struct GoogleCloudDialogflowCxV3beta1ToolCall {
     #[serde(default)]
     pub tool: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &DialogflowProjectsLocationsGetArgs) -> String {
+        format!("gcp::GoogleCloudLocationLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &DialogflowProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Agent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsCreateArgs>
+    for GoogleCloudDialogflowCxV3Agent
+{
+    fn generate_resource_id(&self, input: &DialogflowProjectsLocationsAgentsCreateArgs) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Agent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Agent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DialogflowProjectsLocationsAgentsDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsExportArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(&self, input: &DialogflowProjectsLocationsAgentsExportArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3GenerativeSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsGetGenerativeSettingsArgs>
+    for GoogleCloudDialogflowCxV3GenerativeSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsGetGenerativeSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3GenerativeSettings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3GenerativeSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3AgentValidationResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsGetValidationResultArgs>
+    for GoogleCloudDialogflowCxV3AgentValidationResult
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsGetValidationResultArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3AgentValidationResult/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3AgentValidationResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListAgentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsListArgs>
+    for GoogleCloudDialogflowCxV3ListAgentsResponse
+{
+    fn generate_resource_id(&self, input: &DialogflowProjectsLocationsAgentsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListAgentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListAgentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Changelog.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsChangelogsGetArgs>
+    for GoogleCloudDialogflowCxV3Changelog
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsChangelogsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Changelog/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Changelog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListChangelogsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsChangelogsListArgs>
+    for GoogleCloudDialogflowCxV3ListChangelogsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsChangelogsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListChangelogsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListChangelogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3EntityType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEntityTypesCreateArgs>
+    for GoogleCloudDialogflowCxV3EntityType
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEntityTypesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3EntityType/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3EntityType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListEntityTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEntityTypesListArgs>
+    for GoogleCloudDialogflowCxV3ListEntityTypesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEntityTypesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListEntityTypesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListEntityTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Environment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsGetArgs>
+    for GoogleCloudDialogflowCxV3Environment
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Environment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListEnvironmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsListArgs>
+    for GoogleCloudDialogflowCxV3ListEnvironmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListEnvironmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListEnvironmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsLookupEnvironmentHistoryArgs>
+    for GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsLookupEnvironmentHistoryArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsContinuousTestResultsListArgs>
+    for GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsContinuousTestResultsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Deployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsGetArgs>
+    for GoogleCloudDialogflowCxV3Deployment
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Deployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsListArgs>
+    for GoogleCloudDialogflowCxV3ListDeploymentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Experiment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsExperimentsCreateArgs>
+    for GoogleCloudDialogflowCxV3Experiment
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Experiment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Experiment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListExperimentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsExperimentsListArgs>
+    for GoogleCloudDialogflowCxV3ListExperimentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListExperimentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListExperimentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3DetectIntentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsSessionsDetectIntentArgs>
+    for GoogleCloudDialogflowCxV3DetectIntentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsDetectIntentArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3DetectIntentResponse/{}",
+            input.session
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3DetectIntentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3FulfillIntentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsSessionsFulfillIntentArgs>
+    for GoogleCloudDialogflowCxV3FulfillIntentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsFulfillIntentArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3FulfillIntentResponse/{}",
+            input.session
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3FulfillIntentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3MatchIntentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsSessionsMatchIntentArgs>
+    for GoogleCloudDialogflowCxV3MatchIntentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsMatchIntentArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3MatchIntentResponse/{}",
+            input.session
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3MatchIntentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3SessionEntityType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesCreateArgs>
+    for GoogleCloudDialogflowCxV3SessionEntityType
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3SessionEntityType/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3SessionEntityType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesListArgs>
+    for GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Flow.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsCreateArgs>
+    for GoogleCloudDialogflowCxV3Flow
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Flow/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Flow"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3FlowValidationResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsGetValidationResultArgs>
+    for GoogleCloudDialogflowCxV3FlowValidationResult
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsGetValidationResultArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3FlowValidationResult/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3FlowValidationResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListFlowsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsListArgs>
+    for GoogleCloudDialogflowCxV3ListFlowsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListFlowsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListFlowsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Page.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsPagesCreateArgs>
+    for GoogleCloudDialogflowCxV3Page
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsPagesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Page/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Page"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListPagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsPagesListArgs>
+    for GoogleCloudDialogflowCxV3ListPagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsPagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListPagesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListPagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3TransitionRouteGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsCreateArgs>
+    for GoogleCloudDialogflowCxV3TransitionRouteGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3TransitionRouteGroup/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3TransitionRouteGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsListArgs>
+    for GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3CompareVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsVersionsCompareVersionsArgs>
+    for GoogleCloudDialogflowCxV3CompareVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsVersionsCompareVersionsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3CompareVersionsResponse/{}",
+            input.base_version
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3CompareVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Version.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsVersionsGetArgs>
+    for GoogleCloudDialogflowCxV3Version
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsVersionsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Version/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsFlowsVersionsListArgs>
+    for GoogleCloudDialogflowCxV3ListVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsFlowsVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Generator.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsGeneratorsCreateArgs>
+    for GoogleCloudDialogflowCxV3Generator
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsGeneratorsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Generator/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Generator"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListGeneratorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsGeneratorsListArgs>
+    for GoogleCloudDialogflowCxV3ListGeneratorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsGeneratorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListGeneratorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListGeneratorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Intent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsIntentsCreateArgs>
+    for GoogleCloudDialogflowCxV3Intent
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsIntentsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Intent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Intent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListIntentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsIntentsListArgs>
+    for GoogleCloudDialogflowCxV3ListIntentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsIntentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListIntentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListIntentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Playbook.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsPlaybooksCreateArgs>
+    for GoogleCloudDialogflowCxV3Playbook
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsPlaybooksCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Playbook/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Playbook"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListPlaybooksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsPlaybooksListArgs>
+    for GoogleCloudDialogflowCxV3ListPlaybooksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsPlaybooksListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListPlaybooksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListPlaybooksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Example.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsPlaybooksExamplesCreateArgs>
+    for GoogleCloudDialogflowCxV3Example
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsPlaybooksExamplesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Example/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Example"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListExamplesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsPlaybooksExamplesListArgs>
+    for GoogleCloudDialogflowCxV3ListExamplesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsPlaybooksExamplesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListExamplesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListExamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3PlaybookVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsPlaybooksVersionsCreateArgs>
+    for GoogleCloudDialogflowCxV3PlaybookVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsPlaybooksVersionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3PlaybookVersion/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3PlaybookVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsPlaybooksVersionsListArgs>
+    for GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsPlaybooksVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsPlaybooksVersionsRestoreArgs>
+    for GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsPlaybooksVersionsRestoreArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3AnswerFeedback.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsSessionsSubmitAnswerFeedbackArgs>
+    for GoogleCloudDialogflowCxV3AnswerFeedback
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsSessionsSubmitAnswerFeedbackArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3AnswerFeedback/{}",
+            input.session
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3AnswerFeedback"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3CalculateCoverageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsTestCasesCalculateCoverageArgs>
+    for GoogleCloudDialogflowCxV3CalculateCoverageResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsTestCasesCalculateCoverageArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3CalculateCoverageResponse/{}",
+            input.agent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3CalculateCoverageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3TestCase.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsTestCasesCreateArgs>
+    for GoogleCloudDialogflowCxV3TestCase
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsTestCasesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3TestCase/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3TestCase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListTestCasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsTestCasesListArgs>
+    for GoogleCloudDialogflowCxV3ListTestCasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsTestCasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListTestCasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListTestCasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3TestCaseResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsTestCasesResultsGetArgs>
+    for GoogleCloudDialogflowCxV3TestCaseResult
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsTestCasesResultsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3TestCaseResult/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3TestCaseResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListTestCaseResultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsTestCasesResultsListArgs>
+    for GoogleCloudDialogflowCxV3ListTestCaseResultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsTestCasesResultsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListTestCaseResultsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListTestCaseResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Tool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsToolsCreateArgs>
+    for GoogleCloudDialogflowCxV3Tool
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsToolsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Tool/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Tool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListToolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsToolsListArgs>
+    for GoogleCloudDialogflowCxV3ListToolsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsToolsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListToolsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListToolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ToolVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsToolsVersionsCreateArgs>
+    for GoogleCloudDialogflowCxV3ToolVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsToolsVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3ToolVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ToolVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListToolVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsToolsVersionsListArgs>
+    for GoogleCloudDialogflowCxV3ListToolVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsToolsVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListToolVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListToolVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3RestoreToolVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsToolsVersionsRestoreArgs>
+    for GoogleCloudDialogflowCxV3RestoreToolVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsToolsVersionsRestoreArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3RestoreToolVersionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3RestoreToolVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3Webhook.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsWebhooksCreateArgs>
+    for GoogleCloudDialogflowCxV3Webhook
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsWebhooksCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDialogflowCxV3Webhook/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3Webhook"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListWebhooksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsAgentsWebhooksListArgs>
+    for GoogleCloudDialogflowCxV3ListWebhooksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsAgentsWebhooksListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListWebhooksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListWebhooksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3SecuritySettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsSecuritySettingsCreateArgs>
+    for GoogleCloudDialogflowCxV3SecuritySettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsSecuritySettingsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3SecuritySettings/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3SecuritySettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDialogflowCxV3ListSecuritySettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DialogflowProjectsLocationsSecuritySettingsListArgs>
+    for GoogleCloudDialogflowCxV3ListSecuritySettingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DialogflowProjectsLocationsSecuritySettingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDialogflowCxV3ListSecuritySettingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDialogflowCxV3ListSecuritySettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

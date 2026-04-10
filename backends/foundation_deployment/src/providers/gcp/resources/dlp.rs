@@ -4846,3 +4846,731 @@ pub struct GoogleTypeTimeOfDay {
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListInfoTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpInfoTypesListArgs> for GooglePrivacyDlpV2ListInfoTypesResponse {
+    fn generate_resource_id(&self, input: &DlpInfoTypesListArgs) -> String {
+        "gcp::GooglePrivacyDlpV2ListInfoTypesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListInfoTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2DeidentifyTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsDeidentifyTemplatesCreateArgs>
+    for GooglePrivacyDlpV2DeidentifyTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsDeidentifyTemplatesCreateArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2DeidentifyTemplate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2DeidentifyTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsDeidentifyTemplatesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsDeidentifyTemplatesDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListDeidentifyTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsDeidentifyTemplatesListArgs>
+    for GooglePrivacyDlpV2ListDeidentifyTemplatesResponse
+{
+    fn generate_resource_id(&self, input: &DlpOrganizationsDeidentifyTemplatesListArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListDeidentifyTemplatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListDeidentifyTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2InspectTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsInspectTemplatesCreateArgs>
+    for GooglePrivacyDlpV2InspectTemplate
+{
+    fn generate_resource_id(&self, input: &DlpOrganizationsInspectTemplatesCreateArgs) -> String {
+        format!("gcp::GooglePrivacyDlpV2InspectTemplate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2InspectTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListInspectTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsInspectTemplatesListArgs>
+    for GooglePrivacyDlpV2ListInspectTemplatesResponse
+{
+    fn generate_resource_id(&self, input: &DlpOrganizationsInspectTemplatesListArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListInspectTemplatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListInspectTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ColumnDataProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsColumnDataProfilesGetArgs>
+    for GooglePrivacyDlpV2ColumnDataProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsColumnDataProfilesGetArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2ColumnDataProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ColumnDataProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListColumnDataProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsColumnDataProfilesListArgs>
+    for GooglePrivacyDlpV2ListColumnDataProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsColumnDataProfilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListColumnDataProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListColumnDataProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2Connection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsConnectionsCreateArgs>
+    for GooglePrivacyDlpV2Connection
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsConnectionsCreateArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2Connection/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2Connection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsConnectionsListArgs>
+    for GooglePrivacyDlpV2ListConnectionsResponse
+{
+    fn generate_resource_id(&self, input: &DlpOrganizationsLocationsConnectionsListArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2SearchConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsConnectionsSearchArgs>
+    for GooglePrivacyDlpV2SearchConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsConnectionsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2SearchConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2SearchConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2DiscoveryConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsDiscoveryConfigsCreateArgs>
+    for GooglePrivacyDlpV2DiscoveryConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsDiscoveryConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2DiscoveryConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2DiscoveryConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListDiscoveryConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsDiscoveryConfigsListArgs>
+    for GooglePrivacyDlpV2ListDiscoveryConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsDiscoveryConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListDiscoveryConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListDiscoveryConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListDlpJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsDlpJobsListArgs>
+    for GooglePrivacyDlpV2ListDlpJobsResponse
+{
+    fn generate_resource_id(&self, input: &DlpOrganizationsLocationsDlpJobsListArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListDlpJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListDlpJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2FileStoreDataProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsFileStoreDataProfilesGetArgs>
+    for GooglePrivacyDlpV2FileStoreDataProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsFileStoreDataProfilesGetArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2FileStoreDataProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2FileStoreDataProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListFileStoreDataProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsFileStoreDataProfilesListArgs>
+    for GooglePrivacyDlpV2ListFileStoreDataProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsFileStoreDataProfilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListFileStoreDataProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListFileStoreDataProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2JobTrigger.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsJobTriggersCreateArgs>
+    for GooglePrivacyDlpV2JobTrigger
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsJobTriggersCreateArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2JobTrigger/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2JobTrigger"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListJobTriggersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsJobTriggersListArgs>
+    for GooglePrivacyDlpV2ListJobTriggersResponse
+{
+    fn generate_resource_id(&self, input: &DlpOrganizationsLocationsJobTriggersListArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListJobTriggersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListJobTriggersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ProjectDataProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsProjectDataProfilesGetArgs>
+    for GooglePrivacyDlpV2ProjectDataProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsProjectDataProfilesGetArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2ProjectDataProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ProjectDataProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListProjectDataProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsProjectDataProfilesListArgs>
+    for GooglePrivacyDlpV2ListProjectDataProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsProjectDataProfilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListProjectDataProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListProjectDataProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2StoredInfoType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsStoredInfoTypesCreateArgs>
+    for GooglePrivacyDlpV2StoredInfoType
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsStoredInfoTypesCreateArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2StoredInfoType/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2StoredInfoType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListStoredInfoTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsStoredInfoTypesListArgs>
+    for GooglePrivacyDlpV2ListStoredInfoTypesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsStoredInfoTypesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListStoredInfoTypesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListStoredInfoTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2TableDataProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsTableDataProfilesGetArgs>
+    for GooglePrivacyDlpV2TableDataProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsTableDataProfilesGetArgs,
+    ) -> String {
+        format!("gcp::GooglePrivacyDlpV2TableDataProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2TableDataProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ListTableDataProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpOrganizationsLocationsTableDataProfilesListArgs>
+    for GooglePrivacyDlpV2ListTableDataProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DlpOrganizationsLocationsTableDataProfilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ListTableDataProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ListTableDataProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2DeidentifyContentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpProjectsContentDeidentifyArgs>
+    for GooglePrivacyDlpV2DeidentifyContentResponse
+{
+    fn generate_resource_id(&self, input: &DlpProjectsContentDeidentifyArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2DeidentifyContentResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2DeidentifyContentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2InspectContentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpProjectsContentInspectArgs>
+    for GooglePrivacyDlpV2InspectContentResponse
+{
+    fn generate_resource_id(&self, input: &DlpProjectsContentInspectArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2InspectContentResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2InspectContentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2ReidentifyContentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpProjectsContentReidentifyArgs>
+    for GooglePrivacyDlpV2ReidentifyContentResponse
+{
+    fn generate_resource_id(&self, input: &DlpProjectsContentReidentifyArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2ReidentifyContentResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2ReidentifyContentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2DlpJob.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpProjectsDlpJobsCreateArgs> for GooglePrivacyDlpV2DlpJob {
+    fn generate_resource_id(&self, input: &DlpProjectsDlpJobsCreateArgs) -> String {
+        format!("gcp::GooglePrivacyDlpV2DlpJob/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2DlpJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2RedactImageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpProjectsImageRedactArgs> for GooglePrivacyDlpV2RedactImageResponse {
+    fn generate_resource_id(&self, input: &DlpProjectsImageRedactArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2RedactImageResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2RedactImageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePrivacyDlpV2HybridInspectResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DlpProjectsLocationsDlpJobsHybridInspectArgs>
+    for GooglePrivacyDlpV2HybridInspectResponse
+{
+    fn generate_resource_id(&self, input: &DlpProjectsLocationsDlpJobsHybridInspectArgs) -> String {
+        format!(
+            "gcp::GooglePrivacyDlpV2HybridInspectResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePrivacyDlpV2HybridInspectResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

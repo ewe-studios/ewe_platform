@@ -647,3 +647,193 @@ pub struct TimeOfDay {
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsGenerateShiftsArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsGenerateShiftsArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsGetArgs,
+    ) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsListArgs>
+    for ListLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsListArgs,
+    ) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ContactCenterQuota.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsQueryContactCenterQuotaArgs>
+    for ContactCenterQuota
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsQueryContactCenterQuotaArgs,
+    ) -> String {
+        format!("gcp::ContactCenterQuota/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ContactCenterQuota"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ContactCenter.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsContactCentersGetArgs>
+    for ContactCenter
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsContactCentersGetArgs,
+    ) -> String {
+        format!("gcp::ContactCenter/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ContactCenter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListContactCentersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsContactCentersListArgs>
+    for ListContactCentersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsContactCentersListArgs,
+    ) -> String {
+        format!("gcp::ListContactCentersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListContactCentersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenteraiplatformProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenteraiplatformProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -1546,3 +1546,692 @@ pub struct GroupKind {
     #[serde(default, rename = "resourceKind")]
     pub resource_kind: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackupChannel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsGetArgs> for BackupChannel {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsGetArgs,
+    ) -> String {
+        format!("gcp::BackupChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackupChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsListArgs>
+    for ListBackupChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackupPlanBinding.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs>
+    for BackupPlanBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs,
+    ) -> String {
+        format!("gcp::BackupPlanBinding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackupPlanBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupPlanBindingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs>
+    for ListBackupPlanBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupPlanBindingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupPlanBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackupPlan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansGetArgs> for BackupPlan {
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsBackupPlansGetArgs) -> String {
+        format!("gcp::BackupPlan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackupPlan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansGetTagsArgs> for GetTagsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansGetTagsArgs,
+    ) -> String {
+        format!("gcp::GetTagsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupPlansResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansListArgs> for ListBackupPlansResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansListArgs,
+    ) -> String {
+        format!("gcp::ListBackupPlansResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupPlansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SetTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansSetTagsArgs> for SetTagsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansSetTagsArgs,
+    ) -> String {
+        format!("gcp::SetTagsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SetTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Backup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsGetArgs,
+    ) -> String {
+        format!("gcp::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetBackupIndexDownloadUrlResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs>
+    for GetBackupIndexDownloadUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs,
+    ) -> String {
+        format!("gcp::GetBackupIndexDownloadUrlResponse/{}", input.backup)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetBackupIndexDownloadUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VolumeBackup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs>
+    for VolumeBackup
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs,
+    ) -> String {
+        format!("gcp::VolumeBackup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VolumeBackup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVolumeBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs>
+    for ListVolumeBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs,
+    ) -> String {
+        format!("gcp::ListVolumeBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVolumeBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RestoreChannel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsGetArgs> for RestoreChannel {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsGetArgs,
+    ) -> String {
+        format!("gcp::RestoreChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RestoreChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRestoreChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsListArgs>
+    for ListRestoreChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsListArgs,
+    ) -> String {
+        format!("gcp::ListRestoreChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRestoreChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RestorePlanBinding.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs>
+    for RestorePlanBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs,
+    ) -> String {
+        format!("gcp::RestorePlanBinding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RestorePlanBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRestorePlanBindingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs>
+    for ListRestorePlanBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs,
+    ) -> String {
+        format!("gcp::ListRestorePlanBindingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRestorePlanBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RestorePlan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansGetArgs> for RestorePlan {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansGetArgs,
+    ) -> String {
+        format!("gcp::RestorePlan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RestorePlan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRestorePlansResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansListArgs>
+    for ListRestorePlansResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansListArgs,
+    ) -> String {
+        format!("gcp::ListRestorePlansResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRestorePlansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Restore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresGetArgs> for Restore {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresGetArgs,
+    ) -> String {
+        format!("gcp::Restore/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Restore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRestoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresListArgs>
+    for ListRestoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresListArgs,
+    ) -> String {
+        format!("gcp::ListRestoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRestoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VolumeRestore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs>
+    for VolumeRestore
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs,
+    ) -> String {
+        format!("gcp::VolumeRestore/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VolumeRestore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVolumeRestoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs>
+    for ListVolumeRestoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs,
+    ) -> String {
+        format!("gcp::ListVolumeRestoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVolumeRestoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

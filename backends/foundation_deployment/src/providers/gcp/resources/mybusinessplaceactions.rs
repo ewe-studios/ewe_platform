@@ -79,3 +79,101 @@ pub struct PlaceActionTypeMetadata {
     #[serde(default, rename = "placeActionType")]
     pub place_action_type: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaceActionLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs>
+    for PlaceActionLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs,
+    ) -> String {
+        format!("gcp::PlaceActionLink/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlaceActionLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPlaceActionLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksListArgs>
+    for ListPlaceActionLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksListArgs,
+    ) -> String {
+        format!("gcp::ListPlaceActionLinksResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPlaceActionLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPlaceActionTypeMetadataResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsPlaceActionTypeMetadataListArgs>
+    for ListPlaceActionTypeMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsPlaceActionTypeMetadataListArgs,
+    ) -> String {
+        "gcp::ListPlaceActionTypeMetadataResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPlaceActionTypeMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

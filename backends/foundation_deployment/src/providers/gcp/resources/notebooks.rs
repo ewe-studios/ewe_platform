@@ -765,3 +765,289 @@ pub struct AccessConfig {
     #[serde(default, rename = "externalIp")]
     pub external_ip: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckAuthorizationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesCheckAuthorizationArgs>
+    for CheckAuthorizationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesCheckAuthorizationArgs,
+    ) -> String {
+        format!("gcp::CheckAuthorizationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckAuthorizationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckInstanceUpgradabilityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs>
+    for CheckInstanceUpgradabilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs,
+    ) -> String {
+        format!(
+            "gcp::CheckInstanceUpgradabilityResponse/{}",
+            input.notebook_instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckInstanceUpgradabilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateAccessTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs>
+    for GenerateAccessTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs,
+    ) -> String {
+        format!("gcp::GenerateAccessTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateAccessTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesGetArgs) -> String {
+        format!("gcp::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Config.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGetConfigArgs> for Config {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesGetConfigArgs,
+    ) -> String {
+        format!("gcp::Config/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Config"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesListArgs) -> String {
+        format!("gcp::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

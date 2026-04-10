@@ -204,3 +204,109 @@ pub struct GamesNumberAffixConfiguration {
     #[serde(default)]
     pub zero: ::core::option::Option<LocalizedStringBundle>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementConfiguration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationAchievementConfigurationsGetArgs>
+    for AchievementConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationAchievementConfigurationsGetArgs,
+    ) -> String {
+        format!("gcp::AchievementConfiguration/{}", input.achievement_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementConfigurationListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationAchievementConfigurationsListArgs>
+    for AchievementConfigurationListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationAchievementConfigurationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::AchievementConfigurationListResponse/{}",
+            input.application_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementConfigurationListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LeaderboardConfiguration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationLeaderboardConfigurationsGetArgs>
+    for LeaderboardConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationLeaderboardConfigurationsGetArgs,
+    ) -> String {
+        format!("gcp::LeaderboardConfiguration/{}", input.leaderboard_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LeaderboardConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LeaderboardConfigurationListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationLeaderboardConfigurationsListArgs>
+    for LeaderboardConfigurationListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationLeaderboardConfigurationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::LeaderboardConfigurationListResponse/{}",
+            input.application_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LeaderboardConfigurationListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

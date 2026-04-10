@@ -506,3 +506,541 @@ pub struct Cell {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &AdsenseAccountsGetArgs) -> String {
+        format!("gcp::Account/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdBlockingRecoveryTag.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsGetAdBlockingRecoveryTagArgs> for AdBlockingRecoveryTag {
+    fn generate_resource_id(&self, input: &AdsenseAccountsGetAdBlockingRecoveryTagArgs) -> String {
+        format!("gcp::AdBlockingRecoveryTag/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdBlockingRecoveryTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsListArgs> for ListAccountsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsListArgs) -> String {
+        "gcp::ListAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListChildAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsListChildAccountsArgs> for ListChildAccountsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsListChildAccountsArgs) -> String {
+        format!("gcp::ListChildAccountsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListChildAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdClient.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsGetArgs> for AdClient {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsGetArgs) -> String {
+        format!("gcp::AdClient/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdClient"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdClientAdCode.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsGetAdcodeArgs> for AdClientAdCode {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsGetAdcodeArgs) -> String {
+        format!("gcp::AdClientAdCode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdClientAdCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdClientsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsListArgs> for ListAdClientsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsListArgs) -> String {
+        format!("gcp::ListAdClientsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdUnit.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsCreateArgs> for AdUnit {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsCreateArgs) -> String {
+        format!("gcp::AdUnit/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdUnit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdUnitAdCode.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsGetAdcodeArgs> for AdUnitAdCode {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsGetAdcodeArgs) -> String {
+        format!("gcp::AdUnitAdCode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdUnitAdCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdUnitsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsListArgs> for ListAdUnitsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsListArgs) -> String {
+        format!("gcp::ListAdUnitsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdUnitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLinkedCustomChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs>
+    for ListLinkedCustomChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs,
+    ) -> String {
+        format!("gcp::ListLinkedCustomChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLinkedCustomChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomChannel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsCreateArgs> for CustomChannel {
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsCreateArgs,
+    ) -> String {
+        format!("gcp::CustomChannel/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsListArgs>
+    for ListCustomChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsListArgs,
+    ) -> String {
+        format!("gcp::ListCustomChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLinkedAdUnitsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs>
+    for ListLinkedAdUnitsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs,
+    ) -> String {
+        format!("gcp::ListLinkedAdUnitsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLinkedAdUnitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UrlChannel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsUrlchannelsGetArgs> for UrlChannel {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsUrlchannelsGetArgs) -> String {
+        format!("gcp::UrlChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UrlChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUrlChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsUrlchannelsListArgs> for ListUrlChannelsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsUrlchannelsListArgs) -> String {
+        format!("gcp::ListUrlChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUrlChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAlertsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAlertsListArgs> for ListAlertsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAlertsListArgs) -> String {
+        format!("gcp::ListAlertsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPaymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsPaymentsListArgs> for ListPaymentsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsPaymentsListArgs) -> String {
+        format!("gcp::ListPaymentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPaymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PolicyIssue.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsPolicyIssuesGetArgs> for PolicyIssue {
+    fn generate_resource_id(&self, input: &AdsenseAccountsPolicyIssuesGetArgs) -> String {
+        format!("gcp::PolicyIssue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PolicyIssue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPolicyIssuesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsPolicyIssuesListArgs> for ListPolicyIssuesResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsPolicyIssuesListArgs) -> String {
+        format!("gcp::ListPolicyIssuesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPolicyIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReportResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsGenerateArgs> for ReportResult {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsGenerateArgs) -> String {
+        format!("gcp::ReportResult/{}", input.account)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReportResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsGenerateCsvArgs> for HttpBody {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsGenerateCsvArgs) -> String {
+        format!("gcp::HttpBody/{}", input.account)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SavedReport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsGetSavedArgs> for SavedReport {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsGetSavedArgs) -> String {
+        format!("gcp::SavedReport/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SavedReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSavedReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsSavedListArgs> for ListSavedReportsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsSavedListArgs) -> String {
+        format!("gcp::ListSavedReportsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSavedReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Site.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsSitesGetArgs> for Site {
+    fn generate_resource_id(&self, input: &AdsenseAccountsSitesGetArgs) -> String {
+        format!("gcp::Site/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Site"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSitesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsSitesListArgs> for ListSitesResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsSitesListArgs) -> String {
+        format!("gcp::ListSitesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

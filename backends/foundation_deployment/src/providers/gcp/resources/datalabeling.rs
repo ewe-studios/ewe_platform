@@ -957,9 +957,6 @@ pub struct GoogleLongrunningListOperationsResponse {
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
     pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
@@ -2796,4 +2793,617 @@ pub struct GoogleCloudDatalabelingV1beta1NormalizedVertex {
     /// Y coordinate.
     #[serde(default)]
     pub y: ::core::option::Option<f32>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotationSpecSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsAnnotationSpecSetsCreateArgs>
+    for GoogleCloudDatalabelingV1beta1AnnotationSpecSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsAnnotationSpecSetsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1AnnotationSpecSet/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1AnnotationSpecSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsAnnotationSpecSetsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsAnnotationSpecSetsDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsAnnotationSpecSetsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsAnnotationSpecSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Dataset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsCreateArgs>
+    for GoogleCloudDatalabelingV1beta1Dataset
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsCreateArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1Dataset/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsExportDataArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsExportDataArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDatasetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListDatasetsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListDatasetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotatedDataset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs>
+    for GoogleCloudDatalabelingV1beta1AnnotatedDataset
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1AnnotatedDataset/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1AnnotatedDataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1DataItem.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs>
+    for GoogleCloudDatalabelingV1beta1DataItem
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatalabelingV1beta1DataItem/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1DataItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDataItemsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListDataItemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListDataItemsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListDataItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Example.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs>
+    for GoogleCloudDatalabelingV1beta1Example
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatalabelingV1beta1Example/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1Example"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListExamplesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs>
+    for GoogleCloudDatalabelingV1beta1ListExamplesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListExamplesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListExamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1FeedbackThread.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs>
+    for GoogleCloudDatalabelingV1beta1FeedbackThread
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1FeedbackThread/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1FeedbackThread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1FeedbackMessage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs,
+    > for GoogleCloudDatalabelingV1beta1FeedbackMessage
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1FeedbackMessage/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1FeedbackMessage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs,
+    > for GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Evaluation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsEvaluationsGetArgs>
+    for GoogleCloudDatalabelingV1beta1Evaluation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsEvaluationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1Evaluation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1Evaluation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs>
+    for GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1EvaluationJob.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsCreateArgs>
+    for GoogleCloudDatalabelingV1beta1EvaluationJob
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsCreateArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1EvaluationJob/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1EvaluationJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationsSearchArgs>
+    for GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationsSearchArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Instruction.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsInstructionsGetArgs>
+    for GoogleCloudDatalabelingV1beta1Instruction
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsInstructionsGetArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1Instruction/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1Instruction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListInstructionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsInstructionsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListInstructionsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsInstructionsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatalabelingV1beta1ListInstructionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatalabelingV1beta1ListInstructionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

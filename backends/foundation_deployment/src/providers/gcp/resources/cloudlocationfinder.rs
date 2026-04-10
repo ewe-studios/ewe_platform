@@ -89,3 +89,117 @@ pub struct CloudLocation {
     #[serde(default, rename = "territoryCode")]
     pub territory_code: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &CloudlocationfinderProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &CloudlocationfinderProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsCloudLocationsGetArgs>
+    for CloudLocation
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudlocationfinderProjectsLocationsCloudLocationsGetArgs,
+    ) -> String {
+        format!("gcp::CloudLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CloudLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCloudLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsCloudLocationsListArgs>
+    for ListCloudLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudlocationfinderProjectsLocationsCloudLocationsListArgs,
+    ) -> String {
+        format!("gcp::ListCloudLocationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCloudLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchCloudLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs>
+    for SearchCloudLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs,
+    ) -> String {
+        format!("gcp::SearchCloudLocationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchCloudLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

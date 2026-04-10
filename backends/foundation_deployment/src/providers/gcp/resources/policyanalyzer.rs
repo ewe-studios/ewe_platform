@@ -49,3 +49,34 @@ pub struct GoogleCloudPolicyanalyzerV1ObservationPeriod {
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudPolicyanalyzerV1QueryActivityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicyanalyzerFoldersLocationsActivityTypesActivitiesQueryArgs>
+    for GoogleCloudPolicyanalyzerV1QueryActivityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicyanalyzerFoldersLocationsActivityTypesActivitiesQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudPolicyanalyzerV1QueryActivityResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudPolicyanalyzerV1QueryActivityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

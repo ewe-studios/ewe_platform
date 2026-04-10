@@ -744,6 +744,31 @@ pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchResponse {
     pub value: serde_json::Value,
 }
 
+/// Request message for LicenseConfigService.DistributeLicenseConfig method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DistributeLicenseConfigRequest {
+    /// Optional. Distribute seats to this license config instead of creating a new one. If not specified, a new license config will be created from the billing account license config.
+    #[serde(default, rename = "licenseConfigId")]
+    pub license_config_id: ::core::option::Option<String>,
+    /// Required. The number of licenses to distribute.
+    #[serde(default, rename = "licenseCount")]
+    pub license_count: ::core::option::Option<String>,
+    /// Required. The target GCP project region to distribute the license config to.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Required. The target GCP project number to distribute the license config to.
+    #[serde(default, rename = "projectNumber")]
+    pub project_number: ::core::option::Option<String>,
+}
+
+/// Response message for LicenseConfigService.DistributeLicenseConfig method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse {
+    /// The updated or created LicenseConfig.
+    #[serde(default, rename = "licenseConfig")]
+    pub license_config: ::core::option::Option<GoogleCloudDiscoveryengineV1LicenseConfig>,
+}
+
 /// Double list.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DoubleList {
@@ -1049,47 +1074,6 @@ pub struct GoogleCloudDiscoveryengineV1ImportUserEventsResponse {
     /// Count of user events imported, but with Document information not found in the existing Branch.
     #[serde(default, rename = "unjoinedEventsCount")]
     pub unjoined_events_count: ::core::option::Option<String>,
-}
-
-/// Information about users'' licenses.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1LicenseConfig {
-    /// Optional. Whether the license config should be auto renewed when it reaches the end date.
-    #[serde(default, rename = "autoRenew")]
-    pub auto_renew: ::core::option::Option<bool>,
-    /// Output only. Indication of whether the subscription is terminated earlier than the expiration date. This is usually terminated by pipeline once the subscription gets terminated from subsv3.
-    #[serde(default, rename = "earlyTerminated")]
-    pub early_terminated: ::core::option::Option<bool>,
-    /// Output only. The date when the subscription is terminated earlier than the expiration date.
-    #[serde(default, rename = "earlyTerminationDate")]
-    pub early_termination_date: ::core::option::Option<GoogleTypeDate>,
-    /// Optional. The planed end date.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<GoogleTypeDate>,
-    /// Optional. Whether the license config is for free trial.
-    #[serde(default, rename = "freeTrial")]
-    pub free_trial: ::core::option::Option<bool>,
-    /// Output only. Whether the license config is for Gemini bundle.
-    #[serde(default, rename = "geminiBundle")]
-    pub gemini_bundle: ::core::option::Option<bool>,
-    /// Required. Number of licenses purchased.
-    #[serde(default, rename = "licenseCount")]
-    pub license_count: ::core::option::Option<String>,
-    /// Immutable. Identifier. The fully qualified resource name of the license config. Format: projects/{project}/locations/{location}/licenseConfigs/{license_config}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The start date.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<GoogleTypeDate>,
-    /// Output only. The state of the license config. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "EXPIRED", "NOT_STARTED", "WITHDRAWN", "DEACTIVATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. Subscription term. // TODO: enum values: ["SUBSCRIPTION_TERM_UNSPECIFIED", "SUBSCRIPTION_TERM_ONE_MONTH", "SUBSCRIPTION_TERM_ONE_YEAR", "SUBSCRIPTION_TERM_THREE_YEARS", "SUBSCRIPTION_TERM_CUSTOM"]
-    #[serde(default, rename = "subscriptionTerm")]
-    pub subscription_term: ::core::option::Option<String>,
-    /// Required. Subscription tier information for the license config. // TODO: enum values: ["SUBSCRIPTION_TIER_UNSPECIFIED", "SUBSCRIPTION_TIER_SEARCH", "SUBSCRIPTION_TIER_SEARCH_AND_ASSISTANT", "SUBSCRIPTION_TIER_NOTEBOOK_LM", "SUBSCRIPTION_TIER_FRONTLINE_WORKER", "SUBSCRIPTION_TIER_AGENTSPACE_STARTER", "SUBSCRIPTION_TIER_AGENTSPACE_BUSINESS", "SUBSCRIPTION_TIER_ENTERPRISE", "SUBSCRIPTION_TIER_ENTERPRISE_EMERGING", "SUBSCRIPTION_TIER_EDU", "SUBSCRIPTION_TIER_EDU_PRO", "SUBSCRIPTION_TIER_EDU_EMERGING", "SUBSCRIPTION_TIER_EDU_PRO_EMERGING", "SUBSCRIPTION_TIER_FRONTLINE_STARTER"]
-    #[serde(default, rename = "subscriptionTier")]
-    pub subscription_tier: ::core::option::Option<String>,
 }
 
 /// Response message for the AssistantService.ListAssistants method.
@@ -1557,6 +1541,28 @@ pub struct GoogleCloudDiscoveryengineV1RecrawlUrisRequest {
     pub uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Request message for LicenseConfigService.RetractLicenseConfig method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1RetractLicenseConfigRequest {
+    /// Optional. If set to true, retract the entire license config. Otherwise, retract the specified license count.
+    #[serde(default, rename = "fullRetract")]
+    pub full_retract: ::core::option::Option<bool>,
+    /// Required. Full resource name of LicenseConfig. Format: projects/{project}/locations/{location}/licenseConfigs/{license_config_id}.
+    #[serde(default, rename = "licenseConfig")]
+    pub license_config: ::core::option::Option<String>,
+    /// Optional. The number of licenses to retract. Only used when full_retract is false.
+    #[serde(default, rename = "licenseCount")]
+    pub license_count: ::core::option::Option<String>,
+}
+
+/// Response message for LicenseConfigService.RetractLicenseConfig method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse {
+    /// The updated LicenseConfig.
+    #[serde(default, rename = "licenseConfig")]
+    pub license_config: ::core::option::Option<GoogleCloudDiscoveryengineV1LicenseConfig>,
+}
+
 /// Request message for SearchService.Search method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequest {
@@ -1578,6 +1584,10 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequest {
     pub crowding_specs: ::core::option::Option<
         ::std::vec::Vec<GoogleCloudDiscoveryengineV1SearchRequestCrowdingSpec>,
     >,
+    /// Optional. Optional configuration for the Custom Ranking feature.
+    #[serde(default, rename = "customRankingParams")]
+    pub custom_ranking_params:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1SearchRequestCustomRankingParams>,
     /// Specifications that define the specific DataStores to be searched, along with configurations for those data stores. This is only considered for Engines with multiple data stores. For engines with a single data store, the specs directly under SearchRequest should be used.
     #[serde(default, rename = "dataStoreSpecs")]
     pub data_store_specs: ::core::option::Option<
@@ -1586,6 +1596,9 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequest {
     /// Optional. Config for display feature, like match highlighting on search results.
     #[serde(default, rename = "displaySpec")]
     pub display_spec: ::core::option::Option<GoogleCloudDiscoveryengineV1SearchRequestDisplaySpec>,
+    /// Optional. The entity for customers that may run multiple different entities, domains, sites or regions, for example, "Google US", "Google Ads", "Waymo", "google.com", "youtube.com", etc. If this is set, it should be exactly matched with UserEvent.entity to get search results boosted by entity.
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
     /// Facet specifications for faceted search. If empty, no facets are returned. A maximum of 100 values are allowed. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "facetSpecs")]
     pub facet_specs:
@@ -2316,6 +2329,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStore {
     /// Output only. Timestamp the DataStore was created at.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
+    /// Optional. Specifies the data protection policy for the data store.
+    #[serde(default, rename = "dataProtectionPolicy")]
+    pub data_protection_policy:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1alphaDataProtectionPolicy>,
     /// Output only. The id of the default Schema associated to this data store.
     #[serde(default, rename = "defaultSchemaId")]
     pub default_schema_id: ::core::option::Option<String>,
@@ -2577,7 +2594,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngine {
     /// Required. The display name of the engine. Should be human readable. UTF-8 encoded string with limit of 1024 characters.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Optional. Feature config for the engine to opt in or opt out of features. Supported keys: * *: all features, if it''s present, all other feature state settings are ignored. * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails
+    /// Optional. Feature config for the engine to opt in or opt out of features. Supported keys: * *: all features, if it''s present, all other feature state settings are ignored. * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails * disable-canvas * disable-canvas-workspace
     #[serde(default)]
     pub features: ::core::option::Option<serde_json::Value>,
     /// Optional. The industry vertical that the engine registers. The restriction of the Engine industry vertical is based on DataStore: Vertical on Engine has to match vertical of the DataStore linked to the engine. // TODO: enum values: ["INDUSTRY_VERTICAL_UNSPECIFIED", "GENERIC", "MEDIA", "HEALTHCARE_FHIR"]
@@ -2915,6 +2932,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaLicenseConfig {
     /// Immutable. Identifier. The fully qualified resource name of the license config. Format: projects/{project}/locations/{location}/licenseConfigs/{license_config}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Optional. Scheduled update configuration.
+    #[serde(default, rename = "scheduledUpdate")]
+    pub scheduled_update:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1alphaLicenseConfigScheduledUpdate>,
     /// Required. The start date.
     #[serde(default, rename = "startDate")]
     pub start_date: ::core::option::Option<GoogleTypeDate>,
@@ -3794,7 +3815,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngine {
     /// Required. The display name of the engine. Should be human readable. UTF-8 encoded string with limit of 1024 characters.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Optional. Feature config for the engine to opt in or opt out of features. Supported keys: * *: all features, if it''s present, all other feature state settings are ignored. * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails
+    /// Optional. Feature config for the engine to opt in or opt out of features. Supported keys: * *: all features, if it''s present, all other feature state settings are ignored. * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails * disable-canvas * disable-canvas-workspace
     #[serde(default)]
     pub features: ::core::option::Option<serde_json::Value>,
     /// Optional. The industry vertical that the engine registers. The restriction of the Engine industry vertical is based on DataStore: Vertical on Engine has to match vertical of the DataStore linked to the engine. // TODO: enum values: ["INDUSTRY_VERTICAL_UNSPECIFIED", "GENERIC", "MEDIA", "HEALTHCARE_FHIR"]
@@ -4065,6 +4086,10 @@ pub struct GoogleCloudDiscoveryengineV1betaLicenseConfig {
     /// Immutable. Identifier. The fully qualified resource name of the license config. Format: projects/{project}/locations/{location}/licenseConfigs/{license_config}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Optional. Scheduled update configuration.
+    #[serde(default, rename = "scheduledUpdate")]
+    pub scheduled_update:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1betaLicenseConfigScheduledUpdate>,
     /// Required. The start date.
     #[serde(default, rename = "startDate")]
     pub start_date: ::core::option::Option<GoogleTypeDate>,
@@ -5506,7 +5531,7 @@ pub struct GoogleCloudDiscoveryengineV1Engine {
     /// Required. The display name of the engine. Should be human readable. UTF-8 encoded string with limit of 1024 characters.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Optional. Feature config for the engine to opt in or opt out of features. Supported keys: * *: all features, if it''s present, all other feature state settings are ignored. * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails
+    /// Optional. Feature config for the engine to opt in or opt out of features. Supported keys: * *: all features, if it''s present, all other feature state settings are ignored. * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails * disable-canvas * disable-canvas-workspace
     #[serde(default)]
     pub features: ::core::option::Option<serde_json::Value>,
     /// Optional. The industry vertical that the engine registers. The restriction of the Engine industry vertical is based on DataStore: Vertical on Engine has to match vertical of the DataStore linked to the engine. // TODO: enum values: ["INDUSTRY_VERTICAL_UNSPECIFIED", "GENERIC", "MEDIA", "HEALTHCARE_FHIR"]
@@ -5783,6 +5808,51 @@ pub struct GoogleCloudDiscoveryengineV1RecommendResponseRecommendationResult {
     pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
+/// Information about users'' licenses.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1LicenseConfig {
+    /// Optional. Whether the license config should be auto renewed when it reaches the end date.
+    #[serde(default, rename = "autoRenew")]
+    pub auto_renew: ::core::option::Option<bool>,
+    /// Output only. Indication of whether the subscription is terminated earlier than the expiration date. This is usually terminated by pipeline once the subscription gets terminated from subsv3.
+    #[serde(default, rename = "earlyTerminated")]
+    pub early_terminated: ::core::option::Option<bool>,
+    /// Output only. The date when the subscription is terminated earlier than the expiration date.
+    #[serde(default, rename = "earlyTerminationDate")]
+    pub early_termination_date: ::core::option::Option<GoogleTypeDate>,
+    /// Optional. The planed end date.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<GoogleTypeDate>,
+    /// Optional. Whether the license config is for free trial.
+    #[serde(default, rename = "freeTrial")]
+    pub free_trial: ::core::option::Option<bool>,
+    /// Output only. Whether the license config is for Gemini bundle.
+    #[serde(default, rename = "geminiBundle")]
+    pub gemini_bundle: ::core::option::Option<bool>,
+    /// Required. Number of licenses purchased.
+    #[serde(default, rename = "licenseCount")]
+    pub license_count: ::core::option::Option<String>,
+    /// Immutable. Identifier. The fully qualified resource name of the license config. Format: projects/{project}/locations/{location}/licenseConfigs/{license_config}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Scheduled update configuration.
+    #[serde(default, rename = "scheduledUpdate")]
+    pub scheduled_update:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1LicenseConfigScheduledUpdate>,
+    /// Required. The start date.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<GoogleTypeDate>,
+    /// Output only. The state of the license config. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "EXPIRED", "NOT_STARTED", "WITHDRAWN", "DEACTIVATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. Subscription term. // TODO: enum values: ["SUBSCRIPTION_TERM_UNSPECIFIED", "SUBSCRIPTION_TERM_ONE_MONTH", "SUBSCRIPTION_TERM_ONE_YEAR", "SUBSCRIPTION_TERM_THREE_YEARS", "SUBSCRIPTION_TERM_CUSTOM"]
+    #[serde(default, rename = "subscriptionTerm")]
+    pub subscription_term: ::core::option::Option<String>,
+    /// Required. Subscription tier information for the license config. // TODO: enum values: ["SUBSCRIPTION_TIER_UNSPECIFIED", "SUBSCRIPTION_TIER_SEARCH", "SUBSCRIPTION_TIER_SEARCH_AND_ASSISTANT", "SUBSCRIPTION_TIER_NOTEBOOK_LM", "SUBSCRIPTION_TIER_FRONTLINE_WORKER", "SUBSCRIPTION_TIER_AGENTSPACE_STARTER", "SUBSCRIPTION_TIER_AGENTSPACE_BUSINESS", "SUBSCRIPTION_TIER_ENTERPRISE", "SUBSCRIPTION_TIER_ENTERPRISE_EMERGING", "SUBSCRIPTION_TIER_EDU", "SUBSCRIPTION_TIER_EDU_PRO", "SUBSCRIPTION_TIER_EDU_EMERGING", "SUBSCRIPTION_TIER_EDU_PRO_EMERGING", "SUBSCRIPTION_TIER_FRONTLINE_STARTER"]
+    #[serde(default, rename = "subscriptionTier")]
+    pub subscription_tier: ::core::option::Option<String>,
+}
+
 /// Specification for crowding. Crowding improves the diversity of search results by limiting the number of results that share the same field value. For example, crowding on the color field with a max_count of 3 and mode DROP_CROWDED_RESULTS will return at most 3 results with the same color across all pages.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestCrowdingSpec {
@@ -5795,6 +5865,14 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestCrowdingSpec {
     /// Mode to use for documents that are crowded away. // TODO: enum values: ["MODE_UNSPECIFIED", "DROP_CROWDED_RESULTS", "DEMOTE_CROWDED_RESULTS_TO_END"]
     #[serde(default)]
     pub mode: ::core::option::Option<String>,
+}
+
+/// Configuration parameters for the Custom Ranking feature.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchRequestCustomRankingParams {
+    /// Optional. A list of ranking expressions (see ranking_expression for the syntax documentation) to evaluate. The evaluation results will be returned in SearchResponse.SearchResult.rank_signals.precomputed_expression_values field.
+    #[serde(default, rename = "expressionsToPrecompute")]
+    pub expressions_to_precompute: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Specifies features for display, like match highlighting.
@@ -5843,7 +5921,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestNaturalLanguageQueryUndersta
     /// The condition under which filter extraction should occur. Server behavior defaults to DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "filterExtractionCondition")]
     pub filter_extraction_condition: ::core::option::Option<String>,
-    /// Field names used for location-based filtering, where geolocation filters are detected in natural language search queries. Only valid when the FilterExtractionCondition is set to ENABLED. If this field is set, it overrides the field names set in ServingConfig.geo_search_query_detection_field_names.
+    /// Field names used for location-based filtering, where geolocation filters are detected in natural language search queries. Only valid when the FilterExtractionCondition is set to ENABLED.
     #[serde(default, rename = "geoSearchQueryDetectionFieldNames")]
     pub geo_search_query_detection_field_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
@@ -6336,7 +6414,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettings {
     /// If set to true, the widget will enable visual content summary on applicable search requests. Only used by healthcare search.
     #[serde(default, rename = "enableVisualContentSummary")]
     pub enable_visual_content_summary: ::core::option::Option<bool>,
-    /// Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails
+    /// Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * agent-gallery * no-code-agent-builder * prompt-gallery * model-selector * notebook-lm * people-search * people-search-org-chart * bi-directional-audio * feedback * session-sharing * personalization-memory * personalization-suggested-highlights * disable-agent-sharing * disable-image-generation * disable-video-generation * disable-onedrive-upload * disable-talk-to-content * disable-google-drive-upload * disable-welcome-emails * disable-canvas * disable-canvas-workspace
     #[serde(default)]
     pub features: ::core::option::Option<serde_json::Value>,
     /// Describes generative answer configuration.
@@ -7038,6 +7116,17 @@ pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyResourceConfig {
     pub region_code: ::core::option::Option<String>,
 }
 
+/// Message containing data for a scheduled update.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1alphaLicenseConfigScheduledUpdate {
+    /// The effective date for the next update.
+    #[serde(default, rename = "effectiveDate")]
+    pub effective_date: ::core::option::Option<GoogleTypeDate>,
+    /// The seat count scheduled for the next update.
+    #[serde(default, rename = "seatCount")]
+    pub seat_count: ::core::option::Option<String>,
+}
+
 /// The historical dedicated crawl rate timeseries data, used for monitoring. Dedicated crawl is used by Vertex AI to crawl the user''s website when dedicate crawl is set.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDedicatedCrawlRateTimeSeries {
@@ -7629,6 +7718,17 @@ pub struct GoogleCloudDiscoveryengineV1betaQualityMetrics {
     #[serde(default, rename = "pageRecall")]
     pub page_recall:
         ::core::option::Option<GoogleCloudDiscoveryengineV1betaQualityMetricsTopkMetrics>,
+}
+
+/// Message containing data for a scheduled update.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1betaLicenseConfigScheduledUpdate {
+    /// The effective date for the next update.
+    #[serde(default, rename = "effectiveDate")]
+    pub effective_date: ::core::option::Option<GoogleTypeDate>,
+    /// The seat count scheduled for the next update.
+    #[serde(default, rename = "seatCount")]
+    pub seat_count: ::core::option::Option<String>,
 }
 
 /// The historical dedicated crawl rate timeseries data, used for monitoring. Dedicated crawl is used by Vertex AI to crawl the user''s website when dedicate crawl is set.
@@ -8624,6 +8724,17 @@ pub struct GoogleCloudDiscoveryengineV1IdentityMappingEntry {
     pub user_id: ::core::option::Option<String>,
 }
 
+/// Message containing data for a scheduled update.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1LicenseConfigScheduledUpdate {
+    /// The effective date for the next update.
+    #[serde(default, rename = "effectiveDate")]
+    pub effective_date: ::core::option::Option<GoogleTypeDate>,
+    /// The seat count scheduled for the next update.
+    #[serde(default, rename = "seatCount")]
+    pub seat_count: ::core::option::Option<String>,
+}
+
 /// Specifies how a facet is computed.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestFacetSpecFacetKey {
@@ -8735,6 +8846,9 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals {
     /// Optional. Predicted conversion rate adjustment as a rank.
     #[serde(default, rename = "pctrRank")]
     pub pctr_rank: ::core::option::Option<f32>,
+    /// Optional. A list of precomputed expression results for a given document, in the same order as requested in SearchRequest.custom_ranking_params.expressions_to_precompute.
+    #[serde(default, rename = "precomputedExpressionValues")]
+    pub precomputed_expression_values: ::core::option::Option<::std::vec::Vec<f32>>,
     /// Optional. Semantic relevance adjustment.
     #[serde(default, rename = "relevanceScore")]
     pub relevance_score: ::core::option::Option<f32>,
@@ -8752,6 +8866,9 @@ pub struct GoogleCloudDiscoveryengineV1ActionConfig {
     /// Optional. Action parameters in structured json format.
     #[serde(default, rename = "actionParams")]
     pub action_params: ::core::option::Option<serde_json::Value>,
+    /// Optional. Whether to create a BAP connection for the connector.
+    #[serde(default, rename = "createBapConnection")]
+    pub create_bap_connection: ::core::option::Option<bool>,
     /// Output only. The connector contains the necessary parameters and is configured to support actions.
     #[serde(default, rename = "isActionConfigured")]
     pub is_action_configured: ::core::option::Option<bool>,
@@ -9059,6 +9176,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaActionConfig {
     /// Optional. Action parameters in structured json format.
     #[serde(default, rename = "actionParams")]
     pub action_params: ::core::option::Option<serde_json::Value>,
+    /// Optional. Whether to create a BAP connection for the connector.
+    #[serde(default, rename = "createBapConnection")]
+    pub create_bap_connection: ::core::option::Option<bool>,
     /// Output only. The connector contains the necessary parameters and is configured to support actions.
     #[serde(default, rename = "isActionConfigured")]
     pub is_action_configured: ::core::option::Option<bool>,
@@ -9486,6 +9606,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequest {
     #[serde(default, rename = "customFineTuningSpec")]
     pub custom_fine_tuning_spec:
         ::core::option::Option<GoogleCloudDiscoveryengineV1alphaCustomFineTuningSpec>,
+    /// Optional. Optional configuration for the Custom Ranking feature.
+    #[serde(default, rename = "customRankingParams")]
+    pub custom_ranking_params:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1alphaSearchRequestCustomRankingParams>,
     /// Specifications that define the specific DataStores to be searched, along with configurations for those data stores. This is only considered for Engines with multiple data stores. For engines with a single data store, the specs directly under SearchRequest should be used.
     #[serde(default, rename = "dataStoreSpecs")]
     pub data_store_specs: ::core::option::Option<
@@ -9499,6 +9623,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequest {
     #[serde(default, rename = "embeddingSpec")]
     pub embedding_spec:
         ::core::option::Option<GoogleCloudDiscoveryengineV1alphaSearchRequestEmbeddingSpec>,
+    /// Optional. The entity for customers that may run multiple different entities, domains, sites or regions, for example, "Google US", "Google Ads", "Waymo", "google.com", "youtube.com", etc. If this is set, it should be exactly matched with UserEvent.entity to get search results boosted by entity.
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
     /// Facet specifications for faceted search. If empty, no facets are returned. A maximum of 100 values are allowed. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "facetSpecs")]
     pub facet_specs: ::core::option::Option<
@@ -9966,6 +10093,10 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequest {
     pub crowding_specs: ::core::option::Option<
         ::std::vec::Vec<GoogleCloudDiscoveryengineV1betaSearchRequestCrowdingSpec>,
     >,
+    /// Optional. Optional configuration for the Custom Ranking feature.
+    #[serde(default, rename = "customRankingParams")]
+    pub custom_ranking_params:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1betaSearchRequestCustomRankingParams>,
     /// Specifications that define the specific DataStores to be searched, along with configurations for those data stores. This is only considered for Engines with multiple data stores. For engines with a single data store, the specs directly under SearchRequest should be used.
     #[serde(default, rename = "dataStoreSpecs")]
     pub data_store_specs: ::core::option::Option<
@@ -9979,6 +10110,9 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequest {
     #[serde(default, rename = "embeddingSpec")]
     pub embedding_spec:
         ::core::option::Option<GoogleCloudDiscoveryengineV1betaSearchRequestEmbeddingSpec>,
+    /// Optional. The entity for customers that may run multiple different entities, domains, sites or regions, for example, "Google US", "Google Ads", "Waymo", "google.com", "youtube.com", etc. If this is set, it should be exactly matched with UserEvent.entity to get search results boosted by entity.
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
     /// Facet specifications for faceted search. If empty, no facets are returned. A maximum of 100 values are allowed. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "facetSpecs")]
     pub facet_specs: ::core::option::Option<
@@ -10393,6 +10527,10 @@ pub struct GoogleCloudDiscoveryengineV1TransactionInfo {
 /// Information of an end user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UserInfo {
+    /// Optional. Input only. Precise location of the user. It is used in Custom Ranking to calculate the distance between the user and the relevant documents.
+    #[serde(default, rename = "preciseLocation")]
+    pub precise_location:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1UserInfoPreciseLocation>,
     /// Optional. IANA time zone, e.g. Europe/Budapest.
     #[serde(default, rename = "timeZone")]
     pub time_zone: ::core::option::Option<String>,
@@ -11313,6 +11451,14 @@ pub struct GoogleCloudDiscoveryengineV1alphaCustomFineTuningSpec {
     pub enable_search_adaptor: ::core::option::Option<bool>,
 }
 
+/// Configuration parameters for the Custom Ranking feature.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestCustomRankingParams {
+    /// Optional. A list of ranking expressions (see ranking_expression for the syntax documentation) to evaluate. The evaluation results will be returned in SearchResponse.SearchResult.rank_signals.precomputed_expression_values field.
+    #[serde(default, rename = "expressionsToPrecompute")]
+    pub expressions_to_precompute: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
 /// A struct to define data stores to filter on in a search call and configurations for those data stores. Otherwise, an INVALID_ARGUMENT error is returned.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestDataStoreSpec {
@@ -11389,7 +11535,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestNaturalLanguageQueryUnd
     /// The condition under which filter extraction should occur. Server behavior defaults to DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "filterExtractionCondition")]
     pub filter_extraction_condition: ::core::option::Option<String>,
-    /// Field names used for location-based filtering, where geolocation filters are detected in natural language search queries. Only valid when the FilterExtractionCondition is set to ENABLED. If this field is set, it overrides the field names set in ServingConfig.geo_search_query_detection_field_names.
+    /// Field names used for location-based filtering, where geolocation filters are detected in natural language search queries. Only valid when the FilterExtractionCondition is set to ENABLED.
     #[serde(default, rename = "geoSearchQueryDetectionFieldNames")]
     pub geo_search_query_detection_field_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
@@ -11480,6 +11626,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSpellCorrectionSpec {
 /// Information of an end user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUserInfo {
+    /// Optional. Input only. Precise location of the user. It is used in Custom Ranking to calculate the distance between the user and the relevant documents.
+    #[serde(default, rename = "preciseLocation")]
+    pub precise_location:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1alphaUserInfoPreciseLocation>,
     /// Optional. IANA time zone, e.g. Europe/Budapest.
     #[serde(default, rename = "timeZone")]
     pub time_zone: ::core::option::Option<String>,
@@ -11531,7 +11681,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswer {
     /// The textual answer.
     #[serde(default, rename = "answerText")]
     pub answer_text: ::core::option::Option<String>,
-    /// List of blob attachments in the answer.
+    /// Output only. List of blob attachments in the answer.
     #[serde(default, rename = "blobAttachments")]
     pub blob_attachments: ::core::option::Option<
         ::std::vec::Vec<GoogleCloudDiscoveryengineV1alphaAnswerBlobAttachment>,
@@ -11789,6 +11939,14 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestCrowdingSpec {
     pub mode: ::core::option::Option<String>,
 }
 
+/// Configuration parameters for the Custom Ranking feature.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1betaSearchRequestCustomRankingParams {
+    /// Optional. A list of ranking expressions (see ranking_expression for the syntax documentation) to evaluate. The evaluation results will be returned in SearchResponse.SearchResult.rank_signals.precomputed_expression_values field.
+    #[serde(default, rename = "expressionsToPrecompute")]
+    pub expressions_to_precompute: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
 /// A struct to define data stores to filter on in a search call and configurations for those data stores. Otherwise, an INVALID_ARGUMENT error is returned.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestDataStoreSpec {
@@ -11865,7 +12023,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestNaturalLanguageQueryUnde
     /// The condition under which filter extraction should occur. Server behavior defaults to DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "filterExtractionCondition")]
     pub filter_extraction_condition: ::core::option::Option<String>,
-    /// Field names used for location-based filtering, where geolocation filters are detected in natural language search queries. Only valid when the FilterExtractionCondition is set to ENABLED. If this field is set, it overrides the field names set in ServingConfig.geo_search_query_detection_field_names.
+    /// Field names used for location-based filtering, where geolocation filters are detected in natural language search queries. Only valid when the FilterExtractionCondition is set to ENABLED.
     #[serde(default, rename = "geoSearchQueryDetectionFieldNames")]
     pub geo_search_query_detection_field_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
@@ -11956,6 +12114,10 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSpellCorrectionSpec {
 /// Information of an end user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaUserInfo {
+    /// Optional. Input only. Precise location of the user. It is used in Custom Ranking to calculate the distance between the user and the relevant documents.
+    #[serde(default, rename = "preciseLocation")]
+    pub precise_location:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1betaUserInfoPreciseLocation>,
     /// Optional. IANA time zone, e.g. Europe/Budapest.
     #[serde(default, rename = "timeZone")]
     pub time_zone: ::core::option::Option<String>,
@@ -12136,6 +12298,17 @@ pub struct GoogleCloudDiscoveryengineV1DocumentInfo {
     /// The Document URI - only allowed for website data stores.
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
+}
+
+/// Precise location info with multiple representation options. Currently only latitude and longitude point is supported.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1UserInfoPreciseLocation {
+    /// Optional. Location represented by a natural language address. Will later be geocoded and converted to either a point or a polygon.
+    #[serde(default)]
+    pub address: ::core::option::Option<String>,
+    /// Optional. Location represented by a latitude/longitude point.
+    #[serde(default)]
+    pub point: ::core::option::Option<GoogleTypeLatLng>,
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
@@ -12492,6 +12665,9 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResu
 /// One part of the multi-part response of the assist call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistAnswerReply {
+    /// The time when the reply was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
     /// Possibly grounded response text or media from the assistant.
     #[serde(default, rename = "groundedContent")]
     pub grounded_content:
@@ -12731,6 +12907,17 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestRelevanceFilterSpecRele
     pub semantic_relevance_threshold: ::core::option::Option<f32>,
 }
 
+/// Precise location info with multiple representation options. Currently only latitude and longitude point is supported.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1alphaUserInfoPreciseLocation {
+    /// Optional. Location represented by a natural language address. Will later be geocoded and converted to either a point or a polygon.
+    #[serde(default)]
+    pub address: ::core::option::Option<String>,
+    /// Optional. Location represented by a latitude/longitude point.
+    #[serde(default)]
+    pub point: ::core::option::Option<GoogleTypeLatLng>,
+}
+
 /// Specifies a Sensitive Data Protection (https://cloud.google.com/sensitive-data-protection/docs/sensitive-data-protection-overview) policy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNotebooklmConfigDataProtectionPolicySensitiveDataProtectionPolicy
@@ -12875,6 +13062,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcemen
 /// One part of the multi-part response of the assist call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerReply {
+    /// The time when the reply was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
     /// Possibly grounded response text or media from the assistant.
     #[serde(default, rename = "groundedContent")]
     pub grounded_content:
@@ -13056,6 +13246,17 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestRelevanceFilterSpecRelev
     /// Custom relevance threshold for the sub-search. The value must be in [0.0, 1.0].
     #[serde(default, rename = "semanticRelevanceThreshold")]
     pub semantic_relevance_threshold: ::core::option::Option<f32>,
+}
+
+/// Precise location info with multiple representation options. Currently only latitude and longitude point is supported.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1betaUserInfoPreciseLocation {
+    /// Optional. Location represented by a natural language address. Will later be geocoded and converted to either a point or a polygon.
+    #[serde(default)]
+    pub address: ::core::option::Option<String>,
+    /// Optional. Location represented by a latitude/longitude point.
+    #[serde(default)]
+    pub point: ::core::option::Option<GoogleTypeLatLng>,
 }
 
 /// Auxiliary metadata for a MonitoredResource object. MonitoredResource objects contain the minimum set of information to uniquely identify a monitored resource instance. There is some other useful auxiliary metadata. Monitoring and Logging use an ingestion pipeline to extract metadata for cloud resources of all types, and store the metadata in this message.
@@ -13693,6 +13894,17 @@ pub struct GoogleCloudDiscoveryengineV1betaInterval {
     /// Inclusive lower bound.
     #[serde(default)]
     pub minimum: ::core::option::Option<f64>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeLatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
 }
 
 /// A time interval extending just after a start time through an end time. If the start time is the same as the end time, then the interval represents a single point in time.
@@ -14796,4 +15008,1615 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
     /// The expressions that were ORed together.
     #[serde(default)]
     pub expressions: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression>>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineBillingAccountsBillingAccountLicenseConfigsDistributeLicenseConfigArgs,
+    > for GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineBillingAccountsBillingAccountLicenseConfigsDistributeLicenseConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse/{}",
+            input.billing_account_license_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineBillingAccountsBillingAccountLicenseConfigsRetractLicenseConfigArgs,
+    > for GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineBillingAccountsBillingAccountLicenseConfigsRetractLicenseConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse/{}",
+            input.billing_account_license_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsProvisionArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsProvisionArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1AclConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsGetAclConfigArgs>
+    for GoogleCloudDiscoveryengineV1AclConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsGetAclConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1AclConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1AclConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1CmekConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsGetCmekConfigArgs>
+    for GoogleCloudDiscoveryengineV1CmekConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsGetCmekConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1CmekConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1CmekConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListCmekConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCmekConfigsListArgs>
+    for GoogleCloudDiscoveryengineV1ListCmekConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCmekConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListCmekConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListCmekConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1DataConnector.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsGetDataConnectorArgs>
+    for GoogleCloudDiscoveryengineV1DataConnector
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsGetDataConnectorArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1DataConnector/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1DataConnector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleApiHttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataConnectorMcpArgs>
+    for GoogleApiHttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataConnectorMcpArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleApiHttpBody/{}/{}/{}",
+            input.projects_id, input.locations_id, input.collections_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleApiHttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1CompleteQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresCompleteQueryArgs>
+    for GoogleCloudDiscoveryengineV1CompleteQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresCompleteQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1CompleteQueryResponse/{}",
+            input.data_store
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1CompleteQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1DataStore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresGetArgs>
+    for GoogleCloudDiscoveryengineV1DataStore
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1DataStore/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1DataStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1SiteSearchEngine.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresGetSiteSearchEngineArgs>
+    for GoogleCloudDiscoveryengineV1SiteSearchEngine
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresGetSiteSearchEngineArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1SiteSearchEngine/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1SiteSearchEngine"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListDataStoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresListArgs>
+    for GoogleCloudDiscoveryengineV1ListDataStoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListDataStoresResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListDataStoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesBatchGetDocumentsMetadataArgs,
+    > for GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesBatchGetDocumentsMetadataArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Document.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsCreateArgs,
+    > for GoogleCloudDiscoveryengineV1Document
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1Document/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsDeleteArgs,
+    > for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListDocumentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsListArgs,
+    > for GoogleCloudDiscoveryengineV1ListDocumentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListDocumentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListDocumentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionConfigCompleteQueryArgs,
+    > for GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionConfigCompleteQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse/{}",
+            input.completion_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Control.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresControlsCreateArgs>
+    for GoogleCloudDiscoveryengineV1Control
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresControlsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1Control/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Control"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListControlsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresControlsListArgs>
+    for GoogleCloudDiscoveryengineV1ListControlsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresControlsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListControlsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListControlsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ConverseConversationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsConverseArgs,
+    > for GoogleCloudDiscoveryengineV1ConverseConversationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsConverseArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ConverseConversationResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ConverseConversationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Conversation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsCreateArgs>
+    for GoogleCloudDiscoveryengineV1Conversation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1Conversation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Conversation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListConversationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsListArgs>
+    for GoogleCloudDiscoveryengineV1ListConversationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListConversationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListConversationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListCustomModelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresCustomModelsListArgs>
+    for GoogleCloudDiscoveryengineV1ListCustomModelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresCustomModelsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListCustomModelsResponse/{}",
+            input.data_store
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListCustomModelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Schema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasGetArgs>
+    for GoogleCloudDiscoveryengineV1Schema
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1Schema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Schema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasListArgs>
+    for GoogleCloudDiscoveryengineV1ListSchemasResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListSchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1AnswerQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsAnswerArgs,
+    > for GoogleCloudDiscoveryengineV1AnswerQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsAnswerArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1AnswerQueryResponse/{}",
+            input.serving_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1AnswerQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ServingConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsCreateArgs,
+    > for GoogleCloudDiscoveryengineV1ServingConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ServingConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ServingConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListServingConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsListArgs>
+    for GoogleCloudDiscoveryengineV1ListServingConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListServingConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListServingConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1RecommendResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsRecommendArgs,
+    > for GoogleCloudDiscoveryengineV1RecommendResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsRecommendArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1RecommendResponse/{}",
+            input.serving_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1RecommendResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1SearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsSearchArgs,
+    > for GoogleCloudDiscoveryengineV1SearchResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1SearchResponse/{}",
+            input.serving_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Session.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsCreateArgs>
+    for GoogleCloudDiscoveryengineV1Session
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1Session/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Session"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListSessionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsListArgs>
+    for GoogleCloudDiscoveryengineV1ListSessionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListSessionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Answer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsAnswersGetArgs>
+    for GoogleCloudDiscoveryengineV1Answer
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsAnswersGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1Answer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Answer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1FetchDomainVerificationStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineFetchDomainVerificationStatusArgs> for GoogleCloudDiscoveryengineV1FetchDomainVerificationStatusResponse {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineFetchDomainVerificationStatusArgs) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1FetchDomainVerificationStatusResponse/{}", input.site_search_engine)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1FetchDomainVerificationStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1FetchSitemapsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsFetchArgs,
+    > for GoogleCloudDiscoveryengineV1FetchSitemapsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsFetchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1FetchSitemapsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1FetchSitemapsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1TargetSite.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesGetArgs,
+    > for GoogleCloudDiscoveryengineV1TargetSite
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1TargetSite/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1TargetSite"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListTargetSitesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesListArgs,
+    > for GoogleCloudDiscoveryengineV1ListTargetSitesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListTargetSitesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListTargetSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1UserEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsWriteArgs>
+    for GoogleCloudDiscoveryengineV1UserEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsWriteArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1UserEvent/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1UserEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1WidgetConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsGetArgs>
+    for GoogleCloudDiscoveryengineV1WidgetConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1WidgetConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1WidgetConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Engine.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesGetArgs>
+    for GoogleCloudDiscoveryengineV1Engine
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1Engine/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Engine"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListEnginesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesListArgs>
+    for GoogleCloudDiscoveryengineV1ListEnginesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListEnginesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListEnginesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1Assistant.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsCreateArgs>
+    for GoogleCloudDiscoveryengineV1Assistant
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1Assistant/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1Assistant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListAssistantsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsListArgs>
+    for GoogleCloudDiscoveryengineV1ListAssistantsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListAssistantsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListAssistantsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1StreamAssistResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsStreamAssistArgs>
+    for GoogleCloudDiscoveryengineV1StreamAssistResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsStreamAssistArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1StreamAssistResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1StreamAssistResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for A2aV1AgentCard.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs,
+    > for A2aV1AgentCard
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs,
+    ) -> String {
+        format!("gcp::A2aV1AgentCard/{}", input.tenant)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::A2aV1AgentCard"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for A2aV1SendMessageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs,
+    > for A2aV1SendMessageResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs,
+    ) -> String {
+        format!("gcp::A2aV1SendMessageResponse/{}", input.tenant)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::A2aV1SendMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for A2aV1StreamResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs,
+    > for A2aV1StreamResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs,
+    ) -> String {
+        format!("gcp::A2aV1StreamResponse/{}", input.tenant)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::A2aV1StreamResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for A2aV1Task.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs,
+    > for A2aV1Task
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs,
+    ) -> String {
+        format!("gcp::A2aV1Task/{}/{}", input.tenant, input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::A2aV1Task"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for A2aV1TaskPushNotificationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs> for A2aV1TaskPushNotificationConfig {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs) -> String {
+        format!("gcp::A2aV1TaskPushNotificationConfig/{}/{}", input.tenant, input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::A2aV1TaskPushNotificationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for A2aV1ListTaskPushNotificationConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs> for A2aV1ListTaskPushNotificationConfigResponse {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs) -> String {
+        format!("gcp::A2aV1ListTaskPushNotificationConfigResponse/{}/{}", input.tenant, input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::A2aV1ListTaskPushNotificationConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1CheckGroundingResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsGroundingConfigsCheckArgs>
+    for GoogleCloudDiscoveryengineV1CheckGroundingResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsGroundingConfigsCheckArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1CheckGroundingResponse/{}",
+            input.grounding_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1CheckGroundingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1IdentityMappingStore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsIdentityMappingStoresCreateArgs>
+    for GoogleCloudDiscoveryengineV1IdentityMappingStore
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsIdentityMappingStoresCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1IdentityMappingStore/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1IdentityMappingStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsIdentityMappingStoresListArgs>
+    for GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsIdentityMappingStoresListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DiscoveryengineProjectsLocationsIdentityMappingStoresListIdentityMappingsArgs,
+    > for GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsIdentityMappingStoresListIdentityMappingsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse/{}",
+            input.identity_mapping_store
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1LicenseConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsLicenseConfigsCreateArgs>
+    for GoogleCloudDiscoveryengineV1LicenseConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsLicenseConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1LicenseConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1LicenseConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1RankResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsRankingConfigsRankArgs>
+    for GoogleCloudDiscoveryengineV1RankResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsRankingConfigsRankArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1RankResponse/{}",
+            input.ranking_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1RankResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1UserStore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsUserStoresGetArgs>
+    for GoogleCloudDiscoveryengineV1UserStore
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsUserStoresGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDiscoveryengineV1UserStore/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1UserStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListLicenseConfigsUsageStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsUserStoresLicenseConfigsUsageStatsListArgs>
+    for GoogleCloudDiscoveryengineV1ListLicenseConfigsUsageStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsUserStoresLicenseConfigsUsageStatsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListLicenseConfigsUsageStatsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListLicenseConfigsUsageStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDiscoveryengineV1ListUserLicensesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsUserStoresUserLicensesListArgs>
+    for GoogleCloudDiscoveryengineV1ListUserLicensesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DiscoveryengineProjectsLocationsUserStoresUserLicensesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDiscoveryengineV1ListUserLicensesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDiscoveryengineV1ListUserLicensesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

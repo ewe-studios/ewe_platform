@@ -560,3 +560,28 @@ pub struct AuditRefs {
     #[serde(default)]
     pub weight: ::core::option::Option<f64>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for PagespeedApiPagespeedResponseV5.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PagespeedonlinePagespeedapiRunpagespeedArgs>
+    for PagespeedApiPagespeedResponseV5
+{
+    fn generate_resource_id(&self, input: &PagespeedonlinePagespeedapiRunpagespeedArgs) -> String {
+        "gcp::PagespeedApiPagespeedResponseV5".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PagespeedApiPagespeedResponseV5"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

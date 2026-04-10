@@ -1663,9 +1663,6 @@ pub struct GoogleFirestoreAdminV1IndexField {
 /// Options for search indexes at the definition level.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchIndexOptions {
-    /// Optional. Custom partition fields to use for the search index. If unspecified, all indexed fields will be in the same default partition. If a search index is created specifying custom partition fields, all search queries using that index will be required to filter on the partition. For indexes with MONGODB_COMPATIBLE_API ApiScope: This must refer to a top level field name.
-    #[serde(default, rename = "customPartitionFieldPaths")]
-    pub custom_partition_field_paths: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The language to use for text search indexes. Used as the default language if not overridden at the document level by specifying the text_language_override_field. The language is specified as a BCP 47 language code. For indexes with MONGODB_COMPATIBLE_API ApiScope: If unspecified, the default language is English. For indexes with ANY_API ApiScope: If unspecified, the default behavior is autodetect.
     #[serde(default, rename = "textLanguage")]
     pub text_language: ::core::option::Option<String>,
@@ -1744,9 +1741,6 @@ pub struct GoogleFirestoreAdminV1SearchConfig {
     /// Optional. The specification for building a geo search index for a field.
     #[serde(default, rename = "geoSpec")]
     pub geo_spec: ::core::option::Option<GoogleFirestoreAdminV1SearchGeoSpec>,
-    /// Optional. The specification for building a number search index for a field.
-    #[serde(default, rename = "numberSpec")]
-    pub number_spec: ::core::option::Option<GoogleFirestoreAdminV1SearchNumberSpec>,
     /// Optional. The specification for building a text search index for a field.
     #[serde(default, rename = "textSpec")]
     pub text_spec: ::core::option::Option<GoogleFirestoreAdminV1SearchTextSpec>,
@@ -1771,14 +1765,6 @@ pub struct GoogleFirestoreAdminV1SearchGeoSpec {
     pub geo_json_indexing_disabled: ::core::option::Option<bool>,
 }
 
-/// The specification for how to build a number search index for a field.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1SearchNumberSpec {
-    /// Required. How to index the number field value. // TODO: enum values: ["NUMBER_INDEX_TYPE_UNSPECIFIED", "FLOAT64", "INT32_LOG_TREE", "INT64_LOG_TREE", "INT32_PREFIX_TREE", "INT64_PREFIX_TREE"]
-    #[serde(default, rename = "indexType")]
-    pub index_type: ::core::option::Option<String>,
-}
-
 /// The specification for how to build a text search index for a field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchTextSpec {
@@ -1797,10 +1783,10 @@ pub struct GoogleFirestoreAdminV1FlatIndex {
 /// Specification of how the field should be indexed for search text indexes.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
-    /// Required. How to index the text field value. // TODO: enum values: ["TEXT_INDEX_TYPE_UNSPECIFIED", "TOKENIZED", "NGRAMS", "EXACT_MATCH"]
+    /// Required. How to index the text field value. // TODO: enum values: ["TEXT_INDEX_TYPE_UNSPECIFIED", "TOKENIZED"]
     #[serde(default, rename = "indexType")]
     pub index_type: ::core::option::Option<String>,
-    /// Required. How to match the text field value. // TODO: enum values: ["TEXT_MATCH_TYPE_UNSPECIFIED", "MATCH_GLOBALLY", "MATCH_FIELD"]
+    /// Required. How to match the text field value. // TODO: enum values: ["TEXT_MATCH_TYPE_UNSPECIFIED", "MATCH_GLOBALLY"]
     #[serde(default, rename = "matchType")]
     pub match_type: ::core::option::Option<String>,
 }
@@ -1974,4 +1960,698 @@ pub struct ApiValue {
     /// Pointer to a variable defined elsewhere in a pipeline. Unlike field_reference_value which references a field within a document, this refers to a variable, defined in a separate namespace than the fields of a document.
     #[serde(default, rename = "variableReferenceValue")]
     pub variable_reference_value: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesBulkDeleteDocumentsArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesBulkDeleteDocumentsArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1Database.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesGetArgs> for GoogleFirestoreAdminV1Database {
+    fn generate_resource_id(&self, input: &FirestoreProjectsDatabasesGetArgs) -> String {
+        format!("gcp::GoogleFirestoreAdminV1Database/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1Database"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1ListDatabasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesListArgs>
+    for GoogleFirestoreAdminV1ListDatabasesResponse
+{
+    fn generate_resource_id(&self, input: &FirestoreProjectsDatabasesListArgs) -> String {
+        format!(
+            "gcp::GoogleFirestoreAdminV1ListDatabasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1ListDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1BackupSchedule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesBackupSchedulesCreateArgs>
+    for GoogleFirestoreAdminV1BackupSchedule
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesBackupSchedulesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleFirestoreAdminV1BackupSchedule/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1BackupSchedule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesBackupSchedulesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesBackupSchedulesDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1ListBackupSchedulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesBackupSchedulesListArgs>
+    for GoogleFirestoreAdminV1ListBackupSchedulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesBackupSchedulesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirestoreAdminV1ListBackupSchedulesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1ListBackupSchedulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1Field.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesCollectionGroupsFieldsGetArgs>
+    for GoogleFirestoreAdminV1Field
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesCollectionGroupsFieldsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleFirestoreAdminV1Field/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1Field"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1ListFieldsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesCollectionGroupsFieldsListArgs>
+    for GoogleFirestoreAdminV1ListFieldsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesCollectionGroupsFieldsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirestoreAdminV1ListFieldsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1ListFieldsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1Index.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesCollectionGroupsIndexesGetArgs>
+    for GoogleFirestoreAdminV1Index
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesCollectionGroupsIndexesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleFirestoreAdminV1Index/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1Index"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1ListIndexesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesCollectionGroupsIndexesListArgs>
+    for GoogleFirestoreAdminV1ListIndexesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesCollectionGroupsIndexesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirestoreAdminV1ListIndexesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1ListIndexesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchGetDocumentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsBatchGetArgs>
+    for BatchGetDocumentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsBatchGetArgs,
+    ) -> String {
+        format!("gcp::BatchGetDocumentsResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchGetDocumentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchWriteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsBatchWriteArgs> for BatchWriteResponse {
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsBatchWriteArgs,
+    ) -> String {
+        format!("gcp::BatchWriteResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchWriteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BeginTransactionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsBeginTransactionArgs>
+    for BeginTransactionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsBeginTransactionArgs,
+    ) -> String {
+        format!("gcp::BeginTransactionResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BeginTransactionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommitResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsCommitArgs> for CommitResponse {
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsCommitArgs,
+    ) -> String {
+        format!("gcp::CommitResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommitResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Document.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsCreateDocumentArgs> for Document {
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsCreateDocumentArgs,
+    ) -> String {
+        format!("gcp::Document/{}/{}", input.parent, input.collection_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecutePipelineResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsExecutePipelineArgs>
+    for ExecutePipelineResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsExecutePipelineArgs,
+    ) -> String {
+        format!("gcp::ExecutePipelineResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecutePipelineResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDocumentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsListArgs> for ListDocumentsResponse {
+    fn generate_resource_id(&self, input: &FirestoreProjectsDatabasesDocumentsListArgs) -> String {
+        format!(
+            "gcp::ListDocumentsResponse/{}/{}",
+            input.parent, input.collection_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDocumentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCollectionIdsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsListCollectionIdsArgs>
+    for ListCollectionIdsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsListCollectionIdsArgs,
+    ) -> String {
+        format!("gcp::ListCollectionIdsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCollectionIdsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsListenArgs> for ListenResponse {
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsListenArgs,
+    ) -> String {
+        format!("gcp::ListenResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PartitionQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsPartitionQueryArgs>
+    for PartitionQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsPartitionQueryArgs,
+    ) -> String {
+        format!("gcp::PartitionQueryResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PartitionQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunAggregationQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsRunAggregationQueryArgs>
+    for RunAggregationQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsRunAggregationQueryArgs,
+    ) -> String {
+        format!("gcp::RunAggregationQueryResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunAggregationQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsRunQueryArgs> for RunQueryResponse {
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesDocumentsRunQueryArgs,
+    ) -> String {
+        format!("gcp::RunQueryResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WriteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesDocumentsWriteArgs> for WriteResponse {
+    fn generate_resource_id(&self, input: &FirestoreProjectsDatabasesDocumentsWriteArgs) -> String {
+        format!("gcp::WriteResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WriteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &FirestoreProjectsDatabasesOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1UserCreds.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesUserCredsCreateArgs>
+    for GoogleFirestoreAdminV1UserCreds
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirestoreProjectsDatabasesUserCredsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleFirestoreAdminV1UserCreds/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1UserCreds"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1ListUserCredsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsDatabasesUserCredsListArgs>
+    for GoogleFirestoreAdminV1ListUserCredsResponse
+{
+    fn generate_resource_id(&self, input: &FirestoreProjectsDatabasesUserCredsListArgs) -> String {
+        format!(
+            "gcp::GoogleFirestoreAdminV1ListUserCredsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1ListUserCredsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &FirestoreProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &FirestoreProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1Backup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsLocationsBackupsGetArgs> for GoogleFirestoreAdminV1Backup {
+    fn generate_resource_id(&self, input: &FirestoreProjectsLocationsBackupsGetArgs) -> String {
+        format!("gcp::GoogleFirestoreAdminV1Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirestoreAdminV1ListBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirestoreProjectsLocationsBackupsListArgs>
+    for GoogleFirestoreAdminV1ListBackupsResponse
+{
+    fn generate_resource_id(&self, input: &FirestoreProjectsLocationsBackupsListArgs) -> String {
+        format!(
+            "gcp::GoogleFirestoreAdminV1ListBackupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirestoreAdminV1ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

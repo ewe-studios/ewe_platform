@@ -70,3 +70,73 @@ pub struct LicenseAssignment {
     #[serde(default, rename = "userId")]
     pub user_id: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &LicensingLicenseAssignmentsDeleteArgs) -> String {
+        format!(
+            "gcp::Empty/{}/{}/{}",
+            input.product_id, input.sku_id, input.user_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LicenseAssignment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsGetArgs> for LicenseAssignment {
+    fn generate_resource_id(&self, input: &LicensingLicenseAssignmentsGetArgs) -> String {
+        format!(
+            "gcp::LicenseAssignment/{}/{}/{}",
+            input.product_id, input.sku_id, input.user_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LicenseAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LicenseAssignmentList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsListForProductArgs> for LicenseAssignmentList {
+    fn generate_resource_id(
+        &self,
+        input: &LicensingLicenseAssignmentsListForProductArgs,
+    ) -> String {
+        format!("gcp::LicenseAssignmentList/{}", input.product_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LicenseAssignmentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

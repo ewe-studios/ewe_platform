@@ -345,3 +345,64 @@ pub struct GoogleTypeExpr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamPoliciesCreatePolicyArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &IamPoliciesCreatePolicyArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV2Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamPoliciesGetArgs> for GoogleIamV2Policy {
+    fn generate_resource_id(&self, input: &IamPoliciesGetArgs) -> String {
+        format!("gcp::GoogleIamV2Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV2ListPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamPoliciesListPoliciesArgs> for GoogleIamV2ListPoliciesResponse {
+    fn generate_resource_id(&self, input: &IamPoliciesListPoliciesArgs) -> String {
+        format!("gcp::GoogleIamV2ListPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV2ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

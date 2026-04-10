@@ -190,7 +190,8 @@ pub struct Parameter {
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct RequestBody {
-    pub content: BTreeMap<String, MediaType>,
+    #[serde(default)]
+    pub content: Option<BTreeMap<String, MediaType>>,
     #[serde(default)]
     pub required: bool,
 }

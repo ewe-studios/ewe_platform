@@ -2997,3 +2997,809 @@ pub struct ContainerTask {
     #[serde(default)]
     pub image: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ClouddeployProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Config.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsGetConfigArgs> for Config {
+    fn generate_resource_id(&self, input: &ClouddeployProjectsLocationsGetConfigArgs) -> String {
+        format!("gcp::Config/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Config"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ClouddeployProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsCustomTargetTypesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsCustomTargetTypesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomTargetType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsCustomTargetTypesGetArgs> for CustomTargetType {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsCustomTargetTypesGetArgs,
+    ) -> String {
+        format!("gcp::CustomTargetType/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomTargetType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsCustomTargetTypesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsCustomTargetTypesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomTargetTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsCustomTargetTypesListArgs>
+    for ListCustomTargetTypesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsCustomTargetTypesListArgs,
+    ) -> String {
+        format!("gcp::ListCustomTargetTypesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomTargetTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DeliveryPipeline.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesGetArgs> for DeliveryPipeline {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesGetArgs,
+    ) -> String {
+        format!("gcp::DeliveryPipeline/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeliveryPipeline"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDeliveryPipelinesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesListArgs>
+    for ListDeliveryPipelinesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesListArgs,
+    ) -> String {
+        format!("gcp::ListDeliveryPipelinesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDeliveryPipelinesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RollbackTargetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesRollbackTargetArgs>
+    for RollbackTargetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesRollbackTargetArgs,
+    ) -> String {
+        format!("gcp::RollbackTargetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RollbackTargetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CancelAutomationRunResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsCancelArgs>
+    for CancelAutomationRunResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsCancelArgs,
+    ) -> String {
+        format!("gcp::CancelAutomationRunResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CancelAutomationRunResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AutomationRun.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsGetArgs>
+    for AutomationRun
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsGetArgs,
+    ) -> String {
+        format!("gcp::AutomationRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AutomationRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAutomationRunsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsListArgs>
+    for ListAutomationRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsListArgs,
+    ) -> String {
+        format!("gcp::ListAutomationRunsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAutomationRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Automation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesAutomationsGetArgs>
+    for Automation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationsGetArgs,
+    ) -> String {
+        format!("gcp::Automation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Automation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAutomationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesAutomationsListArgs>
+    for ListAutomationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationsListArgs,
+    ) -> String {
+        format!("gcp::ListAutomationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAutomationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AbandonReleaseResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesAbandonArgs>
+    for AbandonReleaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesAbandonArgs,
+    ) -> String {
+        format!("gcp::AbandonReleaseResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AbandonReleaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Release.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesGetArgs> for Release {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesGetArgs,
+    ) -> String {
+        format!("gcp::Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReleasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesListArgs>
+    for ListReleasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesListArgs,
+    ) -> String {
+        format!("gcp::ListReleasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReleasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdvanceRolloutResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsAdvanceArgs>
+    for AdvanceRolloutResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsAdvanceArgs,
+    ) -> String {
+        format!("gcp::AdvanceRolloutResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdvanceRolloutResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApproveRolloutResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsApproveArgs>
+    for ApproveRolloutResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsApproveArgs,
+    ) -> String {
+        format!("gcp::ApproveRolloutResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApproveRolloutResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CancelRolloutResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsCancelArgs>
+    for CancelRolloutResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsCancelArgs,
+    ) -> String {
+        format!("gcp::CancelRolloutResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CancelRolloutResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Rollout.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsGetArgs>
+    for Rollout
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsGetArgs,
+    ) -> String {
+        format!("gcp::Rollout/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Rollout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IgnoreJobResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsIgnoreJobArgs>
+    for IgnoreJobResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsIgnoreJobArgs,
+    ) -> String {
+        format!("gcp::IgnoreJobResponse/{}", input.rollout)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IgnoreJobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRolloutsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsListArgs>
+    for ListRolloutsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsListArgs,
+    ) -> String {
+        format!("gcp::ListRolloutsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRolloutsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetryJobResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsRetryJobArgs>
+    for RetryJobResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsRetryJobArgs,
+    ) -> String {
+        format!("gcp::RetryJobResponse/{}", input.rollout)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetryJobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for JobRun.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsGetArgs>
+    for JobRun
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsGetArgs,
+    ) -> String {
+        format!("gcp::JobRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::JobRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListJobRunsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsListArgs>
+    for ListJobRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsListArgs,
+    ) -> String {
+        format!("gcp::ListJobRunsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListJobRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TerminateJobRunResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsTerminateArgs,
+    > for TerminateJobRunResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsTerminateArgs,
+    ) -> String {
+        format!("gcp::TerminateJobRunResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TerminateJobRunResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DeployPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeployPoliciesGetArgs> for DeployPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeployPoliciesGetArgs,
+    ) -> String {
+        format!("gcp::DeployPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeployPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDeployPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsDeployPoliciesListArgs>
+    for ListDeployPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsDeployPoliciesListArgs,
+    ) -> String {
+        format!("gcp::ListDeployPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDeployPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ClouddeployProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Target.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsTargetsGetArgs> for Target {
+    fn generate_resource_id(&self, input: &ClouddeployProjectsLocationsTargetsGetArgs) -> String {
+        format!("gcp::Target/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Target"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTargetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouddeployProjectsLocationsTargetsListArgs> for ListTargetsResponse {
+    fn generate_resource_id(&self, input: &ClouddeployProjectsLocationsTargetsListArgs) -> String {
+        format!("gcp::ListTargetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTargetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

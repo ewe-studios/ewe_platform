@@ -24,3 +24,26 @@ pub struct SearchResponse {
     #[serde(default, rename = "itemListElement")]
     pub item_list_element: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KgsearchEntitiesSearchArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &KgsearchEntitiesSearchArgs) -> String {
+        "gcp::SearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -403,3 +403,260 @@ pub struct PostPerUserInfo {
     #[serde(default, rename = "userId")]
     pub user_id: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BlogUserInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerBlogUserInfosGetArgs> for BlogUserInfo {
+    fn generate_resource_id(&self, input: &BloggerBlogUserInfosGetArgs) -> String {
+        format!("gcp::BlogUserInfo/{}/{}", input.user_id, input.blog_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BlogUserInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Blog.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerBlogsGetArgs> for Blog {
+    fn generate_resource_id(&self, input: &BloggerBlogsGetArgs) -> String {
+        format!("gcp::Blog/{}", input.blog_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Blog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BlogList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerBlogsListByUserArgs> for BlogList {
+    fn generate_resource_id(&self, input: &BloggerBlogsListByUserArgs) -> String {
+        format!("gcp::BlogList/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BlogList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Comment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerCommentsApproveArgs> for Comment {
+    fn generate_resource_id(&self, input: &BloggerCommentsApproveArgs) -> String {
+        format!(
+            "gcp::Comment/{}/{}/{}",
+            input.blog_id, input.post_id, input.comment_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommentList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerCommentsListArgs> for CommentList {
+    fn generate_resource_id(&self, input: &BloggerCommentsListArgs) -> String {
+        format!("gcp::CommentList/{}/{}", input.blog_id, input.post_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Pageviews.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerPageViewsGetArgs> for Pageviews {
+    fn generate_resource_id(&self, input: &BloggerPageViewsGetArgs) -> String {
+        format!("gcp::Pageviews/{}", input.blog_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Pageviews"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Page.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerPagesGetArgs> for Page {
+    fn generate_resource_id(&self, input: &BloggerPagesGetArgs) -> String {
+        format!("gcp::Page/{}/{}", input.blog_id, input.page_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Page"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PageList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerPagesListArgs> for PageList {
+    fn generate_resource_id(&self, input: &BloggerPagesListArgs) -> String {
+        format!("gcp::PageList/{}", input.blog_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PageList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PostUserInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerPostUserInfosGetArgs> for PostUserInfo {
+    fn generate_resource_id(&self, input: &BloggerPostUserInfosGetArgs) -> String {
+        format!(
+            "gcp::PostUserInfo/{}/{}/{}",
+            input.user_id, input.blog_id, input.post_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PostUserInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PostUserInfosList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerPostUserInfosListArgs> for PostUserInfosList {
+    fn generate_resource_id(&self, input: &BloggerPostUserInfosListArgs) -> String {
+        format!("gcp::PostUserInfosList/{}/{}", input.user_id, input.blog_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PostUserInfosList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Post.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerPostsGetArgs> for Post {
+    fn generate_resource_id(&self, input: &BloggerPostsGetArgs) -> String {
+        format!("gcp::Post/{}/{}", input.blog_id, input.post_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Post"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PostList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerPostsListArgs> for PostList {
+    fn generate_resource_id(&self, input: &BloggerPostsListArgs) -> String {
+        format!("gcp::PostList/{}", input.blog_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PostList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for User.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BloggerUsersGetArgs> for User {
+    fn generate_resource_id(&self, input: &BloggerUsersGetArgs) -> String {
+        format!("gcp::User/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

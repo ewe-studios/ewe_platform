@@ -38,3 +38,26 @@ pub struct Organization {
     #[serde(default, rename = "organizationName")]
     pub organization_name: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaycustomappAccountsCustomAppsCreateArgs> for CustomApp {
+    fn generate_resource_id(&self, input: &PlaycustomappAccountsCustomAppsCreateArgs) -> String {
+        format!("gcp::CustomApp/{}", input.account)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -569,3 +569,262 @@ pub struct TimeWindow {
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &DatafusionProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &DatafusionProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DatafusionProjectsLocationsInstancesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &DatafusionProjectsLocationsInstancesGetArgs) -> String {
+        format!("gcp::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatafusionProjectsLocationsInstancesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(&self, input: &DatafusionProjectsLocationsInstancesListArgs) -> String {
+        format!("gcp::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatafusionProjectsLocationsInstancesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsPeering.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesDnsPeeringsCreateArgs> for DnsPeering {
+    fn generate_resource_id(
+        &self,
+        input: &DatafusionProjectsLocationsInstancesDnsPeeringsCreateArgs,
+    ) -> String {
+        format!("gcp::DnsPeering/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DnsPeering"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesDnsPeeringsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatafusionProjectsLocationsInstancesDnsPeeringsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDnsPeeringsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsInstancesDnsPeeringsListArgs>
+    for ListDnsPeeringsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatafusionProjectsLocationsInstancesDnsPeeringsListArgs,
+    ) -> String {
+        format!("gcp::ListDnsPeeringsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDnsPeeringsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DatafusionProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAvailableVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatafusionProjectsLocationsVersionsListArgs>
+    for ListAvailableVersionsResponse
+{
+    fn generate_resource_id(&self, input: &DatafusionProjectsLocationsVersionsListArgs) -> String {
+        format!("gcp::ListAvailableVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAvailableVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -299,3 +299,146 @@ pub struct PostalAddress {
     #[serde(default)]
     pub sublocality: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchVerificationOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsFetchVerificationOptionsArgs>
+    for FetchVerificationOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsFetchVerificationOptionsArgs,
+    ) -> String {
+        format!("gcp::FetchVerificationOptionsResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchVerificationOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VoiceOfMerchantState.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsGetVoiceOfMerchantStateArgs>
+    for VoiceOfMerchantState
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsGetVoiceOfMerchantStateArgs,
+    ) -> String {
+        format!("gcp::VoiceOfMerchantState/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VoiceOfMerchantState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VerifyLocationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsVerifyArgs> for VerifyLocationResponse {
+    fn generate_resource_id(&self, input: &MybusinessverificationsLocationsVerifyArgs) -> String {
+        format!("gcp::VerifyLocationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyLocationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompleteVerificationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsVerificationsCompleteArgs>
+    for CompleteVerificationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsVerificationsCompleteArgs,
+    ) -> String {
+        format!("gcp::CompleteVerificationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompleteVerificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVerificationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsVerificationsListArgs>
+    for ListVerificationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsVerificationsListArgs,
+    ) -> String {
+        format!("gcp::ListVerificationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVerificationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateInstantVerificationTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsVerificationTokensGenerateArgs>
+    for GenerateInstantVerificationTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsVerificationTokensGenerateArgs,
+    ) -> String {
+        "gcp::GenerateInstantVerificationTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateInstantVerificationTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -24,3 +24,31 @@ pub struct NotificationSetting {
     #[serde(default, rename = "pubsubTopic")]
     pub pubsub_topic: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for NotificationSetting.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessnotificationsAccountsGetNotificationSettingArgs>
+    for NotificationSetting
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessnotificationsAccountsGetNotificationSettingArgs,
+    ) -> String {
+        format!("gcp::NotificationSetting/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NotificationSetting"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

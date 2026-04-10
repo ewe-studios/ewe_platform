@@ -1400,3 +1400,227 @@ pub struct GoogleTypeColor {
     #[serde(default)]
     pub red: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2Label.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsCreateArgs> for GoogleAppsDriveLabelsV2Label {
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsCreateArgs) -> String {
+        "gcp::GoogleAppsDriveLabelsV2Label".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2Label"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsDeltaArgs>
+    for GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse
+{
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsDeltaArgs) -> String {
+        format!(
+            "gcp::GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2ListLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsListArgs> for GoogleAppsDriveLabelsV2ListLabelsResponse {
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsListArgs) -> String {
+        "gcp::GoogleAppsDriveLabelsV2ListLabelsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2ListLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2LabelPermission.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsUpdatePermissionsArgs>
+    for GoogleAppsDriveLabelsV2LabelPermission
+{
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsUpdatePermissionsArgs) -> String {
+        format!(
+            "gcp::GoogleAppsDriveLabelsV2LabelPermission/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2LabelPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2ListLabelLocksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsLocksListArgs>
+    for GoogleAppsDriveLabelsV2ListLabelLocksResponse
+{
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsLocksListArgs) -> String {
+        format!(
+            "gcp::GoogleAppsDriveLabelsV2ListLabelLocksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2ListLabelLocksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsPermissionsBatchUpdateArgs>
+    for GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsPermissionsBatchUpdateArgs) -> String {
+        format!(
+            "gcp::GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2ListLabelPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLabelsPermissionsListArgs>
+    for GoogleAppsDriveLabelsV2ListLabelPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &DrivelabelsLabelsPermissionsListArgs) -> String {
+        format!(
+            "gcp::GoogleAppsDriveLabelsV2ListLabelPermissionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2ListLabelPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2LabelLimits.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsLimitsGetLabelArgs> for GoogleAppsDriveLabelsV2LabelLimits {
+    fn generate_resource_id(&self, input: &DrivelabelsLimitsGetLabelArgs) -> String {
+        "gcp::GoogleAppsDriveLabelsV2LabelLimits".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2LabelLimits"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsDriveLabelsV2UserCapabilities.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivelabelsUsersGetCapabilitiesArgs>
+    for GoogleAppsDriveLabelsV2UserCapabilities
+{
+    fn generate_resource_id(&self, input: &DrivelabelsUsersGetCapabilitiesArgs) -> String {
+        format!(
+            "gcp::GoogleAppsDriveLabelsV2UserCapabilities/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsDriveLabelsV2UserCapabilities"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

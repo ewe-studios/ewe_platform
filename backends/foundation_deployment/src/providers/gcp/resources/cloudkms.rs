@@ -1431,3 +1431,1001 @@ pub struct CertificateChains {
     #[serde(default, rename = "googlePartitionCerts")]
     pub google_partition_certs: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AutokeyConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsFoldersGetAutokeyConfigArgs> for AutokeyConfig {
+    fn generate_resource_id(&self, input: &CloudkmsFoldersGetAutokeyConfigArgs) -> String {
+        format!("gcp::AutokeyConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AutokeyConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for KeyAccessJustificationsPolicyConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsFoldersGetKajPolicyConfigArgs>
+    for KeyAccessJustificationsPolicyConfig
+{
+    fn generate_resource_id(&self, input: &CloudkmsFoldersGetKajPolicyConfigArgs) -> String {
+        format!("gcp::KeyAccessJustificationsPolicyConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::KeyAccessJustificationsPolicyConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShowEffectiveAutokeyConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsShowEffectiveAutokeyConfigArgs>
+    for ShowEffectiveAutokeyConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsShowEffectiveAutokeyConfigArgs,
+    ) -> String {
+        format!("gcp::ShowEffectiveAutokeyConfigResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShowEffectiveAutokeyConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsShowEffectiveKeyAccessJustificationsEnrollmentConfigArgs>
+    for ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsShowEffectiveKeyAccessJustificationsEnrollmentConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShowEffectiveKeyAccessJustificationsPolicyConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsShowEffectiveKeyAccessJustificationsPolicyConfigArgs>
+    for ShowEffectiveKeyAccessJustificationsPolicyConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsShowEffectiveKeyAccessJustificationsPolicyConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::ShowEffectiveKeyAccessJustificationsPolicyConfigResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShowEffectiveKeyAccessJustificationsPolicyConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateRandomBytesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsGenerateRandomBytesArgs>
+    for GenerateRandomBytesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsGenerateRandomBytesArgs,
+    ) -> String {
+        format!("gcp::GenerateRandomBytesResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateRandomBytesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &CloudkmsProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EkmConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsGetEkmConfigArgs> for EkmConfig {
+    fn generate_resource_id(&self, input: &CloudkmsProjectsLocationsGetEkmConfigArgs) -> String {
+        format!("gcp::EkmConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EkmConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &CloudkmsProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsEkmConfigGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsEkmConfigGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsEkmConfigTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsEkmConfigTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EkmConnection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsEkmConnectionsCreateArgs> for EkmConnection {
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsEkmConnectionsCreateArgs,
+    ) -> String {
+        format!("gcp::EkmConnection/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EkmConnection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEkmConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsEkmConnectionsListArgs>
+    for ListEkmConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsEkmConnectionsListArgs,
+    ) -> String {
+        format!("gcp::ListEkmConnectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEkmConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VerifyConnectivityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsEkmConnectionsVerifyConnectivityArgs>
+    for VerifyConnectivityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsEkmConnectionsVerifyConnectivityArgs,
+    ) -> String {
+        format!("gcp::VerifyConnectivityResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyConnectivityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyHandlesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyHandlesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for KeyHandle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyHandlesGetArgs> for KeyHandle {
+    fn generate_resource_id(&self, input: &CloudkmsProjectsLocationsKeyHandlesGetArgs) -> String {
+        format!("gcp::KeyHandle/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::KeyHandle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListKeyHandlesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyHandlesListArgs> for ListKeyHandlesResponse {
+    fn generate_resource_id(&self, input: &CloudkmsProjectsLocationsKeyHandlesListArgs) -> String {
+        format!("gcp::ListKeyHandlesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListKeyHandlesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for KeyRing.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCreateArgs> for KeyRing {
+    fn generate_resource_id(&self, input: &CloudkmsProjectsLocationsKeyRingsCreateArgs) -> String {
+        format!("gcp::KeyRing/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::KeyRing"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListKeyRingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsListArgs> for ListKeyRingsResponse {
+    fn generate_resource_id(&self, input: &CloudkmsProjectsLocationsKeyRingsListArgs) -> String {
+        format!("gcp::ListKeyRingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListKeyRingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CryptoKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCreateArgs> for CryptoKey {
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCreateArgs,
+    ) -> String {
+        format!("gcp::CryptoKey/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CryptoKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DecryptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysDecryptArgs>
+    for DecryptResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysDecryptArgs,
+    ) -> String {
+        format!("gcp::DecryptResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DecryptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EncryptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysEncryptArgs>
+    for EncryptResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysEncryptArgs,
+    ) -> String {
+        format!("gcp::EncryptResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EncryptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCryptoKeysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysListArgs>
+    for ListCryptoKeysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysListArgs,
+    ) -> String {
+        format!("gcp::ListCryptoKeysResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCryptoKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AsymmetricDecryptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricDecryptArgs,
+    > for AsymmetricDecryptResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricDecryptArgs,
+    ) -> String {
+        format!("gcp::AsymmetricDecryptResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AsymmetricDecryptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AsymmetricSignResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricSignArgs,
+    > for AsymmetricSignResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricSignArgs,
+    ) -> String {
+        format!("gcp::AsymmetricSignResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AsymmetricSignResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CryptoKeyVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsCreateArgs>
+    for CryptoKeyVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::CryptoKeyVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CryptoKeyVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DecapsulateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDecapsulateArgs>
+    for DecapsulateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDecapsulateArgs,
+    ) -> String {
+        format!("gcp::DecapsulateResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DecapsulateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublicKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsGetPublicKeyArgs>
+    for PublicKey
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsGetPublicKeyArgs,
+    ) -> String {
+        format!("gcp::PublicKey/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublicKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCryptoKeyVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsListArgs>
+    for ListCryptoKeyVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListCryptoKeyVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCryptoKeyVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MacSignResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacSignArgs>
+    for MacSignResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacSignArgs,
+    ) -> String {
+        format!("gcp::MacSignResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MacSignResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MacVerifyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacVerifyArgs>
+    for MacVerifyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacVerifyArgs,
+    ) -> String {
+        format!("gcp::MacVerifyResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MacVerifyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RawDecryptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawDecryptArgs>
+    for RawDecryptResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawDecryptArgs,
+    ) -> String {
+        format!("gcp::RawDecryptResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RawDecryptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RawEncryptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawEncryptArgs>
+    for RawEncryptResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawEncryptArgs,
+    ) -> String {
+        format!("gcp::RawEncryptResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RawEncryptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ImportJob.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsImportJobsCreateArgs> for ImportJob {
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsImportJobsCreateArgs,
+    ) -> String {
+        format!("gcp::ImportJob/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ImportJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListImportJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsKeyRingsImportJobsListArgs>
+    for ListImportJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsKeyRingsImportJobsListArgs,
+    ) -> String {
+        format!("gcp::ListImportJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListImportJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetiredResource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsRetiredResourcesGetArgs> for RetiredResource {
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsRetiredResourcesGetArgs,
+    ) -> String {
+        format!("gcp::RetiredResource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetiredResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRetiredResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsRetiredResourcesListArgs>
+    for ListRetiredResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsRetiredResourcesListArgs,
+    ) -> String {
+        format!("gcp::ListRetiredResourcesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRetiredResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SingleTenantHsmInstance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsSingleTenantHsmInstancesGetArgs>
+    for SingleTenantHsmInstance
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsSingleTenantHsmInstancesGetArgs,
+    ) -> String {
+        format!("gcp::SingleTenantHsmInstance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SingleTenantHsmInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSingleTenantHsmInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsSingleTenantHsmInstancesListArgs>
+    for ListSingleTenantHsmInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsSingleTenantHsmInstancesListArgs,
+    ) -> String {
+        format!("gcp::ListSingleTenantHsmInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSingleTenantHsmInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApproveSingleTenantHsmInstanceProposalResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsApproveArgs>
+    for ApproveSingleTenantHsmInstanceProposalResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsApproveArgs,
+    ) -> String {
+        format!(
+            "gcp::ApproveSingleTenantHsmInstanceProposalResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApproveSingleTenantHsmInstanceProposalResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SingleTenantHsmInstanceProposal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsGetArgs>
+    for SingleTenantHsmInstanceProposal
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsGetArgs,
+    ) -> String {
+        format!("gcp::SingleTenantHsmInstanceProposal/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SingleTenantHsmInstanceProposal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSingleTenantHsmInstanceProposalsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsListArgs>
+    for ListSingleTenantHsmInstanceProposalsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListSingleTenantHsmInstanceProposalsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSingleTenantHsmInstanceProposalsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

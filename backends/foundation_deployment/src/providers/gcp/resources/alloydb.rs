@@ -2203,3 +2203,324 @@ pub struct StorageDatabasecenterPartnerapiV1mainOperationError {
     #[serde(default)]
     pub message: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsGetArgs) -> String {
+        format!("gcp::GoogleCloudLocationLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsBackupsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsBackupsCreateArgs) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Backup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsBackupsGetArgs> for Backup {
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsBackupsGetArgs) -> String {
+        format!("gcp::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsBackupsListArgs> for ListBackupsResponse {
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsBackupsListArgs) -> String {
+        format!("gcp::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Cluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersGetArgs> for Cluster {
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsClustersGetArgs) -> String {
+        format!("gcp::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsClustersListArgs) -> String {
+        format!("gcp::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersInstancesGetArgs> for Instance {
+    fn generate_resource_id(
+        &self,
+        input: &AlloydbProjectsLocationsClustersInstancesGetArgs,
+    ) -> String {
+        format!("gcp::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConnectionInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersInstancesGetConnectionInfoArgs>
+    for ConnectionInfo
+{
+    fn generate_resource_id(
+        &self,
+        input: &AlloydbProjectsLocationsClustersInstancesGetConnectionInfoArgs,
+    ) -> String {
+        format!("gcp::ConnectionInfo/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConnectionInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersInstancesListArgs>
+    for ListInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AlloydbProjectsLocationsClustersInstancesListArgs,
+    ) -> String {
+        format!("gcp::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for User.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersUsersCreateArgs> for User {
+    fn generate_resource_id(
+        &self,
+        input: &AlloydbProjectsLocationsClustersUsersCreateArgs,
+    ) -> String {
+        format!("gcp::User/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersUsersDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AlloydbProjectsLocationsClustersUsersDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsClustersUsersListArgs> for ListUsersResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AlloydbProjectsLocationsClustersUsersListArgs,
+    ) -> String {
+        format!("gcp::ListUsersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &AlloydbProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSupportedDatabaseFlagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlloydbProjectsLocationsSupportedDatabaseFlagsListArgs>
+    for ListSupportedDatabaseFlagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AlloydbProjectsLocationsSupportedDatabaseFlagsListArgs,
+    ) -> String {
+        format!("gcp::ListSupportedDatabaseFlagsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSupportedDatabaseFlagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

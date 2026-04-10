@@ -24,3 +24,31 @@ pub struct ExternalAccountKey {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExternalAccountKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubliccaProjectsLocationsExternalAccountKeysCreateArgs>
+    for ExternalAccountKey
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubliccaProjectsLocationsExternalAccountKeysCreateArgs,
+    ) -> String {
+        format!("gcp::ExternalAccountKey/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExternalAccountKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

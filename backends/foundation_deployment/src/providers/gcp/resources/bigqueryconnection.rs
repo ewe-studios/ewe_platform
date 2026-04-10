@@ -430,3 +430,121 @@ pub struct ConnectorConfigurationSecret {
     #[serde(default, rename = "secretType")]
     pub secret_type: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Connection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryconnectionProjectsLocationsConnectionsCreateArgs> for Connection {
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryconnectionProjectsLocationsConnectionsCreateArgs,
+    ) -> String {
+        format!("gcp::Connection/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Connection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryconnectionProjectsLocationsConnectionsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryconnectionProjectsLocationsConnectionsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryconnectionProjectsLocationsConnectionsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryconnectionProjectsLocationsConnectionsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryconnectionProjectsLocationsConnectionsListArgs>
+    for ListConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryconnectionProjectsLocationsConnectionsListArgs,
+    ) -> String {
+        format!("gcp::ListConnectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryconnectionProjectsLocationsConnectionsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryconnectionProjectsLocationsConnectionsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

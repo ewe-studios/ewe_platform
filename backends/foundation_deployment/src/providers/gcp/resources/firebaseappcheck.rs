@@ -542,3 +542,681 @@ pub struct GoogleFirebaseAppcheckV1Service {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1PublicJwkSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckJwksGetArgs> for GoogleFirebaseAppcheckV1PublicJwkSet {
+    fn generate_resource_id(&self, input: &FirebaseappcheckJwksGetArgs) -> String {
+        "gcp::GoogleFirebaseAppcheckV1PublicJwkSet".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1PublicJwkSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1AppCheckToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckOauthClientsExchangeAppAttestAssertionArgs>
+    for GoogleFirebaseAppcheckV1AppCheckToken
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckOauthClientsExchangeAppAttestAssertionArgs,
+    ) -> String {
+        format!("gcp::GoogleFirebaseAppcheckV1AppCheckToken/{}", input.app)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1AppCheckToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckOauthClientsExchangeAppAttestAttestationArgs>
+    for GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckOauthClientsExchangeAppAttestAttestationArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse/{}",
+            input.app
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckOauthClientsGenerateAppAttestChallengeArgs>
+    for GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckOauthClientsGenerateAppAttestChallengeArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse/{}",
+            input.app
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsGeneratePlayIntegrityChallengeArgs>
+    for GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsGeneratePlayIntegrityChallengeArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse/{}",
+            input.app
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsAppAttestConfigBatchGetArgs>
+    for GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsAppAttestConfigBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1AppAttestConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsAppAttestConfigGetArgs>
+    for GoogleFirebaseAppcheckV1AppAttestConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsAppAttestConfigGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1AppAttestConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1AppAttestConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1DebugToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsDebugTokensCreateArgs>
+    for GoogleFirebaseAppcheckV1DebugToken
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsDebugTokensCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleFirebaseAppcheckV1DebugToken/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1DebugToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsDebugTokensDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsDebugTokensDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1ListDebugTokensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsDebugTokensListArgs>
+    for GoogleFirebaseAppcheckV1ListDebugTokensResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsDebugTokensListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1ListDebugTokensResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1ListDebugTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsDeviceCheckConfigBatchGetArgs>
+    for GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsDeviceCheckConfigBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1DeviceCheckConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsDeviceCheckConfigGetArgs>
+    for GoogleFirebaseAppcheckV1DeviceCheckConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsDeviceCheckConfigGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1DeviceCheckConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1DeviceCheckConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsPlayIntegrityConfigBatchGetArgs>
+    for GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsPlayIntegrityConfigBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1PlayIntegrityConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsPlayIntegrityConfigGetArgs>
+    for GoogleFirebaseAppcheckV1PlayIntegrityConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsPlayIntegrityConfigGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1PlayIntegrityConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1PlayIntegrityConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigBatchGetArgs>
+    for GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigGetArgs>
+    for GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsRecaptchaV3ConfigBatchGetArgs>
+    for GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsRecaptchaV3ConfigBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1RecaptchaV3Config.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsRecaptchaV3ConfigGetArgs>
+    for GoogleFirebaseAppcheckV1RecaptchaV3Config
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsRecaptchaV3ConfigGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1RecaptchaV3Config/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1RecaptchaV3Config"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsSafetyNetConfigBatchGetArgs>
+    for GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsSafetyNetConfigBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1SafetyNetConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsAppsSafetyNetConfigGetArgs>
+    for GoogleFirebaseAppcheckV1SafetyNetConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsAppsSafetyNetConfigGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1SafetyNetConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1SafetyNetConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchUpdateServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsServicesBatchUpdateArgs>
+    for GoogleFirebaseAppcheckV1BatchUpdateServicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsServicesBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchUpdateServicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchUpdateServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1Service.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsServicesGetArgs>
+    for GoogleFirebaseAppcheckV1Service
+{
+    fn generate_resource_id(&self, input: &FirebaseappcheckProjectsServicesGetArgs) -> String {
+        format!("gcp::GoogleFirebaseAppcheckV1Service/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1ListServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsServicesListArgs>
+    for GoogleFirebaseAppcheckV1ListServicesResponse
+{
+    fn generate_resource_id(&self, input: &FirebaseappcheckProjectsServicesListArgs) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1ListServicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsServicesResourcePoliciesBatchUpdateArgs>
+    for GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsServicesResourcePoliciesBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1ResourcePolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsServicesResourcePoliciesCreateArgs>
+    for GoogleFirebaseAppcheckV1ResourcePolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsServicesResourcePoliciesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1ResourcePolicy/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1ResourcePolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1ListResourcePoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappcheckProjectsServicesResourcePoliciesListArgs>
+    for GoogleFirebaseAppcheckV1ListResourcePoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappcheckProjectsServicesResourcePoliciesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppcheckV1ListResourcePoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppcheckV1ListResourcePoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

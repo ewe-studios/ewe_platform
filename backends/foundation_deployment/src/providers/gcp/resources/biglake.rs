@@ -273,3 +273,180 @@ pub struct SerDeInfo {
     #[serde(default, rename = "serializationLib")]
     pub serialization_lib: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsCatalogsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &BiglakeProjectsCatalogsGetIamPolicyArgs) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsCatalogsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BiglakeProjectsCatalogsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Catalog.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsLocationsCatalogsCreateArgs> for Catalog {
+    fn generate_resource_id(&self, input: &BiglakeProjectsLocationsCatalogsCreateArgs) -> String {
+        format!("gcp::Catalog/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Catalog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCatalogsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsLocationsCatalogsListArgs> for ListCatalogsResponse {
+    fn generate_resource_id(&self, input: &BiglakeProjectsLocationsCatalogsListArgs) -> String {
+        format!("gcp::ListCatalogsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCatalogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Database.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsLocationsCatalogsDatabasesCreateArgs> for Database {
+    fn generate_resource_id(
+        &self,
+        input: &BiglakeProjectsLocationsCatalogsDatabasesCreateArgs,
+    ) -> String {
+        format!("gcp::Database/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Database"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDatabasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsLocationsCatalogsDatabasesListArgs>
+    for ListDatabasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BiglakeProjectsLocationsCatalogsDatabasesListArgs,
+    ) -> String {
+        format!("gcp::ListDatabasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Table.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsLocationsCatalogsDatabasesTablesCreateArgs> for Table {
+    fn generate_resource_id(
+        &self,
+        input: &BiglakeProjectsLocationsCatalogsDatabasesTablesCreateArgs,
+    ) -> String {
+        format!("gcp::Table/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Table"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTablesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BiglakeProjectsLocationsCatalogsDatabasesTablesListArgs>
+    for ListTablesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BiglakeProjectsLocationsCatalogsDatabasesTablesListArgs,
+    ) -> String {
+        format!("gcp::ListTablesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTablesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -1218,3 +1218,319 @@ pub struct ProfileMetadata {
     #[serde(default, rename = "userTypes")]
     pub user_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetContactGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsBatchGetArgs> for BatchGetContactGroupsResponse {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsBatchGetArgs) -> String {
+        "gcp::BatchGetContactGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchGetContactGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ContactGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsCreateArgs> for ContactGroup {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsCreateArgs) -> String {
+        "gcp::ContactGroup".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ContactGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.resource_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListContactGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsListArgs> for ListContactGroupsResponse {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsListArgs) -> String {
+        "gcp::ListContactGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListContactGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ModifyContactGroupMembersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsMembersModifyArgs>
+    for ModifyContactGroupMembersResponse
+{
+    fn generate_resource_id(&self, input: &PeopleContactGroupsMembersModifyArgs) -> String {
+        format!(
+            "gcp::ModifyContactGroupMembersResponse/{}",
+            input.resource_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ModifyContactGroupMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Person.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs> for Person {
+    fn generate_resource_id(
+        &self,
+        input: &PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs,
+    ) -> String {
+        format!("gcp::Person/{}", input.resource_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Person"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOtherContactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleOtherContactsListArgs> for ListOtherContactsResponse {
+    fn generate_resource_id(&self, input: &PeopleOtherContactsListArgs) -> String {
+        "gcp::ListOtherContactsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOtherContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleOtherContactsSearchArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &PeopleOtherContactsSearchArgs) -> String {
+        "gcp::SearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchCreateContactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleBatchCreateContactsArgs> for BatchCreateContactsResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleBatchCreateContactsArgs) -> String {
+        "gcp::BatchCreateContactsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchCreateContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchUpdateContactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleBatchUpdateContactsArgs> for BatchUpdateContactsResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleBatchUpdateContactsArgs) -> String {
+        "gcp::BatchUpdateContactsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchUpdateContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DeleteContactPhotoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleDeleteContactPhotoArgs> for DeleteContactPhotoResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleDeleteContactPhotoArgs) -> String {
+        format!("gcp::DeleteContactPhotoResponse/{}", input.resource_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeleteContactPhotoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetPeopleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleGetBatchGetArgs> for GetPeopleResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleGetBatchGetArgs) -> String {
+        "gcp::GetPeopleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetPeopleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDirectoryPeopleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleListDirectoryPeopleArgs> for ListDirectoryPeopleResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleListDirectoryPeopleArgs) -> String {
+        "gcp::ListDirectoryPeopleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDirectoryPeopleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchDirectoryPeopleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleSearchDirectoryPeopleArgs> for SearchDirectoryPeopleResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleSearchDirectoryPeopleArgs) -> String {
+        "gcp::SearchDirectoryPeopleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchDirectoryPeopleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UpdateContactPhotoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleUpdateContactPhotoArgs> for UpdateContactPhotoResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleUpdateContactPhotoArgs) -> String {
+        format!("gcp::UpdateContactPhotoResponse/{}", input.resource_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UpdateContactPhotoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleConnectionsListArgs> for ListConnectionsResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleConnectionsListArgs) -> String {
+        format!("gcp::ListConnectionsResponse/{}", input.resource_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

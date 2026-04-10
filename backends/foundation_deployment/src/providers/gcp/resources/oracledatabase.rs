@@ -2256,3 +2256,910 @@ pub struct BackupDestinationDetails {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &OracledatabaseProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &OracledatabaseProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAutonomousDatabaseBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs>
+    for ListAutonomousDatabaseBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListAutonomousDatabaseBackupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAutonomousDatabaseBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAutonomousDatabaseCharacterSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs>
+    for ListAutonomousDatabaseCharacterSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListAutonomousDatabaseCharacterSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAutonomousDatabaseCharacterSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateAutonomousDatabaseWalletResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs>
+    for GenerateAutonomousDatabaseWalletResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs,
+    ) -> String {
+        format!(
+            "gcp::GenerateAutonomousDatabaseWalletResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateAutonomousDatabaseWalletResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AutonomousDatabase.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs>
+    for AutonomousDatabase
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs,
+    ) -> String {
+        format!("gcp::AutonomousDatabase/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AutonomousDatabase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAutonomousDatabasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesListArgs>
+    for ListAutonomousDatabasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesListArgs,
+    ) -> String {
+        format!("gcp::ListAutonomousDatabasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAutonomousDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAutonomousDbVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs>
+    for ListAutonomousDbVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListAutonomousDbVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAutonomousDbVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudExadataInfrastructure.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs>
+    for CloudExadataInfrastructure
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs,
+    ) -> String {
+        format!("gcp::CloudExadataInfrastructure/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CloudExadataInfrastructure"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCloudExadataInfrastructuresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs>
+    for ListCloudExadataInfrastructuresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListCloudExadataInfrastructuresResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCloudExadataInfrastructuresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDbServersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs>
+    for ListDbServersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs,
+    ) -> String {
+        format!("gcp::ListDbServersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDbServersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudVmCluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersGetArgs> for CloudVmCluster {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersGetArgs,
+    ) -> String {
+        format!("gcp::CloudVmCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CloudVmCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCloudVmClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersListArgs>
+    for ListCloudVmClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersListArgs,
+    ) -> String {
+        format!("gcp::ListCloudVmClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCloudVmClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDbNodesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs>
+    for ListDbNodesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs,
+    ) -> String {
+        format!("gcp::ListDbNodesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDbNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDatabaseCharacterSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs>
+    for ListDatabaseCharacterSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs,
+    ) -> String {
+        format!("gcp::ListDatabaseCharacterSetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDatabaseCharacterSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Database.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDatabasesGetArgs> for Database {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDatabasesGetArgs,
+    ) -> String {
+        format!("gcp::Database/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Database"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDatabasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDatabasesListArgs>
+    for ListDatabasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDatabasesListArgs,
+    ) -> String {
+        format!("gcp::ListDatabasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDbSystemInitialStorageSizesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs>
+    for ListDbSystemInitialStorageSizesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListDbSystemInitialStorageSizesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDbSystemInitialStorageSizesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDbSystemShapesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemShapesListArgs>
+    for ListDbSystemShapesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemShapesListArgs,
+    ) -> String {
+        format!("gcp::ListDbSystemShapesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDbSystemShapesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DbSystem.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemsGetArgs> for DbSystem {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemsGetArgs,
+    ) -> String {
+        format!("gcp::DbSystem/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DbSystem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDbSystemsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemsListArgs>
+    for ListDbSystemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemsListArgs,
+    ) -> String {
+        format!("gcp::ListDbSystemsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDbSystemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDbVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbVersionsListArgs>
+    for ListDbVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListDbVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDbVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEntitlementsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsEntitlementsListArgs>
+    for ListEntitlementsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsEntitlementsListArgs,
+    ) -> String {
+        format!("gcp::ListEntitlementsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEntitlementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExadbVmCluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersGetArgs> for ExadbVmCluster {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersGetArgs,
+    ) -> String {
+        format!("gcp::ExadbVmCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExadbVmCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListExadbVmClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersListArgs>
+    for ListExadbVmClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersListArgs,
+    ) -> String {
+        format!("gcp::ListExadbVmClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListExadbVmClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExascaleDbStorageVault.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs>
+    for ExascaleDbStorageVault
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs,
+    ) -> String {
+        format!("gcp::ExascaleDbStorageVault/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExascaleDbStorageVault"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListExascaleDbStorageVaultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs>
+    for ListExascaleDbStorageVaultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs,
+    ) -> String {
+        format!("gcp::ListExascaleDbStorageVaultsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListExascaleDbStorageVaultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGiVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsGiVersionsListArgs>
+    for ListGiVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsGiVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListGiVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGiVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMinorVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs>
+    for ListMinorVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListMinorVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMinorVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OdbNetwork.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksGetArgs> for OdbNetwork {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksGetArgs,
+    ) -> String {
+        format!("gcp::OdbNetwork/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OdbNetwork"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOdbNetworksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksListArgs>
+    for ListOdbNetworksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksListArgs,
+    ) -> String {
+        format!("gcp::ListOdbNetworksResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOdbNetworksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OdbSubnet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs> for OdbSubnet {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs,
+    ) -> String {
+        format!("gcp::OdbSubnet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OdbSubnet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOdbSubnetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs>
+    for ListOdbSubnetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs,
+    ) -> String {
+        format!("gcp::ListOdbSubnetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOdbSubnetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PluggableDatabase.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsPluggableDatabasesGetArgs>
+    for PluggableDatabase
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsPluggableDatabasesGetArgs,
+    ) -> String {
+        format!("gcp::PluggableDatabase/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PluggableDatabase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPluggableDatabasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsPluggableDatabasesListArgs>
+    for ListPluggableDatabasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsPluggableDatabasesListArgs,
+    ) -> String {
+        format!("gcp::ListPluggableDatabasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPluggableDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

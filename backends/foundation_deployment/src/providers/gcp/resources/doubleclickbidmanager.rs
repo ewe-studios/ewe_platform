@@ -217,3 +217,83 @@ pub struct Date {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Query.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclickbidmanagerQueriesCreateArgs> for Query {
+    fn generate_resource_id(&self, input: &DoubleclickbidmanagerQueriesCreateArgs) -> String {
+        "gcp::Query".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Query"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListQueriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclickbidmanagerQueriesListArgs> for ListQueriesResponse {
+    fn generate_resource_id(&self, input: &DoubleclickbidmanagerQueriesListArgs) -> String {
+        "gcp::ListQueriesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListQueriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Report.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclickbidmanagerQueriesRunArgs> for Report {
+    fn generate_resource_id(&self, input: &DoubleclickbidmanagerQueriesRunArgs) -> String {
+        format!("gcp::Report/{}", input.query_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Report"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclickbidmanagerQueriesReportsListArgs> for ListReportsResponse {
+    fn generate_resource_id(&self, input: &DoubleclickbidmanagerQueriesReportsListArgs) -> String {
+        format!("gcp::ListReportsResponse/{}", input.query_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

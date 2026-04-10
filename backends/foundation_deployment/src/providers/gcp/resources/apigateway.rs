@@ -405,3 +405,283 @@ pub struct ApigatewayExpr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ApigatewayLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsGetArgs> for ApigatewayLocation {
+    fn generate_resource_id(&self, input: &ApigatewayProjectsLocationsGetArgs) -> String {
+        format!("gcp::ApigatewayLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsListArgs> for ApigatewayListLocationsResponse {
+    fn generate_resource_id(&self, input: &ApigatewayProjectsLocationsListArgs) -> String {
+        format!("gcp::ApigatewayListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsApisCreateArgs> for ApigatewayOperation {
+    fn generate_resource_id(&self, input: &ApigatewayProjectsLocationsApisCreateArgs) -> String {
+        format!("gcp::ApigatewayOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayApi.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsApisGetArgs> for ApigatewayApi {
+    fn generate_resource_id(&self, input: &ApigatewayProjectsLocationsApisGetArgs) -> String {
+        format!("gcp::ApigatewayApi/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayApi"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsApisGetIamPolicyArgs> for ApigatewayPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &ApigatewayProjectsLocationsApisGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::ApigatewayPolicy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayListApisResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsApisListArgs> for ApigatewayListApisResponse {
+    fn generate_resource_id(&self, input: &ApigatewayProjectsLocationsApisListArgs) -> String {
+        format!("gcp::ApigatewayListApisResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayListApisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayTestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsApisTestIamPermissionsArgs>
+    for ApigatewayTestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigatewayProjectsLocationsApisTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::ApigatewayTestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayTestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayApiConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsApisConfigsGetArgs> for ApigatewayApiConfig {
+    fn generate_resource_id(
+        &self,
+        input: &ApigatewayProjectsLocationsApisConfigsGetArgs,
+    ) -> String {
+        format!("gcp::ApigatewayApiConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayApiConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayListApiConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsApisConfigsListArgs>
+    for ApigatewayListApiConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigatewayProjectsLocationsApisConfigsListArgs,
+    ) -> String {
+        format!("gcp::ApigatewayListApiConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayListApiConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayGateway.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsGatewaysGetArgs> for ApigatewayGateway {
+    fn generate_resource_id(&self, input: &ApigatewayProjectsLocationsGatewaysGetArgs) -> String {
+        format!("gcp::ApigatewayGateway/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayListGatewaysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsGatewaysListArgs>
+    for ApigatewayListGatewaysResponse
+{
+    fn generate_resource_id(&self, input: &ApigatewayProjectsLocationsGatewaysListArgs) -> String {
+        format!("gcp::ApigatewayListGatewaysResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayListGatewaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApigatewayProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApigatewayListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigatewayProjectsLocationsOperationsListArgs>
+    for ApigatewayListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigatewayProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ApigatewayListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApigatewayListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

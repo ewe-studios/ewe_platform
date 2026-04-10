@@ -441,12 +441,18 @@ pub struct GdataContentTypeInfo {
     /// The content type of the file derived from the file extension of the original file name used by the client.
     #[serde(default, rename = "fromFileName")]
     pub from_file_name: ::core::option::Option<String>,
+    /// The content type of the file detected by Fusion ID. go/fusionid
+    #[serde(default, rename = "fromFusionId")]
+    pub from_fusion_id: ::core::option::Option<String>,
     /// The content type of the file as specified in the request headers, multipart headers, or RUPIO start request.
     #[serde(default, rename = "fromHeader")]
     pub from_header: ::core::option::Option<String>,
     /// The content type of the file derived from the file extension of the URL path. The URL path is assumed to represent a file name (which is typically only true for agents that are providing a REST API).
     #[serde(default, rename = "fromUrlPath")]
     pub from_url_path: ::core::option::Option<String>,
+    /// Metadata information from Fusion ID detection. Serialized FusionIdDetectionMetadata proto. Only set if from_fusion_id is set.
+    #[serde(default, rename = "fusionIdDetectionMetadata")]
+    pub fusion_id_detection_metadata: ::core::option::Option<String>,
 }
 
 /// Backend response for a Diff get checksums response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
@@ -622,4 +628,390 @@ pub struct GdataObjectId {
     /// The name of the object.
     #[serde(default, rename = "objectName")]
     pub object_name: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionMediaUploadArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &FirebaseappdistributionMediaUploadArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.app)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1AabInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsGetAabInfoArgs>
+    for GoogleFirebaseAppdistroV1AabInfo
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsGetAabInfoArgs,
+    ) -> String {
+        format!("gcp::GoogleFirebaseAppdistroV1AabInfo/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1AabInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1DistributeReleaseResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesDistributeArgs>
+    for GoogleFirebaseAppdistroV1DistributeReleaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesDistributeArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1DistributeReleaseResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1DistributeReleaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Release.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesGetArgs>
+    for GoogleFirebaseAppdistroV1Release
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleFirebaseAppdistroV1Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListReleasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesListArgs>
+    for GoogleFirebaseAppdistroV1ListReleasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1ListReleasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1ListReleasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1FeedbackReport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs>
+    for GoogleFirebaseAppdistroV1FeedbackReport
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1FeedbackReport/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1FeedbackReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListFeedbackReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs>
+    for GoogleFirebaseAppdistroV1ListFeedbackReportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1ListFeedbackReportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1ListFeedbackReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Group.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsCreateArgs>
+    for GoogleFirebaseAppdistroV1Group
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleFirebaseAppdistroV1Group/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsListArgs>
+    for GoogleFirebaseAppdistroV1ListGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1ListGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1ListGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1BatchAddTestersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersBatchAddArgs>
+    for GoogleFirebaseAppdistroV1BatchAddTestersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersBatchAddArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1BatchAddTestersResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1BatchAddTestersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1BatchRemoveTestersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersBatchRemoveArgs>
+    for GoogleFirebaseAppdistroV1BatchRemoveTestersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersBatchRemoveArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1BatchRemoveTestersResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1BatchRemoveTestersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListTestersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersListArgs>
+    for GoogleFirebaseAppdistroV1ListTestersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseAppdistroV1ListTestersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1ListTestersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Tester.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersPatchArgs>
+    for GoogleFirebaseAppdistroV1Tester
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersPatchArgs,
+    ) -> String {
+        format!("gcp::GoogleFirebaseAppdistroV1Tester/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseAppdistroV1Tester"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

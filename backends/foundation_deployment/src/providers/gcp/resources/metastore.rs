@@ -1050,3 +1050,373 @@ pub struct LimitConfig {
     #[serde(default, rename = "minScalingFactor")]
     pub min_scaling_factor: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &MetastoreProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &MetastoreProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsFederationsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsFederationsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Federation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsFederationsGetArgs> for Federation {
+    fn generate_resource_id(&self, input: &MetastoreProjectsLocationsFederationsGetArgs) -> String {
+        format!("gcp::Federation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Federation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsFederationsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsFederationsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFederationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsFederationsListArgs> for ListFederationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsFederationsListArgs,
+    ) -> String {
+        format!("gcp::ListFederationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFederationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsFederationsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsFederationsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &MetastoreProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Service.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesGetArgs> for Service {
+    fn generate_resource_id(&self, input: &MetastoreProjectsLocationsServicesGetArgs) -> String {
+        format!("gcp::Service/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesListArgs> for ListServicesResponse {
+    fn generate_resource_id(&self, input: &MetastoreProjectsLocationsServicesListArgs) -> String {
+        format!("gcp::ListServicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Backup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsServicesBackupsGetArgs,
+    ) -> String {
+        format!("gcp::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesBackupsListArgs> for ListBackupsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsServicesBackupsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MetadataImport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesMetadataImportsGetArgs>
+    for MetadataImport
+{
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsServicesMetadataImportsGetArgs,
+    ) -> String {
+        format!("gcp::MetadataImport/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MetadataImport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMetadataImportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesMetadataImportsListArgs>
+    for ListMetadataImportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsServicesMetadataImportsListArgs,
+    ) -> String {
+        format!("gcp::ListMetadataImportsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMetadataImportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MigrationExecution.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesMigrationExecutionsGetArgs>
+    for MigrationExecution
+{
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsServicesMigrationExecutionsGetArgs,
+    ) -> String {
+        format!("gcp::MigrationExecution/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MigrationExecution"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMigrationExecutionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MetastoreProjectsLocationsServicesMigrationExecutionsListArgs>
+    for ListMigrationExecutionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MetastoreProjectsLocationsServicesMigrationExecutionsListArgs,
+    ) -> String {
+        format!("gcp::ListMigrationExecutionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMigrationExecutionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

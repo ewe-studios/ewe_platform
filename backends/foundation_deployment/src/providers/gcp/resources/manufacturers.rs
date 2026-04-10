@@ -607,3 +607,115 @@ pub struct FloatUnit {
     #[serde(default)]
     pub unit: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsLanguagesProductCertificationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManufacturersAccountsLanguagesProductCertificationsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductCertification.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsLanguagesProductCertificationsGetArgs>
+    for ProductCertification
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManufacturersAccountsLanguagesProductCertificationsGetArgs,
+    ) -> String {
+        format!("gcp::ProductCertification/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductCertification"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProductCertificationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsLanguagesProductCertificationsListArgs>
+    for ListProductCertificationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManufacturersAccountsLanguagesProductCertificationsListArgs,
+    ) -> String {
+        format!("gcp::ListProductCertificationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProductCertificationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Product.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsProductsGetArgs> for Product {
+    fn generate_resource_id(&self, input: &ManufacturersAccountsProductsGetArgs) -> String {
+        format!("gcp::Product/{}/{}", input.parent, input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsProductsListArgs> for ListProductsResponse {
+    fn generate_resource_id(&self, input: &ManufacturersAccountsProductsListArgs) -> String {
+        format!("gcp::ListProductsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -157,3 +157,185 @@ pub struct ResourcePolicyMember {
     #[serde(default, rename = "iamPolicyUidPrincipal")]
     pub iam_policy_uid_principal: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ParametermanagerProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ParametermanagerProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Parameter.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsParametersCreateArgs> for Parameter {
+    fn generate_resource_id(
+        &self,
+        input: &ParametermanagerProjectsLocationsParametersCreateArgs,
+    ) -> String {
+        format!("gcp::Parameter/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Parameter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsParametersDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ParametermanagerProjectsLocationsParametersDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListParametersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsParametersListArgs>
+    for ListParametersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ParametermanagerProjectsLocationsParametersListArgs,
+    ) -> String {
+        format!("gcp::ListParametersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListParametersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ParameterVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsParametersVersionsCreateArgs>
+    for ParameterVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &ParametermanagerProjectsLocationsParametersVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::ParameterVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ParameterVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListParameterVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsParametersVersionsListArgs>
+    for ListParameterVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ParametermanagerProjectsLocationsParametersVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListParameterVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListParameterVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RenderParameterVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ParametermanagerProjectsLocationsParametersVersionsRenderArgs>
+    for RenderParameterVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ParametermanagerProjectsLocationsParametersVersionsRenderArgs,
+    ) -> String {
+        format!("gcp::RenderParameterVersionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RenderParameterVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

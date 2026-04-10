@@ -307,3 +307,117 @@ pub struct Date {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchQueryDomainStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainStatsBatchQueryArgs>
+    for BatchQueryDomainStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailpostmastertoolsDomainStatsBatchQueryArgs,
+    ) -> String {
+        "gcp::BatchQueryDomainStatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchQueryDomainStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Domain.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsGetArgs> for Domain {
+    fn generate_resource_id(&self, input: &GmailpostmastertoolsDomainsGetArgs) -> String {
+        format!("gcp::Domain/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Domain"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DomainComplianceStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsGetComplianceStatusArgs>
+    for DomainComplianceStatus
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailpostmastertoolsDomainsGetComplianceStatusArgs,
+    ) -> String {
+        format!("gcp::DomainComplianceStatus/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DomainComplianceStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDomainsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsListArgs> for ListDomainsResponse {
+    fn generate_resource_id(&self, input: &GmailpostmastertoolsDomainsListArgs) -> String {
+        "gcp::ListDomainsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDomainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryDomainStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsDomainStatsQueryArgs>
+    for QueryDomainStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailpostmastertoolsDomainsDomainStatsQueryArgs,
+    ) -> String {
+        format!("gcp::QueryDomainStatsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryDomainStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

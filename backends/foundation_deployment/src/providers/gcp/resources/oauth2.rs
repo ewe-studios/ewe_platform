@@ -74,3 +74,26 @@ pub struct Userinfo {
     #[serde(default)]
     pub verified_email: ::core::option::Option<bool>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Userinfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Oauth2UserinfoGetArgs> for Userinfo {
+    fn generate_resource_id(&self, input: &Oauth2UserinfoGetArgs) -> String {
+        "gcp::Userinfo".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Userinfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -209,3 +209,164 @@ pub struct PostalAddress {
     #[serde(default)]
     pub sublocality: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsCreateArgs> for Account {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsCreateArgs,
+    ) -> String {
+        "gcp::Account".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsListArgs> for ListAccountsResponse {
+    fn generate_resource_id(&self, input: &MybusinessaccountmanagementAccountsListArgs) -> String {
+        "gcp::ListAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Admin.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsAdminsCreateArgs> for Admin {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsAdminsCreateArgs,
+    ) -> String {
+        format!("gcp::Admin/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Admin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsAdminsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsAdminsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountAdminsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsAdminsListArgs>
+    for ListAccountAdminsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsAdminsListArgs,
+    ) -> String {
+        format!("gcp::ListAccountAdminsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountAdminsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInvitationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsInvitationsListArgs>
+    for ListInvitationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsInvitationsListArgs,
+    ) -> String {
+        format!("gcp::ListInvitationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationAdminsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementLocationsAdminsListArgs>
+    for ListLocationAdminsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementLocationsAdminsListArgs,
+    ) -> String {
+        format!("gcp::ListLocationAdminsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationAdminsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

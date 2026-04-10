@@ -244,7 +244,7 @@ pub struct Settings {
     /// Optional. The timezone defined in the user''s account settings. This follows the IANA [Time Zone Database](https://www.iana.org/time-zones). Updates to this field are currently not supported.
     #[serde(default, rename = "timeZone")]
     pub time_zone: ::core::option::Option<String>,
-    /// Optional. The duration of the offset from UTC in milliseconds. This offset is the difference between the user''s current local time and UTC. Updates to this field are currently not supported.
+    /// Optional. The user''s timezone offset relative to UTC. Updates to this field are currently not supported.
     #[serde(default, rename = "utcOffset")]
     pub utc_offset: ::core::option::Option<String>,
     /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["WATER_UNIT_UNSPECIFIED", "WATER_UNIT_ML", "WATER_UNIT_FL_OZ", "WATER_UNIT_CUP"]
@@ -405,7 +405,7 @@ pub struct DataPoint {
     /// Optional. Data for points in the hydration-log session data type collection.
     #[serde(default, rename = "hydrationLog")]
     pub hydration_log: ::core::option::Option<HydrationLog>,
-    /// Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: users/{user}/dataTypes/{data_type}/dataPoints/{data_point} Example: users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef The {user} ID is a system-generated identifier, as described in Profile.encoded_id. The {data_type} ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. total-calories for the total_calories field. The {data_point} ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.
+    /// Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: users/{user}/dataTypes/{data_type}/dataPoints/{data_point} Example: users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef The {user} ID is a system-generated identifier, as described in Identity.health_user_id. The {data_type} ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. total-calories for the total_calories field. The {data_point} ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     /// Optional. Data for points in the oxygen-saturation sample data type collection.
@@ -491,7 +491,7 @@ pub struct ReconciledDataPoint {
     /// Data for points in the daily-vo2-max daily data type collection.
     #[serde(default, rename = "dailyVo2Max")]
     pub daily_vo2_max: ::core::option::Option<DailyVO2Max>,
-    /// Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: users/{user}/dataTypes/{data_type}/dataPoints/{data_point} Example: users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef The {user} ID is a system-generated identifier, as described in Profile.encoded_id. The {data_type} ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. total-calories for the total_calories field. The {data_point} ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.
+    /// Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: users/{user}/dataTypes/{data_type}/dataPoints/{data_point} Example: users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef The {user} ID is a system-generated identifier, as described in Identity.health_user_id. The {data_type} ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. total-calories for the total_calories field. The {data_point} ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.
     #[serde(default, rename = "dataPointName")]
     pub data_point_name: ::core::option::Option<String>,
     /// Data for points in the distance interval data type collection.
@@ -1209,13 +1209,13 @@ pub struct WeightRollupValue {
 /// Optional metadata for the application that provided this data.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
-    /// Output only. Captures the client ID of the entity that recorded the data.
+    /// Output only. The Google OAuth 2.0 client ID of the web application or service that recorded the data. This is the client ID used during the Google OAuth flow to obtain user credentials. This field is system-populated when the data is uploaded from Google Web API.
     #[serde(default, rename = "googleWebClientId")]
     pub google_web_client_id: ::core::option::Option<String>,
-    /// Output only. A unique ID from an external data source. A unique identifier of the mobile application, e.g. com.google.fitbit
+    /// Output only. A unique identifier for the mobile application that was the source of the data. This is typically the application''s package name on Android (e.g., com.google.fitbit) or the bundle ID on iOS. This field is informational and helps trace data origin. This field is system-populated when the data is uploaded from the Fitbit mobile application, Health Connect or Health Kit.
     #[serde(default, rename = "packageName")]
     pub package_name: ::core::option::Option<String>,
-    /// Output only. Captures the client ID of the web application that recorded the data.
+    /// Output only. The client ID of the application that recorded the data. This ID is a legacy Fitbit API client ID, which is different from a Google OAuth client ID. Example format: ABC123. This field is system-populated and used for tracing data from legacy Fitbit API integrations. This field is system-populated when the data is uploaded from a legacy Fitbit API integration.
     #[serde(default, rename = "webClientId")]
     pub web_client_id: ::core::option::Option<String>,
 }
@@ -1687,4 +1687,194 @@ pub struct TimeOfDay {
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Identity.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersGetIdentityArgs> for Identity {
+    fn generate_resource_id(&self, input: &HealthUsersGetIdentityArgs) -> String {
+        format!("gcp::Identity/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Identity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Profile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersGetProfileArgs> for Profile {
+    fn generate_resource_id(&self, input: &HealthUsersGetProfileArgs) -> String {
+        format!("gcp::Profile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Profile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Settings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersGetSettingsArgs> for Settings {
+    fn generate_resource_id(&self, input: &HealthUsersGetSettingsArgs) -> String {
+        format!("gcp::Settings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersDataTypesDataPointsBatchDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &HealthUsersDataTypesDataPointsBatchDeleteArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DailyRollUpDataPointsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersDataTypesDataPointsDailyRollUpArgs>
+    for DailyRollUpDataPointsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthUsersDataTypesDataPointsDailyRollUpArgs,
+    ) -> String {
+        format!("gcp::DailyRollUpDataPointsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DailyRollUpDataPointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExportExerciseTcxResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersDataTypesDataPointsExportExerciseTcxArgs>
+    for ExportExerciseTcxResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthUsersDataTypesDataPointsExportExerciseTcxArgs,
+    ) -> String {
+        format!("gcp::ExportExerciseTcxResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExportExerciseTcxResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDataPointsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersDataTypesDataPointsListArgs> for ListDataPointsResponse {
+    fn generate_resource_id(&self, input: &HealthUsersDataTypesDataPointsListArgs) -> String {
+        format!("gcp::ListDataPointsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDataPointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReconcileDataPointsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersDataTypesDataPointsReconcileArgs>
+    for ReconcileDataPointsResponse
+{
+    fn generate_resource_id(&self, input: &HealthUsersDataTypesDataPointsReconcileArgs) -> String {
+        format!("gcp::ReconcileDataPointsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReconcileDataPointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RollUpDataPointsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthUsersDataTypesDataPointsRollUpArgs> for RollUpDataPointsResponse {
+    fn generate_resource_id(&self, input: &HealthUsersDataTypesDataPointsRollUpArgs) -> String {
+        format!("gcp::RollUpDataPointsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RollUpDataPointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

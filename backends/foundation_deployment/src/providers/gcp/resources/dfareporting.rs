@@ -5680,3 +5680,2404 @@ pub struct RequestValue {
     #[serde(default, rename = "userAttributeIds")]
     pub user_attribute_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountActiveAdSummary.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountActiveAdSummariesGetArgs> for AccountActiveAdSummary {
+    fn generate_resource_id(&self, input: &DfareportingAccountActiveAdSummariesGetArgs) -> String {
+        format!(
+            "gcp::AccountActiveAdSummary/{}/{}",
+            input.profile_id, input.summary_account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountActiveAdSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountPermissionGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountPermissionGroupsGetArgs> for AccountPermissionGroup {
+    fn generate_resource_id(&self, input: &DfareportingAccountPermissionGroupsGetArgs) -> String {
+        format!(
+            "gcp::AccountPermissionGroup/{}/{}",
+            input.profile_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountPermissionGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountPermissionGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountPermissionGroupsListArgs>
+    for AccountPermissionGroupsListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingAccountPermissionGroupsListArgs) -> String {
+        format!(
+            "gcp::AccountPermissionGroupsListResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountPermissionGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountPermission.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountPermissionsGetArgs> for AccountPermission {
+    fn generate_resource_id(&self, input: &DfareportingAccountPermissionsGetArgs) -> String {
+        format!("gcp::AccountPermission/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountPermissionsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountPermissionsListArgs> for AccountPermissionsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingAccountPermissionsListArgs) -> String {
+        format!("gcp::AccountPermissionsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountPermissionsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountUserProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountUserProfilesGetArgs> for AccountUserProfile {
+    fn generate_resource_id(&self, input: &DfareportingAccountUserProfilesGetArgs) -> String {
+        format!("gcp::AccountUserProfile/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountUserProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountUserProfilesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountUserProfilesListArgs>
+    for AccountUserProfilesListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingAccountUserProfilesListArgs) -> String {
+        format!("gcp::AccountUserProfilesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountUserProfilesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Account.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &DfareportingAccountsGetArgs) -> String {
+        format!("gcp::Account/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAccountsListArgs> for AccountsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingAccountsListArgs) -> String {
+        format!("gcp::AccountsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Ad.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdsGetArgs> for Ad {
+    fn generate_resource_id(&self, input: &DfareportingAdsGetArgs) -> String {
+        format!("gcp::Ad/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Ad"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdsListArgs> for AdsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingAdsListArgs) -> String {
+        format!("gcp::AdsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdvertiserGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdvertiserGroupsGetArgs> for AdvertiserGroup {
+    fn generate_resource_id(&self, input: &DfareportingAdvertiserGroupsGetArgs) -> String {
+        format!("gcp::AdvertiserGroup/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdvertiserGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdvertiserGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdvertiserGroupsListArgs> for AdvertiserGroupsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingAdvertiserGroupsListArgs) -> String {
+        format!("gcp::AdvertiserGroupsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdvertiserGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdvertiserInvoicesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdvertiserInvoicesListArgs> for AdvertiserInvoicesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingAdvertiserInvoicesListArgs) -> String {
+        format!(
+            "gcp::AdvertiserInvoicesListResponse/{}/{}",
+            input.profile_id, input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdvertiserInvoicesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LandingPage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdvertiserLandingPagesGetArgs> for LandingPage {
+    fn generate_resource_id(&self, input: &DfareportingAdvertiserLandingPagesGetArgs) -> String {
+        format!("gcp::LandingPage/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LandingPage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdvertiserLandingPagesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdvertiserLandingPagesListArgs>
+    for AdvertiserLandingPagesListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingAdvertiserLandingPagesListArgs) -> String {
+        format!(
+            "gcp::AdvertiserLandingPagesListResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdvertiserLandingPagesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Advertiser.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdvertisersGetArgs> for Advertiser {
+    fn generate_resource_id(&self, input: &DfareportingAdvertisersGetArgs) -> String {
+        format!("gcp::Advertiser/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Advertiser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdvertisersListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingAdvertisersListArgs> for AdvertisersListResponse {
+    fn generate_resource_id(&self, input: &DfareportingAdvertisersListArgs) -> String {
+        format!("gcp::AdvertisersListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdvertisersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BillingAssignment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingBillingAssignmentsInsertArgs> for BillingAssignment {
+    fn generate_resource_id(&self, input: &DfareportingBillingAssignmentsInsertArgs) -> String {
+        format!(
+            "gcp::BillingAssignment/{}/{}",
+            input.profile_id, input.billing_profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BillingAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BillingAssignmentsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingBillingAssignmentsListArgs> for BillingAssignmentsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingBillingAssignmentsListArgs) -> String {
+        format!(
+            "gcp::BillingAssignmentsListResponse/{}/{}",
+            input.profile_id, input.billing_profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BillingAssignmentsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BillingProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingBillingProfilesGetArgs> for BillingProfile {
+    fn generate_resource_id(&self, input: &DfareportingBillingProfilesGetArgs) -> String {
+        format!("gcp::BillingProfile/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BillingProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BillingProfilesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingBillingProfilesListArgs> for BillingProfilesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingBillingProfilesListArgs) -> String {
+        format!("gcp::BillingProfilesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BillingProfilesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BillingRatesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingBillingRatesListArgs> for BillingRatesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingBillingRatesListArgs) -> String {
+        format!(
+            "gcp::BillingRatesListResponse/{}/{}",
+            input.profile_id, input.billing_profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BillingRatesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BrowsersListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingBrowsersListArgs> for BrowsersListResponse {
+    fn generate_resource_id(&self, input: &DfareportingBrowsersListArgs) -> String {
+        format!("gcp::BrowsersListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BrowsersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CampaignCreativeAssociation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCampaignCreativeAssociationsInsertArgs>
+    for CampaignCreativeAssociation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DfareportingCampaignCreativeAssociationsInsertArgs,
+    ) -> String {
+        format!(
+            "gcp::CampaignCreativeAssociation/{}/{}",
+            input.profile_id, input.campaign_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CampaignCreativeAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CampaignCreativeAssociationsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCampaignCreativeAssociationsListArgs>
+    for CampaignCreativeAssociationsListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DfareportingCampaignCreativeAssociationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::CampaignCreativeAssociationsListResponse/{}/{}",
+            input.profile_id, input.campaign_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CampaignCreativeAssociationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Campaign.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCampaignsGetArgs> for Campaign {
+    fn generate_resource_id(&self, input: &DfareportingCampaignsGetArgs) -> String {
+        format!("gcp::Campaign/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Campaign"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CampaignsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCampaignsListArgs> for CampaignsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingCampaignsListArgs) -> String {
+        format!("gcp::CampaignsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CampaignsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ChangeLog.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingChangeLogsGetArgs> for ChangeLog {
+    fn generate_resource_id(&self, input: &DfareportingChangeLogsGetArgs) -> String {
+        format!("gcp::ChangeLog/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ChangeLog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ChangeLogsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingChangeLogsListArgs> for ChangeLogsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingChangeLogsListArgs) -> String {
+        format!("gcp::ChangeLogsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ChangeLogsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CitiesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCitiesListArgs> for CitiesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingCitiesListArgs) -> String {
+        format!("gcp::CitiesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CitiesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConnectionType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingConnectionTypesGetArgs> for ConnectionType {
+    fn generate_resource_id(&self, input: &DfareportingConnectionTypesGetArgs) -> String {
+        format!("gcp::ConnectionType/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConnectionType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConnectionTypesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingConnectionTypesListArgs> for ConnectionTypesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingConnectionTypesListArgs) -> String {
+        format!("gcp::ConnectionTypesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConnectionTypesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ContentCategory.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingContentCategoriesGetArgs> for ContentCategory {
+    fn generate_resource_id(&self, input: &DfareportingContentCategoriesGetArgs) -> String {
+        format!("gcp::ContentCategory/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ContentCategory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ContentCategoriesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingContentCategoriesListArgs> for ContentCategoriesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingContentCategoriesListArgs) -> String {
+        format!("gcp::ContentCategoriesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ContentCategoriesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConversionsBatchInsertResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingConversionsBatchinsertArgs> for ConversionsBatchInsertResponse {
+    fn generate_resource_id(&self, input: &DfareportingConversionsBatchinsertArgs) -> String {
+        format!("gcp::ConversionsBatchInsertResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConversionsBatchInsertResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConversionsBatchUpdateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingConversionsBatchupdateArgs> for ConversionsBatchUpdateResponse {
+    fn generate_resource_id(&self, input: &DfareportingConversionsBatchupdateArgs) -> String {
+        format!("gcp::ConversionsBatchUpdateResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConversionsBatchUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Country.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCountriesGetArgs> for Country {
+    fn generate_resource_id(&self, input: &DfareportingCountriesGetArgs) -> String {
+        format!("gcp::Country/{}/{}", input.profile_id, input.dart_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Country"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CountriesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCountriesListArgs> for CountriesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingCountriesListArgs) -> String {
+        format!("gcp::CountriesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CountriesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativeAssetMetadata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativeAssetsInsertArgs> for CreativeAssetMetadata {
+    fn generate_resource_id(&self, input: &DfareportingCreativeAssetsInsertArgs) -> String {
+        format!(
+            "gcp::CreativeAssetMetadata/{}/{}",
+            input.profile_id, input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativeAssetMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativeFieldValue.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativeFieldValuesGetArgs> for CreativeFieldValue {
+    fn generate_resource_id(&self, input: &DfareportingCreativeFieldValuesGetArgs) -> String {
+        format!(
+            "gcp::CreativeFieldValue/{}/{}/{}",
+            input.profile_id, input.creative_field_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativeFieldValue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativeFieldValuesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativeFieldValuesListArgs>
+    for CreativeFieldValuesListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingCreativeFieldValuesListArgs) -> String {
+        format!(
+            "gcp::CreativeFieldValuesListResponse/{}/{}",
+            input.profile_id, input.creative_field_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativeFieldValuesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativeField.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativeFieldsGetArgs> for CreativeField {
+    fn generate_resource_id(&self, input: &DfareportingCreativeFieldsGetArgs) -> String {
+        format!("gcp::CreativeField/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativeField"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativeFieldsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativeFieldsListArgs> for CreativeFieldsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingCreativeFieldsListArgs) -> String {
+        format!("gcp::CreativeFieldsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativeFieldsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativeGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativeGroupsGetArgs> for CreativeGroup {
+    fn generate_resource_id(&self, input: &DfareportingCreativeGroupsGetArgs) -> String {
+        format!("gcp::CreativeGroup/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativeGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativeGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativeGroupsListArgs> for CreativeGroupsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingCreativeGroupsListArgs) -> String {
+        format!("gcp::CreativeGroupsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativeGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Creative.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativesGetArgs> for Creative {
+    fn generate_resource_id(&self, input: &DfareportingCreativesGetArgs) -> String {
+        format!("gcp::Creative/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Creative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreativesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingCreativesListArgs> for CreativesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingCreativesListArgs) -> String {
+        format!("gcp::CreativesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreativesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DimensionValueList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDimensionValuesQueryArgs> for DimensionValueList {
+    fn generate_resource_id(&self, input: &DfareportingDimensionValuesQueryArgs) -> String {
+        format!("gcp::DimensionValueList/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DimensionValueList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DirectorySite.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDirectorySitesGetArgs> for DirectorySite {
+    fn generate_resource_id(&self, input: &DfareportingDirectorySitesGetArgs) -> String {
+        format!("gcp::DirectorySite/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DirectorySite"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DirectorySitesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDirectorySitesListArgs> for DirectorySitesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingDirectorySitesListArgs) -> String {
+        format!("gcp::DirectorySitesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DirectorySitesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DynamicFeed.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDynamicFeedsGetArgs> for DynamicFeed {
+    fn generate_resource_id(&self, input: &DfareportingDynamicFeedsGetArgs) -> String {
+        format!("gcp::DynamicFeed/{}", input.dynamic_feed_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DynamicFeed"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DynamicProfileGenerateCodeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDynamicProfilesGenerateCodeArgs>
+    for DynamicProfileGenerateCodeResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingDynamicProfilesGenerateCodeArgs) -> String {
+        format!(
+            "gcp::DynamicProfileGenerateCodeResponse/{}",
+            input.dynamic_profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DynamicProfileGenerateCodeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DynamicProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDynamicProfilesGetArgs> for DynamicProfile {
+    fn generate_resource_id(&self, input: &DfareportingDynamicProfilesGetArgs) -> String {
+        format!("gcp::DynamicProfile/{}", input.dynamic_profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DynamicProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DynamicTargetingKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDynamicTargetingKeysInsertArgs> for DynamicTargetingKey {
+    fn generate_resource_id(&self, input: &DfareportingDynamicTargetingKeysInsertArgs) -> String {
+        format!("gcp::DynamicTargetingKey/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DynamicTargetingKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DynamicTargetingKeysListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingDynamicTargetingKeysListArgs>
+    for DynamicTargetingKeysListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingDynamicTargetingKeysListArgs) -> String {
+        format!("gcp::DynamicTargetingKeysListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DynamicTargetingKeysListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EventTag.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingEventTagsGetArgs> for EventTag {
+    fn generate_resource_id(&self, input: &DfareportingEventTagsGetArgs) -> String {
+        format!("gcp::EventTag/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EventTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EventTagsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingEventTagsListArgs> for EventTagsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingEventTagsListArgs) -> String {
+        format!("gcp::EventTagsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EventTagsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for File.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFilesGetArgs> for File {
+    fn generate_resource_id(&self, input: &DfareportingFilesGetArgs) -> String {
+        format!("gcp::File/{}/{}", input.report_id, input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FileList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFilesListArgs> for FileList {
+    fn generate_resource_id(&self, input: &DfareportingFilesListArgs) -> String {
+        format!("gcp::FileList/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FileList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightActivitiesGenerateTagResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFloodlightActivitiesGeneratetagArgs>
+    for FloodlightActivitiesGenerateTagResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DfareportingFloodlightActivitiesGeneratetagArgs,
+    ) -> String {
+        format!(
+            "gcp::FloodlightActivitiesGenerateTagResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightActivitiesGenerateTagResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightActivity.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFloodlightActivitiesGetArgs> for FloodlightActivity {
+    fn generate_resource_id(&self, input: &DfareportingFloodlightActivitiesGetArgs) -> String {
+        format!("gcp::FloodlightActivity/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightActivity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightActivitiesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFloodlightActivitiesListArgs>
+    for FloodlightActivitiesListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingFloodlightActivitiesListArgs) -> String {
+        format!("gcp::FloodlightActivitiesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightActivitiesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightActivityGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFloodlightActivityGroupsGetArgs> for FloodlightActivityGroup {
+    fn generate_resource_id(&self, input: &DfareportingFloodlightActivityGroupsGetArgs) -> String {
+        format!(
+            "gcp::FloodlightActivityGroup/{}/{}",
+            input.profile_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightActivityGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightActivityGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFloodlightActivityGroupsListArgs>
+    for FloodlightActivityGroupsListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingFloodlightActivityGroupsListArgs) -> String {
+        format!(
+            "gcp::FloodlightActivityGroupsListResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightActivityGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightConfiguration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFloodlightConfigurationsGetArgs> for FloodlightConfiguration {
+    fn generate_resource_id(&self, input: &DfareportingFloodlightConfigurationsGetArgs) -> String {
+        format!(
+            "gcp::FloodlightConfiguration/{}/{}",
+            input.profile_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightConfigurationsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingFloodlightConfigurationsListArgs>
+    for FloodlightConfigurationsListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingFloodlightConfigurationsListArgs) -> String {
+        format!(
+            "gcp::FloodlightConfigurationsListResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightConfigurationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LanguagesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingLanguagesListArgs> for LanguagesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingLanguagesListArgs) -> String {
+        format!("gcp::LanguagesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LanguagesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MetrosListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingMetrosListArgs> for MetrosListResponse {
+    fn generate_resource_id(&self, input: &DfareportingMetrosListArgs) -> String {
+        format!("gcp::MetrosListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MetrosListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MobileApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingMobileAppsGetArgs> for MobileApp {
+    fn generate_resource_id(&self, input: &DfareportingMobileAppsGetArgs) -> String {
+        format!("gcp::MobileApp/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MobileApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MobileAppsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingMobileAppsListArgs> for MobileAppsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingMobileAppsListArgs) -> String {
+        format!("gcp::MobileAppsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MobileAppsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MobileCarrier.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingMobileCarriersGetArgs> for MobileCarrier {
+    fn generate_resource_id(&self, input: &DfareportingMobileCarriersGetArgs) -> String {
+        format!("gcp::MobileCarrier/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MobileCarrier"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MobileCarriersListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingMobileCarriersListArgs> for MobileCarriersListResponse {
+    fn generate_resource_id(&self, input: &DfareportingMobileCarriersListArgs) -> String {
+        format!("gcp::MobileCarriersListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MobileCarriersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OperatingSystemVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingOperatingSystemVersionsGetArgs> for OperatingSystemVersion {
+    fn generate_resource_id(&self, input: &DfareportingOperatingSystemVersionsGetArgs) -> String {
+        format!(
+            "gcp::OperatingSystemVersion/{}/{}",
+            input.profile_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OperatingSystemVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OperatingSystemVersionsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingOperatingSystemVersionsListArgs>
+    for OperatingSystemVersionsListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingOperatingSystemVersionsListArgs) -> String {
+        format!(
+            "gcp::OperatingSystemVersionsListResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OperatingSystemVersionsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OperatingSystem.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingOperatingSystemsGetArgs> for OperatingSystem {
+    fn generate_resource_id(&self, input: &DfareportingOperatingSystemsGetArgs) -> String {
+        format!(
+            "gcp::OperatingSystem/{}/{}",
+            input.profile_id, input.dart_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OperatingSystem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OperatingSystemsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingOperatingSystemsListArgs> for OperatingSystemsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingOperatingSystemsListArgs) -> String {
+        format!("gcp::OperatingSystemsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OperatingSystemsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlacementGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlacementGroupsGetArgs> for PlacementGroup {
+    fn generate_resource_id(&self, input: &DfareportingPlacementGroupsGetArgs) -> String {
+        format!("gcp::PlacementGroup/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlacementGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlacementGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlacementGroupsListArgs> for PlacementGroupsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingPlacementGroupsListArgs) -> String {
+        format!("gcp::PlacementGroupsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlacementGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlacementStrategy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlacementStrategiesGetArgs> for PlacementStrategy {
+    fn generate_resource_id(&self, input: &DfareportingPlacementStrategiesGetArgs) -> String {
+        format!("gcp::PlacementStrategy/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlacementStrategy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlacementStrategiesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlacementStrategiesListArgs>
+    for PlacementStrategiesListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingPlacementStrategiesListArgs) -> String {
+        format!("gcp::PlacementStrategiesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlacementStrategiesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlacementsGenerateTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlacementsGeneratetagsArgs> for PlacementsGenerateTagsResponse {
+    fn generate_resource_id(&self, input: &DfareportingPlacementsGeneratetagsArgs) -> String {
+        format!("gcp::PlacementsGenerateTagsResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlacementsGenerateTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Placement.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlacementsGetArgs> for Placement {
+    fn generate_resource_id(&self, input: &DfareportingPlacementsGetArgs) -> String {
+        format!("gcp::Placement/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Placement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlacementsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlacementsListArgs> for PlacementsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingPlacementsListArgs) -> String {
+        format!("gcp::PlacementsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlacementsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlatformType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlatformTypesGetArgs> for PlatformType {
+    fn generate_resource_id(&self, input: &DfareportingPlatformTypesGetArgs) -> String {
+        format!("gcp::PlatformType/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlatformType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlatformTypesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPlatformTypesListArgs> for PlatformTypesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingPlatformTypesListArgs) -> String {
+        format!("gcp::PlatformTypesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlatformTypesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PostalCode.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPostalCodesGetArgs> for PostalCode {
+    fn generate_resource_id(&self, input: &DfareportingPostalCodesGetArgs) -> String {
+        format!("gcp::PostalCode/{}/{}", input.profile_id, input.code)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PostalCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PostalCodesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingPostalCodesListArgs> for PostalCodesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingPostalCodesListArgs) -> String {
+        format!("gcp::PostalCodesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PostalCodesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingRegionsListArgs> for RegionsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingRegionsListArgs) -> String {
+        format!("gcp::RegionsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemarketingListShare.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingRemarketingListSharesGetArgs> for RemarketingListShare {
+    fn generate_resource_id(&self, input: &DfareportingRemarketingListSharesGetArgs) -> String {
+        format!(
+            "gcp::RemarketingListShare/{}/{}",
+            input.profile_id, input.remarketing_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemarketingListShare"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemarketingList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingRemarketingListsGetArgs> for RemarketingList {
+    fn generate_resource_id(&self, input: &DfareportingRemarketingListsGetArgs) -> String {
+        format!("gcp::RemarketingList/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemarketingList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemarketingListsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingRemarketingListsListArgs> for RemarketingListsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingRemarketingListsListArgs) -> String {
+        format!("gcp::RemarketingListsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemarketingListsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Report.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingReportsGetArgs> for Report {
+    fn generate_resource_id(&self, input: &DfareportingReportsGetArgs) -> String {
+        format!("gcp::Report/{}/{}", input.profile_id, input.report_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Report"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReportList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingReportsListArgs> for ReportList {
+    fn generate_resource_id(&self, input: &DfareportingReportsListArgs) -> String {
+        format!("gcp::ReportList/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReportList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompatibleFields.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingReportsCompatibleFieldsQueryArgs> for CompatibleFields {
+    fn generate_resource_id(&self, input: &DfareportingReportsCompatibleFieldsQueryArgs) -> String {
+        format!("gcp::CompatibleFields/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompatibleFields"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Site.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingSitesGetArgs> for Site {
+    fn generate_resource_id(&self, input: &DfareportingSitesGetArgs) -> String {
+        format!("gcp::Site/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Site"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SitesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingSitesListArgs> for SitesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingSitesListArgs) -> String {
+        format!("gcp::SitesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SitesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Size.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingSizesGetArgs> for Size {
+    fn generate_resource_id(&self, input: &DfareportingSizesGetArgs) -> String {
+        format!("gcp::Size/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Size"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SizesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingSizesListArgs> for SizesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingSizesListArgs) -> String {
+        format!("gcp::SizesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SizesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StudioCreativeAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingStudioCreativeAssetsInsertArgs>
+    for StudioCreativeAssetsResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingStudioCreativeAssetsInsertArgs) -> String {
+        "gcp::StudioCreativeAssetsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StudioCreativeAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StudioCreative.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingStudioCreativesGetArgs> for StudioCreative {
+    fn generate_resource_id(&self, input: &DfareportingStudioCreativesGetArgs) -> String {
+        format!("gcp::StudioCreative/{}", input.studio_creative_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StudioCreative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Subaccount.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingSubaccountsGetArgs> for Subaccount {
+    fn generate_resource_id(&self, input: &DfareportingSubaccountsGetArgs) -> String {
+        format!("gcp::Subaccount/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Subaccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SubaccountsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingSubaccountsListArgs> for SubaccountsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingSubaccountsListArgs) -> String {
+        format!("gcp::SubaccountsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SubaccountsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetableRemarketingList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingTargetableRemarketingListsGetArgs>
+    for TargetableRemarketingList
+{
+    fn generate_resource_id(
+        &self,
+        input: &DfareportingTargetableRemarketingListsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::TargetableRemarketingList/{}/{}",
+            input.profile_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetableRemarketingList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetableRemarketingListsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingTargetableRemarketingListsListArgs>
+    for TargetableRemarketingListsListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DfareportingTargetableRemarketingListsListArgs,
+    ) -> String {
+        format!(
+            "gcp::TargetableRemarketingListsListResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetableRemarketingListsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetingTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingTargetingTemplatesGetArgs> for TargetingTemplate {
+    fn generate_resource_id(&self, input: &DfareportingTargetingTemplatesGetArgs) -> String {
+        format!("gcp::TargetingTemplate/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetingTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetingTemplatesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingTargetingTemplatesListArgs> for TargetingTemplatesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingTargetingTemplatesListArgs) -> String {
+        format!("gcp::TargetingTemplatesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetingTemplatesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TvCampaignDetail.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingTvCampaignDetailsGetArgs> for TvCampaignDetail {
+    fn generate_resource_id(&self, input: &DfareportingTvCampaignDetailsGetArgs) -> String {
+        format!("gcp::TvCampaignDetail/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TvCampaignDetail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TvCampaignSummariesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingTvCampaignSummariesListArgs>
+    for TvCampaignSummariesListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingTvCampaignSummariesListArgs) -> String {
+        format!("gcp::TvCampaignSummariesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TvCampaignSummariesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserProfilesGetArgs> for UserProfile {
+    fn generate_resource_id(&self, input: &DfareportingUserProfilesGetArgs) -> String {
+        format!("gcp::UserProfile/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserProfileList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserProfilesListArgs> for UserProfileList {
+    fn generate_resource_id(&self, input: &DfareportingUserProfilesListArgs) -> String {
+        "gcp::UserProfileList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserProfileList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserRolePermissionGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserRolePermissionGroupsGetArgs> for UserRolePermissionGroup {
+    fn generate_resource_id(&self, input: &DfareportingUserRolePermissionGroupsGetArgs) -> String {
+        format!(
+            "gcp::UserRolePermissionGroup/{}/{}",
+            input.profile_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserRolePermissionGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserRolePermissionGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserRolePermissionGroupsListArgs>
+    for UserRolePermissionGroupsListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingUserRolePermissionGroupsListArgs) -> String {
+        format!(
+            "gcp::UserRolePermissionGroupsListResponse/{}",
+            input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserRolePermissionGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserRolePermission.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserRolePermissionsGetArgs> for UserRolePermission {
+    fn generate_resource_id(&self, input: &DfareportingUserRolePermissionsGetArgs) -> String {
+        format!("gcp::UserRolePermission/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserRolePermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserRolePermissionsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserRolePermissionsListArgs>
+    for UserRolePermissionsListResponse
+{
+    fn generate_resource_id(&self, input: &DfareportingUserRolePermissionsListArgs) -> String {
+        format!("gcp::UserRolePermissionsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserRolePermissionsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserRole.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserRolesGetArgs> for UserRole {
+    fn generate_resource_id(&self, input: &DfareportingUserRolesGetArgs) -> String {
+        format!("gcp::UserRole/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserRole"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserRolesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingUserRolesListArgs> for UserRolesListResponse {
+    fn generate_resource_id(&self, input: &DfareportingUserRolesListArgs) -> String {
+        format!("gcp::UserRolesListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserRolesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VideoFormat.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingVideoFormatsGetArgs> for VideoFormat {
+    fn generate_resource_id(&self, input: &DfareportingVideoFormatsGetArgs) -> String {
+        format!("gcp::VideoFormat/{}/{}", input.profile_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VideoFormat"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VideoFormatsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DfareportingVideoFormatsListArgs> for VideoFormatsListResponse {
+    fn generate_resource_id(&self, input: &DfareportingVideoFormatsListArgs) -> String {
+        format!("gcp::VideoFormatsListResponse/{}", input.profile_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VideoFormatsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

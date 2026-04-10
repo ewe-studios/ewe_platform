@@ -383,3 +383,134 @@ pub struct GoogleCloudDatapipelinesV1RuntimeEnvironment {
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatapipelinesV1Pipeline.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatapipelinesProjectsLocationsPipelinesCreateArgs>
+    for GoogleCloudDatapipelinesV1Pipeline
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatapipelinesProjectsLocationsPipelinesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatapipelinesV1Pipeline/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatapipelinesV1Pipeline"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatapipelinesProjectsLocationsPipelinesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &DatapipelinesProjectsLocationsPipelinesDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatapipelinesV1ListPipelinesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatapipelinesProjectsLocationsPipelinesListArgs>
+    for GoogleCloudDatapipelinesV1ListPipelinesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatapipelinesProjectsLocationsPipelinesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatapipelinesV1ListPipelinesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatapipelinesV1ListPipelinesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatapipelinesV1RunPipelineResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatapipelinesProjectsLocationsPipelinesRunArgs>
+    for GoogleCloudDatapipelinesV1RunPipelineResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatapipelinesProjectsLocationsPipelinesRunArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatapipelinesV1RunPipelineResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatapipelinesV1RunPipelineResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatapipelinesV1ListJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatapipelinesProjectsLocationsPipelinesJobsListArgs>
+    for GoogleCloudDatapipelinesV1ListJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatapipelinesProjectsLocationsPipelinesJobsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatapipelinesV1ListJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatapipelinesV1ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

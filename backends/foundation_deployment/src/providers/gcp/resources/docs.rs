@@ -2130,10 +2130,10 @@ pub struct DateElementProperties {
     /// Determines how the time part of the DateElement will be displayed in the document. If unset, the default value is TIME_FORMAT_DISABLED, indicating no time should be shown. // TODO: enum values: ["TIME_FORMAT_UNSPECIFIED", "TIME_FORMAT_DISABLED", "TIME_FORMAT_HOUR_MINUTE", "TIME_FORMAT_HOUR_MINUTE_TIMEZONE"]
     #[serde(default, rename = "timeFormat")]
     pub time_format: ::core::option::Option<String>,
-    /// The time zone of the DateElement, as defined by the Unicode Common Locale Data Repository (CLDR) project. For example, America/New York. If unset, the default time zone is etc/UTC.
+    /// The time zone of the DateElement, as defined by the Unicode Common Locale Data Repository (CLDR) project. For example, America/New_York. If unset, the default time zone is etc/UTC.
     #[serde(default, rename = "timeZoneId")]
     pub time_zone_id: ::core::option::Option<String>,
-    /// The point in time to represent, in seconds and nanoseconds since Unix epoch: January 1, 1970 at midnight UTC. Timestamp is expected to be in UTC. If time_zone_id is set, the timestamp is adjusted according to the time zone. For example, a timestamp of 18000 with a date format of DATE_FORMAT_ISO8601 and time format of TIME_FORMAT_HOUR_MINUTE would be displayed as 1970-01-01 5:00 AM. A timestamp of 18000 with date format of DATE_FORMAT_8SO8601, time format of TIME_FORMAT_HOUR_MINUTE, and time zone set to America/New_York will instead be 1970-01-01 12:00 AM.
+    /// The point in time to represent, in seconds and nanoseconds since Unix epoch: January 1, 1970 at midnight UTC. Timestamp is expected to be in UTC. If time_zone_id is set, the timestamp is adjusted according to the time zone. For example, a timestamp of 18000 with a date format of DATE_FORMAT_ISO8601 and time format of TIME_FORMAT_HOUR_MINUTE would be displayed as 1970-01-01 5:00 AM. A timestamp of 18000 with date format of DATE_FORMAT_ISO8601, time format of TIME_FORMAT_HOUR_MINUTE, and time zone set to America/New_York will instead be 1970-01-01 12:00 AM.
     #[serde(default)]
     pub timestamp: ::core::option::Option<String>,
 }
@@ -2895,4 +2895,46 @@ pub struct WeightedFontFamily {
     /// The weight of the font. This field can have any value that''s a multiple of 100 between 100 and 900, inclusive. This range corresponds to the numerical values described in the CSS 2.1 Specification, [section 15.6](https://www.w3.org/TR/CSS21/fonts.html#font-boldness), with non-numerical values disallowed. The default value is 400 ("normal"). The font weight makes up just one component of the rendered font weight. A combination of the weight and the text style''s resolved bold value determine the rendered weight, after accounting for inheritance: * If the text is bold and the weight is less than 400, the rendered weight is 400. * If the text is bold and the weight is greater than or equal to 400 but is less than 700, the rendered weight is 700. * If the weight is greater than or equal to 700, the rendered weight is equal to the weight. * If the text is not bold, the rendered weight is equal to the weight.
     #[serde(default)]
     pub weight: ::core::option::Option<i32>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateDocumentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocsDocumentsBatchUpdateArgs> for BatchUpdateDocumentResponse {
+    fn generate_resource_id(&self, input: &DocsDocumentsBatchUpdateArgs) -> String {
+        format!("gcp::BatchUpdateDocumentResponse/{}", input.document_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchUpdateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Document.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocsDocumentsCreateArgs> for Document {
+    fn generate_resource_id(&self, input: &DocsDocumentsCreateArgs) -> String {
+        "gcp::Document".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

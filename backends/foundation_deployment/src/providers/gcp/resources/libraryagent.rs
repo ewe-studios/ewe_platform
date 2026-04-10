@@ -60,3 +60,90 @@ pub struct GoogleExampleLibraryagentV1Shelf {
     #[serde(default)]
     pub theme: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Shelf.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesGetArgs> for GoogleExampleLibraryagentV1Shelf {
+    fn generate_resource_id(&self, input: &LibraryagentShelvesGetArgs) -> String {
+        format!("gcp::GoogleExampleLibraryagentV1Shelf/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleExampleLibraryagentV1Shelf"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1ListShelvesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesListArgs>
+    for GoogleExampleLibraryagentV1ListShelvesResponse
+{
+    fn generate_resource_id(&self, input: &LibraryagentShelvesListArgs) -> String {
+        "gcp::GoogleExampleLibraryagentV1ListShelvesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleExampleLibraryagentV1ListShelvesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Book.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesBooksBorrowArgs> for GoogleExampleLibraryagentV1Book {
+    fn generate_resource_id(&self, input: &LibraryagentShelvesBooksBorrowArgs) -> String {
+        format!("gcp::GoogleExampleLibraryagentV1Book/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleExampleLibraryagentV1Book"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1ListBooksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesBooksListArgs>
+    for GoogleExampleLibraryagentV1ListBooksResponse
+{
+    fn generate_resource_id(&self, input: &LibraryagentShelvesBooksListArgs) -> String {
+        format!(
+            "gcp::GoogleExampleLibraryagentV1ListBooksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleExampleLibraryagentV1ListBooksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

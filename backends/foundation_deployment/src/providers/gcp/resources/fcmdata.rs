@@ -157,3 +157,34 @@ pub struct GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents {
     #[serde(default, rename = "skippedUnsupported")]
     pub skipped_unsupported: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FcmdataProjectsAndroidAppsDeliveryDataListArgs>
+    for GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FcmdataProjectsAndroidAppsDeliveryDataListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

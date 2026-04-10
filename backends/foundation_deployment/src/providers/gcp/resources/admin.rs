@@ -401,3 +401,67 @@ pub struct FieldValueUserValue {
     #[serde(default)]
     pub email: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Activities.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsActivitiesListArgs> for Activities {
+    fn generate_resource_id(&self, input: &ReportsActivitiesListArgs) -> String {
+        format!(
+            "gcp::Activities/{}/{}",
+            input.user_key, input.application_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Activities"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Channel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsActivitiesWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &ReportsActivitiesWatchArgs) -> String {
+        format!("gcp::Channel/{}/{}", input.user_key, input.application_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UsageReports.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsCustomerUsageReportsGetArgs> for UsageReports {
+    fn generate_resource_id(&self, input: &ReportsCustomerUsageReportsGetArgs) -> String {
+        format!("gcp::UsageReports/{}", input.date)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UsageReports"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

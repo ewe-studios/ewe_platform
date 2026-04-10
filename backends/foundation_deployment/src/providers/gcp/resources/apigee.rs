@@ -5785,3 +5785,3488 @@ pub struct GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext {
     #[serde(default, rename = "documentationLink")]
     pub documentation_link: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListHybridIssuersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeHybridIssuersListArgs>
+    for GoogleCloudApigeeV1ListHybridIssuersResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeHybridIssuersListArgs) -> String {
+        "gcp::GoogleCloudApigeeV1ListHybridIssuersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListHybridIssuersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsCreateArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsCreateArgs) -> String {
+        "gcp::GoogleLongrunningOperation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Organization.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsGetArgs> for GoogleCloudApigeeV1Organization {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsGetArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Organization/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Organization"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ControlPlaneAccess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsGetControlPlaneAccessArgs>
+    for GoogleCloudApigeeV1ControlPlaneAccess
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsGetControlPlaneAccessArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1ControlPlaneAccess/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ControlPlaneAccess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1IngressConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsGetDeployedIngressConfigArgs>
+    for GoogleCloudApigeeV1IngressConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsGetDeployedIngressConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1IngressConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1IngressConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1OrganizationProjectMapping.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsGetProjectMappingArgs>
+    for GoogleCloudApigeeV1OrganizationProjectMapping
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsGetProjectMappingArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1OrganizationProjectMapping/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1OrganizationProjectMapping"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1RuntimeConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsGetRuntimeConfigArgs>
+    for GoogleCloudApigeeV1RuntimeConfig
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsGetRuntimeConfigArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1RuntimeConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1RuntimeConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecuritySettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsGetSecuritySettingsArgs>
+    for GoogleCloudApigeeV1SecuritySettings
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsGetSecuritySettingsArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1SecuritySettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecuritySettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SyncAuthorization.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsGetSyncAuthorizationArgs>
+    for GoogleCloudApigeeV1SyncAuthorization
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsGetSyncAuthorizationArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1SyncAuthorization/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SyncAuthorization"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListOrganizationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsListArgs>
+    for GoogleCloudApigeeV1ListOrganizationsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsListArgs) -> String {
+        "gcp::GoogleCloudApigeeV1ListOrganizationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListOrganizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Datastore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAnalyticsDatastoresCreateArgs>
+    for GoogleCloudApigeeV1Datastore
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAnalyticsDatastoresCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Datastore/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Datastore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAnalyticsDatastoresDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAnalyticsDatastoresDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListDatastoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAnalyticsDatastoresListArgs>
+    for GoogleCloudApigeeV1ListDatastoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAnalyticsDatastoresListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListDatastoresResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListDatastoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1TestDatastoreResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAnalyticsDatastoresTestArgs>
+    for GoogleCloudApigeeV1TestDatastoreResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAnalyticsDatastoresTestArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1TestDatastoreResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1TestDatastoreResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApimServiceExtension.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApimServiceExtensionsGetArgs>
+    for GoogleCloudApigeeV1ApimServiceExtension
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApimServiceExtensionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ApimServiceExtension/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApimServiceExtension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListApimServiceExtensionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApimServiceExtensionsListArgs>
+    for GoogleCloudApigeeV1ListApimServiceExtensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApimServiceExtensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListApimServiceExtensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListApimServiceExtensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Attributes.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApiproductsAttributesArgs>
+    for GoogleCloudApigeeV1Attributes
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApiproductsAttributesArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Attributes/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Attributes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApiProduct.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApiproductsCreateArgs>
+    for GoogleCloudApigeeV1ApiProduct
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApiproductsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1ApiProduct/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApiProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListApiProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApiproductsListArgs>
+    for GoogleCloudApigeeV1ListApiProductsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApiproductsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListApiProductsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListApiProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Attribute.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApiproductsAttributesDeleteArgs>
+    for GoogleCloudApigeeV1Attribute
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApiproductsAttributesDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Attribute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Attribute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1RatePlan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApiproductsRateplansCreateArgs>
+    for GoogleCloudApigeeV1RatePlan
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApiproductsRateplansCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1RatePlan/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1RatePlan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListRatePlansResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApiproductsRateplansListArgs>
+    for GoogleCloudApigeeV1ListRatePlansResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApiproductsRateplansListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListRatePlansResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListRatePlansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApiProxyRevision.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisCreateArgs> for GoogleCloudApigeeV1ApiProxyRevision {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApisCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1ApiProxyRevision/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApiProxyRevision"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApiProxy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisDeleteArgs> for GoogleCloudApigeeV1ApiProxy {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApisDeleteArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1ApiProxy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApiProxy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListApiProxiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisListArgs>
+    for GoogleCloudApigeeV1ListApiProxiesResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApisListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListApiProxiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListApiProxiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListApiDebugSessionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisDebugsessionsListArgs>
+    for GoogleCloudApigeeV1ListApiDebugSessionsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApisDebugsessionsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListApiDebugSessionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListApiDebugSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisDeploymentsListArgs>
+    for GoogleCloudApigeeV1ListDeploymentsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApisDeploymentsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1KeyValueMap.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisKeyvaluemapsCreateArgs>
+    for GoogleCloudApigeeV1KeyValueMap
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApisKeyvaluemapsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1KeyValueMap/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1KeyValueMap"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1KeyValueEntry.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisKeyvaluemapsEntriesCreateArgs>
+    for GoogleCloudApigeeV1KeyValueEntry
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApisKeyvaluemapsEntriesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1KeyValueEntry/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1KeyValueEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListKeyValueEntriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisKeyvaluemapsEntriesListArgs>
+    for GoogleCloudApigeeV1ListKeyValueEntriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsApisKeyvaluemapsEntriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListKeyValueEntriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListKeyValueEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleApiHttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsApisRevisionsGetArgs> for GoogleApiHttpBody {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsApisRevisionsGetArgs) -> String {
+        format!("gcp::GoogleApiHttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleApiHttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AppGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsCreateArgs> for GoogleCloudApigeeV1AppGroup {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsAppgroupsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1AppGroup/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AppGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AppGroupBalance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsGetBalanceArgs>
+    for GoogleCloudApigeeV1AppGroupBalance
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsAppgroupsGetBalanceArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1AppGroupBalance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AppGroupBalance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AppGroupMonetizationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsGetMonetizationConfigArgs>
+    for GoogleCloudApigeeV1AppGroupMonetizationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAppgroupsGetMonetizationConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1AppGroupMonetizationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AppGroupMonetizationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListAppGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsListArgs>
+    for GoogleCloudApigeeV1ListAppGroupsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsAppgroupsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListAppGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListAppGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AppGroupApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsAppsCreateArgs>
+    for GoogleCloudApigeeV1AppGroupApp
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsAppgroupsAppsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1AppGroupApp/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AppGroupApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListAppGroupAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsAppsListArgs>
+    for GoogleCloudApigeeV1ListAppGroupAppsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsAppgroupsAppsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListAppGroupAppsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListAppGroupAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AppGroupAppKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsAppsKeysCreateArgs>
+    for GoogleCloudApigeeV1AppGroupAppKey
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAppgroupsAppsKeysCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1AppGroupAppKey/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AppGroupAppKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AppGroupSubscription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsSubscriptionsCreateArgs>
+    for GoogleCloudApigeeV1AppGroupSubscription
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAppgroupsSubscriptionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1AppGroupSubscription/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AppGroupSubscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppgroupsSubscriptionsListArgs>
+    for GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsAppgroupsSubscriptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1App.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppsGetArgs> for GoogleCloudApigeeV1App {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsAppsGetArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1App/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsAppsListArgs> for GoogleCloudApigeeV1ListAppsResponse {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsAppsListArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1ListAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DataCollector.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDatacollectorsCreateArgs>
+    for GoogleCloudApigeeV1DataCollector
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDatacollectorsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1DataCollector/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DataCollector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListDataCollectorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDatacollectorsListArgs>
+    for GoogleCloudApigeeV1ListDataCollectorsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDatacollectorsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListDataCollectorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListDataCollectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Developer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersCreateArgs> for GoogleCloudApigeeV1Developer {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDevelopersCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Developer/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Developer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeveloperBalance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersGetBalanceArgs>
+    for GoogleCloudApigeeV1DeveloperBalance
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDevelopersGetBalanceArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1DeveloperBalance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeveloperBalance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeveloperMonetizationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersGetMonetizationConfigArgs>
+    for GoogleCloudApigeeV1DeveloperMonetizationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsDevelopersGetMonetizationConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1DeveloperMonetizationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeveloperMonetizationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListOfDevelopersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersListArgs>
+    for GoogleCloudApigeeV1ListOfDevelopersResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDevelopersListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListOfDevelopersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListOfDevelopersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeveloperApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersAppsCreateArgs>
+    for GoogleCloudApigeeV1DeveloperApp
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDevelopersAppsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1DeveloperApp/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeveloperApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListDeveloperAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersAppsListArgs>
+    for GoogleCloudApigeeV1ListDeveloperAppsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDevelopersAppsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListDeveloperAppsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListDeveloperAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeveloperAppKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersAppsKeysCreateArgs>
+    for GoogleCloudApigeeV1DeveloperAppKey
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsDevelopersAppsKeysCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1DeveloperAppKey/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeveloperAppKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeveloperSubscription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersSubscriptionsCreateArgs>
+    for GoogleCloudApigeeV1DeveloperSubscription
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsDevelopersSubscriptionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1DeveloperSubscription/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeveloperSubscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListDeveloperSubscriptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDevelopersSubscriptionsListArgs>
+    for GoogleCloudApigeeV1ListDeveloperSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsDevelopersSubscriptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListDeveloperSubscriptionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListDeveloperSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DnsZone.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDnsZonesGetArgs> for GoogleCloudApigeeV1DnsZone {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDnsZonesGetArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1DnsZone/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DnsZone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListDnsZonesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsDnsZonesListArgs>
+    for GoogleCloudApigeeV1ListDnsZonesResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsDnsZonesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListDnsZonesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListDnsZonesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1EndpointAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEndpointAttachmentsGetArgs>
+    for GoogleCloudApigeeV1EndpointAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEndpointAttachmentsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1EndpointAttachment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1EndpointAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListEndpointAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEndpointAttachmentsListArgs>
+    for GoogleCloudApigeeV1ListEndpointAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEndpointAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListEndpointAttachmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListEndpointAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1EnvironmentGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvgroupsGetArgs>
+    for GoogleCloudApigeeV1EnvironmentGroup
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsEnvgroupsGetArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1EnvironmentGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1EnvironmentGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1EnvironmentGroupConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvgroupsGetDeployedIngressConfigArgs>
+    for GoogleCloudApigeeV1EnvironmentGroupConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvgroupsGetDeployedIngressConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1EnvironmentGroupConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1EnvironmentGroupConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListEnvironmentGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvgroupsListArgs>
+    for GoogleCloudApigeeV1ListEnvironmentGroupsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsEnvgroupsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListEnvironmentGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListEnvironmentGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1EnvironmentGroupAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvgroupsAttachmentsGetArgs>
+    for GoogleCloudApigeeV1EnvironmentGroupAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvgroupsAttachmentsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1EnvironmentGroupAttachment/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1EnvironmentGroupAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvgroupsAttachmentsListArgs>
+    for GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvgroupsAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Environment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetArgs> for GoogleCloudApigeeV1Environment {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsEnvironmentsGetArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Environment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AddonsConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetAddonsConfigArgs>
+    for GoogleCloudApigeeV1AddonsConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsGetAddonsConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1AddonsConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AddonsConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApiSecurityRuntimeConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetApiSecurityRuntimeConfigArgs>
+    for GoogleCloudApigeeV1ApiSecurityRuntimeConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsGetApiSecurityRuntimeConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ApiSecurityRuntimeConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApiSecurityRuntimeConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DebugMask.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetDebugmaskArgs>
+    for GoogleCloudApigeeV1DebugMask
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsGetDebugmaskArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1DebugMask/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DebugMask"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1EnvironmentConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetDeployedConfigArgs>
+    for GoogleCloudApigeeV1EnvironmentConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsGetDeployedConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1EnvironmentConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1EnvironmentConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetIamPolicyArgs> for GoogleIamV1Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityActionsConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetSecurityActionsConfigArgs>
+    for GoogleCloudApigeeV1SecurityActionsConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsGetSecurityActionsConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1SecurityActionsConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityActionsConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1TraceConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsGetTraceConfigArgs>
+    for GoogleCloudApigeeV1TraceConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsGetTraceConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1TraceConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1TraceConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Subscription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSubscribeArgs>
+    for GoogleCloudApigeeV1Subscription
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsEnvironmentsSubscribeArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Subscription/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Schema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsAnalyticsAdminGetSchemav2Args>
+    for GoogleCloudApigeeV1Schema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsAnalyticsAdminGetSchemav2Args,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Schema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Schema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Export.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsAnalyticsExportsCreateArgs>
+    for GoogleCloudApigeeV1Export
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsAnalyticsExportsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Export/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Export"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListExportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsAnalyticsExportsListArgs>
+    for GoogleCloudApigeeV1ListExportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsAnalyticsExportsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListExportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListExportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Deployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs>
+    for GoogleCloudApigeeV1Deployment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Deployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DebugSession.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsCreateArgs>
+    for GoogleCloudApigeeV1DebugSession
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1DebugSession/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DebugSession"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListDebugSessionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsListArgs>
+    for GoogleCloudApigeeV1ListDebugSessionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListDebugSessionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListDebugSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DebugSessionTransaction.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDataGetArgs>
+    for GoogleCloudApigeeV1DebugSessionTransaction
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDataGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1DebugSessionTransaction/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DebugSessionTransaction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeploymentChangeReport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateDeployChangeReportArgs,
+    > for GoogleCloudApigeeV1DeploymentChangeReport
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateDeployChangeReportArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1DeploymentChangeReport/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeploymentChangeReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1GenerateDownloadUrlResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateDownloadUrlArgs>
+    for GoogleCloudApigeeV1GenerateDownloadUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateDownloadUrlArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1GenerateDownloadUrlResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1GenerateDownloadUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1GenerateUploadUrlResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateUploadUrlArgs>
+    for GoogleCloudApigeeV1GenerateUploadUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateUploadUrlArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1GenerateUploadUrlResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1GenerateUploadUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ArchiveDeployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsArchiveDeploymentsGetArgs>
+    for GoogleCloudApigeeV1ArchiveDeployment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1ArchiveDeployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ArchiveDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListArchiveDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsArchiveDeploymentsListArgs>
+    for GoogleCloudApigeeV1ListArchiveDeploymentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListArchiveDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListArchiveDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1FlowHook.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsFlowhooksAttachSharedFlowToFlowHookArgs>
+    for GoogleCloudApigeeV1FlowHook
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsFlowhooksAttachSharedFlowToFlowHookArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1FlowHook/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1FlowHook"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Keystore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsKeystoresCreateArgs>
+    for GoogleCloudApigeeV1Keystore
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsKeystoresCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Keystore/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Keystore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Alias.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsKeystoresAliasesCreateArgs>
+    for GoogleCloudApigeeV1Alias
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsKeystoresAliasesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Alias/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Alias"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1OptimizedStats.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsOptimizedStatsGetArgs>
+    for GoogleCloudApigeeV1OptimizedStats
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsOptimizedStatsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1OptimizedStats/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1OptimizedStats"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AsyncQuery.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsQueriesCreateArgs>
+    for GoogleCloudApigeeV1AsyncQuery
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsQueriesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1AsyncQuery/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AsyncQuery"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsQueriesGetResulturlArgs>
+    for GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsQueriesGetResulturlArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListAsyncQueriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsQueriesListArgs>
+    for GoogleCloudApigeeV1ListAsyncQueriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsQueriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListAsyncQueriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListAsyncQueriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Reference.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsReferencesCreateArgs>
+    for GoogleCloudApigeeV1Reference
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsReferencesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1Reference/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Reference"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ResourceFile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsResourcefilesCreateArgs>
+    for GoogleCloudApigeeV1ResourceFile
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsResourcefilesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1ResourceFile/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ResourceFile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListEnvironmentResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsResourcefilesListArgs>
+    for GoogleCloudApigeeV1ListEnvironmentResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsResourcefilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListEnvironmentResourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListEnvironmentResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityAction.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityActionsCreateArgs>
+    for GoogleCloudApigeeV1SecurityAction
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityActionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1SecurityAction/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityAction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityActionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityActionsListArgs>
+    for GoogleCloudApigeeV1ListSecurityActionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityActionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityActionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityActionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityIncidentsBatchUpdateArgs>
+    for GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityIncidentsBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityIncident.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityIncidentsGetArgs>
+    for GoogleCloudApigeeV1SecurityIncident
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityIncidentsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1SecurityIncident/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityIncident"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityIncidentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityIncidentsListArgs>
+    for GoogleCloudApigeeV1ListSecurityIncidentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityIncidentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityIncidentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityIncidentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityReport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityReportsCreateArgs>
+    for GoogleCloudApigeeV1SecurityReport
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityReportsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1SecurityReport/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityReportResultView.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityReportsGetResultViewArgs>
+    for GoogleCloudApigeeV1SecurityReportResultView
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityReportsGetResultViewArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1SecurityReportResultView/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityReportResultView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityReportsListArgs>
+    for GoogleCloudApigeeV1ListSecurityReportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityReportsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityReportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1QueryTabularStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityStatsQueryTabularStatsArgs>
+    for GoogleCloudApigeeV1QueryTabularStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityStatsQueryTabularStatsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1QueryTabularStatsResponse/{}",
+            input.orgenv
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1QueryTabularStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1QueryTimeSeriesStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsSecurityStatsQueryTimeSeriesStatsArgs>
+    for GoogleCloudApigeeV1QueryTimeSeriesStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsSecurityStatsQueryTimeSeriesStatsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1QueryTimeSeriesStatsResponse/{}",
+            input.orgenv
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1QueryTimeSeriesStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Stats.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsStatsGetArgs> for GoogleCloudApigeeV1Stats {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsEnvironmentsStatsGetArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Stats/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Stats"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1TargetServer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsTargetserversCreateArgs>
+    for GoogleCloudApigeeV1TargetServer
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsTargetserversCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1TargetServer/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1TargetServer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1TraceConfigOverride.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsTraceConfigOverridesCreateArgs>
+    for GoogleCloudApigeeV1TraceConfigOverride
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1TraceConfigOverride/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1TraceConfigOverride"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListTraceConfigOverridesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsEnvironmentsTraceConfigOverridesListArgs>
+    for GoogleCloudApigeeV1ListTraceConfigOverridesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListTraceConfigOverridesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListTraceConfigOverridesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1AsyncQueryResultView.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsHostQueriesGetResultViewArgs>
+    for GoogleCloudApigeeV1AsyncQueryResultView
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsHostQueriesGetResultViewArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1AsyncQueryResultView/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1AsyncQueryResultView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesGetArgs> for GoogleCloudApigeeV1Instance {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsInstancesGetArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesListArgs>
+    for GoogleCloudApigeeV1ListInstancesResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsInstancesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListInstancesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ReportInstanceStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesReportStatusArgs>
+    for GoogleCloudApigeeV1ReportInstanceStatusResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsInstancesReportStatusArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ReportInstanceStatusResponse/{}",
+            input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ReportInstanceStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1InstanceAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesAttachmentsGetArgs>
+    for GoogleCloudApigeeV1InstanceAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsInstancesAttachmentsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1InstanceAttachment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1InstanceAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListInstanceAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesAttachmentsListArgs>
+    for GoogleCloudApigeeV1ListInstanceAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsInstancesAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListInstanceAttachmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListInstanceAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1CanaryEvaluation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesCanaryevaluationsGetArgs>
+    for GoogleCloudApigeeV1CanaryEvaluation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsInstancesCanaryevaluationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1CanaryEvaluation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1CanaryEvaluation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1NatAddress.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesNatAddressesGetArgs>
+    for GoogleCloudApigeeV1NatAddress
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsInstancesNatAddressesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1NatAddress/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1NatAddress"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListNatAddressesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsInstancesNatAddressesListArgs>
+    for GoogleCloudApigeeV1ListNatAddressesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsInstancesNatAddressesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListNatAddressesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListNatAddressesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1CustomReport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsReportsCreateArgs> for GoogleCloudApigeeV1CustomReport {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsReportsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1CustomReport/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1CustomReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeleteCustomReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsReportsDeleteArgs>
+    for GoogleCloudApigeeV1DeleteCustomReportResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsReportsDeleteArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1DeleteCustomReportResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeleteCustomReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListCustomReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsReportsListArgs>
+    for GoogleCloudApigeeV1ListCustomReportsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsReportsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListCustomReportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListCustomReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityAssessmentResultsBatchComputeArgs>
+    for GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityAssessmentResultsBatchComputeArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityFeedback.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityFeedbackCreateArgs>
+    for GoogleCloudApigeeV1SecurityFeedback
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityFeedbackCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1SecurityFeedback/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityFeedback"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityFeedbackResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityFeedbackListArgs>
+    for GoogleCloudApigeeV1ListSecurityFeedbackResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSecurityFeedbackListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityFeedbackResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityFeedbackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityMonitoringCondition.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityMonitoringConditionsCreateArgs>
+    for GoogleCloudApigeeV1SecurityMonitoringCondition
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityMonitoringConditionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1SecurityMonitoringCondition/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityMonitoringCondition"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityMonitoringConditionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityMonitoringConditionsListArgs>
+    for GoogleCloudApigeeV1ListSecurityMonitoringConditionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityMonitoringConditionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityMonitoringConditionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityMonitoringConditionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityProfilesCreateArgs>
+    for GoogleCloudApigeeV1SecurityProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityProfilesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1SecurityProfile/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityProfilesListArgs>
+    for GoogleCloudApigeeV1ListSecurityProfilesResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSecurityProfilesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityProfileRevisionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityProfilesListRevisionsArgs>
+    for GoogleCloudApigeeV1ListSecurityProfileRevisionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityProfilesListRevisionsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityProfileRevisionsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityProfileRevisionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ComputeEnvironmentScoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityProfilesEnvironmentsComputeEnvironmentScoresArgs>
+    for GoogleCloudApigeeV1ComputeEnvironmentScoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityProfilesEnvironmentsComputeEnvironmentScoresArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ComputeEnvironmentScoresResponse/{}",
+            input.profile_environment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ComputeEnvironmentScoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityProfilesEnvironmentsCreateArgs>
+    for GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityProfilesEnvironmentsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SecurityProfileV2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityProfilesV2CreateArgs>
+    for GoogleCloudApigeeV1SecurityProfileV2
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityProfilesV2CreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1SecurityProfileV2/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SecurityProfileV2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSecurityProfilesV2Response.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSecurityProfilesV2ListArgs>
+    for GoogleCloudApigeeV1ListSecurityProfilesV2Response
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSecurityProfilesV2ListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSecurityProfilesV2Response/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSecurityProfilesV2Response"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SharedFlowRevision.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSharedflowsCreateArgs>
+    for GoogleCloudApigeeV1SharedFlowRevision
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSharedflowsCreateArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1SharedFlowRevision/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SharedFlowRevision"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1SharedFlow.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSharedflowsDeleteArgs>
+    for GoogleCloudApigeeV1SharedFlow
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSharedflowsDeleteArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1SharedFlow/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1SharedFlow"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSharedFlowsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSharedflowsListArgs>
+    for GoogleCloudApigeeV1ListSharedFlowsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSharedflowsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSharedFlowsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSharedFlowsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApiCategoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSitesApicategoriesCreateArgs>
+    for GoogleCloudApigeeV1ApiCategoryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSitesApicategoriesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ApiCategoryResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApiCategoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1DeleteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSitesApicategoriesDeleteArgs>
+    for GoogleCloudApigeeV1DeleteResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSitesApicategoriesDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApigeeV1DeleteResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1DeleteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListApiCategoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSitesApicategoriesListArgs>
+    for GoogleCloudApigeeV1ListApiCategoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSitesApicategoriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListApiCategoriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListApiCategoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApiDocResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSitesApidocsCreateArgs>
+    for GoogleCloudApigeeV1ApiDocResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSitesApidocsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1ApiDocResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApiDocResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ApiDocDocumentationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSitesApidocsGetDocumentationArgs>
+    for GoogleCloudApigeeV1ApiDocDocumentationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeOrganizationsSitesApidocsGetDocumentationArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ApiDocDocumentationResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ApiDocDocumentationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListApiDocsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSitesApidocsListArgs>
+    for GoogleCloudApigeeV1ListApiDocsResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSitesApidocsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListApiDocsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListApiDocsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1Space.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSpacesCreateArgs> for GoogleCloudApigeeV1Space {
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSpacesCreateArgs) -> String {
+        format!("gcp::GoogleCloudApigeeV1Space/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1Space"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListSpacesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeOrganizationsSpacesListArgs>
+    for GoogleCloudApigeeV1ListSpacesResponse
+{
+    fn generate_resource_id(&self, input: &ApigeeOrganizationsSpacesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApigeeV1ListSpacesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApigeeV1ListSpacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

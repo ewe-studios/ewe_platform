@@ -250,11 +250,17 @@ pub struct ContentTypeInfo {
     #[serde(default, rename = "fromFileName")]
     pub from_file_name: ::core::option::Option<String>,
     /// # gdata.* are outside protos with mising documentation
+    #[serde(default, rename = "fromFusionId")]
+    pub from_fusion_id: ::core::option::Option<String>,
+    /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "fromHeader")]
     pub from_header: ::core::option::Option<String>,
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "fromUrlPath")]
     pub from_url_path: ::core::option::Option<String>,
+    /// # gdata.* are outside protos with mising documentation
+    #[serde(default, rename = "fusionIdDetectionMetadata")]
+    pub fusion_id_detection_metadata: ::core::option::Option<String>,
 }
 
 /// # gdata.* are outside protos with mising documentation
@@ -486,4 +492,181 @@ pub struct ObjectId {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "objectName")]
     pub object_name: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchCaseClassificationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportCaseClassificationsSearchArgs>
+    for SearchCaseClassificationsResponse
+{
+    fn generate_resource_id(&self, input: &CloudsupportCaseClassificationsSearchArgs) -> String {
+        "gcp::SearchCaseClassificationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchCaseClassificationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Case.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportCasesCloseArgs> for Case {
+    fn generate_resource_id(&self, input: &CloudsupportCasesCloseArgs) -> String {
+        format!("gcp::Case/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Case"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportCasesListArgs> for ListCasesResponse {
+    fn generate_resource_id(&self, input: &CloudsupportCasesListArgs) -> String {
+        format!("gcp::ListCasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchCasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportCasesSearchArgs> for SearchCasesResponse {
+    fn generate_resource_id(&self, input: &CloudsupportCasesSearchArgs) -> String {
+        format!("gcp::SearchCasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchCasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportCasesAttachmentsListArgs> for ListAttachmentsResponse {
+    fn generate_resource_id(&self, input: &CloudsupportCasesAttachmentsListArgs) -> String {
+        format!("gcp::ListAttachmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Comment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportCasesCommentsCreateArgs> for Comment {
+    fn generate_resource_id(&self, input: &CloudsupportCasesCommentsCreateArgs) -> String {
+        format!("gcp::Comment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCommentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportCasesCommentsListArgs> for ListCommentsResponse {
+    fn generate_resource_id(&self, input: &CloudsupportCasesCommentsListArgs) -> String {
+        format!("gcp::ListCommentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCommentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Media.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportMediaDownloadArgs> for Media {
+    fn generate_resource_id(&self, input: &CloudsupportMediaDownloadArgs) -> String {
+        format!("gcp::Media/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Media"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Attachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsupportMediaUploadArgs> for Attachment {
+    fn generate_resource_id(&self, input: &CloudsupportMediaUploadArgs) -> String {
+        format!("gcp::Attachment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Attachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

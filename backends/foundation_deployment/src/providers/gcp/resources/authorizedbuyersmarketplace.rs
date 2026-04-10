@@ -987,3 +987,379 @@ pub struct CriteriaTargeting {
     #[serde(default, rename = "targetedCriteriaIds")]
     pub targeted_criteria_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAuctionPackagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBiddersAuctionPackagesListArgs>
+    for ListAuctionPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBiddersAuctionPackagesListArgs,
+    ) -> String {
+        format!("gcp::ListAuctionPackagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAuctionPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFinalizedDealsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBiddersFinalizedDealsListArgs>
+    for ListFinalizedDealsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBiddersFinalizedDealsListArgs,
+    ) -> String {
+        format!("gcp::ListFinalizedDealsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFinalizedDealsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FinalizedDeal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBiddersFinalizedDealsSetReadyToServeArgs>
+    for FinalizedDeal
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBiddersFinalizedDealsSetReadyToServeArgs,
+    ) -> String {
+        format!("gcp::FinalizedDeal/{}", input.deal)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FinalizedDeal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AuctionPackage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersAuctionPackagesGetArgs>
+    for AuctionPackage
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersAuctionPackagesGetArgs,
+    ) -> String {
+        format!("gcp::AuctionPackage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AuctionPackage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Client.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersClientsActivateArgs> for Client {
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersClientsActivateArgs,
+    ) -> String {
+        format!("gcp::Client/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Client"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClientsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersClientsListArgs> for ListClientsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersClientsListArgs,
+    ) -> String {
+        format!("gcp::ListClientsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ClientUser.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersClientsUsersActivateArgs> for ClientUser {
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersClientsUsersActivateArgs,
+    ) -> String {
+        format!("gcp::ClientUser/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ClientUser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersClientsUsersDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersClientsUsersDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClientUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersClientsUsersListArgs>
+    for ListClientUsersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersClientsUsersListArgs,
+    ) -> String {
+        format!("gcp::ListClientUsersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClientUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Proposal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersProposalsAcceptArgs> for Proposal {
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersProposalsAcceptArgs,
+    ) -> String {
+        format!("gcp::Proposal/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Proposal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProposalsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersProposalsListArgs>
+    for ListProposalsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersProposalsListArgs,
+    ) -> String {
+        format!("gcp::ListProposalsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProposalsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchUpdateDealsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersProposalsDealsBatchUpdateArgs>
+    for BatchUpdateDealsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersProposalsDealsBatchUpdateArgs,
+    ) -> String {
+        format!("gcp::BatchUpdateDealsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchUpdateDealsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Deal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersProposalsDealsGetArgs> for Deal {
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersProposalsDealsGetArgs,
+    ) -> String {
+        format!("gcp::Deal/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Deal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDealsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersProposalsDealsListArgs>
+    for ListDealsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersProposalsDealsListArgs,
+    ) -> String {
+        format!("gcp::ListDealsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDealsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublisherProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersPublisherProfilesGetArgs>
+    for PublisherProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersPublisherProfilesGetArgs,
+    ) -> String {
+        format!("gcp::PublisherProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublisherProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPublisherProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuthorizedbuyersmarketplaceBuyersPublisherProfilesListArgs>
+    for ListPublisherProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AuthorizedbuyersmarketplaceBuyersPublisherProfilesListArgs,
+    ) -> String {
+        format!("gcp::ListPublisherProfilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPublisherProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

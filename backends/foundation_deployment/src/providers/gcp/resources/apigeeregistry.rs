@@ -560,3 +560,478 @@ pub struct Expr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ApigeeregistryProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ApigeeregistryProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Api.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisCreateArgs> for Api {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisCreateArgs,
+    ) -> String {
+        format!("gcp::Api/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Api"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApisResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisListArgs> for ListApisResponse {
+    fn generate_resource_id(&self, input: &ApigeeregistryProjectsLocationsApisListArgs) -> String {
+        format!("gcp::ListApisResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Artifact.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisArtifactsCreateArgs> for Artifact {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisArtifactsCreateArgs,
+    ) -> String {
+        format!("gcp::Artifact/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Artifact"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisArtifactsGetContentsArgs> for HttpBody {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisArtifactsGetContentsArgs,
+    ) -> String {
+        format!("gcp::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListArtifactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisArtifactsListArgs>
+    for ListArtifactsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisArtifactsListArgs,
+    ) -> String {
+        format!("gcp::ListArtifactsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListArtifactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiDeployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisDeploymentsCreateArgs>
+    for ApiDeployment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisDeploymentsCreateArgs,
+    ) -> String {
+        format!("gcp::ApiDeployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApiDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisDeploymentsListArgs>
+    for ListApiDeploymentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisDeploymentsListArgs,
+    ) -> String {
+        format!("gcp::ListApiDeploymentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiDeploymentRevisionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisDeploymentsListRevisionsArgs>
+    for ListApiDeploymentRevisionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisDeploymentsListRevisionsArgs,
+    ) -> String {
+        format!("gcp::ListApiDeploymentRevisionsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiDeploymentRevisionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisVersionsCreateArgs> for ApiVersion {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::ApiVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApiVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisVersionsListArgs>
+    for ListApiVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListApiVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiSpec.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisVersionsSpecsCreateArgs> for ApiSpec {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisVersionsSpecsCreateArgs,
+    ) -> String {
+        format!("gcp::ApiSpec/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApiSpec"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiSpecsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisVersionsSpecsListArgs>
+    for ListApiSpecsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisVersionsSpecsListArgs,
+    ) -> String {
+        format!("gcp::ListApiSpecsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiSpecsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiSpecRevisionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsApisVersionsSpecsListRevisionsArgs>
+    for ListApiSpecRevisionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsApisVersionsSpecsListRevisionsArgs,
+    ) -> String {
+        format!("gcp::ListApiSpecRevisionsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiSpecRevisionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsInstancesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsInstancesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsInstancesGetArgs> for Instance {
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsInstancesGetArgs,
+    ) -> String {
+        format!("gcp::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApigeeregistryProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApigeeregistryProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

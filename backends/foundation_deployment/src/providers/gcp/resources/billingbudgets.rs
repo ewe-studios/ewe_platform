@@ -176,3 +176,77 @@ pub struct GoogleTypeDate {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBillingBudgetsV1Budget.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BillingbudgetsBillingAccountsBudgetsCreateArgs>
+    for GoogleCloudBillingBudgetsV1Budget
+{
+    fn generate_resource_id(
+        &self,
+        input: &BillingbudgetsBillingAccountsBudgetsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudBillingBudgetsV1Budget/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBillingBudgetsV1Budget"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BillingbudgetsBillingAccountsBudgetsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &BillingbudgetsBillingAccountsBudgetsDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBillingBudgetsV1ListBudgetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BillingbudgetsBillingAccountsBudgetsListArgs>
+    for GoogleCloudBillingBudgetsV1ListBudgetsResponse
+{
+    fn generate_resource_id(&self, input: &BillingbudgetsBillingAccountsBudgetsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudBillingBudgetsV1ListBudgetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBillingBudgetsV1ListBudgetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

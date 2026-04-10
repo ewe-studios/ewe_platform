@@ -1000,3 +1000,534 @@ pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatProtobufFormat {
     #[serde(default, rename = "schemaDefinition")]
     pub schema_definition: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChannelConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsGetGoogleChannelConfigArgs>
+    for GoogleChannelConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsGetGoogleChannelConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleChannelConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChannelConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsChannelConnectionsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsChannelConnectionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ChannelConnection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsChannelConnectionsGetArgs> for ChannelConnection {
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsChannelConnectionsGetArgs,
+    ) -> String {
+        format!("gcp::ChannelConnection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ChannelConnection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsChannelConnectionsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsChannelConnectionsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListChannelConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsChannelConnectionsListArgs>
+    for ListChannelConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsChannelConnectionsListArgs,
+    ) -> String {
+        format!("gcp::ListChannelConnectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListChannelConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsChannelConnectionsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsChannelConnectionsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Channel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsChannelsGetArgs> for Channel {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsChannelsGetArgs) -> String {
+        format!("gcp::Channel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsChannelsListArgs> for ListChannelsResponse {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsChannelsListArgs) -> String {
+        format!("gcp::ListChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Enrollment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsEnrollmentsGetArgs> for Enrollment {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsEnrollmentsGetArgs) -> String {
+        format!("gcp::Enrollment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Enrollment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEnrollmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsEnrollmentsListArgs> for ListEnrollmentsResponse {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsEnrollmentsListArgs) -> String {
+        format!("gcp::ListEnrollmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEnrollmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleApiSource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsGoogleApiSourcesGetArgs> for GoogleApiSource {
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsGoogleApiSourcesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleApiSource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleApiSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGoogleApiSourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsGoogleApiSourcesListArgs>
+    for ListGoogleApiSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsGoogleApiSourcesListArgs,
+    ) -> String {
+        format!("gcp::ListGoogleApiSourcesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGoogleApiSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MessageBus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsMessageBusesGetArgs> for MessageBus {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsMessageBusesGetArgs) -> String {
+        format!("gcp::MessageBus/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MessageBus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMessageBusesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsMessageBusesListArgs>
+    for ListMessageBusesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsMessageBusesListArgs,
+    ) -> String {
+        format!("gcp::ListMessageBusesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMessageBusesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMessageBusEnrollmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsMessageBusesListEnrollmentsArgs>
+    for ListMessageBusEnrollmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsMessageBusesListEnrollmentsArgs,
+    ) -> String {
+        format!("gcp::ListMessageBusEnrollmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMessageBusEnrollmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &EventarcProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Pipeline.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsPipelinesGetArgs> for Pipeline {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsPipelinesGetArgs) -> String {
+        format!("gcp::Pipeline/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Pipeline"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPipelinesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsPipelinesListArgs> for ListPipelinesResponse {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsPipelinesListArgs) -> String {
+        format!("gcp::ListPipelinesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPipelinesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Provider.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsProvidersGetArgs> for Provider {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsProvidersGetArgs) -> String {
+        format!("gcp::Provider/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Provider"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProvidersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsProvidersListArgs> for ListProvidersResponse {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsProvidersListArgs) -> String {
+        format!("gcp::ListProvidersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProvidersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Trigger.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsTriggersGetArgs> for Trigger {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsTriggersGetArgs) -> String {
+        format!("gcp::Trigger/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Trigger"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTriggersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EventarcProjectsLocationsTriggersListArgs> for ListTriggersResponse {
+    fn generate_resource_id(&self, input: &EventarcProjectsLocationsTriggersListArgs) -> String {
+        format!("gcp::ListTriggersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTriggersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

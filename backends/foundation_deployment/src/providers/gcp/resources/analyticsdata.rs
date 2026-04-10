@@ -1037,3 +1037,244 @@ pub struct NumericValue {
     #[serde(default, rename = "int64Value")]
     pub int64_value: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchRunPivotReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesBatchRunPivotReportsArgs>
+    for BatchRunPivotReportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesBatchRunPivotReportsArgs,
+    ) -> String {
+        format!("gcp::BatchRunPivotReportsResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchRunPivotReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchRunReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesBatchRunReportsArgs> for BatchRunReportsResponse {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesBatchRunReportsArgs) -> String {
+        format!("gcp::BatchRunReportsResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchRunReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckCompatibilityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesCheckCompatibilityArgs>
+    for CheckCompatibilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesCheckCompatibilityArgs,
+    ) -> String {
+        format!("gcp::CheckCompatibilityResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckCompatibilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Metadata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesGetMetadataArgs> for Metadata {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesGetMetadataArgs) -> String {
+        format!("gcp::Metadata/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Metadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunPivotReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesRunPivotReportArgs> for RunPivotReportResponse {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesRunPivotReportArgs) -> String {
+        format!("gcp::RunPivotReportResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunPivotReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunRealtimeReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesRunRealtimeReportArgs>
+    for RunRealtimeReportResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesRunRealtimeReportArgs) -> String {
+        format!("gcp::RunRealtimeReportResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunRealtimeReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesRunReportArgs> for RunReportResponse {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesRunReportArgs) -> String {
+        format!("gcp::RunReportResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AudienceExport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsGetArgs> for AudienceExport {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsGetArgs,
+    ) -> String {
+        format!("gcp::AudienceExport/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AudienceExport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAudienceExportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsListArgs>
+    for ListAudienceExportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsListArgs,
+    ) -> String {
+        format!("gcp::ListAudienceExportsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAudienceExportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryAudienceExportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsQueryArgs>
+    for QueryAudienceExportResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsQueryArgs,
+    ) -> String {
+        format!("gcp::QueryAudienceExportResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryAudienceExportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

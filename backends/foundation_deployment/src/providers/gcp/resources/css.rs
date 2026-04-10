@@ -554,3 +554,178 @@ pub struct Price {
     #[serde(default, rename = "currencyCode")]
     pub currency_code: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &CssAccountsGetArgs) -> String {
+        format!("gcp::Account/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListChildAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsListChildAccountsArgs> for ListChildAccountsResponse {
+    fn generate_resource_id(&self, input: &CssAccountsListChildAccountsArgs) -> String {
+        format!("gcp::ListChildAccountsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListChildAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsCssProductInputsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CssAccountsCssProductInputsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CssProductInput.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsCssProductInputsInsertArgs> for CssProductInput {
+    fn generate_resource_id(&self, input: &CssAccountsCssProductInputsInsertArgs) -> String {
+        format!("gcp::CssProductInput/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CssProductInput"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CssProduct.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsCssProductsGetArgs> for CssProduct {
+    fn generate_resource_id(&self, input: &CssAccountsCssProductsGetArgs) -> String {
+        format!("gcp::CssProduct/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CssProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCssProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsCssProductsListArgs> for ListCssProductsResponse {
+    fn generate_resource_id(&self, input: &CssAccountsCssProductsListArgs) -> String {
+        format!("gcp::ListCssProductsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCssProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountLabel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsLabelsCreateArgs> for AccountLabel {
+    fn generate_resource_id(&self, input: &CssAccountsLabelsCreateArgs) -> String {
+        format!("gcp::AccountLabel/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountLabel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsLabelsListArgs> for ListAccountLabelsResponse {
+    fn generate_resource_id(&self, input: &CssAccountsLabelsListArgs) -> String {
+        format!("gcp::ListAccountLabelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListQuotaGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CssAccountsQuotasListArgs> for ListQuotaGroupsResponse {
+    fn generate_resource_id(&self, input: &CssAccountsQuotasListArgs) -> String {
+        format!("gcp::ListQuotaGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListQuotaGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

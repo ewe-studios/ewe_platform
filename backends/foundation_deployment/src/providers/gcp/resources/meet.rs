@@ -431,3 +431,329 @@ pub struct TranscriptionConfig {
     #[serde(default, rename = "autoTranscriptionGeneration")]
     pub auto_transcription_generation: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConferenceRecord.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsGetArgs> for ConferenceRecord {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsGetArgs) -> String {
+        format!("gcp::ConferenceRecord/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConferenceRecord"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConferenceRecordsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsListArgs> for ListConferenceRecordsResponse {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsListArgs) -> String {
+        "gcp::ListConferenceRecordsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConferenceRecordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Participant.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsParticipantsGetArgs> for Participant {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsParticipantsGetArgs) -> String {
+        format!("gcp::Participant/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Participant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListParticipantsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsParticipantsListArgs> for ListParticipantsResponse {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsParticipantsListArgs) -> String {
+        format!("gcp::ListParticipantsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListParticipantsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ParticipantSession.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsParticipantsParticipantSessionsGetArgs>
+    for ParticipantSession
+{
+    fn generate_resource_id(
+        &self,
+        input: &MeetConferenceRecordsParticipantsParticipantSessionsGetArgs,
+    ) -> String {
+        format!("gcp::ParticipantSession/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ParticipantSession"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListParticipantSessionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsParticipantsParticipantSessionsListArgs>
+    for ListParticipantSessionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MeetConferenceRecordsParticipantsParticipantSessionsListArgs,
+    ) -> String {
+        format!("gcp::ListParticipantSessionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListParticipantSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Recording.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsRecordingsGetArgs> for Recording {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsRecordingsGetArgs) -> String {
+        format!("gcp::Recording/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Recording"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRecordingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsRecordingsListArgs> for ListRecordingsResponse {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsRecordingsListArgs) -> String {
+        format!("gcp::ListRecordingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRecordingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SmartNote.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsSmartNotesGetArgs> for SmartNote {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsSmartNotesGetArgs) -> String {
+        format!("gcp::SmartNote/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SmartNote"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSmartNotesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsSmartNotesListArgs> for ListSmartNotesResponse {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsSmartNotesListArgs) -> String {
+        format!("gcp::ListSmartNotesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSmartNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Transcript.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsTranscriptsGetArgs> for Transcript {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsTranscriptsGetArgs) -> String {
+        format!("gcp::Transcript/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Transcript"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTranscriptsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsTranscriptsListArgs> for ListTranscriptsResponse {
+    fn generate_resource_id(&self, input: &MeetConferenceRecordsTranscriptsListArgs) -> String {
+        format!("gcp::ListTranscriptsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTranscriptsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TranscriptEntry.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsTranscriptsEntriesGetArgs> for TranscriptEntry {
+    fn generate_resource_id(
+        &self,
+        input: &MeetConferenceRecordsTranscriptsEntriesGetArgs,
+    ) -> String {
+        format!("gcp::TranscriptEntry/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TranscriptEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTranscriptEntriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetConferenceRecordsTranscriptsEntriesListArgs>
+    for ListTranscriptEntriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MeetConferenceRecordsTranscriptsEntriesListArgs,
+    ) -> String {
+        format!("gcp::ListTranscriptEntriesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTranscriptEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Space.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetSpacesCreateArgs> for Space {
+    fn generate_resource_id(&self, input: &MeetSpacesCreateArgs) -> String {
+        "gcp::Space".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Space"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MeetSpacesEndActiveConferenceArgs> for Empty {
+    fn generate_resource_id(&self, input: &MeetSpacesEndActiveConferenceArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

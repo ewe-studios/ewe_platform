@@ -443,3 +443,367 @@ pub struct Expr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BiReservation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsGetBiReservationArgs>
+    for BiReservation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsGetBiReservationArgs,
+    ) -> String {
+        format!("gcp::BiReservation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BiReservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchAllAssignmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsSearchAllAssignmentsArgs>
+    for SearchAllAssignmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsSearchAllAssignmentsArgs,
+    ) -> String {
+        format!("gcp::SearchAllAssignmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchAllAssignmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchAssignmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsSearchAssignmentsArgs>
+    for SearchAssignmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsSearchAssignmentsArgs,
+    ) -> String {
+        format!("gcp::SearchAssignmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchAssignmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CapacityCommitment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsCapacityCommitmentsCreateArgs>
+    for CapacityCommitment
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsCapacityCommitmentsCreateArgs,
+    ) -> String {
+        format!("gcp::CapacityCommitment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CapacityCommitment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsCapacityCommitmentsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsCapacityCommitmentsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCapacityCommitmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsCapacityCommitmentsListArgs>
+    for ListCapacityCommitmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsCapacityCommitmentsListArgs,
+    ) -> String {
+        format!("gcp::ListCapacityCommitmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCapacityCommitmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SplitCapacityCommitmentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsCapacityCommitmentsSplitArgs>
+    for SplitCapacityCommitmentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsCapacityCommitmentsSplitArgs,
+    ) -> String {
+        format!("gcp::SplitCapacityCommitmentResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SplitCapacityCommitmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationGroupsCreateArgs>
+    for ReservationGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationGroupsCreateArgs,
+    ) -> String {
+        format!("gcp::ReservationGroup/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReservationGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationGroupsListArgs>
+    for ListReservationGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationGroupsListArgs,
+    ) -> String {
+        format!("gcp::ListReservationGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReservationGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Reservation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationsCreateArgs>
+    for Reservation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationsCreateArgs,
+    ) -> String {
+        format!("gcp::Reservation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Reservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationsGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReservationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationsListArgs>
+    for ListReservationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationsListArgs,
+    ) -> String {
+        format!("gcp::ListReservationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReservationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Assignment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationsAssignmentsCreateArgs>
+    for Assignment
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationsAssignmentsCreateArgs,
+    ) -> String {
+        format!("gcp::Assignment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Assignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAssignmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryreservationProjectsLocationsReservationsAssignmentsListArgs>
+    for ListAssignmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigqueryreservationProjectsLocationsReservationsAssignmentsListArgs,
+    ) -> String {
+        format!("gcp::ListAssignmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAssignmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -141,7 +141,8 @@ impl EndpointExtractor {
 
         // Extract request type
         let request_type = operation.request_body.as_ref()
-            .and_then(|rb| rb.content.get("application/json"))
+            .and_then(|rb| rb.content.as_ref())
+            .and_then(|content| content.get("application/json"))
             .and_then(|media| media.schema.as_ref())
             .and_then(|schema| schema.ref_path.as_ref())
             .map(|ref_path| {

@@ -702,7 +702,7 @@ pub struct RuleViolationInfo {
     /// Actions suppressed due to other actions with higher priority.
     #[serde(default, rename = "suppressedActionTypes")]
     pub suppressed_action_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Trigger of the rule. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "DRIVE_SHARE", "MAIL_BEING_SENT", "CHROME_FILE_DOWNLOAD", "CHROME_FILE_UPLOAD", "CHROME_WEB_CONTENT_UPLOAD", "CHAT_MESSAGE_SENT", "CHAT_ATTACHMENT_UPLOADED", "CHROME_PAGE_PRINT", "CHROME_URL_VISITED", "CHROMEOS_FILE_TRANSFER"]
+    /// Trigger of the rule. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "DRIVE_SHARE", "MAIL_BEING_SENT", "CHROME_FILE_DOWNLOAD", "CHROME_FILE_UPLOAD", "CHROME_WEB_CONTENT_UPLOAD", "CHAT_MESSAGE_SENT", "CHAT_ATTACHMENT_UPLOADED", "CHROME_PAGE_PRINT", "CHROME_URL_VISITED", "CHROMEOS_FILE_TRANSFER", "GEMINI_ACCESS"]
     #[serde(default)]
     pub trigger: ::core::option::Option<String>,
     /// Metadata related to the triggered actions.
@@ -1132,4 +1132,179 @@ pub struct CsvRow {
     /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
     #[serde(default)]
     pub entries: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchDeleteAlertsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsBatchDeleteArgs> for BatchDeleteAlertsResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsBatchDeleteArgs) -> String {
+        "gcp::BatchDeleteAlertsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchDeleteAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchUndeleteAlertsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsBatchUndeleteArgs> for BatchUndeleteAlertsResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsBatchUndeleteArgs) -> String {
+        "gcp::BatchUndeleteAlertsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchUndeleteAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.alert_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Alert.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsGetArgs> for Alert {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsGetArgs) -> String {
+        format!("gcp::Alert/{}", input.alert_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Alert"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AlertMetadata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsGetMetadataArgs> for AlertMetadata {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsGetMetadataArgs) -> String {
+        format!("gcp::AlertMetadata/{}", input.alert_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AlertMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAlertsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsListArgs> for ListAlertsResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsListArgs) -> String {
+        "gcp::ListAlertsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AlertFeedback.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsFeedbackCreateArgs> for AlertFeedback {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsFeedbackCreateArgs) -> String {
+        format!("gcp::AlertFeedback/{}", input.alert_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AlertFeedback"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAlertFeedbackResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsFeedbackListArgs> for ListAlertFeedbackResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsFeedbackListArgs) -> String {
+        format!("gcp::ListAlertFeedbackResponse/{}", input.alert_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAlertFeedbackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Settings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterGetSettingsArgs> for Settings {
+    fn generate_resource_id(&self, input: &AlertcenterGetSettingsArgs) -> String {
+        "gcp::Settings".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -212,16 +212,16 @@ pub struct ListUsableSubnetworksResponse {
     pub subnetworks: ::core::option::Option<::std::vec::Vec<UsableSubnetwork>>,
 }
 
-/// NodePoolUpgradeInfo contains the upgrade information of a nodepool.
+/// NodePoolUpgradeInfo contains the upgrade information of a node pool.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePoolUpgradeInfo {
     /// The auto upgrade status.
     #[serde(default, rename = "autoUpgradeStatus")]
     pub auto_upgrade_status: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The nodepool''s current minor version''s end of extended support timestamp.
+    /// The node pool''s current minor version''s end of extended support timestamp.
     #[serde(default, rename = "endOfExtendedSupportTimestamp")]
     pub end_of_extended_support_timestamp: ::core::option::Option<String>,
-    /// The nodepool''s current minor version''s end of standard support timestamp.
+    /// The node pool''s current minor version''s end of standard support timestamp.
     #[serde(default, rename = "endOfStandardSupportTimestamp")]
     pub end_of_standard_support_timestamp: ::core::option::Option<String>,
     /// minor_target_version indicates the target version for minor upgrade.
@@ -1985,6 +1985,9 @@ pub struct AddonsConfig {
     /// Configuration for the Cloud Storage Parallelstore CSI driver.
     #[serde(default, rename = "parallelstoreCsiDriverConfig")]
     pub parallelstore_csi_driver_config: ::core::option::Option<ParallelstoreCsiDriverConfig>,
+    /// Optional. Configuration for the Pod Snapshot feature.
+    #[serde(default, rename = "podSnapshotConfig")]
+    pub pod_snapshot_config: ::core::option::Option<PodSnapshotConfig>,
     /// Optional. Configuration for Ray Operator addon.
     #[serde(default, rename = "rayOperatorConfig")]
     pub ray_operator_config: ::core::option::Option<RayOperatorConfig>,
@@ -2580,7 +2583,7 @@ pub struct NodeConfigDefaults {
     pub node_kubelet_config: ::core::option::Option<NodeKubeletConfig>,
 }
 
-/// AutopilotConfig contains configuration of autopilot feature for this nodepool.
+/// AutopilotConfig contains configuration of autopilot feature for this node pool.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutopilotConfig {
     /// Denotes that nodes belonging to this node pool are Autopilot nodes.
@@ -2597,7 +2600,7 @@ pub struct NodePoolAutoscaling {
     /// Is autoscaling enabled for this node pool.
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
-    /// Location policy used when scaling up a nodepool. // TODO: enum values: ["LOCATION_POLICY_UNSPECIFIED", "BALANCED", "ANY"]
+    /// Location policy used when scaling up a node pool. // TODO: enum values: ["LOCATION_POLICY_UNSPECIFIED", "BALANCED", "ANY"]
     #[serde(default, rename = "locationPolicy")]
     pub location_policy: ::core::option::Option<String>,
     /// Maximum number of nodes for one location in the node pool. Must be &gt;= min_node_count. There has to be enough quota to scale up the cluster.
@@ -2815,7 +2818,7 @@ pub struct NodeNetworkConfig {
     /// Output only. The network tier configuration for the node pool inherits from the cluster-level configuration and remains immutable throughout the node pool''s lifecycle, including during upgrades.
     #[serde(default, rename = "networkTierConfig")]
     pub network_tier_config: ::core::option::Option<NetworkTierConfig>,
-    /// [PRIVATE FIELD] Pod CIDR size overprovisioning config for the nodepool. Pod CIDR size per node depends on max_pods_per_node. By default, the value of max_pods_per_node is rounded off to next power of 2 and we then double that to get the size of pod CIDR block per node. Example: max_pods_per_node of 30 would result in 64 IPs (/26). This config can disable the doubling of IPs (we still round off to next power of 2) Example: max_pods_per_node of 30 will result in 32 IPs (/27) when overprovisioning is disabled.
+    /// [PRIVATE FIELD] Pod CIDR size overprovisioning config for the node pool. Pod CIDR size per node depends on max_pods_per_node. By default, the value of max_pods_per_node is rounded off to next power of 2 and we then double that to get the size of pod CIDR block per node. Example: max_pods_per_node of 30 would result in 64 IPs (/26). This config can disable the doubling of IPs (we still round off to next power of 2) Example: max_pods_per_node of 30 will result in 32 IPs (/27) when overprovisioning is disabled.
     #[serde(default, rename = "podCidrOverprovisionConfig")]
     pub pod_cidr_overprovision_config: ::core::option::Option<PodCIDROverprovisionConfig>,
     /// The IP address range for pod IPs in this node pool. Only applicable if create_pod_range is true. Set to blank to have a range chosen with the default size. Set to /netmask (e.g. /14) to have a range chosen with a specific netmask. Set to a [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) notation (e.g. 10.96.0.0/14) to pick a specific range to use. Only applicable if ip_allocation_policy.use_ip_aliases is true. This field cannot be changed after the node pool has been created.
@@ -2832,7 +2835,7 @@ pub struct NodeNetworkConfig {
     pub subnetwork: ::core::option::Option<String>,
 }
 
-/// NodeDrainConfig contains the node drain related configurations for this nodepool.
+/// NodeDrainConfig contains the node drain related configurations for this node pool.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeDrainConfig {
     /// Whether to respect PDB during node pool deletion.
@@ -2857,7 +2860,7 @@ pub struct PlacementPolicy {
 /// QueuedProvisioning defines the queued provisioning used by the node pool.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueuedProvisioning {
-    /// Denotes that this nodepool is QRM specific, meaning nodes can be only obtained through queuing via the Cluster Autoscaler ProvisioningRequest API.
+    /// Denotes that this node pool is QRM specific, meaning nodes can be only obtained through queuing via the Cluster Autoscaler ProvisioningRequest API.
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
 }
@@ -3018,6 +3021,14 @@ pub struct NetworkPolicyConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParallelstoreCsiDriverConfig {
     /// Whether the Cloud Storage Parallelstore CSI driver is enabled for this cluster.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// PodSnapshotConfig is the configuration for GKE Pod Snapshots feature.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PodSnapshotConfig {
+    /// Whether or not the Pod Snapshots feature is enabled.
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
 }
@@ -3345,7 +3356,7 @@ pub struct AdvancedMachineFeatures {
     pub threads_per_core: ::core::option::Option<String>,
 }
 
-/// BootDisk specifies the boot disk configuration for nodepools.
+/// BootDisk specifies the boot disk configuration for node pools.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BootDisk {
     /// Disk type of the boot disk. (i.e. Hyperdisk-Balanced, PD-Balanced, etc.)
@@ -3541,7 +3552,7 @@ pub struct LocalNvmeSsdBlockConfig {
     pub local_ssd_count: ::core::option::Option<i32>,
 }
 
-/// NodePoolLoggingConfig specifies logging configuration for nodepools.
+/// NodePoolLoggingConfig specifies logging configuration for node pools.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePoolLoggingConfig {
     /// Logging variant configuration.
@@ -4226,4 +4237,319 @@ pub struct CertificateConfig {
     /// The URI configures a secret from [Secret Manager](https://cloud.google.com/secret-manager) in the format "projects/$PROJECT_ID/secrets/$SECRET_NAME/versions/$VERSION" for global secret or "projects/$PROJECT_ID/locations/$REGION/secrets/$SECRET_NAME/versions/$VERSION" for regional secret. Version can be fixed (e.g. "2") or "latest"
     #[serde(default, rename = "gcpSecretManagerSecretUri")]
     pub gcp_secret_manager_secret_uri: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUsableSubnetworksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsAggregatedUsableSubnetworksListArgs>
+    for ListUsableSubnetworksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsAggregatedUsableSubnetworksListArgs,
+    ) -> String {
+        format!("gcp::ListUsableSubnetworksResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUsableSubnetworksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServerConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsGetServerConfigArgs> for ServerConfig {
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsGetServerConfigArgs,
+    ) -> String {
+        format!("gcp::ServerConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServerConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckAutopilotCompatibilityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersCheckAutopilotCompatibilityArgs>
+    for CheckAutopilotCompatibilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersCheckAutopilotCompatibilityArgs,
+    ) -> String {
+        format!("gcp::CheckAutopilotCompatibilityResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckAutopilotCompatibilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersCompleteIpRotationArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersCompleteIpRotationArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ClusterUpgradeInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersFetchClusterUpgradeInfoArgs>
+    for ClusterUpgradeInfo
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersFetchClusterUpgradeInfoArgs,
+    ) -> String {
+        format!("gcp::ClusterUpgradeInfo/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ClusterUpgradeInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Cluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersGetArgs> for Cluster {
+    fn generate_resource_id(&self, input: &ContainerProjectsLocationsClustersGetArgs) -> String {
+        format!("gcp::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetJSONWebKeysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersGetJwksArgs> for GetJSONWebKeysResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersGetJwksArgs,
+    ) -> String {
+        format!("gcp::GetJSONWebKeysResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetJSONWebKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(&self, input: &ContainerProjectsLocationsClustersListArgs) -> String {
+        format!("gcp::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersNodePoolsCompleteUpgradeArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersNodePoolsCompleteUpgradeArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodePoolUpgradeInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersNodePoolsFetchNodePoolUpgradeInfoArgs>
+    for NodePoolUpgradeInfo
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersNodePoolsFetchNodePoolUpgradeInfoArgs,
+    ) -> String {
+        format!("gcp::NodePoolUpgradeInfo/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodePoolUpgradeInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodePool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersNodePoolsGetArgs> for NodePool {
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersNodePoolsGetArgs,
+    ) -> String {
+        format!("gcp::NodePool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodePool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNodePoolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersNodePoolsListArgs>
+    for ListNodePoolsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersNodePoolsListArgs,
+    ) -> String {
+        format!("gcp::ListNodePoolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNodePoolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetOpenIDConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsClustersWellKnownGetOpenidConfigurationArgs>
+    for GetOpenIDConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContainerProjectsLocationsClustersWellKnownGetOpenidConfigurationArgs,
+    ) -> String {
+        format!("gcp::GetOpenIDConfigResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetOpenIDConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContainerProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &ContainerProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

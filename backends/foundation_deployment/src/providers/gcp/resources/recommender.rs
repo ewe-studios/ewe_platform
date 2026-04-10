@@ -428,3 +428,163 @@ pub struct GoogleCloudRecommenderV1ValueMatcher {
     #[serde(default, rename = "matchesPattern")]
     pub matches_pattern: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecommenderV1InsightTypeConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommenderBillingAccountsLocationsInsightTypesGetConfigArgs>
+    for GoogleCloudRecommenderV1InsightTypeConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommenderBillingAccountsLocationsInsightTypesGetConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommenderV1InsightTypeConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommenderV1InsightTypeConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommenderV1Insight.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommenderBillingAccountsLocationsInsightTypesInsightsGetArgs>
+    for GoogleCloudRecommenderV1Insight
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommenderBillingAccountsLocationsInsightTypesInsightsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRecommenderV1Insight/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommenderV1Insight"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommenderV1ListInsightsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommenderBillingAccountsLocationsInsightTypesInsightsListArgs>
+    for GoogleCloudRecommenderV1ListInsightsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommenderBillingAccountsLocationsInsightTypesInsightsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommenderV1ListInsightsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommenderV1ListInsightsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommenderV1RecommenderConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommenderBillingAccountsLocationsRecommendersGetConfigArgs>
+    for GoogleCloudRecommenderV1RecommenderConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommenderBillingAccountsLocationsRecommendersGetConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommenderV1RecommenderConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommenderV1RecommenderConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommenderV1Recommendation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommenderBillingAccountsLocationsRecommendersRecommendationsGetArgs>
+    for GoogleCloudRecommenderV1Recommendation
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommenderBillingAccountsLocationsRecommendersRecommendationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRecommenderV1Recommendation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommenderV1Recommendation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommenderV1ListRecommendationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommenderBillingAccountsLocationsRecommendersRecommendationsListArgs>
+    for GoogleCloudRecommenderV1ListRecommendationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommenderBillingAccountsLocationsRecommendersRecommendationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommenderV1ListRecommendationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommenderV1ListRecommendationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

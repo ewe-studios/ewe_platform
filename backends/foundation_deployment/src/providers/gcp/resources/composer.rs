@@ -963,3 +963,355 @@ pub struct WorkerResource {
     #[serde(default, rename = "storageGb")]
     pub storage_gb: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsCheckUpgradeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsCheckUpgradeArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.environment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteAirflowCommandResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsExecuteAirflowCommandArgs>
+    for ExecuteAirflowCommandResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsExecuteAirflowCommandArgs,
+    ) -> String {
+        format!("gcp::ExecuteAirflowCommandResponse/{}", input.environment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteAirflowCommandResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchDatabasePropertiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsFetchDatabasePropertiesArgs>
+    for FetchDatabasePropertiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsFetchDatabasePropertiesArgs,
+    ) -> String {
+        format!("gcp::FetchDatabasePropertiesResponse/{}", input.environment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchDatabasePropertiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Environment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsGetArgs> for Environment {
+    fn generate_resource_id(&self, input: &ComposerProjectsLocationsEnvironmentsGetArgs) -> String {
+        format!("gcp::Environment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEnvironmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsListArgs>
+    for ListEnvironmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsListArgs,
+    ) -> String {
+        format!("gcp::ListEnvironmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEnvironmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PollAirflowCommandResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsPollAirflowCommandArgs>
+    for PollAirflowCommandResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsPollAirflowCommandArgs,
+    ) -> String {
+        format!("gcp::PollAirflowCommandResponse/{}", input.environment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PollAirflowCommandResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StopAirflowCommandResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsStopAirflowCommandArgs>
+    for StopAirflowCommandResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsStopAirflowCommandArgs,
+    ) -> String {
+        format!("gcp::StopAirflowCommandResponse/{}", input.environment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StopAirflowCommandResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserWorkloadsConfigMap.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsCreateArgs>
+    for UserWorkloadsConfigMap
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsCreateArgs,
+    ) -> String {
+        format!("gcp::UserWorkloadsConfigMap/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserWorkloadsConfigMap"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserWorkloadsConfigMapsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsListArgs>
+    for ListUserWorkloadsConfigMapsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsListArgs,
+    ) -> String {
+        format!("gcp::ListUserWorkloadsConfigMapsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserWorkloadsConfigMapsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserWorkloadsSecret.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsCreateArgs>
+    for UserWorkloadsSecret
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsCreateArgs,
+    ) -> String {
+        format!("gcp::UserWorkloadsSecret/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserWorkloadsSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserWorkloadsSecretsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsListArgs>
+    for ListUserWorkloadsSecretsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsListArgs,
+    ) -> String {
+        format!("gcp::ListUserWorkloadsSecretsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserWorkloadsSecretsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWorkloadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsEnvironmentsWorkloadsListArgs>
+    for ListWorkloadsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsEnvironmentsWorkloadsListArgs,
+    ) -> String {
+        format!("gcp::ListWorkloadsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWorkloadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListImageVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsImageVersionsListArgs>
+    for ListImageVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComposerProjectsLocationsImageVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListImageVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListImageVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComposerProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &ComposerProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

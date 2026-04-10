@@ -773,3 +773,337 @@ pub struct GoogleCloudRecommendationengineV1beta1FeatureMap {
     #[serde(default, rename = "numericalFeatures")]
     pub numerical_features: ::core::option::Option<serde_json::Value>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1ListCatalogsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsListArgs>
+    for GoogleCloudRecommendationengineV1beta1ListCatalogsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommendationengineV1beta1ListCatalogsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1ListCatalogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1Catalog.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsPatchArgs>
+    for GoogleCloudRecommendationengineV1beta1Catalog
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommendationengineV1beta1Catalog/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1Catalog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1CatalogItem.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsCatalogItemsCreateArgs>
+    for GoogleCloudRecommendationengineV1beta1CatalogItem
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsCatalogItemsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommendationengineV1beta1CatalogItem/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1CatalogItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsCatalogItemsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsCatalogItemsDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsCatalogItemsImportArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsCatalogItemsImportArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsCatalogItemsListArgs>
+    for GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsCatalogItemsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsEventStoresOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsEventStoresOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1PredictResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        RecommendationengineProjectsLocationsCatalogsEventStoresPlacementsPredictArgs,
+    > for GoogleCloudRecommendationengineV1beta1PredictResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsEventStoresPlacementsPredictArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommendationengineV1beta1PredictResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1PredictResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsCreateArgs> for GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration {
+    fn generate_resource_id(&self, input: &RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsCreateArgs) -> String {
+        format!("gcp::GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsListArgs> for GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse {
+    fn generate_resource_id(&self, input: &RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsListArgs) -> String {
+        format!("gcp::GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleApiHttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsCollectArgs,
+    > for GoogleApiHttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsCollectArgs,
+    ) -> String {
+        format!("gcp::GoogleApiHttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleApiHttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1ListUserEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsListArgs>
+    for GoogleCloudRecommendationengineV1beta1ListUserEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommendationengineV1beta1ListUserEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1ListUserEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecommendationengineV1beta1UserEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsWriteArgs>
+    for GoogleCloudRecommendationengineV1beta1UserEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsWriteArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecommendationengineV1beta1UserEvent/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecommendationengineV1beta1UserEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

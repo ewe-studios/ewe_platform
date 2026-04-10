@@ -1369,3 +1369,410 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpecMatchingParentIntValueSpec {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleApiHttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsExplainArgs> for GoogleApiHttpBody {
+    fn generate_resource_id(&self, input: &MlProjectsExplainArgs) -> String {
+        format!("gcp::GoogleApiHttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleApiHttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1GetConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsGetConfigArgs> for GoogleCloudMlV1GetConfigResponse {
+    fn generate_resource_id(&self, input: &MlProjectsGetConfigArgs) -> String {
+        format!("gcp::GoogleCloudMlV1GetConfigResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1GetConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsJobsCancelArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &MlProjectsJobsCancelArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1Job.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsJobsCreateArgs> for GoogleCloudMlV1Job {
+    fn generate_resource_id(&self, input: &MlProjectsJobsCreateArgs) -> String {
+        format!("gcp::GoogleCloudMlV1Job/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsJobsGetIamPolicyArgs> for GoogleIamV1Policy {
+    fn generate_resource_id(&self, input: &MlProjectsJobsGetIamPolicyArgs) -> String {
+        format!("gcp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1ListJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsJobsListArgs> for GoogleCloudMlV1ListJobsResponse {
+    fn generate_resource_id(&self, input: &MlProjectsJobsListArgs) -> String {
+        format!("gcp::GoogleCloudMlV1ListJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsJobsTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &MlProjectsJobsTestIamPermissionsArgs) -> String {
+        format!(
+            "gcp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsGetArgs> for GoogleCloudMlV1Location {
+    fn generate_resource_id(&self, input: &MlProjectsLocationsGetArgs) -> String {
+        format!("gcp::GoogleCloudMlV1Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsListArgs> for GoogleCloudMlV1ListLocationsResponse {
+    fn generate_resource_id(&self, input: &MlProjectsLocationsListArgs) -> String {
+        format!("gcp::GoogleCloudMlV1ListLocationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsOperationsGetArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &MlProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1Study.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsStudiesCreateArgs> for GoogleCloudMlV1Study {
+    fn generate_resource_id(&self, input: &MlProjectsLocationsStudiesCreateArgs) -> String {
+        format!("gcp::GoogleCloudMlV1Study/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1Study"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1ListStudiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsStudiesListArgs> for GoogleCloudMlV1ListStudiesResponse {
+    fn generate_resource_id(&self, input: &MlProjectsLocationsStudiesListArgs) -> String {
+        format!("gcp::GoogleCloudMlV1ListStudiesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1ListStudiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1Trial.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsStudiesTrialsAddMeasurementArgs>
+    for GoogleCloudMlV1Trial
+{
+    fn generate_resource_id(
+        &self,
+        input: &MlProjectsLocationsStudiesTrialsAddMeasurementArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudMlV1Trial/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1Trial"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1ListTrialsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsStudiesTrialsListArgs>
+    for GoogleCloudMlV1ListTrialsResponse
+{
+    fn generate_resource_id(&self, input: &MlProjectsLocationsStudiesTrialsListArgs) -> String {
+        format!("gcp::GoogleCloudMlV1ListTrialsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1ListTrialsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1ListOptimalTrialsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsLocationsStudiesTrialsListOptimalTrialsArgs>
+    for GoogleCloudMlV1ListOptimalTrialsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MlProjectsLocationsStudiesTrialsListOptimalTrialsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudMlV1ListOptimalTrialsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1ListOptimalTrialsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1Model.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsModelsCreateArgs> for GoogleCloudMlV1Model {
+    fn generate_resource_id(&self, input: &MlProjectsModelsCreateArgs) -> String {
+        format!("gcp::GoogleCloudMlV1Model/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1Model"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1ListModelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsModelsListArgs> for GoogleCloudMlV1ListModelsResponse {
+    fn generate_resource_id(&self, input: &MlProjectsModelsListArgs) -> String {
+        format!("gcp::GoogleCloudMlV1ListModelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1ListModelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1Version.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsModelsVersionsGetArgs> for GoogleCloudMlV1Version {
+    fn generate_resource_id(&self, input: &MlProjectsModelsVersionsGetArgs) -> String {
+        format!("gcp::GoogleCloudMlV1Version/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudMlV1ListVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsModelsVersionsListArgs> for GoogleCloudMlV1ListVersionsResponse {
+    fn generate_resource_id(&self, input: &MlProjectsModelsVersionsListArgs) -> String {
+        format!("gcp::GoogleCloudMlV1ListVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudMlV1ListVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MlProjectsOperationsListArgs> for GoogleLongrunningListOperationsResponse {
+    fn generate_resource_id(&self, input: &MlProjectsOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -1014,3 +1014,700 @@ pub struct GoogleAnalyticsAdminV1betaNumericValue {
     #[serde(default, rename = "int64Value")]
     pub int64_value: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListAccountSummariesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountSummariesListArgs>
+    for GoogleAnalyticsAdminV1betaListAccountSummariesResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountSummariesListArgs) -> String {
+        "gcp::GoogleAnalyticsAdminV1betaListAccountSummariesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListAccountSummariesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAccount.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsGetArgs> for GoogleAnalyticsAdminV1betaAccount {
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsGetArgs) -> String {
+        format!("gcp::GoogleAnalyticsAdminV1betaAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataSharingSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsGetDataSharingSettingsArgs>
+    for GoogleAnalyticsAdminV1betaDataSharingSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminAccountsGetDataSharingSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaDataSharingSettings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaDataSharingSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsListArgs>
+    for GoogleAnalyticsAdminV1betaListAccountsResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsListArgs) -> String {
+        "gcp::GoogleAnalyticsAdminV1betaListAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsProvisionAccountTicketArgs>
+    for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminAccountsProvisionAccountTicketArgs,
+    ) -> String {
+        "gcp::GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaRunAccessReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsRunAccessReportArgs>
+    for GoogleAnalyticsAdminV1betaRunAccessReportResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsRunAccessReportArgs) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaRunAccessReportResponse/{}",
+            input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaRunAccessReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsSearchChangeHistoryEventsArgs>
+    for GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminAccountsSearchChangeHistoryEventsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse/{}",
+            input.account
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs>
+    for GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse/{}",
+            input.property
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCreateArgs> for GoogleAnalyticsAdminV1betaProperty {
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesCreateArgs) -> String {
+        "gcp::GoogleAnalyticsAdminV1betaProperty".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaProperty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataRetentionSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGetDataRetentionSettingsArgs>
+    for GoogleAnalyticsAdminV1betaDataRetentionSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGetDataRetentionSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaDataRetentionSettings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaDataRetentionSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListPropertiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesListArgs>
+    for GoogleAnalyticsAdminV1betaListPropertiesResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesListArgs) -> String {
+        "gcp::GoogleAnalyticsAdminV1betaListPropertiesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListPropertiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaConversionEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesConversionEventsCreateArgs>
+    for GoogleAnalyticsAdminV1betaConversionEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesConversionEventsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaConversionEvent/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaConversionEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListConversionEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesConversionEventsListArgs>
+    for GoogleAnalyticsAdminV1betaListConversionEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesConversionEventsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListConversionEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListConversionEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomDimension.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomDimensionsCreateArgs>
+    for GoogleAnalyticsAdminV1betaCustomDimension
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomDimensionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaCustomDimension/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaCustomDimension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListCustomDimensionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomDimensionsListArgs>
+    for GoogleAnalyticsAdminV1betaListCustomDimensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomDimensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListCustomDimensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListCustomDimensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomMetric.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomMetricsCreateArgs>
+    for GoogleAnalyticsAdminV1betaCustomMetric
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomMetricsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaCustomMetric/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaCustomMetric"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListCustomMetricsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomMetricsListArgs>
+    for GoogleAnalyticsAdminV1betaListCustomMetricsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomMetricsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListCustomMetricsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListCustomMetricsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataStream.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsCreateArgs>
+    for GoogleAnalyticsAdminV1betaDataStream
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleAnalyticsAdminV1betaDataStream/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaDataStream"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListDataStreamsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsListArgs>
+    for GoogleAnalyticsAdminV1betaListDataStreamsResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesDataStreamsListArgs) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListDataStreamsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListDataStreamsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs>
+    for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs>
+    for GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaFirebaseLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesFirebaseLinksCreateArgs>
+    for GoogleAnalyticsAdminV1betaFirebaseLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesFirebaseLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaFirebaseLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaFirebaseLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListFirebaseLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesFirebaseLinksListArgs>
+    for GoogleAnalyticsAdminV1betaListFirebaseLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesFirebaseLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListFirebaseLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListFirebaseLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaGoogleAdsLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGoogleAdsLinksCreateArgs>
+    for GoogleAnalyticsAdminV1betaGoogleAdsLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGoogleAdsLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaGoogleAdsLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaGoogleAdsLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGoogleAdsLinksListArgs>
+    for GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGoogleAdsLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaKeyEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesKeyEventsCreateArgs>
+    for GoogleAnalyticsAdminV1betaKeyEvent
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesKeyEventsCreateArgs) -> String {
+        format!("gcp::GoogleAnalyticsAdminV1betaKeyEvent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaKeyEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListKeyEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesKeyEventsListArgs>
+    for GoogleAnalyticsAdminV1betaListKeyEventsResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesKeyEventsListArgs) -> String {
+        format!(
+            "gcp::GoogleAnalyticsAdminV1betaListKeyEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAnalyticsAdminV1betaListKeyEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

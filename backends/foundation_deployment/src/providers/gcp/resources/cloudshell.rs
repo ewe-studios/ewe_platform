@@ -217,3 +217,107 @@ pub struct Status {
     #[serde(default)]
     pub message: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudshellOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &CloudshellOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudshellOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudshellOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudshellOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &CloudshellOperationsListArgs) -> String {
+        "gcp::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateAccessTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudshellUsersEnvironmentsGenerateAccessTokenArgs>
+    for GenerateAccessTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudshellUsersEnvironmentsGenerateAccessTokenArgs,
+    ) -> String {
+        format!("gcp::GenerateAccessTokenResponse/{}", input.environment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateAccessTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Environment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudshellUsersEnvironmentsGetArgs> for Environment {
+    fn generate_resource_id(&self, input: &CloudshellUsersEnvironmentsGetArgs) -> String {
+        format!("gcp::Environment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -1122,3 +1122,434 @@ pub struct ObjectId {
     #[serde(default, rename = "objectIdPath")]
     pub object_id_path: ::core::option::Option<::std::vec::Vec<i32>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &PrivatecaProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &PrivatecaProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &PrivatecaProjectsLocationsCaPoolsCreateArgs) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchCaCertsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsFetchCaCertsArgs>
+    for FetchCaCertsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsFetchCaCertsArgs,
+    ) -> String {
+        format!("gcp::FetchCaCertsResponse/{}", input.ca_pool)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchCaCertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CaPool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsGetArgs> for CaPool {
+    fn generate_resource_id(&self, input: &PrivatecaProjectsLocationsCaPoolsGetArgs) -> String {
+        format!("gcp::CaPool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CaPool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCaPoolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsListArgs> for ListCaPoolsResponse {
+    fn generate_resource_id(&self, input: &PrivatecaProjectsLocationsCaPoolsListArgs) -> String {
+        format!("gcp::ListCaPoolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCaPoolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchCertificateAuthorityCsrResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesFetchArgs>
+    for FetchCertificateAuthorityCsrResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesFetchArgs,
+    ) -> String {
+        format!("gcp::FetchCertificateAuthorityCsrResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchCertificateAuthorityCsrResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateAuthority.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesGetArgs>
+    for CertificateAuthority
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesGetArgs,
+    ) -> String {
+        format!("gcp::CertificateAuthority/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CertificateAuthority"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificateAuthoritiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesListArgs>
+    for ListCertificateAuthoritiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesListArgs,
+    ) -> String {
+        format!("gcp::ListCertificateAuthoritiesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificateAuthoritiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateRevocationList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetArgs,
+    > for CertificateRevocationList
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetArgs,
+    ) -> String {
+        format!("gcp::CertificateRevocationList/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CertificateRevocationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificateRevocationListsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsListArgs,
+    > for ListCertificateRevocationListsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListCertificateRevocationListsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificateRevocationListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Certificate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsCertificatesCreateArgs> for Certificate {
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsCertificatesCreateArgs,
+    ) -> String {
+        format!("gcp::Certificate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Certificate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCaPoolsCertificatesListArgs>
+    for ListCertificatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCaPoolsCertificatesListArgs,
+    ) -> String {
+        format!("gcp::ListCertificatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCertificateTemplatesGetArgs>
+    for CertificateTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCertificateTemplatesGetArgs,
+    ) -> String {
+        format!("gcp::CertificateTemplate/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CertificateTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificateTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsCertificateTemplatesListArgs>
+    for ListCertificateTemplatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsCertificateTemplatesListArgs,
+    ) -> String {
+        format!("gcp::ListCertificateTemplatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificateTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &PrivatecaProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PrivatecaProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &PrivatecaProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

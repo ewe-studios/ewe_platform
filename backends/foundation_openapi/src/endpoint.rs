@@ -75,7 +75,7 @@ pub struct EndpointInfo {
 }
 
 /// Response type discriminator.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ResponseType {
     /// Generated struct type (e.g., "GetProjectResponse")
     Generated(String),
@@ -329,6 +329,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            operation_type: OperationType::Read,
         };
         assert_eq!(endpoint.args_struct_name(), "GetV1ProjectsArgs");
     }
@@ -347,6 +348,7 @@ mod tests {
             success_codes: vec![],
             base_url: None,
             summary: None,
+            operation_type: OperationType::Read,
         };
         assert_eq!(endpoint.fn_name(), "get_v1_projects");
     }

@@ -671,7 +671,7 @@ pub struct GooglePubsubV1Subscription {
     /// Optional. A policy that specifies how Pub/Sub retries message delivery for this subscription. If not set, the default retry policy is applied. This generally implies that messages will be retried as soon as possible for healthy subscribers. RetryPolicy will be triggered on NACKs or acknowledgement deadline exceeded events for a given message.
     #[serde(default, rename = "retryPolicy")]
     pub retry_policy: ::core::option::Option<RetryPolicy>,
-    /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"
+    /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.
     #[serde(default)]
     pub tags: ::core::option::Option<serde_json::Value>,
 }
@@ -1052,4 +1052,383 @@ pub struct UnstructuredInference {
     /// Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.
     #[serde(default)]
     pub parameters: ::core::option::Option<serde_json::Value>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOrgDataExchangesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubOrganizationsLocationsDataExchangesListArgs>
+    for ListOrgDataExchangesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubOrganizationsLocationsDataExchangesListArgs,
+    ) -> String {
+        format!("gcp::ListOrgDataExchangesResponse/{}", input.organization)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOrgDataExchangesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DataExchange.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesCreateArgs> for DataExchange {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesCreateArgs,
+    ) -> String {
+        format!("gcp::DataExchange/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DataExchange"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDataExchangesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesListArgs>
+    for ListDataExchangesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesListArgs,
+    ) -> String {
+        format!("gcp::ListDataExchangesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDataExchangesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSharedResourceSubscriptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesListSubscriptionsArgs>
+    for ListSharedResourceSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesListSubscriptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::ListSharedResourceSubscriptionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSharedResourceSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesSubscribeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesSubscribeArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Listing.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesListingsCreateArgs> for Listing {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesListingsCreateArgs,
+    ) -> String {
+        format!("gcp::Listing/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Listing"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListListingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesListingsListArgs>
+    for ListListingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesListingsListArgs,
+    ) -> String {
+        format!("gcp::ListListingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListListingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SubscribeListingResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesListingsSubscribeArgs>
+    for SubscribeListingResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesListingsSubscribeArgs,
+    ) -> String {
+        format!("gcp::SubscribeListingResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SubscribeListingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesQueryTemplatesApproveArgs>
+    for QueryTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesApproveArgs,
+    ) -> String {
+        format!("gcp::QueryTemplate/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListQueryTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsDataExchangesQueryTemplatesListArgs>
+    for ListQueryTemplatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesListArgs,
+    ) -> String {
+        format!("gcp::ListQueryTemplatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListQueryTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Subscription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsSubscriptionsGetArgs> for Subscription {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsSubscriptionsGetArgs,
+    ) -> String {
+        format!("gcp::Subscription/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSubscriptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsSubscriptionsListArgs>
+    for ListSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsSubscriptionsListArgs,
+    ) -> String {
+        format!("gcp::ListSubscriptionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RevokeSubscriptionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticshubProjectsLocationsSubscriptionsRevokeArgs>
+    for RevokeSubscriptionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticshubProjectsLocationsSubscriptionsRevokeArgs,
+    ) -> String {
+        format!("gcp::RevokeSubscriptionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RevokeSubscriptionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

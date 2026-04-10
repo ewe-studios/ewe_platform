@@ -641,3 +641,389 @@ pub struct DefaultResources {
     #[serde(default, rename = "storageBucket")]
     pub storage_bucket: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAvailableProjectsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseAvailableProjectsListArgs> for ListAvailableProjectsResponse {
+    fn generate_resource_id(&self, input: &FirebaseAvailableProjectsListArgs) -> String {
+        "gcp::ListAvailableProjectsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAvailableProjectsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &FirebaseOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirebaseProject.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsGetArgs> for FirebaseProject {
+    fn generate_resource_id(&self, input: &FirebaseProjectsGetArgs) -> String {
+        format!("gcp::FirebaseProject/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirebaseProject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdminSdkConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsGetAdminSdkConfigArgs> for AdminSdkConfig {
+    fn generate_resource_id(&self, input: &FirebaseProjectsGetAdminSdkConfigArgs) -> String {
+        format!("gcp::AdminSdkConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdminSdkConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyticsDetails.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsGetAnalyticsDetailsArgs> for AnalyticsDetails {
+    fn generate_resource_id(&self, input: &FirebaseProjectsGetAnalyticsDetailsArgs) -> String {
+        format!("gcp::AnalyticsDetails/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyticsDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFirebaseProjectsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsListArgs> for ListFirebaseProjectsResponse {
+    fn generate_resource_id(&self, input: &FirebaseProjectsListArgs) -> String {
+        "gcp::ListFirebaseProjectsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFirebaseProjectsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsRemoveAnalyticsArgs> for Empty {
+    fn generate_resource_id(&self, input: &FirebaseProjectsRemoveAnalyticsArgs) -> String {
+        format!("gcp::Empty/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchFirebaseAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsSearchAppsArgs> for SearchFirebaseAppsResponse {
+    fn generate_resource_id(&self, input: &FirebaseProjectsSearchAppsArgs) -> String {
+        format!("gcp::SearchFirebaseAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchFirebaseAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AndroidApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsAndroidAppsGetArgs> for AndroidApp {
+    fn generate_resource_id(&self, input: &FirebaseProjectsAndroidAppsGetArgs) -> String {
+        format!("gcp::AndroidApp/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AndroidApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AndroidAppConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsAndroidAppsGetConfigArgs> for AndroidAppConfig {
+    fn generate_resource_id(&self, input: &FirebaseProjectsAndroidAppsGetConfigArgs) -> String {
+        format!("gcp::AndroidAppConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AndroidAppConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAndroidAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsAndroidAppsListArgs> for ListAndroidAppsResponse {
+    fn generate_resource_id(&self, input: &FirebaseProjectsAndroidAppsListArgs) -> String {
+        format!("gcp::ListAndroidAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAndroidAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShaCertificate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsAndroidAppsShaCreateArgs> for ShaCertificate {
+    fn generate_resource_id(&self, input: &FirebaseProjectsAndroidAppsShaCreateArgs) -> String {
+        format!("gcp::ShaCertificate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShaCertificate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListShaCertificatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsAndroidAppsShaListArgs> for ListShaCertificatesResponse {
+    fn generate_resource_id(&self, input: &FirebaseProjectsAndroidAppsShaListArgs) -> String {
+        format!("gcp::ListShaCertificatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListShaCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAvailableLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsAvailableLocationsListArgs>
+    for ListAvailableLocationsResponse
+{
+    fn generate_resource_id(&self, input: &FirebaseProjectsAvailableLocationsListArgs) -> String {
+        format!("gcp::ListAvailableLocationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAvailableLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IosApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsIosAppsGetArgs> for IosApp {
+    fn generate_resource_id(&self, input: &FirebaseProjectsIosAppsGetArgs) -> String {
+        format!("gcp::IosApp/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IosApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IosAppConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsIosAppsGetConfigArgs> for IosAppConfig {
+    fn generate_resource_id(&self, input: &FirebaseProjectsIosAppsGetConfigArgs) -> String {
+        format!("gcp::IosAppConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IosAppConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListIosAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsIosAppsListArgs> for ListIosAppsResponse {
+    fn generate_resource_id(&self, input: &FirebaseProjectsIosAppsListArgs) -> String {
+        format!("gcp::ListIosAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListIosAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WebApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsWebAppsGetArgs> for WebApp {
+    fn generate_resource_id(&self, input: &FirebaseProjectsWebAppsGetArgs) -> String {
+        format!("gcp::WebApp/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WebApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WebAppConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsWebAppsGetConfigArgs> for WebAppConfig {
+    fn generate_resource_id(&self, input: &FirebaseProjectsWebAppsGetConfigArgs) -> String {
+        format!("gcp::WebAppConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WebAppConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWebAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseProjectsWebAppsListArgs> for ListWebAppsResponse {
+    fn generate_resource_id(&self, input: &FirebaseProjectsWebAppsListArgs) -> String {
+        format!("gcp::ListWebAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWebAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

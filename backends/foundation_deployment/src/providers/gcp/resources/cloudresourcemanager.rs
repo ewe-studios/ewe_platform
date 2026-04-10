@@ -826,3 +826,486 @@ pub struct Expr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEffectiveTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerEffectiveTagsListArgs> for ListEffectiveTagsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerEffectiveTagsListArgs) -> String {
+        "gcp::ListEffectiveTagsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEffectiveTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersCreateArgs) -> String {
+        "gcp::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Folder.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersGetArgs> for Folder {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersGetArgs) -> String {
+        format!("gcp::Folder/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersGetIamPolicyArgs) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFoldersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersListArgs> for ListFoldersResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersListArgs) -> String {
+        "gcp::ListFoldersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFoldersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchFoldersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersSearchArgs> for SearchFoldersResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersSearchArgs) -> String {
+        "gcp::SearchFoldersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchFoldersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerFoldersTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Capability.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersCapabilitiesGetArgs> for Capability {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerFoldersCapabilitiesGetArgs,
+    ) -> String {
+        format!("gcp::Capability/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Capability"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Lien.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLiensCreateArgs> for Lien {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensCreateArgs) -> String {
+        "gcp::Lien".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Lien"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLiensDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLiensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLiensListArgs> for ListLiensResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensListArgs) -> String {
+        "gcp::ListLiensResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLiensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EffectiveTagBindingCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs>
+    for EffectiveTagBindingCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs,
+    ) -> String {
+        format!("gcp::EffectiveTagBindingCollection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EffectiveTagBindingCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TagBindingCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLocationsTagBindingCollectionsGetArgs>
+    for TagBindingCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerLocationsTagBindingCollectionsGetArgs,
+    ) -> String {
+        format!("gcp::TagBindingCollection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TagBindingCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Organization.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOrganizationsGetArgs> for Organization {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerOrganizationsGetArgs) -> String {
+        format!("gcp::Organization/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Organization"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchOrganizationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOrganizationsSearchArgs>
+    for SearchOrganizationsResponse
+{
+    fn generate_resource_id(&self, input: &CloudresourcemanagerOrganizationsSearchArgs) -> String {
+        "gcp::SearchOrganizationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchOrganizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Project.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsGetArgs> for Project {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsGetArgs) -> String {
+        format!("gcp::Project/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Project"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProjectsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsListArgs> for ListProjectsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsListArgs) -> String {
+        "gcp::ListProjectsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProjectsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchProjectsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsSearchArgs> for SearchProjectsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsSearchArgs) -> String {
+        "gcp::SearchProjectsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchProjectsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTagBindingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagBindingsListArgs> for ListTagBindingsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagBindingsListArgs) -> String {
+        "gcp::ListTagBindingsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTagBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TagKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysGetArgs> for TagKey {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysGetArgs) -> String {
+        format!("gcp::TagKey/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TagKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTagKeysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysListArgs> for ListTagKeysResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysListArgs) -> String {
+        "gcp::ListTagKeysResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTagKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TagValue.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesGetArgs> for TagValue {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagValuesGetArgs) -> String {
+        format!("gcp::TagValue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TagValue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTagValuesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesListArgs> for ListTagValuesResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagValuesListArgs) -> String {
+        "gcp::ListTagValuesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTagValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTagHoldsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesTagHoldsListArgs> for ListTagHoldsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesTagHoldsListArgs,
+    ) -> String {
+        format!("gcp::ListTagHoldsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTagHoldsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -248,3 +248,193 @@ pub struct Status {
     #[serde(default)]
     pub message: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsGetArgs,
+    ) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsListArgs>
+    for ListLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsListArgs,
+    ) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsAnnotationsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsAnnotationsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Annotation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsAnnotationsGetArgs>
+    for Annotation
+{
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsAnnotationsGetArgs,
+    ) -> String {
+        format!("gcp::Annotation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Annotation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Collector.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsCollectorsGetArgs> for Collector {
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsCollectorsGetArgs,
+    ) -> String {
+        format!("gcp::Collector/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Collector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCollectorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsCollectorsListArgs>
+    for ListCollectorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsCollectorsListArgs,
+    ) -> String {
+        format!("gcp::ListCollectorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCollectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RapidmigrationassessmentProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RapidmigrationassessmentProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

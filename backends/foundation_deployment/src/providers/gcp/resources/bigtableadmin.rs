@@ -407,6 +407,20 @@ pub struct ListMaterializedViewsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// Response message for BigtableInstanceAdmin.ListMemoryLayers.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMemoryLayersResponse {
+    /// Locations from which MemoryLayer information could not be retrieved, due to an outage or some other transient condition. MemoryLayers from these locations may be missing from memory_layers, or may only have partial information returned. Values are of the form projects//locations/
+    #[serde(default, rename = "failedLocations")]
+    pub failed_locations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The list of requested memory layers.
+    #[serde(default, rename = "memoryLayers")]
+    pub memory_layers: ::core::option::Option<::std::vec::Vec<MemoryLayer>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
@@ -642,6 +656,20 @@ pub struct UpdateLogicalViewMetadata {
     /// DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
+}
+
+/// The metadata for the Operation returned by UpdateMemoryLayer.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateMemoryLayerMetadata {
+    /// The time at which the operation failed or was completed successfully.
+    #[serde(default, rename = "finishTime")]
+    pub finish_time: ::core::option::Option<String>,
+    /// The request that prompted the initiation of this UpdateMemoryLayer operation.
+    #[serde(default, rename = "originalRequest")]
+    pub original_request: ::core::option::Option<UpdateMemoryLayerRequest>,
+    /// The time at which the original request was received.
+    #[serde(default, rename = "requestTime")]
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by UpdateSchemaBundle.
@@ -1062,6 +1090,17 @@ pub struct UpdateLogicalViewRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
+/// Request message for BigtableInstanceAdmin.UpdateMemoryLayer.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateMemoryLayerRequest {
+    /// Required. The memory layer to update. The memory layer''s name format is as follows: projects/{project}/instances/{instance}/clusters/{cluster}/memoryLayer.
+    #[serde(default, rename = "memoryLayer")]
+    pub memory_layer: ::core::option::Option<MemoryLayer>,
+    /// Optional. The list of fields to update.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
 /// A materialized view object that can be referenced in SQL queries.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaterializedView {
@@ -1115,6 +1154,9 @@ pub struct SingleClusterRouting {
 /// Standard options for isolating this app profile''s traffic from other use cases.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardIsolation {
+    /// Optional. The memory config to use for requests sent using this app profile.
+    #[serde(default, rename = "memoryConfig")]
+    pub memory_config: ::core::option::Option<MemoryConfig>,
     /// The priority of requests sent using this app profile. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "PRIORITY_LOW", "PRIORITY_MEDIUM", "PRIORITY_HIGH"]
     #[serde(default)]
     pub priority: ::core::option::Option<String>,
@@ -1148,6 +1190,9 @@ pub struct AutomatedBackupPolicy {
     /// How frequently automated backups should occur. The only supported value at this time is 24 hours. An undefined frequency is treated as 24 hours.
     #[serde(default)]
     pub frequency: ::core::option::Option<String>,
+    /// Optional. A list of Cloud Bigtable zones where automated backups are allowed to be created. If empty, automated backups will be created in all zones of the instance. Locations are in the format projects/{project}/locations/{zone}. This field can only set for tables in Enterprise Plus instances.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.
     #[serde(default, rename = "retentionPeriod")]
     pub retention_period: ::core::option::Option<String>,
@@ -1334,9 +1379,32 @@ pub struct LogicalView {
     pub query: ::core::option::Option<String>,
 }
 
+/// The memory layer of a cluster. A memory layer serves reads from memory without hitting the backing persistent data store.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryLayer {
+    /// Optional. The etag for this memory layer. This may be sent on update requests to ensure that the client has an up-to-date value before proceeding. The server returns an ABORTED error on a mismatched etag.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The configuration of this memory layer. Set an empty memory_config to enable the memory layer. Unset this to disable the memory layer.
+    #[serde(default, rename = "memoryConfig")]
+    pub memory_config: ::core::option::Option<GoogleBigtableAdminV2MemoryLayerMemoryConfig>,
+    /// Identifier. Name of the memory layer. This is always: "projects/{project}/instances/{instance}/clusters/{cluster}/memoryLayer".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The current state of the memory layer. // TODO: enum values: ["STATE_NOT_KNOWN", "READY", "ENABLING", "RESIZING", "DISABLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
 /// If enabled, Bigtable will route the request based on the row key of the request, rather than randomly. Instead, each row key will be assigned to a cluster, and will stick to that cluster. If clusters are added or removed, then this may affect which row keys stick to which clusters. To avoid this, users can use a cluster group to specify which clusters are to be used. In this case, new clusters that are not a part of the cluster group will not be routed to, and routing will be unaffected by the new cluster. Moreover, clusters specified in the cluster group cannot be deleted unless removed from the cluster group.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowAffinity {
+    pub value: serde_json::Value,
+}
+
+/// If set, eligible single-row requests (currently limited to ReadRows) using this app profile will be routed to the memory layer. All eligible writes populate the memory layer. MemoryConfig can only be set if the AppProfile uses single cluster routing and the configured cluster has a memory layer enabled.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryConfig {
     pub value: serde_json::Value,
 }
 
@@ -1449,6 +1517,14 @@ pub struct GoogleBigtableAdminV2AuthorizedViewSubsetView {
     /// Row prefixes to be included in the AuthorizedView. To provide access to all rows, include the empty string as a prefix ("").
     #[serde(default, rename = "rowPrefixes")]
     pub row_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Configuration of a memory layer.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2MemoryLayerMemoryConfig {
+    /// Output only. Reporting the current size of the memory layer in GiB.
+    #[serde(default, rename = "storageSizeGib")]
+    pub storage_size_gib: ::core::option::Option<i32>,
 }
 
 /// Autoscaling config for a cluster.
@@ -1631,6 +1707,41 @@ pub struct GoogleBigtableAdminV2TypeGeography {
     pub value: serde_json::Value,
 }
 
+/// Int32 Values of type Int32 are stored in Value.int_value.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt32 {
+    /// The encoding to use when converting to or from lower level types.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt32Encoding>>,
+}
+
+/// Rules used to convert to or from lower level types.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt32Encoding {
+    /// Use BigEndianBytes encoding.
+    #[serde(default, rename = "bigEndianBytes")]
+    pub big_endian_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes>,
+    >,
+    /// Use OrderedCodeBytes encoding.
+    #[serde(default, rename = "orderedCodeBytes")]
+    pub ordered_code_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes>,
+    >,
+}
+
+/// Encodes the value as a 4-byte big-endian two''s complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery BINARY encoding - HBase Bytes.toBytes - Java ByteBuffer.putInt() with ByteOrder.BIG_ENDIAN
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes {
+    pub value: serde_json::Value,
+}
+
+/// Encodes the value in a variable length binary format of up to 5 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes {
+    pub value: serde_json::Value,
+}
+
 /// Int64 Values of type Int64 are stored in Value.int_value.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeInt64 {
@@ -1810,6 +1921,9 @@ pub struct Type {
     #[serde(default, rename = "geographyType")]
     pub geography_type:
         ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeGeography>>,
+    /// Int32
+    #[serde(default, rename = "int32Type")]
+    pub int32_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt32>>,
     /// Int64
     #[serde(default, rename = "int64Type")]
     pub int64_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64>>,
@@ -1837,4 +1951,656 @@ pub struct Union {
     /// Delete cells which would be deleted by any element of rules.
     #[serde(default)]
     pub rules: ::std::vec::Vec<::std::boxed::Box<GcRule>>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &BigtableadminOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminOperationsProjectsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminOperationsProjectsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesGetArgs) -> String {
+        format!("gcp::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesListArgs) -> String {
+        format!("gcp::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AppProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesAppProfilesCreateArgs> for AppProfile {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesAppProfilesCreateArgs,
+    ) -> String {
+        format!("gcp::AppProfile/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AppProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAppProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesAppProfilesListArgs>
+    for ListAppProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesAppProfilesListArgs,
+    ) -> String {
+        format!("gcp::ListAppProfilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAppProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Cluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersGetArgs> for Cluster {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersGetArgs,
+    ) -> String {
+        format!("gcp::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MemoryLayer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersGetMemoryLayerArgs> for MemoryLayer {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersGetMemoryLayerArgs,
+    ) -> String {
+        format!("gcp::MemoryLayer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MemoryLayer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersListArgs,
+    ) -> String {
+        format!("gcp::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Backup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsGetArgs,
+    ) -> String {
+        format!("gcp::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListHotTabletsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersHotTabletsListArgs>
+    for ListHotTabletsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersHotTabletsListArgs,
+    ) -> String {
+        format!("gcp::ListHotTabletsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListHotTabletsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMemoryLayersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersMemoryLayersListArgs>
+    for ListMemoryLayersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersMemoryLayersListArgs,
+    ) -> String {
+        format!("gcp::ListMemoryLayersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMemoryLayersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LogicalView.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsGetArgs> for LogicalView {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsGetArgs,
+    ) -> String {
+        format!("gcp::LogicalView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LogicalView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLogicalViewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsListArgs>
+    for ListLogicalViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsListArgs,
+    ) -> String {
+        format!("gcp::ListLogicalViewsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLogicalViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MaterializedView.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsGetArgs>
+    for MaterializedView
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsGetArgs,
+    ) -> String {
+        format!("gcp::MaterializedView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MaterializedView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMaterializedViewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsListArgs>
+    for ListMaterializedViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsListArgs,
+    ) -> String {
+        format!("gcp::ListMaterializedViewsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMaterializedViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckConsistencyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesCheckConsistencyArgs>
+    for CheckConsistencyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesCheckConsistencyArgs,
+    ) -> String {
+        format!("gcp::CheckConsistencyResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckConsistencyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Table.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesCreateArgs> for Table {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesCreateArgs,
+    ) -> String {
+        format!("gcp::Table/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Table"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateConsistencyTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs>
+    for GenerateConsistencyTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs,
+    ) -> String {
+        format!("gcp::GenerateConsistencyTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateConsistencyTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTablesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesListArgs> for ListTablesResponse {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesTablesListArgs) -> String {
+        format!("gcp::ListTablesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTablesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AuthorizedView.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs>
+    for AuthorizedView
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs,
+    ) -> String {
+        format!("gcp::AuthorizedView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AuthorizedView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAuthorizedViewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs>
+    for ListAuthorizedViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs,
+    ) -> String {
+        format!("gcp::ListAuthorizedViewsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAuthorizedViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SchemaBundle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs> for SchemaBundle {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs,
+    ) -> String {
+        format!("gcp::SchemaBundle/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SchemaBundle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSchemaBundlesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesListArgs>
+    for ListSchemaBundlesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesListArgs,
+    ) -> String {
+        format!("gcp::ListSchemaBundlesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSchemaBundlesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

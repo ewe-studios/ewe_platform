@@ -1177,3 +1177,267 @@ pub struct ApiValue {
     #[serde(default, rename = "timestampValue")]
     pub timestamp_value: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AllocateIdsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsAllocateIdsArgs> for AllocateIdsResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsAllocateIdsArgs) -> String {
+        format!("gcp::AllocateIdsResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AllocateIdsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BeginTransactionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsBeginTransactionArgs> for BeginTransactionResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsBeginTransactionArgs) -> String {
+        format!("gcp::BeginTransactionResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BeginTransactionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommitResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsCommitArgs> for CommitResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsCommitArgs) -> String {
+        format!("gcp::CommitResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommitResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsExportArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatastoreProjectsExportArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsLookupArgs> for LookupResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsLookupArgs) -> String {
+        format!("gcp::LookupResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReserveIdsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsReserveIdsArgs> for ReserveIdsResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsReserveIdsArgs) -> String {
+        format!("gcp::ReserveIdsResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReserveIdsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RollbackResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsRollbackArgs> for RollbackResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsRollbackArgs) -> String {
+        format!("gcp::RollbackResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RollbackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunAggregationQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsRunAggregationQueryArgs> for RunAggregationQueryResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsRunAggregationQueryArgs) -> String {
+        format!("gcp::RunAggregationQueryResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunAggregationQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsRunQueryArgs> for RunQueryResponse {
+    fn generate_resource_id(&self, input: &DatastoreProjectsRunQueryArgs) -> String {
+        format!("gcp::RunQueryResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleDatastoreAdminV1Index.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsIndexesGetArgs> for GoogleDatastoreAdminV1Index {
+    fn generate_resource_id(&self, input: &DatastoreProjectsIndexesGetArgs) -> String {
+        format!(
+            "gcp::GoogleDatastoreAdminV1Index/{}/{}",
+            input.project_id, input.index_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleDatastoreAdminV1Index"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleDatastoreAdminV1ListIndexesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsIndexesListArgs>
+    for GoogleDatastoreAdminV1ListIndexesResponse
+{
+    fn generate_resource_id(&self, input: &DatastoreProjectsIndexesListArgs) -> String {
+        format!(
+            "gcp::GoogleDatastoreAdminV1ListIndexesResponse/{}",
+            input.project_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleDatastoreAdminV1ListIndexesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &DatastoreProjectsOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatastoreProjectsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &DatastoreProjectsOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

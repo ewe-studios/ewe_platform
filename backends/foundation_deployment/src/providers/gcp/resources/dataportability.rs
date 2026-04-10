@@ -110,3 +110,131 @@ pub struct RetryPortabilityArchiveResponse {
     #[serde(default, rename = "archiveJobId")]
     pub archive_job_id: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckAccessTypeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityAccessTypeCheckArgs> for CheckAccessTypeResponse {
+    fn generate_resource_id(&self, input: &DataportabilityAccessTypeCheckArgs) -> String {
+        "gcp::CheckAccessTypeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckAccessTypeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CancelPortabilityArchiveResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityArchiveJobsCancelArgs> for CancelPortabilityArchiveResponse {
+    fn generate_resource_id(&self, input: &DataportabilityArchiveJobsCancelArgs) -> String {
+        format!("gcp::CancelPortabilityArchiveResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CancelPortabilityArchiveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PortabilityArchiveState.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityArchiveJobsGetPortabilityArchiveStateArgs>
+    for PortabilityArchiveState
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataportabilityArchiveJobsGetPortabilityArchiveStateArgs,
+    ) -> String {
+        format!("gcp::PortabilityArchiveState/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PortabilityArchiveState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetryPortabilityArchiveResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityArchiveJobsRetryArgs> for RetryPortabilityArchiveResponse {
+    fn generate_resource_id(&self, input: &DataportabilityArchiveJobsRetryArgs) -> String {
+        format!("gcp::RetryPortabilityArchiveResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetryPortabilityArchiveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityAuthorizationResetArgs> for Empty {
+    fn generate_resource_id(&self, input: &DataportabilityAuthorizationResetArgs) -> String {
+        "gcp::Empty".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InitiatePortabilityArchiveResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityPortabilityArchiveInitiateArgs>
+    for InitiatePortabilityArchiveResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataportabilityPortabilityArchiveInitiateArgs,
+    ) -> String {
+        "gcp::InitiatePortabilityArchiveResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InitiatePortabilityArchiveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

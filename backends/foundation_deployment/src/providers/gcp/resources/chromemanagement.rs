@@ -2528,3 +2528,978 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData {
     #[serde(default)]
     pub source: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeAppRequestsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsCountChromeAppRequestsArgs>
+    for GoogleChromeManagementV1CountChromeAppRequestsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersAppsCountChromeAppRequestsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountChromeAppRequestsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountChromeAppRequestsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs>
+    for GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1FetchUsersRequestingExtensionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs>
+    for GoogleChromeManagementV1FetchUsersRequestingExtensionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1FetchUsersRequestingExtensionResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1FetchUsersRequestingExtensionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1AppDetails.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsAndroidGetArgs>
+    for GoogleChromeManagementV1AppDetails
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersAppsAndroidGetArgs) -> String {
+        format!("gcp::GoogleChromeManagementV1AppDetails/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1AppDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs>
+    for GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1CertificateProvisioningProcess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesGetArgs>
+    for GoogleChromeManagementVersionsV1CertificateProvisioningProcess
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1CertificateProvisioningProcess/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1CertificateProvisioningProcess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1SetFailureResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs>
+    for GoogleChromeManagementVersionsV1SetFailureResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1SetFailureResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1SetFailureResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1UploadCertificateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs,
+    > for GoogleChromeManagementVersionsV1UploadCertificateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1UploadCertificateResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1UploadCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersProfilesDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesGetArgs>
+    for GoogleChromeManagementVersionsV1ChromeBrowserProfile
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersProfilesGetArgs) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1ChromeBrowserProfile/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1ChromeBrowserProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesListArgs>
+    for GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersProfilesListArgs) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesCommandsCreateArgs>
+    for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersProfilesCommandsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesCommandsListArgs>
+    for GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersProfilesCommandsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountActiveDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountActiveDevicesArgs>
+    for GoogleChromeManagementV1CountActiveDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountActiveDevicesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountActiveDevicesResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountActiveDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionArgs>
+    for GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeCrashEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeCrashEventsArgs>
+    for GoogleChromeManagementV1CountChromeCrashEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeCrashEventsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountChromeCrashEventsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountChromeCrashEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirationDateArgs,
+    > for GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirationDateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionArgs>
+    for GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs>
+    for GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeVersionsArgs>
+    for GoogleChromeManagementV1CountChromeVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeVersionsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountChromeVersionsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountChromeVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountDevicesPerBootTypeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs>
+    for GoogleChromeManagementV1CountDevicesPerBootTypeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountDevicesPerBootTypeResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountDevicesPerBootTypeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs>
+    for GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountInstalledAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountInstalledAppsArgs>
+    for GoogleChromeManagementV1CountInstalledAppsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountInstalledAppsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountInstalledAppsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountInstalledAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountPrintJobsByPrinterResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs>
+    for GoogleChromeManagementV1CountPrintJobsByPrinterResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountPrintJobsByPrinterResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountPrintJobsByPrinterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountPrintJobsByUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountPrintJobsByUserArgs>
+    for GoogleChromeManagementV1CountPrintJobsByUserResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountPrintJobsByUserArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1CountPrintJobsByUserResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1CountPrintJobsByUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1EnumeratePrintJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsEnumeratePrintJobsArgs>
+    for GoogleChromeManagementV1EnumeratePrintJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsEnumeratePrintJobsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1EnumeratePrintJobsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1EnumeratePrintJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1FindInstalledAppDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsFindInstalledAppDevicesArgs>
+    for GoogleChromeManagementV1FindInstalledAppDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsFindInstalledAppDevicesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1FindInstalledAppDevicesResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1FindInstalledAppDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryDevice.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryDevicesGetArgs>
+    for GoogleChromeManagementV1TelemetryDevice
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryDevicesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1TelemetryDevice/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1TelemetryDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryDevicesListArgs>
+    for GoogleChromeManagementV1ListTelemetryDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryDevicesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1ListTelemetryDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1ListTelemetryDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryEventsListArgs>
+    for GoogleChromeManagementV1ListTelemetryEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryEventsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1ListTelemetryEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1ListTelemetryEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryNotificationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs>
+    for GoogleChromeManagementV1TelemetryNotificationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1TelemetryNotificationConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1TelemetryNotificationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryNotificationConfigsListArgs>
+    for GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryNotificationConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryUser.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryUsersGetArgs>
+    for GoogleChromeManagementV1TelemetryUser
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryUsersGetArgs,
+    ) -> String {
+        format!("gcp::GoogleChromeManagementV1TelemetryUser/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1TelemetryUser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryUsersListArgs>
+    for GoogleChromeManagementV1ListTelemetryUsersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryUsersListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementV1ListTelemetryUsersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementV1ListTelemetryUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersThirdPartyProfileUsersMoveArgs>
+    for GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersThirdPartyProfileUsersMoveArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &ChromemanagementOperationsListArgs) -> String {
+        "gcp::GoogleLongrunningListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

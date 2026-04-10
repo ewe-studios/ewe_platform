@@ -203,3 +203,197 @@ pub struct Money {
     #[serde(default)]
     pub units: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for FindSalesPartnerManagedClientsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MarketingplatformadminOrganizationsFindSalesPartnerManagedClientsArgs>
+    for FindSalesPartnerManagedClientsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MarketingplatformadminOrganizationsFindSalesPartnerManagedClientsArgs,
+    ) -> String {
+        format!(
+            "gcp::FindSalesPartnerManagedClientsResponse/{}",
+            input.organization
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FindSalesPartnerManagedClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Organization.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MarketingplatformadminOrganizationsGetArgs> for Organization {
+    fn generate_resource_id(&self, input: &MarketingplatformadminOrganizationsGetArgs) -> String {
+        format!("gcp::Organization/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Organization"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOrganizationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MarketingplatformadminOrganizationsListArgs> for ListOrganizationsResponse {
+    fn generate_resource_id(&self, input: &MarketingplatformadminOrganizationsListArgs) -> String {
+        "gcp::ListOrganizationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOrganizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReportPropertyUsageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MarketingplatformadminOrganizationsReportPropertyUsageArgs>
+    for ReportPropertyUsageResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MarketingplatformadminOrganizationsReportPropertyUsageArgs,
+    ) -> String {
+        format!("gcp::ReportPropertyUsageResponse/{}", input.organization)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReportPropertyUsageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyticsAccountLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MarketingplatformadminOrganizationsAnalyticsAccountLinksCreateArgs>
+    for AnalyticsAccountLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &MarketingplatformadminOrganizationsAnalyticsAccountLinksCreateArgs,
+    ) -> String {
+        format!("gcp::AnalyticsAccountLink/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyticsAccountLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MarketingplatformadminOrganizationsAnalyticsAccountLinksDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &MarketingplatformadminOrganizationsAnalyticsAccountLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAnalyticsAccountLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs>
+    for ListAnalyticsAccountLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs,
+    ) -> String {
+        format!("gcp::ListAnalyticsAccountLinksResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAnalyticsAccountLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SetPropertyServiceLevelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        MarketingplatformadminOrganizationsAnalyticsAccountLinksSetPropertyServiceLevelArgs,
+    > for SetPropertyServiceLevelResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MarketingplatformadminOrganizationsAnalyticsAccountLinksSetPropertyServiceLevelArgs,
+    ) -> String {
+        format!(
+            "gcp::SetPropertyServiceLevelResponse/{}",
+            input.analytics_account_link
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SetPropertyServiceLevelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

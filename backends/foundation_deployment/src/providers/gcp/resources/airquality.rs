@@ -346,3 +346,89 @@ pub struct Concentration {
     #[serde(default)]
     pub value: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupCurrentConditionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityCurrentConditionsLookupArgs> for LookupCurrentConditionsResponse {
+    fn generate_resource_id(&self, input: &AirqualityCurrentConditionsLookupArgs) -> String {
+        "gcp::LookupCurrentConditionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupCurrentConditionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupForecastResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityForecastLookupArgs> for LookupForecastResponse {
+    fn generate_resource_id(&self, input: &AirqualityForecastLookupArgs) -> String {
+        "gcp::LookupForecastResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupForecastResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityHistoryLookupArgs> for LookupHistoryResponse {
+    fn generate_resource_id(&self, input: &AirqualityHistoryLookupArgs) -> String {
+        "gcp::LookupHistoryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs> for HttpBody {
+    fn generate_resource_id(
+        &self,
+        input: &AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs,
+    ) -> String {
+        format!(
+            "gcp::HttpBody/{}/{}/{}/{}",
+            input.map_type, input.zoom, input.x, input.y
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

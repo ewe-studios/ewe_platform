@@ -1786,3 +1786,1221 @@ pub struct ActionIncrementalLoadMode {
     #[serde(default)]
     pub column: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &DataformProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Config.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsGetConfigArgs> for Config {
+    fn generate_resource_id(&self, input: &DataformProjectsLocationsGetConfigArgs) -> String {
+        format!("gcp::Config/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Config"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &DataformProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryUserRootContentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsQueryUserRootContentsArgs>
+    for QueryUserRootContentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsQueryUserRootContentsArgs,
+    ) -> String {
+        format!("gcp::QueryUserRootContentsResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryUserRootContentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Folder.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsFoldersCreateArgs> for Folder {
+    fn generate_resource_id(&self, input: &DataformProjectsLocationsFoldersCreateArgs) -> String {
+        format!("gcp::Folder/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsFoldersDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DataformProjectsLocationsFoldersDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsFoldersDeleteTreeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsFoldersDeleteTreeArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsFoldersGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsFoldersGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryFolderContentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsFoldersQueryFolderContentsArgs>
+    for QueryFolderContentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsFoldersQueryFolderContentsArgs,
+    ) -> String {
+        format!("gcp::QueryFolderContentsResponse/{}", input.folder)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryFolderContentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsFoldersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsFoldersTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &DataformProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommitRepositoryChangesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesCommitArgs>
+    for CommitRepositoryChangesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesCommitArgs,
+    ) -> String {
+        format!("gcp::CommitRepositoryChangesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommitRepositoryChangesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ComputeRepositoryAccessTokenStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesComputeAccessTokenStatusArgs>
+    for ComputeRepositoryAccessTokenStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesComputeAccessTokenStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::ComputeRepositoryAccessTokenStatusResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ComputeRepositoryAccessTokenStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Repository.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesCreateArgs> for Repository {
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesCreateArgs,
+    ) -> String {
+        format!("gcp::Repository/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Repository"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchRepositoryHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesFetchHistoryArgs>
+    for FetchRepositoryHistoryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesFetchHistoryArgs,
+    ) -> String {
+        format!("gcp::FetchRepositoryHistoryResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchRepositoryHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchRemoteBranchesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesFetchRemoteBranchesArgs>
+    for FetchRemoteBranchesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesFetchRemoteBranchesArgs,
+    ) -> String {
+        format!("gcp::FetchRemoteBranchesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchRemoteBranchesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRepositoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesListArgs>
+    for ListRepositoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesListArgs,
+    ) -> String {
+        format!("gcp::ListRepositoriesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRepositoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryRepositoryDirectoryContentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesQueryDirectoryContentsArgs>
+    for QueryRepositoryDirectoryContentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesQueryDirectoryContentsArgs,
+    ) -> String {
+        format!(
+            "gcp::QueryRepositoryDirectoryContentsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryRepositoryDirectoryContentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReadRepositoryFileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesReadFileArgs>
+    for ReadRepositoryFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesReadFileArgs,
+    ) -> String {
+        format!("gcp::ReadRepositoryFileResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReadRepositoryFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompilationResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesCompilationResultsCreateArgs>
+    for CompilationResult
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesCompilationResultsCreateArgs,
+    ) -> String {
+        format!("gcp::CompilationResult/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompilationResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCompilationResultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesCompilationResultsListArgs>
+    for ListCompilationResultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesCompilationResultsListArgs,
+    ) -> String {
+        format!("gcp::ListCompilationResultsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCompilationResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryCompilationResultActionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesCompilationResultsQueryArgs>
+    for QueryCompilationResultActionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesCompilationResultsQueryArgs,
+    ) -> String {
+        format!("gcp::QueryCompilationResultActionsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryCompilationResultActionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReleaseConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesReleaseConfigsCreateArgs>
+    for ReleaseConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesReleaseConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::ReleaseConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReleaseConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReleaseConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesReleaseConfigsListArgs>
+    for ListReleaseConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesReleaseConfigsListArgs,
+    ) -> String {
+        format!("gcp::ListReleaseConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReleaseConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkflowConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkflowConfigsCreateArgs>
+    for WorkflowConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkflowConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::WorkflowConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WorkflowConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWorkflowConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkflowConfigsListArgs>
+    for ListWorkflowConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkflowConfigsListArgs,
+    ) -> String {
+        format!("gcp::ListWorkflowConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWorkflowConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CancelWorkflowInvocationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkflowInvocationsCancelArgs>
+    for CancelWorkflowInvocationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkflowInvocationsCancelArgs,
+    ) -> String {
+        format!("gcp::CancelWorkflowInvocationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CancelWorkflowInvocationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkflowInvocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkflowInvocationsCreateArgs>
+    for WorkflowInvocation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkflowInvocationsCreateArgs,
+    ) -> String {
+        format!("gcp::WorkflowInvocation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WorkflowInvocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWorkflowInvocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkflowInvocationsListArgs>
+    for ListWorkflowInvocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkflowInvocationsListArgs,
+    ) -> String {
+        format!("gcp::ListWorkflowInvocationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWorkflowInvocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryWorkflowInvocationActionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkflowInvocationsQueryArgs>
+    for QueryWorkflowInvocationActionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkflowInvocationsQueryArgs,
+    ) -> String {
+        format!("gcp::QueryWorkflowInvocationActionsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryWorkflowInvocationActionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommitWorkspaceChangesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesCommitArgs>
+    for CommitWorkspaceChangesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesCommitArgs,
+    ) -> String {
+        format!("gcp::CommitWorkspaceChangesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommitWorkspaceChangesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Workspace.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesCreateArgs> for Workspace {
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesCreateArgs,
+    ) -> String {
+        format!("gcp::Workspace/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Workspace"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchFileDiffResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesFetchFileDiffArgs>
+    for FetchFileDiffResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesFetchFileDiffArgs,
+    ) -> String {
+        format!("gcp::FetchFileDiffResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchFileDiffResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchFileGitStatusesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesFetchFileGitStatusesArgs>
+    for FetchFileGitStatusesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesFetchFileGitStatusesArgs,
+    ) -> String {
+        format!("gcp::FetchFileGitStatusesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchFileGitStatusesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchGitAheadBehindResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesFetchGitAheadBehindArgs>
+    for FetchGitAheadBehindResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesFetchGitAheadBehindArgs,
+    ) -> String {
+        format!("gcp::FetchGitAheadBehindResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchGitAheadBehindResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstallNpmPackagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesInstallNpmPackagesArgs>
+    for InstallNpmPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesInstallNpmPackagesArgs,
+    ) -> String {
+        format!("gcp::InstallNpmPackagesResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstallNpmPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWorkspacesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesListArgs>
+    for ListWorkspacesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesListArgs,
+    ) -> String {
+        format!("gcp::ListWorkspacesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWorkspacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MakeDirectoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesMakeDirectoryArgs>
+    for MakeDirectoryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesMakeDirectoryArgs,
+    ) -> String {
+        format!("gcp::MakeDirectoryResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MakeDirectoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MoveDirectoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesMoveDirectoryArgs>
+    for MoveDirectoryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesMoveDirectoryArgs,
+    ) -> String {
+        format!("gcp::MoveDirectoryResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MoveDirectoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MoveFileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesMoveFileArgs>
+    for MoveFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesMoveFileArgs,
+    ) -> String {
+        format!("gcp::MoveFileResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MoveFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PullGitCommitsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesPullArgs>
+    for PullGitCommitsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesPullArgs,
+    ) -> String {
+        format!("gcp::PullGitCommitsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PullGitCommitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PushGitCommitsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesPushArgs>
+    for PushGitCommitsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesPushArgs,
+    ) -> String {
+        format!("gcp::PushGitCommitsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PushGitCommitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryDirectoryContentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesQueryDirectoryContentsArgs>
+    for QueryDirectoryContentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesQueryDirectoryContentsArgs,
+    ) -> String {
+        format!("gcp::QueryDirectoryContentsResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryDirectoryContentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReadFileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesReadFileArgs>
+    for ReadFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesReadFileArgs,
+    ) -> String {
+        format!("gcp::ReadFileResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReadFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemoveDirectoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesRemoveDirectoryArgs>
+    for RemoveDirectoryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesRemoveDirectoryArgs,
+    ) -> String {
+        format!("gcp::RemoveDirectoryResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemoveDirectoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemoveFileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesRemoveFileArgs>
+    for RemoveFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesRemoveFileArgs,
+    ) -> String {
+        format!("gcp::RemoveFileResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemoveFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResetWorkspaceChangesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesResetArgs>
+    for ResetWorkspaceChangesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesResetArgs,
+    ) -> String {
+        format!("gcp::ResetWorkspaceChangesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResetWorkspaceChangesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchFilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesSearchFilesArgs>
+    for SearchFilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesSearchFilesArgs,
+    ) -> String {
+        format!("gcp::SearchFilesResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchFilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WriteFileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsRepositoriesWorkspacesWriteFileArgs>
+    for WriteFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsRepositoriesWorkspacesWriteFileArgs,
+    ) -> String {
+        format!("gcp::WriteFileResponse/{}", input.workspace)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WriteFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamFolder.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsTeamFoldersCreateArgs> for TeamFolder {
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsTeamFoldersCreateArgs,
+    ) -> String {
+        format!("gcp::TeamFolder/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TeamFolder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryTeamFolderContentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsTeamFoldersQueryContentsArgs>
+    for QueryTeamFolderContentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsTeamFoldersQueryContentsArgs,
+    ) -> String {
+        format!("gcp::QueryTeamFolderContentsResponse/{}", input.team_folder)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryTeamFolderContentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchTeamFoldersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataformProjectsLocationsTeamFoldersSearchArgs>
+    for SearchTeamFoldersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataformProjectsLocationsTeamFoldersSearchArgs,
+    ) -> String {
+        format!("gcp::SearchTeamFoldersResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchTeamFoldersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

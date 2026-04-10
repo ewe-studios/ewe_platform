@@ -4613,3 +4613,1503 @@ pub struct SqlPlanMetric {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AutoscalingPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsAutoscalingPoliciesCreateArgs>
+    for AutoscalingPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsAutoscalingPoliciesCreateArgs,
+    ) -> String {
+        format!("gcp::AutoscalingPolicy/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AutoscalingPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsAutoscalingPoliciesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsAutoscalingPoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsAutoscalingPoliciesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsAutoscalingPoliciesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAutoscalingPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsAutoscalingPoliciesListArgs>
+    for ListAutoscalingPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsAutoscalingPoliciesListArgs,
+    ) -> String {
+        format!("gcp::ListAutoscalingPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAutoscalingPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsAutoscalingPoliciesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsAutoscalingPoliciesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesAnalyzeArgs> for Operation {
+    fn generate_resource_id(&self, input: &DataprocProjectsLocationsBatchesAnalyzeArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Batch.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesGetArgs> for Batch {
+    fn generate_resource_id(&self, input: &DataprocProjectsLocationsBatchesGetArgs) -> String {
+        format!("gcp::Batch/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Batch"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBatchesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesListArgs> for ListBatchesResponse {
+    fn generate_resource_id(&self, input: &DataprocProjectsLocationsBatchesListArgs) -> String {
+        format!("gcp::ListBatchesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBatchesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSparkApplicationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsAccessArgs>
+    for AccessSparkApplicationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsAccessArgs,
+    ) -> String {
+        format!("gcp::AccessSparkApplicationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSparkApplicationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSparkApplicationEnvironmentInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsAccessEnvironmentInfoArgs>
+    for AccessSparkApplicationEnvironmentInfoResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsAccessEnvironmentInfoArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSparkApplicationEnvironmentInfoResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSparkApplicationEnvironmentInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSparkApplicationJobResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsAccessJobArgs>
+    for AccessSparkApplicationJobResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsAccessJobArgs,
+    ) -> String {
+        format!("gcp::AccessSparkApplicationJobResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSparkApplicationJobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSparkApplicationSqlSparkPlanGraphResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlPlanArgs>
+    for AccessSparkApplicationSqlSparkPlanGraphResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlPlanArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSparkApplicationSqlSparkPlanGraphResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSparkApplicationSqlSparkPlanGraphResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSparkApplicationSqlQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlQueryArgs>
+    for AccessSparkApplicationSqlQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlQueryArgs,
+    ) -> String {
+        format!("gcp::AccessSparkApplicationSqlQueryResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSparkApplicationSqlQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSparkApplicationStageAttemptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsAccessStageAttemptArgs>
+    for AccessSparkApplicationStageAttemptResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsAccessStageAttemptArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSparkApplicationStageAttemptResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSparkApplicationStageAttemptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSparkApplicationStageRddOperationGraphResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsAccessStageRddGraphArgs>
+    for AccessSparkApplicationStageRddOperationGraphResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsAccessStageRddGraphArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSparkApplicationStageRddOperationGraphResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSparkApplicationStageRddOperationGraphResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSearchArgs>
+    for SearchSparkApplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchArgs,
+    ) -> String {
+        format!("gcp::SearchSparkApplicationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationExecutorStageSummaryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorStageSummaryArgs,
+    > for SearchSparkApplicationExecutorStageSummaryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorStageSummaryArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSparkApplicationExecutorStageSummaryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationExecutorStageSummaryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationExecutorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorsArgs>
+    for SearchSparkApplicationExecutorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorsArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSparkApplicationExecutorsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationExecutorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSearchJobsArgs>
+    for SearchSparkApplicationJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchJobsArgs,
+    ) -> String {
+        format!("gcp::SearchSparkApplicationJobsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationSqlQueriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSearchSqlQueriesArgs>
+    for SearchSparkApplicationSqlQueriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchSqlQueriesArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSparkApplicationSqlQueriesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationSqlQueriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationStageAttemptTasksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptTasksArgs>
+    for SearchSparkApplicationStageAttemptTasksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptTasksArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSparkApplicationStageAttemptTasksResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationStageAttemptTasksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationStageAttemptsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptsArgs>
+    for SearchSparkApplicationStageAttemptsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptsArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSparkApplicationStageAttemptsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationStageAttemptsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSparkApplicationStagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSearchStagesArgs>
+    for SearchSparkApplicationStagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSearchStagesArgs,
+    ) -> String {
+        format!("gcp::SearchSparkApplicationStagesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSparkApplicationStagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSparkApplicationExecutorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSummarizeExecutorsArgs>
+    for SummarizeSparkApplicationExecutorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeExecutorsArgs,
+    ) -> String {
+        format!(
+            "gcp::SummarizeSparkApplicationExecutorsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSparkApplicationExecutorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSparkApplicationJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSummarizeJobsArgs>
+    for SummarizeSparkApplicationJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeJobsArgs,
+    ) -> String {
+        format!("gcp::SummarizeSparkApplicationJobsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSparkApplicationJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSparkApplicationStageAttemptTasksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStageAttemptTasksArgs,
+    > for SummarizeSparkApplicationStageAttemptTasksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStageAttemptTasksArgs,
+    ) -> String {
+        format!(
+            "gcp::SummarizeSparkApplicationStageAttemptTasksResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSparkApplicationStageAttemptTasksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSparkApplicationStagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStagesArgs>
+    for SummarizeSparkApplicationStagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStagesArgs,
+    ) -> String {
+        format!(
+            "gcp::SummarizeSparkApplicationStagesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSparkApplicationStagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WriteSparkApplicationContextResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsBatchesSparkApplicationsWriteArgs>
+    for WriteSparkApplicationContextResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsBatchesSparkApplicationsWriteArgs,
+    ) -> String {
+        format!("gcp::WriteSparkApplicationContextResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WriteSparkApplicationContextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &DataprocProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SessionTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionTemplatesCreateArgs> for SessionTemplate {
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionTemplatesCreateArgs,
+    ) -> String {
+        format!("gcp::SessionTemplate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SessionTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSessionTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionTemplatesListArgs>
+    for ListSessionTemplatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionTemplatesListArgs,
+    ) -> String {
+        format!("gcp::ListSessionTemplatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSessionTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Session.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsGetArgs> for Session {
+    fn generate_resource_id(&self, input: &DataprocProjectsLocationsSessionsGetArgs) -> String {
+        format!("gcp::Session/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Session"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSessionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsListArgs> for ListSessionsResponse {
+    fn generate_resource_id(&self, input: &DataprocProjectsLocationsSessionsListArgs) -> String {
+        format!("gcp::ListSessionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSessionSparkApplicationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsAccessArgs>
+    for AccessSessionSparkApplicationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsAccessArgs,
+    ) -> String {
+        format!("gcp::AccessSessionSparkApplicationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSessionSparkApplicationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSessionSparkApplicationEnvironmentInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsAccessEnvironmentInfoArgs>
+    for AccessSessionSparkApplicationEnvironmentInfoResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsAccessEnvironmentInfoArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSessionSparkApplicationEnvironmentInfoResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSessionSparkApplicationEnvironmentInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSessionSparkApplicationJobResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsAccessJobArgs>
+    for AccessSessionSparkApplicationJobResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsAccessJobArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSessionSparkApplicationJobResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSessionSparkApplicationJobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSessionSparkApplicationSqlSparkPlanGraphResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlPlanArgs>
+    for AccessSessionSparkApplicationSqlSparkPlanGraphResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlPlanArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSessionSparkApplicationSqlSparkPlanGraphResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSessionSparkApplicationSqlSparkPlanGraphResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSessionSparkApplicationSqlQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlQueryArgs>
+    for AccessSessionSparkApplicationSqlQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSessionSparkApplicationSqlQueryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSessionSparkApplicationSqlQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSessionSparkApplicationStageAttemptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsAccessStageAttemptArgs>
+    for AccessSessionSparkApplicationStageAttemptResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsAccessStageAttemptArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSessionSparkApplicationStageAttemptResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSessionSparkApplicationStageAttemptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSessionSparkApplicationStageRddOperationGraphResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsAccessStageRddGraphArgs>
+    for AccessSessionSparkApplicationStageRddOperationGraphResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsAccessStageRddGraphArgs,
+    ) -> String {
+        format!(
+            "gcp::AccessSessionSparkApplicationStageRddOperationGraphResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessSessionSparkApplicationStageRddOperationGraphResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSearchArgs>
+    for SearchSessionSparkApplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationExecutorStageSummaryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorStageSummaryArgs,
+    > for SearchSessionSparkApplicationExecutorStageSummaryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorStageSummaryArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationExecutorStageSummaryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationExecutorStageSummaryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationExecutorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorsArgs>
+    for SearchSessionSparkApplicationExecutorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorsArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationExecutorsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationExecutorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSearchJobsArgs>
+    for SearchSessionSparkApplicationJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchJobsArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationJobsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationSqlQueriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSearchSqlQueriesArgs>
+    for SearchSessionSparkApplicationSqlQueriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchSqlQueriesArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationSqlQueriesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationSqlQueriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationStageAttemptTasksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptTasksArgs,
+    > for SearchSessionSparkApplicationStageAttemptTasksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptTasksArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationStageAttemptTasksResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationStageAttemptTasksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationStageAttemptsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptsArgs>
+    for SearchSessionSparkApplicationStageAttemptsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptsArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationStageAttemptsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationStageAttemptsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSessionSparkApplicationStagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSearchStagesArgs>
+    for SearchSessionSparkApplicationStagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSearchStagesArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchSessionSparkApplicationStagesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSessionSparkApplicationStagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSessionSparkApplicationExecutorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSummarizeExecutorsArgs>
+    for SummarizeSessionSparkApplicationExecutorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeExecutorsArgs,
+    ) -> String {
+        format!(
+            "gcp::SummarizeSessionSparkApplicationExecutorsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSessionSparkApplicationExecutorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSessionSparkApplicationJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSummarizeJobsArgs>
+    for SummarizeSessionSparkApplicationJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeJobsArgs,
+    ) -> String {
+        format!(
+            "gcp::SummarizeSessionSparkApplicationJobsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSessionSparkApplicationJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSessionSparkApplicationStageAttemptTasksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStageAttemptTasksArgs,
+    > for SummarizeSessionSparkApplicationStageAttemptTasksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStageAttemptTasksArgs,
+    ) -> String {
+        format!(
+            "gcp::SummarizeSessionSparkApplicationStageAttemptTasksResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSessionSparkApplicationStageAttemptTasksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SummarizeSessionSparkApplicationStagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStagesArgs>
+    for SummarizeSessionSparkApplicationStagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStagesArgs,
+    ) -> String {
+        format!(
+            "gcp::SummarizeSessionSparkApplicationStagesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SummarizeSessionSparkApplicationStagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WriteSessionSparkApplicationContextResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsSessionsSparkApplicationsWriteArgs>
+    for WriteSessionSparkApplicationContextResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsSessionsSparkApplicationsWriteArgs,
+    ) -> String {
+        format!(
+            "gcp::WriteSessionSparkApplicationContextResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WriteSessionSparkApplicationContextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkflowTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsWorkflowTemplatesCreateArgs> for WorkflowTemplate {
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsWorkflowTemplatesCreateArgs,
+    ) -> String {
+        format!("gcp::WorkflowTemplate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WorkflowTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWorkflowTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsLocationsWorkflowTemplatesListArgs>
+    for ListWorkflowTemplatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsLocationsWorkflowTemplatesListArgs,
+    ) -> String {
+        format!("gcp::ListWorkflowTemplatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWorkflowTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Cluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsRegionsClustersGetArgs> for Cluster {
+    fn generate_resource_id(&self, input: &DataprocProjectsRegionsClustersGetArgs) -> String {
+        format!(
+            "gcp::Cluster/{}/{}/{}",
+            input.project_id, input.region, input.cluster_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsRegionsClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(&self, input: &DataprocProjectsRegionsClustersListArgs) -> String {
+        format!(
+            "gcp::ListClustersResponse/{}/{}",
+            input.project_id, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsRegionsClustersNodeGroupsGetArgs> for NodeGroup {
+    fn generate_resource_id(
+        &self,
+        input: &DataprocProjectsRegionsClustersNodeGroupsGetArgs,
+    ) -> String {
+        format!("gcp::NodeGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Job.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsRegionsJobsCancelArgs> for Job {
+    fn generate_resource_id(&self, input: &DataprocProjectsRegionsJobsCancelArgs) -> String {
+        format!(
+            "gcp::Job/{}/{}/{}",
+            input.project_id, input.region, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataprocProjectsRegionsJobsListArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &DataprocProjectsRegionsJobsListArgs) -> String {
+        format!(
+            "gcp::ListJobsResponse/{}/{}",
+            input.project_id, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

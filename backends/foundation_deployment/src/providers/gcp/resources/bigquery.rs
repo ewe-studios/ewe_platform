@@ -4634,3 +4634,439 @@ pub struct StandardSqlStructType {
     #[serde(default)]
     pub fields: ::std::vec::Vec<::std::boxed::Box<StandardSqlField>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Dataset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryDatasetsGetArgs> for Dataset {
+    fn generate_resource_id(&self, input: &BigqueryDatasetsGetArgs) -> String {
+        format!("gcp::Dataset/{}/{}", input.project_id, input.dataset_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DatasetList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryDatasetsListArgs> for DatasetList {
+    fn generate_resource_id(&self, input: &BigqueryDatasetsListArgs) -> String {
+        format!("gcp::DatasetList/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatasetList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for JobCancelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryJobsCancelArgs> for JobCancelResponse {
+    fn generate_resource_id(&self, input: &BigqueryJobsCancelArgs) -> String {
+        format!(
+            "gcp::JobCancelResponse/{}/{}",
+            input.project_id, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::JobCancelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Job.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryJobsGetArgs> for Job {
+    fn generate_resource_id(&self, input: &BigqueryJobsGetArgs) -> String {
+        format!("gcp::Job/{}/{}", input.project_id, input.job_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetQueryResultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryJobsGetQueryResultsArgs> for GetQueryResultsResponse {
+    fn generate_resource_id(&self, input: &BigqueryJobsGetQueryResultsArgs) -> String {
+        format!(
+            "gcp::GetQueryResultsResponse/{}/{}",
+            input.project_id, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetQueryResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for JobList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryJobsListArgs> for JobList {
+    fn generate_resource_id(&self, input: &BigqueryJobsListArgs) -> String {
+        format!("gcp::JobList/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::JobList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryJobsQueryArgs> for QueryResponse {
+    fn generate_resource_id(&self, input: &BigqueryJobsQueryArgs) -> String {
+        format!("gcp::QueryResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Model.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryModelsGetArgs> for Model {
+    fn generate_resource_id(&self, input: &BigqueryModelsGetArgs) -> String {
+        format!(
+            "gcp::Model/{}/{}/{}",
+            input.project_id, input.dataset_id, input.model_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Model"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListModelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryModelsListArgs> for ListModelsResponse {
+    fn generate_resource_id(&self, input: &BigqueryModelsListArgs) -> String {
+        format!(
+            "gcp::ListModelsResponse/{}/{}",
+            input.project_id, input.dataset_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListModelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetServiceAccountResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryProjectsGetServiceAccountArgs> for GetServiceAccountResponse {
+    fn generate_resource_id(&self, input: &BigqueryProjectsGetServiceAccountArgs) -> String {
+        format!("gcp::GetServiceAccountResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetServiceAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProjectList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryProjectsListArgs> for ProjectList {
+    fn generate_resource_id(&self, input: &BigqueryProjectsListArgs) -> String {
+        "gcp::ProjectList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProjectList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Routine.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryRoutinesGetArgs> for Routine {
+    fn generate_resource_id(&self, input: &BigqueryRoutinesGetArgs) -> String {
+        format!(
+            "gcp::Routine/{}/{}/{}",
+            input.project_id, input.dataset_id, input.routine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Routine"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryRoutinesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &BigqueryRoutinesGetIamPolicyArgs) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRoutinesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryRoutinesListArgs> for ListRoutinesResponse {
+    fn generate_resource_id(&self, input: &BigqueryRoutinesListArgs) -> String {
+        format!(
+            "gcp::ListRoutinesResponse/{}/{}",
+            input.project_id, input.dataset_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRoutinesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryRoutinesTestIamPermissionsArgs> for TestIamPermissionsResponse {
+    fn generate_resource_id(&self, input: &BigqueryRoutinesTestIamPermissionsArgs) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RowAccessPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryRowAccessPoliciesGetArgs> for RowAccessPolicy {
+    fn generate_resource_id(&self, input: &BigqueryRowAccessPoliciesGetArgs) -> String {
+        format!(
+            "gcp::RowAccessPolicy/{}/{}/{}/{}",
+            input.project_id, input.dataset_id, input.table_id, input.policy_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RowAccessPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRowAccessPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryRowAccessPoliciesListArgs> for ListRowAccessPoliciesResponse {
+    fn generate_resource_id(&self, input: &BigqueryRowAccessPoliciesListArgs) -> String {
+        format!(
+            "gcp::ListRowAccessPoliciesResponse/{}/{}/{}",
+            input.project_id, input.dataset_id, input.table_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRowAccessPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TableDataInsertAllResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryTabledataInsertAllArgs> for TableDataInsertAllResponse {
+    fn generate_resource_id(&self, input: &BigqueryTabledataInsertAllArgs) -> String {
+        format!(
+            "gcp::TableDataInsertAllResponse/{}/{}/{}",
+            input.project_id, input.dataset_id, input.table_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TableDataInsertAllResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TableDataList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryTabledataListArgs> for TableDataList {
+    fn generate_resource_id(&self, input: &BigqueryTabledataListArgs) -> String {
+        format!(
+            "gcp::TableDataList/{}/{}/{}",
+            input.project_id, input.dataset_id, input.table_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TableDataList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Table.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryTablesGetArgs> for Table {
+    fn generate_resource_id(&self, input: &BigqueryTablesGetArgs) -> String {
+        format!(
+            "gcp::Table/{}/{}/{}",
+            input.project_id, input.dataset_id, input.table_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Table"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TableList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigqueryTablesListArgs> for TableList {
+    fn generate_resource_id(&self, input: &BigqueryTablesListArgs) -> String {
+        format!("gcp::TableList/{}/{}", input.project_id, input.dataset_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TableList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -194,3 +194,102 @@ pub struct TextContent {
     #[serde(default)]
     pub text: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeepMediaDownloadArgs> for Attachment {
+    fn generate_resource_id(&self, input: &KeepMediaDownloadArgs) -> String {
+        format!("gcp::Attachment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Attachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Note.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeepNotesCreateArgs> for Note {
+    fn generate_resource_id(&self, input: &KeepNotesCreateArgs) -> String {
+        "gcp::Note".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeepNotesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &KeepNotesDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNotesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeepNotesListArgs> for ListNotesResponse {
+    fn generate_resource_id(&self, input: &KeepNotesListArgs) -> String {
+        "gcp::ListNotesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchCreatePermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeepNotesPermissionsBatchCreateArgs> for BatchCreatePermissionsResponse {
+    fn generate_resource_id(&self, input: &KeepNotesPermissionsBatchCreateArgs) -> String {
+        format!("gcp::BatchCreatePermissionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchCreatePermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

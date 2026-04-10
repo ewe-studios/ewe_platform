@@ -64,3 +64,77 @@ pub struct Entitlement {
     #[serde(default, rename = "subscriptionToken")]
     pub subscription_token: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteReaderResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReaderrevenuesubscriptionlinkingPublicationsReadersDeleteArgs>
+    for DeleteReaderResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ReaderrevenuesubscriptionlinkingPublicationsReadersDeleteArgs,
+    ) -> String {
+        format!("gcp::DeleteReaderResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeleteReaderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Reader.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReaderrevenuesubscriptionlinkingPublicationsReadersGetArgs> for Reader {
+    fn generate_resource_id(
+        &self,
+        input: &ReaderrevenuesubscriptionlinkingPublicationsReadersGetArgs,
+    ) -> String {
+        format!("gcp::Reader/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Reader"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReaderEntitlements.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReaderrevenuesubscriptionlinkingPublicationsReadersGetEntitlementsArgs>
+    for ReaderEntitlements
+{
+    fn generate_resource_id(
+        &self,
+        input: &ReaderrevenuesubscriptionlinkingPublicationsReadersGetEntitlementsArgs,
+    ) -> String {
+        format!("gcp::ReaderEntitlements/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReaderEntitlements"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

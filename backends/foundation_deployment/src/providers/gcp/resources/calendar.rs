@@ -827,3 +827,235 @@ pub struct ConferenceParametersAddOnParameters {
     #[serde(default)]
     pub parameters: ::core::option::Option<serde_json::Value>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AclRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclGetArgs> for AclRule {
+    fn generate_resource_id(&self, input: &CalendarAclGetArgs) -> String {
+        format!("gcp::AclRule/{}/{}", input.calendar_id, input.rule_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AclRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Acl.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclListArgs> for Acl {
+    fn generate_resource_id(&self, input: &CalendarAclListArgs) -> String {
+        format!("gcp::Acl/{}", input.calendar_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Acl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Channel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &CalendarAclWatchArgs) -> String {
+        format!("gcp::Channel/{}", input.calendar_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CalendarListEntry.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListGetArgs> for CalendarListEntry {
+    fn generate_resource_id(&self, input: &CalendarCalendarListGetArgs) -> String {
+        format!("gcp::CalendarListEntry/{}", input.calendar_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CalendarListEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CalendarList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListListArgs> for CalendarList {
+    fn generate_resource_id(&self, input: &CalendarCalendarListListArgs) -> String {
+        "gcp::CalendarList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CalendarList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Calendar.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarsGetArgs> for Calendar {
+    fn generate_resource_id(&self, input: &CalendarCalendarsGetArgs) -> String {
+        format!("gcp::Calendar/{}", input.calendar_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Calendar"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Colors.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarColorsGetArgs> for Colors {
+    fn generate_resource_id(&self, input: &CalendarColorsGetArgs) -> String {
+        "gcp::Colors".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Colors"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Event.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsGetArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsGetArgs) -> String {
+        format!("gcp::Event/{}/{}", input.calendar_id, input.event_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Events.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsInstancesArgs> for Events {
+    fn generate_resource_id(&self, input: &CalendarEventsInstancesArgs) -> String {
+        format!("gcp::Events/{}/{}", input.calendar_id, input.event_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Events"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FreeBusyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarFreebusyQueryArgs> for FreeBusyResponse {
+    fn generate_resource_id(&self, input: &CalendarFreebusyQueryArgs) -> String {
+        "gcp::FreeBusyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FreeBusyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Setting.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarSettingsGetArgs> for Setting {
+    fn generate_resource_id(&self, input: &CalendarSettingsGetArgs) -> String {
+        format!("gcp::Setting/{}", input.setting)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Setting"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Settings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarSettingsListArgs> for Settings {
+    fn generate_resource_id(&self, input: &CalendarSettingsListArgs) -> String {
+        "gcp::Settings".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

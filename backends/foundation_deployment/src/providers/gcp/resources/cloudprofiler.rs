@@ -75,3 +75,45 @@ pub struct Deployment {
     #[serde(default)]
     pub target: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Profile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudprofilerProjectsProfilesCreateArgs> for Profile {
+    fn generate_resource_id(&self, input: &CloudprofilerProjectsProfilesCreateArgs) -> String {
+        format!("gcp::Profile/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Profile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudprofilerProjectsProfilesListArgs> for ListProfilesResponse {
+    fn generate_resource_id(&self, input: &CloudprofilerProjectsProfilesListArgs) -> String {
+        format!("gcp::ListProfilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

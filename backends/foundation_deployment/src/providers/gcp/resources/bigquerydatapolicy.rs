@@ -221,3 +221,125 @@ pub struct Expr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatapolicyProjectsLocationsDataPoliciesAddGranteesArgs>
+    for DataPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatapolicyProjectsLocationsDataPoliciesAddGranteesArgs,
+    ) -> String {
+        format!("gcp::DataPolicy/{}", input.data_policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DataPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatapolicyProjectsLocationsDataPoliciesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatapolicyProjectsLocationsDataPoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatapolicyProjectsLocationsDataPoliciesGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatapolicyProjectsLocationsDataPoliciesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDataPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatapolicyProjectsLocationsDataPoliciesListArgs>
+    for ListDataPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatapolicyProjectsLocationsDataPoliciesListArgs,
+    ) -> String {
+        format!("gcp::ListDataPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDataPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatapolicyProjectsLocationsDataPoliciesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatapolicyProjectsLocationsDataPoliciesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

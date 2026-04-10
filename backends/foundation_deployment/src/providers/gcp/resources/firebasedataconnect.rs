@@ -567,3 +567,325 @@ pub struct CloudSqlInstance {
     #[serde(default)]
     pub instance: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &FirebasedataconnectProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &FirebasedataconnectProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GraphqlResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesExecuteGraphqlArgs>
+    for GraphqlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesExecuteGraphqlArgs,
+    ) -> String {
+        format!("gcp::GraphqlResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GraphqlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Service.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesGetArgs> for Service {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesGetArgs,
+    ) -> String {
+        format!("gcp::Service/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesListArgs>
+    for ListServicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesListArgs,
+    ) -> String {
+        format!("gcp::ListServicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteMutationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesConnectorsExecuteMutationArgs>
+    for ExecuteMutationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesConnectorsExecuteMutationArgs,
+    ) -> String {
+        format!("gcp::ExecuteMutationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteMutationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesConnectorsExecuteQueryArgs>
+    for ExecuteQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesConnectorsExecuteQueryArgs,
+    ) -> String {
+        format!("gcp::ExecuteQueryResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Connector.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesConnectorsGetArgs>
+    for Connector
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesConnectorsGetArgs,
+    ) -> String {
+        format!("gcp::Connector/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Connector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConnectorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesConnectorsListArgs>
+    for ListConnectorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesConnectorsListArgs,
+    ) -> String {
+        format!("gcp::ListConnectorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConnectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Schema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesSchemasGetArgs> for Schema {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesSchemasGetArgs,
+    ) -> String {
+        format!("gcp::Schema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Schema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedataconnectProjectsLocationsServicesSchemasListArgs>
+    for ListSchemasResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedataconnectProjectsLocationsServicesSchemasListArgs,
+    ) -> String {
+        format!("gcp::ListSchemasResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

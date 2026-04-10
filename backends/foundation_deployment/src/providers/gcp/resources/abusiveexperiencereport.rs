@@ -44,3 +44,48 @@ pub struct SiteSummaryResponse {
     #[serde(default, rename = "underReview")]
     pub under_review: ::core::option::Option<bool>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for SiteSummaryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AbusiveexperiencereportSitesGetArgs> for SiteSummaryResponse {
+    fn generate_resource_id(&self, input: &AbusiveexperiencereportSitesGetArgs) -> String {
+        format!("gcp::SiteSummaryResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SiteSummaryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ViolatingSitesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AbusiveexperiencereportViolatingSitesListArgs> for ViolatingSitesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AbusiveexperiencereportViolatingSitesListArgs,
+    ) -> String {
+        "gcp::ViolatingSitesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ViolatingSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

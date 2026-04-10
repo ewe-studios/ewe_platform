@@ -217,3 +217,49 @@ pub struct GoogleTypeTimeZone {
     #[serde(default)]
     pub version: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LocalservicesAccountReportsSearchArgs>
+    for GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse
+{
+    fn generate_resource_id(&self, input: &LocalservicesAccountReportsSearchArgs) -> String {
+        "gcp::GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LocalservicesDetailedLeadReportsSearchArgs>
+    for GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse
+{
+    fn generate_resource_id(&self, input: &LocalservicesDetailedLeadReportsSearchArgs) -> String {
+        "gcp::GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
