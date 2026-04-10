@@ -1,0 +1,9747 @@
+//! ApigeeProvider - State-aware apigee API client.
+//!
+//! WHY: Users need state-aware API clients that automatically track
+//!      resource changes in the state store.
+//!
+//! WHAT: Provider wrapping ProviderClient<S> with methods for
+//!       apigee API endpoints that auto-store results.
+//!
+//! HOW: Each method wraps the task with StoreStateIdentifierTask
+//!      for automatic state persistence on success.
+
+#![cfg(feature = "gcp")]
+
+use crate::providers::gcp::clients::apigee::{
+    apigee_organizations_create_builder, apigee_organizations_create_task,
+    apigee_organizations_delete_builder, apigee_organizations_delete_task,
+    apigee_organizations_get_sync_authorization_builder, apigee_organizations_get_sync_authorization_task,
+    apigee_organizations_set_addons_builder, apigee_organizations_set_addons_task,
+    apigee_organizations_set_sync_authorization_builder, apigee_organizations_set_sync_authorization_task,
+    apigee_organizations_update_builder, apigee_organizations_update_task,
+    apigee_organizations_update_control_plane_access_builder, apigee_organizations_update_control_plane_access_task,
+    apigee_organizations_update_security_settings_builder, apigee_organizations_update_security_settings_task,
+    apigee_organizations_analytics_datastores_create_builder, apigee_organizations_analytics_datastores_create_task,
+    apigee_organizations_analytics_datastores_delete_builder, apigee_organizations_analytics_datastores_delete_task,
+    apigee_organizations_analytics_datastores_test_builder, apigee_organizations_analytics_datastores_test_task,
+    apigee_organizations_analytics_datastores_update_builder, apigee_organizations_analytics_datastores_update_task,
+    apigee_organizations_apim_service_extensions_create_builder, apigee_organizations_apim_service_extensions_create_task,
+    apigee_organizations_apim_service_extensions_delete_builder, apigee_organizations_apim_service_extensions_delete_task,
+    apigee_organizations_apim_service_extensions_patch_builder, apigee_organizations_apim_service_extensions_patch_task,
+    apigee_organizations_apiproducts_attributes_builder, apigee_organizations_apiproducts_attributes_task,
+    apigee_organizations_apiproducts_create_builder, apigee_organizations_apiproducts_create_task,
+    apigee_organizations_apiproducts_delete_builder, apigee_organizations_apiproducts_delete_task,
+    apigee_organizations_apiproducts_move_builder, apigee_organizations_apiproducts_move_task,
+    apigee_organizations_apiproducts_update_builder, apigee_organizations_apiproducts_update_task,
+    apigee_organizations_apiproducts_attributes_delete_builder, apigee_organizations_apiproducts_attributes_delete_task,
+    apigee_organizations_apiproducts_attributes_update_api_product_attribute_builder, apigee_organizations_apiproducts_attributes_update_api_product_attribute_task,
+    apigee_organizations_apiproducts_rateplans_create_builder, apigee_organizations_apiproducts_rateplans_create_task,
+    apigee_organizations_apiproducts_rateplans_delete_builder, apigee_organizations_apiproducts_rateplans_delete_task,
+    apigee_organizations_apiproducts_rateplans_update_builder, apigee_organizations_apiproducts_rateplans_update_task,
+    apigee_organizations_apis_create_builder, apigee_organizations_apis_create_task,
+    apigee_organizations_apis_delete_builder, apigee_organizations_apis_delete_task,
+    apigee_organizations_apis_move_builder, apigee_organizations_apis_move_task,
+    apigee_organizations_apis_patch_builder, apigee_organizations_apis_patch_task,
+    apigee_organizations_apis_keyvaluemaps_create_builder, apigee_organizations_apis_keyvaluemaps_create_task,
+    apigee_organizations_apis_keyvaluemaps_delete_builder, apigee_organizations_apis_keyvaluemaps_delete_task,
+    apigee_organizations_apis_keyvaluemaps_update_builder, apigee_organizations_apis_keyvaluemaps_update_task,
+    apigee_organizations_apis_keyvaluemaps_entries_create_builder, apigee_organizations_apis_keyvaluemaps_entries_create_task,
+    apigee_organizations_apis_keyvaluemaps_entries_delete_builder, apigee_organizations_apis_keyvaluemaps_entries_delete_task,
+    apigee_organizations_apis_keyvaluemaps_entries_update_builder, apigee_organizations_apis_keyvaluemaps_entries_update_task,
+    apigee_organizations_apis_revisions_delete_builder, apigee_organizations_apis_revisions_delete_task,
+    apigee_organizations_apis_revisions_update_api_proxy_revision_builder, apigee_organizations_apis_revisions_update_api_proxy_revision_task,
+    apigee_organizations_appgroups_create_builder, apigee_organizations_appgroups_create_task,
+    apigee_organizations_appgroups_delete_builder, apigee_organizations_appgroups_delete_task,
+    apigee_organizations_appgroups_update_builder, apigee_organizations_appgroups_update_task,
+    apigee_organizations_appgroups_update_monetization_config_builder, apigee_organizations_appgroups_update_monetization_config_task,
+    apigee_organizations_appgroups_apps_create_builder, apigee_organizations_appgroups_apps_create_task,
+    apigee_organizations_appgroups_apps_delete_builder, apigee_organizations_appgroups_apps_delete_task,
+    apigee_organizations_appgroups_apps_update_builder, apigee_organizations_appgroups_apps_update_task,
+    apigee_organizations_appgroups_apps_keys_create_builder, apigee_organizations_appgroups_apps_keys_create_task,
+    apigee_organizations_appgroups_apps_keys_delete_builder, apigee_organizations_appgroups_apps_keys_delete_task,
+    apigee_organizations_appgroups_apps_keys_update_app_group_app_key_builder, apigee_organizations_appgroups_apps_keys_update_app_group_app_key_task,
+    apigee_organizations_appgroups_apps_keys_apiproducts_delete_builder, apigee_organizations_appgroups_apps_keys_apiproducts_delete_task,
+    apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_builder, apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_task,
+    apigee_organizations_appgroups_balance_adjust_builder, apigee_organizations_appgroups_balance_adjust_task,
+    apigee_organizations_appgroups_balance_credit_builder, apigee_organizations_appgroups_balance_credit_task,
+    apigee_organizations_appgroups_subscriptions_create_builder, apigee_organizations_appgroups_subscriptions_create_task,
+    apigee_organizations_appgroups_subscriptions_expire_builder, apigee_organizations_appgroups_subscriptions_expire_task,
+    apigee_organizations_datacollectors_create_builder, apigee_organizations_datacollectors_create_task,
+    apigee_organizations_datacollectors_delete_builder, apigee_organizations_datacollectors_delete_task,
+    apigee_organizations_datacollectors_patch_builder, apigee_organizations_datacollectors_patch_task,
+    apigee_organizations_developers_attributes_builder, apigee_organizations_developers_attributes_task,
+    apigee_organizations_developers_create_builder, apigee_organizations_developers_create_task,
+    apigee_organizations_developers_delete_builder, apigee_organizations_developers_delete_task,
+    apigee_organizations_developers_set_developer_status_builder, apigee_organizations_developers_set_developer_status_task,
+    apigee_organizations_developers_update_builder, apigee_organizations_developers_update_task,
+    apigee_organizations_developers_update_monetization_config_builder, apigee_organizations_developers_update_monetization_config_task,
+    apigee_organizations_developers_apps_attributes_builder, apigee_organizations_developers_apps_attributes_task,
+    apigee_organizations_developers_apps_create_builder, apigee_organizations_developers_apps_create_task,
+    apigee_organizations_developers_apps_delete_builder, apigee_organizations_developers_apps_delete_task,
+    apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_builder, apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_task,
+    apigee_organizations_developers_apps_update_builder, apigee_organizations_developers_apps_update_task,
+    apigee_organizations_developers_apps_attributes_delete_builder, apigee_organizations_developers_apps_attributes_delete_task,
+    apigee_organizations_developers_apps_attributes_update_developer_app_attribute_builder, apigee_organizations_developers_apps_attributes_update_developer_app_attribute_task,
+    apigee_organizations_developers_apps_keys_create_builder, apigee_organizations_developers_apps_keys_create_task,
+    apigee_organizations_developers_apps_keys_delete_builder, apigee_organizations_developers_apps_keys_delete_task,
+    apigee_organizations_developers_apps_keys_replace_developer_app_key_builder, apigee_organizations_developers_apps_keys_replace_developer_app_key_task,
+    apigee_organizations_developers_apps_keys_update_developer_app_key_builder, apigee_organizations_developers_apps_keys_update_developer_app_key_task,
+    apigee_organizations_developers_apps_keys_apiproducts_delete_builder, apigee_organizations_developers_apps_keys_apiproducts_delete_task,
+    apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_builder, apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_task,
+    apigee_organizations_developers_apps_keys_create_create_builder, apigee_organizations_developers_apps_keys_create_create_task,
+    apigee_organizations_developers_attributes_delete_builder, apigee_organizations_developers_attributes_delete_task,
+    apigee_organizations_developers_attributes_update_developer_attribute_builder, apigee_organizations_developers_attributes_update_developer_attribute_task,
+    apigee_organizations_developers_balance_adjust_builder, apigee_organizations_developers_balance_adjust_task,
+    apigee_organizations_developers_balance_credit_builder, apigee_organizations_developers_balance_credit_task,
+    apigee_organizations_developers_subscriptions_create_builder, apigee_organizations_developers_subscriptions_create_task,
+    apigee_organizations_developers_subscriptions_expire_builder, apigee_organizations_developers_subscriptions_expire_task,
+    apigee_organizations_dns_zones_create_builder, apigee_organizations_dns_zones_create_task,
+    apigee_organizations_dns_zones_delete_builder, apigee_organizations_dns_zones_delete_task,
+    apigee_organizations_endpoint_attachments_create_builder, apigee_organizations_endpoint_attachments_create_task,
+    apigee_organizations_endpoint_attachments_delete_builder, apigee_organizations_endpoint_attachments_delete_task,
+    apigee_organizations_envgroups_create_builder, apigee_organizations_envgroups_create_task,
+    apigee_organizations_envgroups_delete_builder, apigee_organizations_envgroups_delete_task,
+    apigee_organizations_envgroups_patch_builder, apigee_organizations_envgroups_patch_task,
+    apigee_organizations_envgroups_attachments_create_builder, apigee_organizations_envgroups_attachments_create_task,
+    apigee_organizations_envgroups_attachments_delete_builder, apigee_organizations_envgroups_attachments_delete_task,
+    apigee_organizations_environments_create_builder, apigee_organizations_environments_create_task,
+    apigee_organizations_environments_delete_builder, apigee_organizations_environments_delete_task,
+    apigee_organizations_environments_modify_environment_builder, apigee_organizations_environments_modify_environment_task,
+    apigee_organizations_environments_set_iam_policy_builder, apigee_organizations_environments_set_iam_policy_task,
+    apigee_organizations_environments_subscribe_builder, apigee_organizations_environments_subscribe_task,
+    apigee_organizations_environments_test_iam_permissions_builder, apigee_organizations_environments_test_iam_permissions_task,
+    apigee_organizations_environments_unsubscribe_builder, apigee_organizations_environments_unsubscribe_task,
+    apigee_organizations_environments_update_builder, apigee_organizations_environments_update_task,
+    apigee_organizations_environments_update_debugmask_builder, apigee_organizations_environments_update_debugmask_task,
+    apigee_organizations_environments_update_environment_builder, apigee_organizations_environments_update_environment_task,
+    apigee_organizations_environments_update_security_actions_config_builder, apigee_organizations_environments_update_security_actions_config_task,
+    apigee_organizations_environments_update_trace_config_builder, apigee_organizations_environments_update_trace_config_task,
+    apigee_organizations_environments_addons_config_set_addon_enablement_builder, apigee_organizations_environments_addons_config_set_addon_enablement_task,
+    apigee_organizations_environments_analytics_exports_create_builder, apigee_organizations_environments_analytics_exports_create_task,
+    apigee_organizations_environments_apis_revisions_deploy_builder, apigee_organizations_environments_apis_revisions_deploy_task,
+    apigee_organizations_environments_apis_revisions_undeploy_builder, apigee_organizations_environments_apis_revisions_undeploy_task,
+    apigee_organizations_environments_apis_revisions_debugsessions_create_builder, apigee_organizations_environments_apis_revisions_debugsessions_create_task,
+    apigee_organizations_environments_apis_revisions_debugsessions_delete_data_builder, apigee_organizations_environments_apis_revisions_debugsessions_delete_data_task,
+    apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_builder, apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_task,
+    apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_builder, apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_task,
+    apigee_organizations_environments_archive_deployments_create_builder, apigee_organizations_environments_archive_deployments_create_task,
+    apigee_organizations_environments_archive_deployments_delete_builder, apigee_organizations_environments_archive_deployments_delete_task,
+    apigee_organizations_environments_archive_deployments_generate_download_url_builder, apigee_organizations_environments_archive_deployments_generate_download_url_task,
+    apigee_organizations_environments_archive_deployments_generate_upload_url_builder, apigee_organizations_environments_archive_deployments_generate_upload_url_task,
+    apigee_organizations_environments_archive_deployments_patch_builder, apigee_organizations_environments_archive_deployments_patch_task,
+    apigee_organizations_environments_caches_delete_builder, apigee_organizations_environments_caches_delete_task,
+    apigee_organizations_environments_deployments_set_iam_policy_builder, apigee_organizations_environments_deployments_set_iam_policy_task,
+    apigee_organizations_environments_deployments_test_iam_permissions_builder, apigee_organizations_environments_deployments_test_iam_permissions_task,
+    apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_builder, apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_task,
+    apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_builder, apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_task,
+    apigee_organizations_environments_keystores_create_builder, apigee_organizations_environments_keystores_create_task,
+    apigee_organizations_environments_keystores_delete_builder, apigee_organizations_environments_keystores_delete_task,
+    apigee_organizations_environments_keystores_aliases_create_builder, apigee_organizations_environments_keystores_aliases_create_task,
+    apigee_organizations_environments_keystores_aliases_delete_builder, apigee_organizations_environments_keystores_aliases_delete_task,
+    apigee_organizations_environments_keystores_aliases_update_builder, apigee_organizations_environments_keystores_aliases_update_task,
+    apigee_organizations_environments_keyvaluemaps_create_builder, apigee_organizations_environments_keyvaluemaps_create_task,
+    apigee_organizations_environments_keyvaluemaps_delete_builder, apigee_organizations_environments_keyvaluemaps_delete_task,
+    apigee_organizations_environments_keyvaluemaps_update_builder, apigee_organizations_environments_keyvaluemaps_update_task,
+    apigee_organizations_environments_keyvaluemaps_entries_create_builder, apigee_organizations_environments_keyvaluemaps_entries_create_task,
+    apigee_organizations_environments_keyvaluemaps_entries_delete_builder, apigee_organizations_environments_keyvaluemaps_entries_delete_task,
+    apigee_organizations_environments_keyvaluemaps_entries_update_builder, apigee_organizations_environments_keyvaluemaps_entries_update_task,
+    apigee_organizations_environments_queries_create_builder, apigee_organizations_environments_queries_create_task,
+    apigee_organizations_environments_references_create_builder, apigee_organizations_environments_references_create_task,
+    apigee_organizations_environments_references_delete_builder, apigee_organizations_environments_references_delete_task,
+    apigee_organizations_environments_references_update_builder, apigee_organizations_environments_references_update_task,
+    apigee_organizations_environments_resourcefiles_create_builder, apigee_organizations_environments_resourcefiles_create_task,
+    apigee_organizations_environments_resourcefiles_delete_builder, apigee_organizations_environments_resourcefiles_delete_task,
+    apigee_organizations_environments_resourcefiles_update_builder, apigee_organizations_environments_resourcefiles_update_task,
+    apigee_organizations_environments_security_actions_create_builder, apigee_organizations_environments_security_actions_create_task,
+    apigee_organizations_environments_security_actions_delete_builder, apigee_organizations_environments_security_actions_delete_task,
+    apigee_organizations_environments_security_actions_disable_builder, apigee_organizations_environments_security_actions_disable_task,
+    apigee_organizations_environments_security_actions_enable_builder, apigee_organizations_environments_security_actions_enable_task,
+    apigee_organizations_environments_security_actions_patch_builder, apigee_organizations_environments_security_actions_patch_task,
+    apigee_organizations_environments_security_incidents_batch_update_builder, apigee_organizations_environments_security_incidents_batch_update_task,
+    apigee_organizations_environments_security_incidents_patch_builder, apigee_organizations_environments_security_incidents_patch_task,
+    apigee_organizations_environments_security_reports_create_builder, apigee_organizations_environments_security_reports_create_task,
+    apigee_organizations_environments_security_stats_query_tabular_stats_builder, apigee_organizations_environments_security_stats_query_tabular_stats_task,
+    apigee_organizations_environments_security_stats_query_time_series_stats_builder, apigee_organizations_environments_security_stats_query_time_series_stats_task,
+    apigee_organizations_environments_sharedflows_revisions_deploy_builder, apigee_organizations_environments_sharedflows_revisions_deploy_task,
+    apigee_organizations_environments_sharedflows_revisions_undeploy_builder, apigee_organizations_environments_sharedflows_revisions_undeploy_task,
+    apigee_organizations_environments_targetservers_create_builder, apigee_organizations_environments_targetservers_create_task,
+    apigee_organizations_environments_targetservers_delete_builder, apigee_organizations_environments_targetservers_delete_task,
+    apigee_organizations_environments_targetservers_update_builder, apigee_organizations_environments_targetservers_update_task,
+    apigee_organizations_environments_trace_config_overrides_create_builder, apigee_organizations_environments_trace_config_overrides_create_task,
+    apigee_organizations_environments_trace_config_overrides_delete_builder, apigee_organizations_environments_trace_config_overrides_delete_task,
+    apigee_organizations_environments_trace_config_overrides_patch_builder, apigee_organizations_environments_trace_config_overrides_patch_task,
+    apigee_organizations_host_queries_create_builder, apigee_organizations_host_queries_create_task,
+    apigee_organizations_host_security_reports_create_builder, apigee_organizations_host_security_reports_create_task,
+    apigee_organizations_instances_create_builder, apigee_organizations_instances_create_task,
+    apigee_organizations_instances_delete_builder, apigee_organizations_instances_delete_task,
+    apigee_organizations_instances_patch_builder, apigee_organizations_instances_patch_task,
+    apigee_organizations_instances_report_status_builder, apigee_organizations_instances_report_status_task,
+    apigee_organizations_instances_attachments_create_builder, apigee_organizations_instances_attachments_create_task,
+    apigee_organizations_instances_attachments_delete_builder, apigee_organizations_instances_attachments_delete_task,
+    apigee_organizations_instances_canaryevaluations_create_builder, apigee_organizations_instances_canaryevaluations_create_task,
+    apigee_organizations_instances_nat_addresses_activate_builder, apigee_organizations_instances_nat_addresses_activate_task,
+    apigee_organizations_instances_nat_addresses_create_builder, apigee_organizations_instances_nat_addresses_create_task,
+    apigee_organizations_instances_nat_addresses_delete_builder, apigee_organizations_instances_nat_addresses_delete_task,
+    apigee_organizations_keyvaluemaps_create_builder, apigee_organizations_keyvaluemaps_create_task,
+    apigee_organizations_keyvaluemaps_delete_builder, apigee_organizations_keyvaluemaps_delete_task,
+    apigee_organizations_keyvaluemaps_update_builder, apigee_organizations_keyvaluemaps_update_task,
+    apigee_organizations_keyvaluemaps_entries_create_builder, apigee_organizations_keyvaluemaps_entries_create_task,
+    apigee_organizations_keyvaluemaps_entries_delete_builder, apigee_organizations_keyvaluemaps_entries_delete_task,
+    apigee_organizations_keyvaluemaps_entries_update_builder, apigee_organizations_keyvaluemaps_entries_update_task,
+    apigee_organizations_reports_create_builder, apigee_organizations_reports_create_task,
+    apigee_organizations_reports_delete_builder, apigee_organizations_reports_delete_task,
+    apigee_organizations_reports_update_builder, apigee_organizations_reports_update_task,
+    apigee_organizations_security_assessment_results_batch_compute_builder, apigee_organizations_security_assessment_results_batch_compute_task,
+    apigee_organizations_security_feedback_create_builder, apigee_organizations_security_feedback_create_task,
+    apigee_organizations_security_feedback_delete_builder, apigee_organizations_security_feedback_delete_task,
+    apigee_organizations_security_feedback_patch_builder, apigee_organizations_security_feedback_patch_task,
+    apigee_organizations_security_monitoring_conditions_create_builder, apigee_organizations_security_monitoring_conditions_create_task,
+    apigee_organizations_security_monitoring_conditions_delete_builder, apigee_organizations_security_monitoring_conditions_delete_task,
+    apigee_organizations_security_monitoring_conditions_patch_builder, apigee_organizations_security_monitoring_conditions_patch_task,
+    apigee_organizations_security_profiles_create_builder, apigee_organizations_security_profiles_create_task,
+    apigee_organizations_security_profiles_delete_builder, apigee_organizations_security_profiles_delete_task,
+    apigee_organizations_security_profiles_patch_builder, apigee_organizations_security_profiles_patch_task,
+    apigee_organizations_security_profiles_environments_compute_environment_scores_builder, apigee_organizations_security_profiles_environments_compute_environment_scores_task,
+    apigee_organizations_security_profiles_environments_create_builder, apigee_organizations_security_profiles_environments_create_task,
+    apigee_organizations_security_profiles_environments_delete_builder, apigee_organizations_security_profiles_environments_delete_task,
+    apigee_organizations_security_profiles_v2_create_builder, apigee_organizations_security_profiles_v2_create_task,
+    apigee_organizations_security_profiles_v2_delete_builder, apigee_organizations_security_profiles_v2_delete_task,
+    apigee_organizations_security_profiles_v2_patch_builder, apigee_organizations_security_profiles_v2_patch_task,
+    apigee_organizations_sharedflows_create_builder, apigee_organizations_sharedflows_create_task,
+    apigee_organizations_sharedflows_delete_builder, apigee_organizations_sharedflows_delete_task,
+    apigee_organizations_sharedflows_move_builder, apigee_organizations_sharedflows_move_task,
+    apigee_organizations_sharedflows_revisions_delete_builder, apigee_organizations_sharedflows_revisions_delete_task,
+    apigee_organizations_sharedflows_revisions_update_shared_flow_revision_builder, apigee_organizations_sharedflows_revisions_update_shared_flow_revision_task,
+    apigee_organizations_sites_apicategories_create_builder, apigee_organizations_sites_apicategories_create_task,
+    apigee_organizations_sites_apicategories_delete_builder, apigee_organizations_sites_apicategories_delete_task,
+    apigee_organizations_sites_apicategories_patch_builder, apigee_organizations_sites_apicategories_patch_task,
+    apigee_organizations_sites_apidocs_create_builder, apigee_organizations_sites_apidocs_create_task,
+    apigee_organizations_sites_apidocs_delete_builder, apigee_organizations_sites_apidocs_delete_task,
+    apigee_organizations_sites_apidocs_update_builder, apigee_organizations_sites_apidocs_update_task,
+    apigee_organizations_sites_apidocs_update_documentation_builder, apigee_organizations_sites_apidocs_update_documentation_task,
+    apigee_organizations_spaces_create_builder, apigee_organizations_spaces_create_task,
+    apigee_organizations_spaces_delete_builder, apigee_organizations_spaces_delete_task,
+    apigee_organizations_spaces_patch_builder, apigee_organizations_spaces_patch_task,
+    apigee_organizations_spaces_set_iam_policy_builder, apigee_organizations_spaces_set_iam_policy_task,
+    apigee_organizations_spaces_test_iam_permissions_builder, apigee_organizations_spaces_test_iam_permissions_task,
+    apigee_projects_provision_organization_builder, apigee_projects_provision_organization_task,
+};
+use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Alias;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ApiCategoryResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ApiDocDocumentationResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ApiDocResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ApiProduct;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ApiProxy;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ApiProxyRevision;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1AppGroup;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1AppGroupApp;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1AppGroupAppKey;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1AppGroupBalance;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1AppGroupMonetizationConfig;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1AppGroupSubscription;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ArchiveDeployment;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1AsyncQuery;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Attribute;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Attributes;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ComputeEnvironmentScoresResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1CustomReport;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DataCollector;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Datastore;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DebugMask;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DebugSession;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeleteCustomReportResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeleteResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Deployment;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeploymentChangeReport;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Developer;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeveloperApp;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeveloperAppKey;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeveloperBalance;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeveloperMonetizationConfig;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1DeveloperSubscription;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Environment;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Export;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1FlowHook;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1GenerateDownloadUrlResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1GenerateUploadUrlResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1KeyValueEntry;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1KeyValueMap;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Keystore;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Organization;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1QueryTabularStatsResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1QueryTimeSeriesStatsResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1RatePlan;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Reference;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ReportInstanceStatusResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1ResourceFile;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityAction;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityActionsConfig;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityFeedback;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityIncident;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityMonitoringCondition;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityProfile;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityProfileV2;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecurityReport;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SecuritySettings;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SharedFlow;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SharedFlowRevision;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Space;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1Subscription;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1SyncAuthorization;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1TargetServer;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1TestDatastoreResponse;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1TraceConfig;
+use crate::providers::gcp::clients::apigee::GoogleCloudApigeeV1TraceConfigOverride;
+use crate::providers::gcp::clients::apigee::GoogleIamV1Policy;
+use crate::providers::gcp::clients::apigee::GoogleIamV1TestIamPermissionsResponse;
+use crate::providers::gcp::clients::apigee::GoogleLongrunningOperation;
+use crate::providers::gcp::clients::apigee::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAnalyticsDatastoresCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAnalyticsDatastoresDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAnalyticsDatastoresTestArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAnalyticsDatastoresUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApimServiceExtensionsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApimServiceExtensionsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApimServiceExtensionsPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsAttributesArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsAttributesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsAttributesUpdateApiProductAttributeArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsMoveArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsRateplansCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsRateplansDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsRateplansUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApiproductsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisKeyvaluemapsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisKeyvaluemapsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisKeyvaluemapsEntriesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisKeyvaluemapsEntriesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisKeyvaluemapsEntriesUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisKeyvaluemapsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisMoveArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisRevisionsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsApisRevisionsUpdateApiProxyRevisionArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsKeysApiproductsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsKeysApiproductsUpdateAppGroupAppKeyApiProductArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsKeysCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsKeysDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsKeysUpdateAppGroupAppKeyArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsAppsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsBalanceAdjustArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsBalanceCreditArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsSubscriptionsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsSubscriptionsExpireArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsAppgroupsUpdateMonetizationConfigArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDatacollectorsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDatacollectorsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDatacollectorsPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsAttributesArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsAttributesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsAttributesUpdateDeveloperAppAttributeArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsGenerateKeyPairOrUpdateDeveloperAppStatusArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsKeysApiproductsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsKeysApiproductsUpdateDeveloperAppKeyApiProductArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsKeysCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsKeysCreateCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsKeysDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsKeysReplaceDeveloperAppKeyArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsKeysUpdateDeveloperAppKeyArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAppsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAttributesArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAttributesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersAttributesUpdateDeveloperAttributeArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersBalanceAdjustArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersBalanceCreditArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersSetDeveloperStatusArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersSubscriptionsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersSubscriptionsExpireArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDevelopersUpdateMonetizationConfigArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDnsZonesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsDnsZonesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEndpointAttachmentsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEndpointAttachmentsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvgroupsAttachmentsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvgroupsAttachmentsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvgroupsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvgroupsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvgroupsPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsAddonsConfigSetAddonEnablementArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsAnalyticsExportsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDeleteDataArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateDeployChangeReportArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateUndeployChangeReportArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsApisRevisionsUndeployArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsArchiveDeploymentsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsArchiveDeploymentsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateDownloadUrlArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateUploadUrlArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsArchiveDeploymentsPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsCachesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsDeploymentsSetIamPolicyArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsDeploymentsTestIamPermissionsArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsFlowhooksAttachSharedFlowToFlowHookArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsFlowhooksDetachSharedFlowFromFlowHookArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeystoresAliasesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeystoresAliasesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeystoresAliasesUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeystoresCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeystoresDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeyvaluemapsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeyvaluemapsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsKeyvaluemapsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsModifyEnvironmentArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsQueriesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsReferencesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsReferencesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsReferencesUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsResourcefilesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsResourcefilesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsResourcefilesUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityActionsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityActionsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityActionsDisableArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityActionsEnableArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityActionsPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityIncidentsBatchUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityIncidentsPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityReportsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityStatsQueryTabularStatsArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSecurityStatsQueryTimeSeriesStatsArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSetIamPolicyArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSharedflowsRevisionsDeployArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSharedflowsRevisionsUndeployArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsSubscribeArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsTargetserversCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsTargetserversDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsTargetserversUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsTestIamPermissionsArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsTraceConfigOverridesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsTraceConfigOverridesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsTraceConfigOverridesPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsUnsubscribeArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsUpdateDebugmaskArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsUpdateEnvironmentArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsUpdateSecurityActionsConfigArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsEnvironmentsUpdateTraceConfigArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsGetSyncAuthorizationArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsHostQueriesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsHostSecurityReportsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesAttachmentsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesAttachmentsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesCanaryevaluationsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesNatAddressesActivateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesNatAddressesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesNatAddressesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsInstancesReportStatusArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsKeyvaluemapsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsKeyvaluemapsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsKeyvaluemapsEntriesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsKeyvaluemapsEntriesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsKeyvaluemapsEntriesUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsKeyvaluemapsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsReportsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsReportsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsReportsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityAssessmentResultsBatchComputeArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityFeedbackCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityFeedbackDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityFeedbackPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityMonitoringConditionsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityMonitoringConditionsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityMonitoringConditionsPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesEnvironmentsComputeEnvironmentScoresArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesEnvironmentsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesEnvironmentsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesV2CreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesV2DeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSecurityProfilesV2PatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSetAddonsArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSetSyncAuthorizationArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSharedflowsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSharedflowsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSharedflowsMoveArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSharedflowsRevisionsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSharedflowsRevisionsUpdateSharedFlowRevisionArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSitesApicategoriesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSitesApicategoriesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSitesApicategoriesPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSitesApidocsCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSitesApidocsDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSitesApidocsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSitesApidocsUpdateDocumentationArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSpacesCreateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSpacesDeleteArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSpacesPatchArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSpacesSetIamPolicyArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsSpacesTestIamPermissionsArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsUpdateArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsUpdateControlPlaneAccessArgs;
+use crate::providers::gcp::clients::apigee::ApigeeOrganizationsUpdateSecuritySettingsArgs;
+use crate::providers::gcp::clients::apigee::ApigeeProjectsProvisionOrganizationArgs;
+use crate::provider_client::{ProviderClient, ProviderError};
+use foundation_core::valtron::{execute, StreamIterator};
+use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_db::state::store_state_task::StoreStateIdentifierTask;
+use std::sync::Arc;
+
+/// ApigeeProvider with automatic state tracking.
+///
+/// # Type Parameters
+///
+/// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+///
+/// # Example
+///
+/// ```rust
+/// let state_store = FileStateStore::new("/path", "my-project", "dev");
+/// let client = ProviderClient::new("my-project", "dev", state_store);
+/// let http_client = SimpleHttpClient::new(...);
+/// let provider = ApigeeProvider::new(client, http_client);
+/// ```
+#[derive(Clone)]
+pub struct ApigeeProvider<S>
+where
+    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+{
+    client: ProviderClient<S>,
+    http_client: Arc<SimpleHttpClient>,
+}
+
+impl<S> ApigeeProvider<S>
+where
+    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+{
+    /// Create new ApigeeProvider.
+    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+        Self {
+            client,
+            http_client: Arc::new(http_client),
+        }
+    }
+
+    /// Apigee organizations create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_create(
+        &self,
+        args: &ApigeeOrganizationsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_delete(
+        &self,
+        args: &ApigeeOrganizationsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_delete_builder(
+            &self.http_client,
+            &args.name,
+            &args.retention,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations get sync authorization.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SyncAuthorization result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_get_sync_authorization(
+        &self,
+        args: &ApigeeOrganizationsGetSyncAuthorizationArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SyncAuthorization, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_get_sync_authorization_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_get_sync_authorization_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations set addons.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_set_addons(
+        &self,
+        args: &ApigeeOrganizationsSetAddonsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_set_addons_builder(
+            &self.http_client,
+            &args.org,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_set_addons_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations set sync authorization.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SyncAuthorization result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_set_sync_authorization(
+        &self,
+        args: &ApigeeOrganizationsSetSyncAuthorizationArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SyncAuthorization, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_set_sync_authorization_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_set_sync_authorization_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Organization result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_update(
+        &self,
+        args: &ApigeeOrganizationsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Organization, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations update control plane access.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_update_control_plane_access(
+        &self,
+        args: &ApigeeOrganizationsUpdateControlPlaneAccessArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_update_control_plane_access_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_update_control_plane_access_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations update security settings.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecuritySettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_update_security_settings(
+        &self,
+        args: &ApigeeOrganizationsUpdateSecuritySettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecuritySettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_update_security_settings_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_update_security_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations analytics datastores create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Datastore result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_analytics_datastores_create(
+        &self,
+        args: &ApigeeOrganizationsAnalyticsDatastoresCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Datastore, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_analytics_datastores_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_analytics_datastores_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations analytics datastores delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_analytics_datastores_delete(
+        &self,
+        args: &ApigeeOrganizationsAnalyticsDatastoresDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_analytics_datastores_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_analytics_datastores_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations analytics datastores test.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1TestDatastoreResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_analytics_datastores_test(
+        &self,
+        args: &ApigeeOrganizationsAnalyticsDatastoresTestArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1TestDatastoreResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_analytics_datastores_test_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_analytics_datastores_test_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations analytics datastores update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Datastore result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_analytics_datastores_update(
+        &self,
+        args: &ApigeeOrganizationsAnalyticsDatastoresUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Datastore, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_analytics_datastores_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_analytics_datastores_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apim service extensions create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apim_service_extensions_create(
+        &self,
+        args: &ApigeeOrganizationsApimServiceExtensionsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apim_service_extensions_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.apimServiceExtensionId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apim_service_extensions_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apim service extensions delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apim_service_extensions_delete(
+        &self,
+        args: &ApigeeOrganizationsApimServiceExtensionsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apim_service_extensions_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apim_service_extensions_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apim service extensions patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apim_service_extensions_patch(
+        &self,
+        args: &ApigeeOrganizationsApimServiceExtensionsPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apim_service_extensions_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.allowMissing,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apim_service_extensions_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts attributes.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attributes result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_attributes(
+        &self,
+        args: &ApigeeOrganizationsApiproductsAttributesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attributes, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_attributes_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_attributes_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProduct result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_create(
+        &self,
+        args: &ApigeeOrganizationsApiproductsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProduct, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProduct result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_delete(
+        &self,
+        args: &ApigeeOrganizationsApiproductsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProduct, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts move.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProduct result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_move(
+        &self,
+        args: &ApigeeOrganizationsApiproductsMoveArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProduct, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_move_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_move_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProduct result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_update(
+        &self,
+        args: &ApigeeOrganizationsApiproductsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProduct, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts attributes delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attribute result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_attributes_delete(
+        &self,
+        args: &ApigeeOrganizationsApiproductsAttributesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attribute, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_attributes_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_attributes_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts attributes update api product attribute.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attribute result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute(
+        &self,
+        args: &ApigeeOrganizationsApiproductsAttributesUpdateApiProductAttributeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attribute, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_attributes_update_api_product_attribute_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_attributes_update_api_product_attribute_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts rateplans create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1RatePlan result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_rateplans_create(
+        &self,
+        args: &ApigeeOrganizationsApiproductsRateplansCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1RatePlan, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_rateplans_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_rateplans_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts rateplans delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1RatePlan result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_rateplans_delete(
+        &self,
+        args: &ApigeeOrganizationsApiproductsRateplansDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1RatePlan, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_rateplans_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_rateplans_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apiproducts rateplans update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1RatePlan result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apiproducts_rateplans_update(
+        &self,
+        args: &ApigeeOrganizationsApiproductsRateplansUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1RatePlan, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apiproducts_rateplans_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apiproducts_rateplans_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProxyRevision result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_create(
+        &self,
+        args: &ApigeeOrganizationsApisCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProxyRevision, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.action,
+            &args.name,
+            &args.space,
+            &args.validate,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProxy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_delete(
+        &self,
+        args: &ApigeeOrganizationsApisDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProxy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis move.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProxy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_move(
+        &self,
+        args: &ApigeeOrganizationsApisMoveArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProxy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_move_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_move_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProxy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_patch(
+        &self,
+        args: &ApigeeOrganizationsApisPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProxy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis keyvaluemaps create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_keyvaluemaps_create(
+        &self,
+        args: &ApigeeOrganizationsApisKeyvaluemapsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_keyvaluemaps_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_keyvaluemaps_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis keyvaluemaps delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_keyvaluemaps_delete(
+        &self,
+        args: &ApigeeOrganizationsApisKeyvaluemapsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_keyvaluemaps_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_keyvaluemaps_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis keyvaluemaps update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_keyvaluemaps_update(
+        &self,
+        args: &ApigeeOrganizationsApisKeyvaluemapsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_keyvaluemaps_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_keyvaluemaps_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis keyvaluemaps entries create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_keyvaluemaps_entries_create(
+        &self,
+        args: &ApigeeOrganizationsApisKeyvaluemapsEntriesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_keyvaluemaps_entries_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_keyvaluemaps_entries_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis keyvaluemaps entries delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_keyvaluemaps_entries_delete(
+        &self,
+        args: &ApigeeOrganizationsApisKeyvaluemapsEntriesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_keyvaluemaps_entries_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_keyvaluemaps_entries_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis keyvaluemaps entries update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_keyvaluemaps_entries_update(
+        &self,
+        args: &ApigeeOrganizationsApisKeyvaluemapsEntriesUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_keyvaluemaps_entries_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_keyvaluemaps_entries_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis revisions delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProxyRevision result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_revisions_delete(
+        &self,
+        args: &ApigeeOrganizationsApisRevisionsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProxyRevision, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_revisions_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_revisions_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations apis revisions update api proxy revision.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiProxyRevision result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_apis_revisions_update_api_proxy_revision(
+        &self,
+        args: &ApigeeOrganizationsApisRevisionsUpdateApiProxyRevisionArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiProxyRevision, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_apis_revisions_update_api_proxy_revision_builder(
+            &self.http_client,
+            &args.name,
+            &args.validate,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_apis_revisions_update_api_proxy_revision_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_create(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_delete(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_update(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_update_builder(
+            &self.http_client,
+            &args.name,
+            &args.action,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups update monetization config.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupMonetizationConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_update_monetization_config(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsUpdateMonetizationConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupMonetizationConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_update_monetization_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_update_monetization_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_create(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_delete(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_update(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_update_builder(
+            &self.http_client,
+            &args.name,
+            &args.action,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps keys create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_keys_create(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsKeysCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_keys_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_keys_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps keys delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_keys_delete(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsKeysDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_keys_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_keys_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps keys update app group app key.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsKeysUpdateAppGroupAppKeyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_keys_update_app_group_app_key_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_keys_update_app_group_app_key_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps keys apiproducts delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsKeysApiproductsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_keys_apiproducts_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_keys_apiproducts_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups apps keys apiproducts update app group app key api product.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsAppsKeysApiproductsUpdateAppGroupAppKeyApiProductArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_builder(
+            &self.http_client,
+            &args.name,
+            &args.action,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups balance adjust.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupBalance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_balance_adjust(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsBalanceAdjustArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupBalance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_balance_adjust_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_balance_adjust_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups balance credit.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupBalance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_balance_credit(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsBalanceCreditArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupBalance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_balance_credit_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_balance_credit_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups subscriptions create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupSubscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_subscriptions_create(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsSubscriptionsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupSubscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_subscriptions_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_subscriptions_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations appgroups subscriptions expire.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AppGroupSubscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_appgroups_subscriptions_expire(
+        &self,
+        args: &ApigeeOrganizationsAppgroupsSubscriptionsExpireArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AppGroupSubscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_appgroups_subscriptions_expire_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_appgroups_subscriptions_expire_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations datacollectors create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DataCollector result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_datacollectors_create(
+        &self,
+        args: &ApigeeOrganizationsDatacollectorsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DataCollector, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_datacollectors_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.dataCollectorId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_datacollectors_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations datacollectors delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_datacollectors_delete(
+        &self,
+        args: &ApigeeOrganizationsDatacollectorsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_datacollectors_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_datacollectors_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations datacollectors patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DataCollector result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_datacollectors_patch(
+        &self,
+        args: &ApigeeOrganizationsDatacollectorsPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DataCollector, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_datacollectors_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_datacollectors_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers attributes.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attributes result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_attributes(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAttributesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attributes, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_attributes_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_attributes_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Developer result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_create(
+        &self,
+        args: &ApigeeOrganizationsDevelopersCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Developer, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Developer result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_delete(
+        &self,
+        args: &ApigeeOrganizationsDevelopersDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Developer, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers set developer status.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_set_developer_status(
+        &self,
+        args: &ApigeeOrganizationsDevelopersSetDeveloperStatusArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_set_developer_status_builder(
+            &self.http_client,
+            &args.name,
+            &args.action,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_set_developer_status_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Developer result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_update(
+        &self,
+        args: &ApigeeOrganizationsDevelopersUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Developer, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers update monetization config.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperMonetizationConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_update_monetization_config(
+        &self,
+        args: &ApigeeOrganizationsDevelopersUpdateMonetizationConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperMonetizationConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_update_monetization_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_update_monetization_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps attributes.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attributes result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_attributes(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsAttributesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attributes, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_attributes_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_attributes_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_create(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_delete(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps generate key pair or update developer app status.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsGenerateKeyPairOrUpdateDeveloperAppStatusArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_builder(
+            &self.http_client,
+            &args.name,
+            &args.action,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_update(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps attributes delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attribute result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_attributes_delete(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsAttributesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attribute, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_attributes_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_attributes_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps attributes update developer app attribute.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attribute result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attribute(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsAttributesUpdateDeveloperAppAttributeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attribute, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_attributes_update_developer_app_attribute_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_attributes_update_developer_app_attribute_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps keys create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_keys_create(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsKeysCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_keys_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_keys_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps keys delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_keys_delete(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsKeysDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_keys_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_keys_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps keys replace developer app key.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsKeysReplaceDeveloperAppKeyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_keys_replace_developer_app_key_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_keys_replace_developer_app_key_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps keys update developer app key.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_keys_update_developer_app_key(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsKeysUpdateDeveloperAppKeyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_keys_update_developer_app_key_builder(
+            &self.http_client,
+            &args.name,
+            &args.action,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_keys_update_developer_app_key_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps keys apiproducts delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_keys_apiproducts_delete(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsKeysApiproductsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_keys_apiproducts_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_keys_apiproducts_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps keys apiproducts update developer app key api product.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsKeysApiproductsUpdateDeveloperAppKeyApiProductArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_builder(
+            &self.http_client,
+            &args.name,
+            &args.action,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers apps keys create create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperAppKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_apps_keys_create_create(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAppsKeysCreateCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperAppKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_apps_keys_create_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_apps_keys_create_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers attributes delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attribute result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_attributes_delete(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAttributesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attribute, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_attributes_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_attributes_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers attributes update developer attribute.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Attribute result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_attributes_update_developer_attribute(
+        &self,
+        args: &ApigeeOrganizationsDevelopersAttributesUpdateDeveloperAttributeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Attribute, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_attributes_update_developer_attribute_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_attributes_update_developer_attribute_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers balance adjust.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperBalance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_balance_adjust(
+        &self,
+        args: &ApigeeOrganizationsDevelopersBalanceAdjustArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperBalance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_balance_adjust_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_balance_adjust_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers balance credit.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperBalance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_balance_credit(
+        &self,
+        args: &ApigeeOrganizationsDevelopersBalanceCreditArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperBalance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_balance_credit_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_balance_credit_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers subscriptions create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperSubscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_subscriptions_create(
+        &self,
+        args: &ApigeeOrganizationsDevelopersSubscriptionsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperSubscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_subscriptions_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_subscriptions_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations developers subscriptions expire.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeveloperSubscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_developers_subscriptions_expire(
+        &self,
+        args: &ApigeeOrganizationsDevelopersSubscriptionsExpireArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeveloperSubscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_developers_subscriptions_expire_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_developers_subscriptions_expire_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations dns zones create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_dns_zones_create(
+        &self,
+        args: &ApigeeOrganizationsDnsZonesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_dns_zones_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.dnsZoneId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_dns_zones_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations dns zones delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_dns_zones_delete(
+        &self,
+        args: &ApigeeOrganizationsDnsZonesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_dns_zones_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_dns_zones_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations endpoint attachments create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_endpoint_attachments_create(
+        &self,
+        args: &ApigeeOrganizationsEndpointAttachmentsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_endpoint_attachments_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.endpointAttachmentId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_endpoint_attachments_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations endpoint attachments delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_endpoint_attachments_delete(
+        &self,
+        args: &ApigeeOrganizationsEndpointAttachmentsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_endpoint_attachments_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_endpoint_attachments_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations envgroups create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_envgroups_create(
+        &self,
+        args: &ApigeeOrganizationsEnvgroupsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_envgroups_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_envgroups_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations envgroups delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_envgroups_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvgroupsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_envgroups_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_envgroups_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations envgroups patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_envgroups_patch(
+        &self,
+        args: &ApigeeOrganizationsEnvgroupsPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_envgroups_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_envgroups_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations envgroups attachments create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_envgroups_attachments_create(
+        &self,
+        args: &ApigeeOrganizationsEnvgroupsAttachmentsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_envgroups_attachments_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_envgroups_attachments_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations envgroups attachments delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_envgroups_attachments_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvgroupsAttachmentsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_envgroups_attachments_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_envgroups_attachments_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments modify environment.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_modify_environment(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsModifyEnvironmentArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_modify_environment_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_modify_environment_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments set iam policy.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleIamV1Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_set_iam_policy(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleIamV1Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_set_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_set_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments subscribe.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Subscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_subscribe(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSubscribeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Subscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_subscribe_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_subscribe_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments test iam permissions.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleIamV1TestIamPermissionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_test_iam_permissions(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsTestIamPermissionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleIamV1TestIamPermissionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_test_iam_permissions_builder(
+            &self.http_client,
+            &args.resource,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_test_iam_permissions_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments unsubscribe.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_unsubscribe(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsUnsubscribeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_unsubscribe_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_unsubscribe_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Environment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Environment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments update debugmask.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DebugMask result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_update_debugmask(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsUpdateDebugmaskArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DebugMask, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_update_debugmask_builder(
+            &self.http_client,
+            &args.name,
+            &args.replaceRepeatedFields,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_update_debugmask_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments update environment.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Environment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_update_environment(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsUpdateEnvironmentArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Environment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_update_environment_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_update_environment_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments update security actions config.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityActionsConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_update_security_actions_config(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsUpdateSecurityActionsConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityActionsConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_update_security_actions_config_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_update_security_actions_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments update trace config.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1TraceConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_update_trace_config(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsUpdateTraceConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1TraceConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_update_trace_config_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_update_trace_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments addons config set addon enablement.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_addons_config_set_addon_enablement(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsAddonsConfigSetAddonEnablementArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_addons_config_set_addon_enablement_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_addons_config_set_addon_enablement_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments analytics exports create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Export result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_analytics_exports_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsAnalyticsExportsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Export, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_analytics_exports_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_analytics_exports_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments apis revisions deploy.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Deployment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_apis_revisions_deploy(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Deployment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_apis_revisions_deploy_builder(
+            &self.http_client,
+            &args.name,
+            &args.override,
+            &args.sequencedRollout,
+            &args.serviceAccount,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_apis_revisions_deploy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments apis revisions undeploy.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_apis_revisions_undeploy(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsApisRevisionsUndeployArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_apis_revisions_undeploy_builder(
+            &self.http_client,
+            &args.name,
+            &args.sequencedRollout,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_apis_revisions_undeploy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments apis revisions debugsessions create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DebugSession result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_apis_revisions_debugsessions_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DebugSession, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_apis_revisions_debugsessions_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.timeout,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_apis_revisions_debugsessions_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments apis revisions debugsessions delete data.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_data(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDeleteDataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_apis_revisions_debugsessions_delete_data_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_apis_revisions_debugsessions_delete_data_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments apis revisions deployments generate deploy change report.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeploymentChangeReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateDeployChangeReportArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeploymentChangeReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_builder(
+            &self.http_client,
+            &args.name,
+            &args.override,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments apis revisions deployments generate undeploy change report.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeploymentChangeReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateUndeployChangeReportArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeploymentChangeReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments archive deployments create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_archive_deployments_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_archive_deployments_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_archive_deployments_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments archive deployments delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_archive_deployments_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_archive_deployments_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_archive_deployments_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments archive deployments generate download url.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1GenerateDownloadUrlResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_archive_deployments_generate_download_url(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateDownloadUrlArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1GenerateDownloadUrlResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_archive_deployments_generate_download_url_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_archive_deployments_generate_download_url_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments archive deployments generate upload url.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1GenerateUploadUrlResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_archive_deployments_generate_upload_url(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateUploadUrlArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1GenerateUploadUrlResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_archive_deployments_generate_upload_url_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_archive_deployments_generate_upload_url_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments archive deployments patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ArchiveDeployment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_archive_deployments_patch(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ArchiveDeployment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_archive_deployments_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_archive_deployments_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments caches delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_caches_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsCachesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_caches_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_caches_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments deployments set iam policy.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleIamV1Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_deployments_set_iam_policy(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsDeploymentsSetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleIamV1Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_deployments_set_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_deployments_set_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments deployments test iam permissions.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleIamV1TestIamPermissionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_deployments_test_iam_permissions(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsDeploymentsTestIamPermissionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleIamV1TestIamPermissionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_deployments_test_iam_permissions_builder(
+            &self.http_client,
+            &args.resource,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_deployments_test_iam_permissions_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments flowhooks attach shared flow to flow hook.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1FlowHook result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsFlowhooksAttachSharedFlowToFlowHookArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1FlowHook, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments flowhooks detach shared flow from flow hook.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1FlowHook result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsFlowhooksDetachSharedFlowFromFlowHookArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1FlowHook, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keystores create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Keystore result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keystores_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeystoresCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Keystore, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keystores_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keystores_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keystores delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Keystore result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keystores_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeystoresDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Keystore, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keystores_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keystores_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keystores aliases create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Alias result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keystores_aliases_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Alias, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keystores_aliases_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args._password,
+            &args.alias,
+            &args.format,
+            &args.ignoreExpiryValidation,
+            &args.ignoreNewlineValidation,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keystores_aliases_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keystores aliases delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Alias result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keystores_aliases_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Alias, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keystores_aliases_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keystores_aliases_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keystores aliases update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Alias result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keystores_aliases_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Alias, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keystores_aliases_update_builder(
+            &self.http_client,
+            &args.name,
+            &args.ignoreExpiryValidation,
+            &args.ignoreNewlineValidation,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keystores_aliases_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keyvaluemaps create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keyvaluemaps_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keyvaluemaps_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keyvaluemaps_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keyvaluemaps delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keyvaluemaps_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keyvaluemaps_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keyvaluemaps_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keyvaluemaps update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keyvaluemaps_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keyvaluemaps_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keyvaluemaps_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keyvaluemaps entries create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keyvaluemaps_entries_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keyvaluemaps_entries_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keyvaluemaps_entries_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keyvaluemaps entries delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keyvaluemaps_entries_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keyvaluemaps_entries_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keyvaluemaps_entries_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments keyvaluemaps entries update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_keyvaluemaps_entries_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_keyvaluemaps_entries_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_keyvaluemaps_entries_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments queries create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AsyncQuery result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_queries_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsQueriesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AsyncQuery, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_queries_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_queries_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments references create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Reference result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_references_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsReferencesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Reference, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_references_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_references_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments references delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Reference result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_references_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsReferencesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Reference, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_references_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_references_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments references update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Reference result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_references_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsReferencesUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Reference, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_references_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_references_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments resourcefiles create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ResourceFile result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_resourcefiles_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsResourcefilesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ResourceFile, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_resourcefiles_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.name,
+            &args.type,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_resourcefiles_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments resourcefiles delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ResourceFile result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_resourcefiles_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsResourcefilesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ResourceFile, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_resourcefiles_delete_builder(
+            &self.http_client,
+            &args.parent,
+            &args.type,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_resourcefiles_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments resourcefiles update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ResourceFile result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_resourcefiles_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsResourcefilesUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ResourceFile, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_resourcefiles_update_builder(
+            &self.http_client,
+            &args.parent,
+            &args.type,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_resourcefiles_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security actions create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityAction result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_actions_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityActionsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityAction, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_actions_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.securityActionId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_actions_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security actions delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_actions_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityActionsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_actions_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_actions_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security actions disable.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityAction result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_actions_disable(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityActionsDisableArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityAction, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_actions_disable_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_actions_disable_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security actions enable.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityAction result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_actions_enable(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityActionsEnableArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityAction, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_actions_enable_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_actions_enable_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security actions patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityAction result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_actions_patch(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityActionsPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityAction, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_actions_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_actions_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security incidents batch update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_incidents_batch_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityIncidentsBatchUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_incidents_batch_update_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_incidents_batch_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security incidents patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityIncident result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_incidents_patch(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityIncidentsPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityIncident, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_incidents_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_incidents_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security reports create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_reports_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityReportsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_reports_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_reports_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security stats query tabular stats.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1QueryTabularStatsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_stats_query_tabular_stats(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityStatsQueryTabularStatsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1QueryTabularStatsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_stats_query_tabular_stats_builder(
+            &self.http_client,
+            &args.orgenv,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_stats_query_tabular_stats_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments security stats query time series stats.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1QueryTimeSeriesStatsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_security_stats_query_time_series_stats(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSecurityStatsQueryTimeSeriesStatsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1QueryTimeSeriesStatsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_security_stats_query_time_series_stats_builder(
+            &self.http_client,
+            &args.orgenv,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_security_stats_query_time_series_stats_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments sharedflows revisions deploy.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Deployment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_sharedflows_revisions_deploy(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSharedflowsRevisionsDeployArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Deployment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_sharedflows_revisions_deploy_builder(
+            &self.http_client,
+            &args.name,
+            &args.override,
+            &args.serviceAccount,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_sharedflows_revisions_deploy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments sharedflows revisions undeploy.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_sharedflows_revisions_undeploy(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsSharedflowsRevisionsUndeployArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_sharedflows_revisions_undeploy_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_sharedflows_revisions_undeploy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments targetservers create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1TargetServer result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_targetservers_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsTargetserversCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1TargetServer, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_targetservers_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_targetservers_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments targetservers delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1TargetServer result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_targetservers_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsTargetserversDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1TargetServer, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_targetservers_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_targetservers_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments targetservers update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1TargetServer result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_targetservers_update(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsTargetserversUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1TargetServer, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_targetservers_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_targetservers_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments trace config overrides create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1TraceConfigOverride result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_trace_config_overrides_create(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1TraceConfigOverride, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_trace_config_overrides_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_trace_config_overrides_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments trace config overrides delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_trace_config_overrides_delete(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_trace_config_overrides_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_trace_config_overrides_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations environments trace config overrides patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1TraceConfigOverride result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_environments_trace_config_overrides_patch(
+        &self,
+        args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1TraceConfigOverride, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_environments_trace_config_overrides_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_environments_trace_config_overrides_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations host queries create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1AsyncQuery result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_host_queries_create(
+        &self,
+        args: &ApigeeOrganizationsHostQueriesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1AsyncQuery, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_host_queries_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_host_queries_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations host security reports create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_host_security_reports_create(
+        &self,
+        args: &ApigeeOrganizationsHostSecurityReportsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_host_security_reports_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_host_security_reports_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_create(
+        &self,
+        args: &ApigeeOrganizationsInstancesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_delete(
+        &self,
+        args: &ApigeeOrganizationsInstancesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_patch(
+        &self,
+        args: &ApigeeOrganizationsInstancesPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances report status.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ReportInstanceStatusResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_report_status(
+        &self,
+        args: &ApigeeOrganizationsInstancesReportStatusArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ReportInstanceStatusResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_report_status_builder(
+            &self.http_client,
+            &args.instance,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_report_status_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances attachments create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_attachments_create(
+        &self,
+        args: &ApigeeOrganizationsInstancesAttachmentsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_attachments_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_attachments_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances attachments delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_attachments_delete(
+        &self,
+        args: &ApigeeOrganizationsInstancesAttachmentsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_attachments_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_attachments_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances canaryevaluations create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_canaryevaluations_create(
+        &self,
+        args: &ApigeeOrganizationsInstancesCanaryevaluationsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_canaryevaluations_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_canaryevaluations_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances nat addresses activate.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_nat_addresses_activate(
+        &self,
+        args: &ApigeeOrganizationsInstancesNatAddressesActivateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_nat_addresses_activate_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_nat_addresses_activate_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances nat addresses create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_nat_addresses_create(
+        &self,
+        args: &ApigeeOrganizationsInstancesNatAddressesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_nat_addresses_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_nat_addresses_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations instances nat addresses delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_instances_nat_addresses_delete(
+        &self,
+        args: &ApigeeOrganizationsInstancesNatAddressesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_instances_nat_addresses_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_instances_nat_addresses_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations keyvaluemaps create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_keyvaluemaps_create(
+        &self,
+        args: &ApigeeOrganizationsKeyvaluemapsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_keyvaluemaps_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_keyvaluemaps_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations keyvaluemaps delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_keyvaluemaps_delete(
+        &self,
+        args: &ApigeeOrganizationsKeyvaluemapsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_keyvaluemaps_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_keyvaluemaps_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations keyvaluemaps update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueMap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_keyvaluemaps_update(
+        &self,
+        args: &ApigeeOrganizationsKeyvaluemapsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueMap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_keyvaluemaps_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_keyvaluemaps_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations keyvaluemaps entries create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_keyvaluemaps_entries_create(
+        &self,
+        args: &ApigeeOrganizationsKeyvaluemapsEntriesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_keyvaluemaps_entries_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_keyvaluemaps_entries_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations keyvaluemaps entries delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_keyvaluemaps_entries_delete(
+        &self,
+        args: &ApigeeOrganizationsKeyvaluemapsEntriesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_keyvaluemaps_entries_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_keyvaluemaps_entries_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations keyvaluemaps entries update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1KeyValueEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_keyvaluemaps_entries_update(
+        &self,
+        args: &ApigeeOrganizationsKeyvaluemapsEntriesUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1KeyValueEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_keyvaluemaps_entries_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_keyvaluemaps_entries_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations reports create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1CustomReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_reports_create(
+        &self,
+        args: &ApigeeOrganizationsReportsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1CustomReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_reports_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_reports_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations reports delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeleteCustomReportResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_reports_delete(
+        &self,
+        args: &ApigeeOrganizationsReportsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeleteCustomReportResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_reports_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_reports_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations reports update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1CustomReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_reports_update(
+        &self,
+        args: &ApigeeOrganizationsReportsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1CustomReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_reports_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_reports_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security assessment results batch compute.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_assessment_results_batch_compute(
+        &self,
+        args: &ApigeeOrganizationsSecurityAssessmentResultsBatchComputeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_assessment_results_batch_compute_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_assessment_results_batch_compute_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security feedback create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityFeedback result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_feedback_create(
+        &self,
+        args: &ApigeeOrganizationsSecurityFeedbackCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityFeedback, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_feedback_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.securityFeedbackId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_feedback_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security feedback delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_feedback_delete(
+        &self,
+        args: &ApigeeOrganizationsSecurityFeedbackDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_feedback_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_feedback_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security feedback patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityFeedback result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_feedback_patch(
+        &self,
+        args: &ApigeeOrganizationsSecurityFeedbackPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityFeedback, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_feedback_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_feedback_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security monitoring conditions create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityMonitoringCondition result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_monitoring_conditions_create(
+        &self,
+        args: &ApigeeOrganizationsSecurityMonitoringConditionsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityMonitoringCondition, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_monitoring_conditions_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.securityMonitoringConditionId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_monitoring_conditions_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security monitoring conditions delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_monitoring_conditions_delete(
+        &self,
+        args: &ApigeeOrganizationsSecurityMonitoringConditionsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_monitoring_conditions_delete_builder(
+            &self.http_client,
+            &args.name,
+            &args.riskAssessmentType,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_monitoring_conditions_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security monitoring conditions patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityMonitoringCondition result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_monitoring_conditions_patch(
+        &self,
+        args: &ApigeeOrganizationsSecurityMonitoringConditionsPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityMonitoringCondition, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_monitoring_conditions_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_monitoring_conditions_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityProfile result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_create(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityProfile, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.securityProfileId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_delete(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityProfile result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_patch(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityProfile, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles environments compute environment scores.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ComputeEnvironmentScoresResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_environments_compute_environment_scores(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesEnvironmentsComputeEnvironmentScoresArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ComputeEnvironmentScoresResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_environments_compute_environment_scores_builder(
+            &self.http_client,
+            &args.profileEnvironment,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_environments_compute_environment_scores_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles environments create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_environments_create(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesEnvironmentsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_environments_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_environments_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles environments delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_environments_delete(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesEnvironmentsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_environments_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_environments_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles v2 create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityProfileV2 result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_v2_create(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesV2CreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityProfileV2, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_v2_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.securityProfileV2Id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_v2_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles v2 delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_v2_delete(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesV2DeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_v2_delete_builder(
+            &self.http_client,
+            &args.name,
+            &args.riskAssessmentType,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_v2_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations security profiles v2 patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SecurityProfileV2 result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_security_profiles_v2_patch(
+        &self,
+        args: &ApigeeOrganizationsSecurityProfilesV2PatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SecurityProfileV2, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_security_profiles_v2_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_security_profiles_v2_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sharedflows create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SharedFlowRevision result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sharedflows_create(
+        &self,
+        args: &ApigeeOrganizationsSharedflowsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SharedFlowRevision, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sharedflows_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.action,
+            &args.name,
+            &args.space,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sharedflows_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sharedflows delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SharedFlow result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sharedflows_delete(
+        &self,
+        args: &ApigeeOrganizationsSharedflowsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SharedFlow, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sharedflows_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sharedflows_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sharedflows move.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SharedFlow result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sharedflows_move(
+        &self,
+        args: &ApigeeOrganizationsSharedflowsMoveArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SharedFlow, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sharedflows_move_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sharedflows_move_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sharedflows revisions delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SharedFlowRevision result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sharedflows_revisions_delete(
+        &self,
+        args: &ApigeeOrganizationsSharedflowsRevisionsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SharedFlowRevision, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sharedflows_revisions_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sharedflows_revisions_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sharedflows revisions update shared flow revision.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1SharedFlowRevision result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision(
+        &self,
+        args: &ApigeeOrganizationsSharedflowsRevisionsUpdateSharedFlowRevisionArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1SharedFlowRevision, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sharedflows_revisions_update_shared_flow_revision_builder(
+            &self.http_client,
+            &args.name,
+            &args.validate,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sharedflows_revisions_update_shared_flow_revision_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sites apicategories create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiCategoryResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sites_apicategories_create(
+        &self,
+        args: &ApigeeOrganizationsSitesApicategoriesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiCategoryResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sites_apicategories_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sites_apicategories_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sites apicategories delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeleteResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sites_apicategories_delete(
+        &self,
+        args: &ApigeeOrganizationsSitesApicategoriesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeleteResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sites_apicategories_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sites_apicategories_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sites apicategories patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiCategoryResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sites_apicategories_patch(
+        &self,
+        args: &ApigeeOrganizationsSitesApicategoriesPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiCategoryResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sites_apicategories_patch_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sites_apicategories_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sites apidocs create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiDocResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sites_apidocs_create(
+        &self,
+        args: &ApigeeOrganizationsSitesApidocsCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiDocResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sites_apidocs_create_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sites_apidocs_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sites apidocs delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1DeleteResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sites_apidocs_delete(
+        &self,
+        args: &ApigeeOrganizationsSitesApidocsDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1DeleteResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sites_apidocs_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sites_apidocs_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sites apidocs update.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiDocResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sites_apidocs_update(
+        &self,
+        args: &ApigeeOrganizationsSitesApidocsUpdateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiDocResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sites_apidocs_update_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sites_apidocs_update_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations sites apidocs update documentation.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1ApiDocDocumentationResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_sites_apidocs_update_documentation(
+        &self,
+        args: &ApigeeOrganizationsSitesApidocsUpdateDocumentationArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1ApiDocDocumentationResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_sites_apidocs_update_documentation_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_sites_apidocs_update_documentation_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations spaces create.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Space result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_spaces_create(
+        &self,
+        args: &ApigeeOrganizationsSpacesCreateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Space, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_spaces_create_builder(
+            &self.http_client,
+            &args.parent,
+            &args.spaceId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_spaces_create_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations spaces delete.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleProtobufEmpty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_spaces_delete(
+        &self,
+        args: &ApigeeOrganizationsSpacesDeleteArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleProtobufEmpty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_spaces_delete_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_spaces_delete_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations spaces patch.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudApigeeV1Space result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_spaces_patch(
+        &self,
+        args: &ApigeeOrganizationsSpacesPatchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudApigeeV1Space, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_spaces_patch_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_spaces_patch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations spaces set iam policy.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleIamV1Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_spaces_set_iam_policy(
+        &self,
+        args: &ApigeeOrganizationsSpacesSetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleIamV1Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_spaces_set_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_spaces_set_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee organizations spaces test iam permissions.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleIamV1TestIamPermissionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_organizations_spaces_test_iam_permissions(
+        &self,
+        args: &ApigeeOrganizationsSpacesTestIamPermissionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleIamV1TestIamPermissionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_organizations_spaces_test_iam_permissions_builder(
+            &self.http_client,
+            &args.resource,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_organizations_spaces_test_iam_permissions_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apigee projects provision organization.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn apigee_projects_provision_organization(
+        &self,
+        args: &ApigeeProjectsProvisionOrganizationArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apigee_projects_provision_organization_builder(
+            &self.http_client,
+            &args.project,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apigee_projects_provision_organization_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+}

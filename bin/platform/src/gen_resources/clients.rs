@@ -397,8 +397,6 @@ impl ClientGenerator {
         writeln!(out)?;
         writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
         writeln!(out)?;
-        writeln!(out, "pub mod types;")?;
-        writeln!(out)?;
 
         // Imports
         let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
