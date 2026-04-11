@@ -48,6 +48,10 @@ impl JwtToken {
     }
 
     /// Create from a raw token string by parsing the JWT payload.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `JwtError` if the token cannot be parsed or is missing required claims.
     pub fn from_token(token: String) -> Result<Self, JwtError> {
         // Parse the JWT payload to extract claims
         let claims = decode_claims(&token)?;
@@ -68,6 +72,7 @@ impl JwtToken {
     }
 
     /// Create with a refresh token.
+    #[must_use]
     pub fn with_refresh_token(mut self, refresh_token: String) -> Self {
         self.refresh_token = Some(ConfidentialText::new(refresh_token));
         self
@@ -165,7 +170,12 @@ impl JwtManager {
     }
 
     /// Get a valid token, refreshing if necessary.
+    ///
     /// Returns the access token string if available and valid.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `JwtError` if there is no token, no refresh token, or if the refresh function fails.
     pub fn get_valid_token<F>(&mut self, refresh_fn: F) -> Result<String, JwtError>
     where
         F: FnOnce(String) -> Result<JwtToken, JwtError>,
@@ -195,6 +205,10 @@ impl JwtManager {
     }
 
     /// Refresh the token if needed (within buffer or expired).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `JwtError` if there is no refresh token or if the refresh function fails.
     pub fn refresh_if_needed<F>(&mut self, refresh_fn: F) -> Result<bool, JwtError>
     where
         F: FnOnce(String) -> Result<JwtToken, JwtError>,
@@ -282,7 +296,7 @@ pub struct Claims {
 }
 
 impl Claims {
-    /// Get the expiration time as DateTime.
+    /// Get the expiration time as [`DateTime`].
     #[must_use]
     pub fn expires_at(&self) -> Option<DateTime<Utc>> {
         self.exp.and_then(|ts| DateTime::from_timestamp(ts, 0))

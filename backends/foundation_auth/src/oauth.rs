@@ -55,6 +55,10 @@ impl OAuthConfig {
     }
 
     /// Validate the configuration.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if any required field is missing.
     pub fn validate(&self) -> Result<(), OAuthError> {
         if self.client_id.is_empty() {
             return Err(OAuthError::MissingClientId);
@@ -72,7 +76,7 @@ impl OAuthConfig {
     }
 }
 
-/// Builder for OAuthConfig.
+/// Builder for [`OAuthConfig`].
 pub struct OAuthConfigBuilder {
     config: OAuthConfig,
 }
@@ -85,41 +89,49 @@ impl OAuthConfigBuilder {
         }
     }
 
+    #[must_use]
     pub fn client_id(mut self, client_id: impl Into<String>) -> Self {
         self.config.client_id = client_id.into();
         self
     }
 
+    #[must_use]
     pub fn client_secret(mut self, client_secret: impl Into<String>) -> Self {
         self.config.client_secret = Some(client_secret.into());
         self
     }
 
+    #[must_use]
     pub fn authorization_url(mut self, url: impl Into<String>) -> Self {
         self.config.authorization_url = url.into();
         self
     }
 
+    #[must_use]
     pub fn token_url(mut self, url: impl Into<String>) -> Self {
         self.config.token_url = url.into();
         self
     }
 
+    #[must_use]
     pub fn redirect_uri(mut self, uri: impl Into<String>) -> Self {
         self.config.redirect_uri = uri.into();
         self
     }
 
+    #[must_use]
     pub fn scopes(mut self, scopes: Vec<String>) -> Self {
         self.config.scopes = scopes;
         self
     }
 
+    #[must_use]
     pub fn scope(mut self, scope: impl Into<String>) -> Self {
         self.config.scopes.push(scope.into());
         self
     }
 
+    #[must_use]
     pub fn pkce_enabled(mut self, enabled: bool) -> Self {
         self.config.pkce_enabled = enabled;
         self
@@ -201,6 +213,10 @@ impl OAuthManager {
     ///
     /// Returns the URL to redirect the user to, along with the PKCE challenge
     /// that must be stored for the code exchange.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the configuration is invalid or the URL cannot be parsed.
     pub fn get_authorization_url(&self, state: &str) -> Result<(String, Option<PkceChallenge>), OAuthError> {
         self.config.validate()?;
 
@@ -246,6 +262,11 @@ impl OAuthManager {
     ///
     /// This completes the authorization code flow by sending the code
     /// to the token endpoint along with the PKCE code verifier.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn exchange_code(
         &self,
         code: &str,
@@ -317,6 +338,11 @@ impl OAuthManager {
     }
 
     /// Client credentials flow for service-to-service authentication.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
+    #[allow(clippy::cast_possible_truncation, clippy::needless_pass_by_value)]
     pub fn client_credentials(&self, scopes: Option<Vec<String>>) -> Result<OAuthToken, OAuthError> {
         self.config.validate()?;
 
@@ -391,6 +417,11 @@ impl OAuthManager {
     }
 
     /// Refresh an access token using a refresh token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
         self.config.validate()?;
 
@@ -425,6 +456,7 @@ impl OAuthManager {
                 foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
                 _ => String::new(),
             };
+            #[allow(clippy::cast_possible_truncation)]
             return Err(OAuthError::TokenEndpointError {
                 status: response.get_status().into_usize() as u16,
                 message: body,
@@ -469,14 +501,13 @@ pub struct OAuthToken {
 }
 
 impl OAuthToken {
-    /// Convert to a JwtToken.
+    /// Convert to a [`JwtToken`].
     #[must_use]
     #[allow(clippy::cast_possible_wrap)]
     pub fn into_jwt_token(self) -> Option<JwtToken> {
         let expires_at = self
             .expires_in
-            .map(|exp| chrono::Utc::now().timestamp() + exp as i64)
-            .unwrap_or_else(|| chrono::Utc::now().timestamp() + 3600); // Default 1 hour
+            .map_or_else(|| chrono::Utc::now().timestamp() + 3600, |exp| chrono::Utc::now().timestamp() + exp as i64);
 
         JwtToken::from_parts(self.access_token, self.refresh_token, expires_at, self.scope, None, None).into()
     }

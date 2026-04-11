@@ -3,13 +3,13 @@
 //! WHY: API operations need to automatically persist their results
 //!      to the state store without boilerplate in every method.
 //!
-//! WHAT: Wraps any TaskIterator with a state machine that:
+//! WHAT: Wraps any `TaskIterator` with a state machine that:
 //!   1. Spawns the inner task
-//!   2. On success, creates state and calls state_store.set()
+//!   2. On success, creates state and calls `state_store.set()`
 //!   3. Polls the returned stream until exhausted
 //!   4. Yields the original output
 //!
-//! HOW: Uses explicit state enum to track progress through inner task
+//! HOW: Uses explicit `state` enum to track progress through inner task
 //!      reception, state creation, and state store stream polling.
 
 use foundation_core::valtron::{TaskIterator, TaskStatus, ThreadedValue};
@@ -24,7 +24,7 @@ use std::sync::Arc;
 ///
 /// WHY: Provider methods need to report errors from both:
 ///   1. API client operations (generic error type)
-///   2. State store operations (StorageError)
+///   2. State store operations (`StorageError`)
 ///
 /// WHAT: Single enum that can hold either error type, with Display + Error impls.
 ///
@@ -49,12 +49,13 @@ pub enum ProviderError<E> {
 }
 
 impl<E> ProviderError<E> {
-    /// Wrap an API error into ProviderError.
+    /// Wrap an API error into `ProviderError`.
     pub fn api(err: E) -> Self {
         Self::Api(err)
     }
 
-    /// Wrap a StorageError into ProviderError.
+    /// Wrap a [`StorageError`] into `ProviderError`.
+    #[must_use]
     pub fn state(err: StorageError) -> Self {
         Self::State(err)
     }
@@ -83,11 +84,11 @@ where
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Api(e) => write!(f, "API error: {}", e),
-            Self::State(e) => write!(f, "state store error: {}", e),
-            Self::SerializeFailed(e) => write!(f, "serialization failed: {}", e),
-            Self::HashFailed(e) => write!(f, "hash failed: {}", e),
-            Self::ExecuteFailed(e) => write!(f, "execution failed: {}", e),
+            Self::Api(e) => write!(f, "API error: {e}"),
+            Self::State(e) => write!(f, "state store error: {e}"),
+            Self::SerializeFailed(e) => write!(f, "serialization failed: {e}"),
+            Self::HashFailed(e) => write!(f, "hash failed: {e}"),
+            Self::ExecuteFailed(e) => write!(f, "execution failed: {e}"),
         }
     }
 }
@@ -105,7 +106,7 @@ where
     }
 }
 
-/// Pending states for StoreStateTask.
+/// Pending states for `StoreStateTask`.
 #[derive(Debug, Clone)]
 pub enum StoreStatePending<P> {
     /// Waiting for inner task to produce a result
@@ -114,7 +115,7 @@ pub enum StoreStatePending<P> {
     WaitingStore,
 }
 
-/// State machine for StoreStateTask with pre-computed resource info.
+/// State machine for `StoreStateTask` with pre-computed resource info.
 enum StoreStatePrecomputed<Inner, St, I, D>
 where
     Inner: TaskIterator,
@@ -165,15 +166,15 @@ where
 /// WHY: Operations need to automatically persist their results
 ///      to the state store without boilerplate in every method.
 ///
-/// WHAT: Wraps any TaskIterator with pre-computed resource info,
+/// WHAT: Wraps any `TaskIterator` with pre-computed resource info,
 ///       spawns it, monitors for successful completion,
-///       calls state_store.set() and processes the returned stream, then yields
+///       calls `state_store.set()` and processes the returned stream, then yields
 ///       the original output.
 ///
 /// HOW: State machine with three states:
-///   1. Inner - delegate to inner task
-///   2. Storing - poll the state store stream
-///   3. Done - complete
+///   1. `Inner` - delegate to inner task
+///   2. `Storing` - poll the state store stream
+///   3. `Done` - complete
 #[derive(Debug)]
 pub struct StoreStateTask<Inner, St, I, D>
 where
@@ -199,8 +200,8 @@ where
     /// * `inner` - The inner task to wrap (e.g., from `_task()` method)
     /// * `state_store` - State store for persistence
     /// * `resource_id` - Unique identifier for this resource
-    /// * `resource_kind` - Type of resource (e.g., "gcp::cloudkms::AutoKeyConfig")
-    /// * `provider` - Provider name (e.g., "gcp")
+    /// * `resource_kind` - Type of resource (e.g., `gcp::cloudkms::AutoKeyConfig`)
+    /// * `provider` - Provider name (e.g., `gcp`)
     /// * `input` - Input configuration to store as snapshot
     /// * `environment` - Optional environment name
     pub fn new(
@@ -239,6 +240,7 @@ where
     type Pending = StoreStatePending<P>;
     type Spawner = Inner::Spawner;
 
+    #[allow(clippy::missing_panics_doc, clippy::too_many_lines)]
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.state.take()? {
             StoreStatePrecomputed::Inner {
@@ -398,7 +400,7 @@ where
     }
 }
 
-/// State machine for StoreStateIdentifierTask (uses ResourceIdentifier trait).
+/// State machine for `StoreStateIdentifierTask` (uses `ResourceIdentifier` trait).
 enum StoreStateIdentifierInner<Inner, St, I, O>
 where
     Inner: TaskIterator,
@@ -438,14 +440,14 @@ where
     }
 }
 
-/// Task wrapper that stores state changes on completion using ResourceIdentifier trait.
+/// Task wrapper that stores state changes on completion using `ResourceIdentifier` trait.
 ///
-/// WHY: For output types that implement ResourceIdentifier, we can defer resource ID
+/// WHY: For output types that implement `ResourceIdentifier<Input>`, we can defer resource ID
 ///      computation until the output is available, avoiding the need to pre-compute it.
 ///
-/// WHAT: Wraps any TaskIterator where the output implements ResourceIdentifier<Input>.
+/// WHAT: Wraps any `TaskIterator` where the output implements `ResourceIdentifier<Input>`.
 ///
-/// HOW: On successful completion, calls generate_resource_id on the output to get
+/// HOW: On successful completion, calls `generate_resource_id` on the output to get
 ///      the resource ID, then stores state via a polled stream.
 #[derive(Debug)]
 pub struct StoreStateIdentifierTask<Inner, St, I, O>
@@ -465,10 +467,10 @@ where
     I: Serialize + Clone + Send + 'static,
     O: Serialize + Send + 'static,
 {
-    /// Create new store state task using ResourceIdentifier trait.
+    /// Create new store state task using `ResourceIdentifier` trait.
     ///
     /// This constructor defers resource ID computation until the output is available.
-    /// The output type must implement ResourceIdentifier<Input>.
+    /// The output type must implement `ResourceIdentifier<Input>`.
     ///
     /// # Arguments
     ///
@@ -506,6 +508,7 @@ where
     type Pending = StoreStatePending<P>;
     type Spawner = Inner::Spawner;
 
+    #[allow(clippy::missing_panics_doc, clippy::too_many_lines)]
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.state.take()? {
             StoreStateIdentifierInner::Inner {

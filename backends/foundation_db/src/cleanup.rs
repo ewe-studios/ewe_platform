@@ -17,16 +17,22 @@ pub trait StorageCleanup: QueryStore {
     /// - Past their `expires_at` timestamp
     /// - Inactive for longer than `max_inactive_seconds` (if provided)
     ///
-    /// Returns the number of deleted sessions.
+    /// # Returns
+    ///
+    /// The number of deleted sessions.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database query fails.
     fn cleanup_expired_sessions(
         &self,
         now: i64,
         max_inactive_seconds: Option<i64>,
     ) -> StorageResult<u64> {
         let sql = match max_inactive_seconds {
-            Some(_inactive_timeout) => format!(
-                "DELETE FROM sessions WHERE expires_at < ? OR (last_active_at IS NOT NULL AND last_active_at < ?)",
-            ),
+            Some(_inactive_timeout) => {
+                "DELETE FROM sessions WHERE expires_at < ? OR (last_active_at IS NOT NULL AND last_active_at < ?)".to_string()
+            }
             None => "DELETE FROM sessions WHERE expires_at < ?".to_string(),
         };
 
@@ -49,7 +55,13 @@ pub trait StorageCleanup: QueryStore {
 
     /// Delete expired JWT tokens (refresh tokens past expiration).
     ///
-    /// Returns the number of deleted tokens.
+    /// # Returns
+    ///
+    /// The number of deleted tokens.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database query fails.
     fn cleanup_expired_jwt_tokens(&self, now: i64) -> StorageResult<u64> {
         let sql = "DELETE FROM jwt_tokens WHERE expires_at < ?";
         let params = vec![crate::storage_provider::DataValue::Integer(now)];
@@ -65,7 +77,13 @@ pub trait StorageCleanup: QueryStore {
 
     /// Delete expired verification tokens.
     ///
-    /// Returns the number of deleted tokens.
+    /// # Returns
+    ///
+    /// The number of deleted tokens.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database query fails.
     fn cleanup_expired_verification_tokens(&self, now: i64) -> StorageResult<u64> {
         let sql = "DELETE FROM verification_tokens WHERE expires_at < ?";
         let params = vec![crate::storage_provider::DataValue::Integer(now)];
@@ -81,7 +99,13 @@ pub trait StorageCleanup: QueryStore {
 
     /// Delete expired OAuth states (PKCE states past expiration).
     ///
-    /// Returns the number of deleted states.
+    /// # Returns
+    ///
+    /// The number of deleted states.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database query fails.
     fn cleanup_expired_oauth_states(&self, now: i64) -> StorageResult<u64> {
         let sql = "DELETE FROM oauth_states WHERE expires_at < ?";
         let params = vec![crate::storage_provider::DataValue::Integer(now)];
@@ -97,7 +121,13 @@ pub trait StorageCleanup: QueryStore {
 
     /// Delete expired magic links.
     ///
-    /// Returns the number of deleted links.
+    /// # Returns
+    ///
+    /// The number of deleted links.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database query fails.
     fn cleanup_expired_magic_links(&self, now: i64) -> StorageResult<u64> {
         let sql = "DELETE FROM magic_links WHERE expires_at < ?";
         let params = vec![crate::storage_provider::DataValue::Integer(now)];
@@ -113,7 +143,13 @@ pub trait StorageCleanup: QueryStore {
 
     /// Delete expired email OTPs.
     ///
-    /// Returns the number of deleted OTPs.
+    /// # Returns
+    ///
+    /// The number of deleted OTPs.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database query fails.
     fn cleanup_expired_email_otps(&self, now: i64) -> StorageResult<u64> {
         let sql = "DELETE FROM email_otps WHERE expires_at < ?";
         let params = vec![crate::storage_provider::DataValue::Integer(now)];
@@ -130,12 +166,20 @@ pub trait StorageCleanup: QueryStore {
     /// Clean up old rate limit entries.
     ///
     /// Rate limits outside the window are deleted.
-    /// Returns the number of deleted entries.
+    ///
+    /// # Returns
+    ///
+    /// The number of deleted entries.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database query fails.
     fn cleanup_old_rate_limits(&self, window_seconds: i64) -> StorageResult<u64> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_secs()
+            .cast_signed();
         let cutoff = now - window_seconds;
 
         let sql = "DELETE FROM rate_limits WHERE window_start < ?";
@@ -152,35 +196,43 @@ pub trait StorageCleanup: QueryStore {
 
     /// Run all cleanup operations in one call.
     ///
-    /// Returns a `CleanupStats` with counts of deleted items.
+    /// # Returns
+    ///
+    /// A `CleanupStats` with counts of deleted items.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if any cleanup operation fails.
+    #[allow(clippy::field_reassign_with_default)]
     fn run_full_cleanup(&self) -> StorageResult<CleanupStats> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_secs()
+            .cast_signed();
 
         let mut stats = CleanupStats::default();
 
         // Sessions: expire after 7 days, inactive for 24h
-        stats.sessions_deleted = self.cleanup_expired_sessions(now, Some(86400))?;
+        stats.sessions_deleted = self.cleanup_expired_sessions(now, Some(86_400))?;
 
         // JWT tokens: expire after refresh token expiration (30 days)
-        stats.jwt_tokens_deleted = self.cleanup_expired_jwt_tokens(now - 2592000)?;
+        stats.jwt_tokens_deleted = self.cleanup_expired_jwt_tokens(now - 2_592_000)?;
 
         // Verification tokens: 1 hour expiration
-        stats.verification_tokens_deleted = self.cleanup_expired_verification_tokens(now - 3600)?;
+        stats.verification_tokens_deleted = self.cleanup_expired_verification_tokens(now - 3_600)?;
 
         // OAuth states: 10 minute expiration
         stats.oauth_states_deleted = self.cleanup_expired_oauth_states(now - 600)?;
 
         // Magic links: 1 hour expiration
-        stats.magic_links_deleted = self.cleanup_expired_magic_links(now - 3600)?;
+        stats.magic_links_deleted = self.cleanup_expired_magic_links(now - 3_600)?;
 
         // Email OTPs: 10 minute expiration
         stats.email_otps_deleted = self.cleanup_expired_email_otps(now - 600)?;
 
         // Rate limits: clean up entries older than 1 hour
-        stats.rate_limits_deleted = self.cleanup_old_rate_limits(3600)?;
+        stats.rate_limits_deleted = self.cleanup_old_rate_limits(3_600)?;
 
         Ok(stats)
     }

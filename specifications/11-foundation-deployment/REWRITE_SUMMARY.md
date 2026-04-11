@@ -103,25 +103,30 @@ let result = worker.deploy().await?;
 | 07 | provider-api-clients | **COMPLETE** | API clients for all providers |
 | 30 | huggingface-api-provider | **COMPLETE** | HuggingFace Hub API client |
 
-### Rejected
+### Rejected (User-Facing API)
 
 | Feature | Name | Reason |
 |---------|------|--------|
-| 03 | deployment-engine | Replaced by trait-based approach (Feature 35) |
+| 03 | deployment-engine | Replaced by trait-based approach (Feature 35) - engine remains as internal implementation |
+| 11 | templates | YAML plan generation rejected - users write Rust code directly |
+| 12 | mise-integration | Plan-centric tasks rejected - mise tasks run Rust binaries |
+| 31 | deployment-plan-schema | YAML plans rejected in favor of Rust types |
+| 32 | deployment-plan-parser | No YAML plans = no parser needed |
+| 33 | infrastructure-plan | YAML infra plans rejected - use Rust code |
+| 34 | plan-executor | Plan executor rejected - use trait-based deployments |
+
+### Internal Implementation
+
+| Feature | Name | Status | Notes |
+|---------|------|--------|-------|
+| 03 | deployment-engine | **INTERNAL** | State machine for provider internal use |
+| 28 | provider-wrapper | **INTERNAL** | Optional state-tracking wrappers for API clients |
 
 ### New
 
 | Feature | Name | Description |
 |---------|------|-------------|
 | 35 | trait-based-deployments | `Deployable` trait for pure Rust deployments |
-
-### Updated
-
-| Feature | Name | Change |
-|---------|------|--------|
-| 11 | templates | Generate Rust deployment code, not YAML |
-| 12 | mise-integration | Tasks run Rust deployment scripts |
-| 13 | examples-documentation | Examples show trait implementations |
 
 ---
 
@@ -164,14 +169,14 @@ pub trait Deployable: Send + Sync {
 - Full control over deployment logic
 - Clear dependency chain
 
-### 4. State Store via Provider Wrappers
+### 4. State Store Optional
 
-**Decision:** State stores are accessed through provider wrappers, not directly by users.
+**Decision:** State stores are available via provider wrappers, but users can also call raw clients.
 
 **Rationale:**
-- Transparent change detection
+- Transparent change detection when needed
 - Automatic state persistence
-- Users don't need to think about state
+- Optional - simple deployments may not need it
 
 ---
 
@@ -204,7 +209,14 @@ pub trait Deployable: Send + Sync {
 
 | File | Action |
 |------|--------|
-| `specifications/11-foundation-deployment/features/03-deployment-engine/feature.md` | Marked as rejected |
+| `specifications/11-foundation-deployment/features/03-deployment-engine/feature.md` | Marked as rejected (user-facing), INTERNAL (implementation) |
+| `specifications/11-foundation-deployment/features/11-templates/feature.md` | Marked as rejected |
+| `specifications/11-foundation-deployment/features/12-mise-integration/feature.md` | Marked as rejected |
+| `specifications/11-foundation-deployment/features/28-provider-wrapper/feature.md` | Marked as INTERNAL |
+| `specifications/11-foundation-deployment/features/31-deployment-plan-schema/feature.md` | Deleted (rejected) |
+| `specifications/11-foundation-deployment/features/32-deployment-plan-parser/feature.md` | Deleted (rejected) |
+| `specifications/11-foundation-deployment/features/33-infrastructure-plan/feature.md` | Deleted (rejected) |
+| `specifications/11-foundation-deployment/features/34-plan-executor/feature.md` | Deleted (rejected) |
 | `specifications/11-foundation-deployment/features/35-trait-based-deployments/feature.md` | Created new |
 | `specifications/11-foundation-deployment/REWRITE_SUMMARY.md` | Updated |
 

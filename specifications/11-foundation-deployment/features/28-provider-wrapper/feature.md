@@ -4,40 +4,64 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/28-provider-wrapper"
 this_file: "specifications/11-foundation-deployment/features/28-provider-wrapper/feature.md"
 
-status: pending
-priority: high
+status: internal
+priority: medium
 created: 2026-04-08
+updated: 2026-04-11
 
-depends_on: ["27-gen-task-methods", "02-state-stores", "26-gen-provider-clients"]
+depends_on: ["02-state-stores"]
 
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 3
+  uncompleted: 5
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 37%
 ---
 
 
 # Provider Wrapper Pattern - State-Aware API Clients
 
-## Iron Law: Zero Warnings
+## Status: INTERNAL IMPLEMENTATION
 
-> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
->
-> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
-> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
-> - `cargo test -p foundation_deployment` — zero compilation warnings
-> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+**This feature is an internal implementation detail, not the primary user-facing API.**
 
-## Overview
+**Reason:** With Feature 35 (Trait-Based Deployments), users implement `Deployable` on their structs and call provider clients directly. Provider wrappers are **optional utilities** that providers may use internally for state tracking.
 
-Create a provider wrapper pattern that automatically tracks resource state changes in the state store. This provides a consistent, state-aware API for all provider operations.
+### User-Facing API (Feature 35)
 
-**Key Benefits:**
-1. **Automatic state tracking** - All create/modify/delete operations automatically update the state store
-2. **Consistent error handling** - Unified error types wrapping both API and state store errors
-3. **Generic over StateStore** - Works with any state store backend (File, SQLite, Turso, R2, D1)
-4. **Task-level composition** - Users can still access raw tasks for custom wrapping
+Users implement `Deployable` directly:
+
+```rust
+impl Deployable for MyWorker {
+    type Output = WorkerDeployment;
+    type Error = DeploymentError;
+    
+    async fn deploy(&self) -> Result<Self::Output, Self::Error> {
+        let client = CloudflareClient::from_env()?;
+        client.put_worker_script(&self.name, &self.script).await
+    }
+}
+```
+
+### Internal Implementation (This Feature)
+
+Provider wrappers with automatic state tracking can be used **internally** by provider implementations:
+
+```rust
+// Optional: Provider wrapper with automatic state tracking
+let client = ProviderClient::new("my-project", "dev", state_store);
+let cloud_kms = CloudKmsProvider::new(client);
+let result = cloud_kms.folders_update_autokey_config(args)?;
+// State automatically stored
+```
+
+**Benefits:**
+- Automatic state tracking for resource management
+- Useful for complex infrastructure with many resources
+- Optional - users can call raw clients directly if preferred
+
+## Architecture
+- Optional - users can call raw clients directly if preferred
 
 ## Architecture
 

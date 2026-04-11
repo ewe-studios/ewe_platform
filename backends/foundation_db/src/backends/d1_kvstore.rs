@@ -1,6 +1,6 @@
 //! Cloudflare D1 key-value storage backend.
 //!
-//! WHY: D1 is Cloudflare's edge SQLite - useful for KV storage at the edge.
+//! WHY: D1 is Cloudflare's edge `SQLite` - useful for KV storage at the edge.
 //!
 //! WHAT: `D1KeyValueStore` implements `KeyValueStore`, `QueryStore`, and
 //! `RateLimiterStore` traits using D1's SQL API over HTTP.
@@ -92,6 +92,10 @@ impl D1KeyValueStore {
     }
 
     /// Initialize the key-value table schema.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the table creation fails.
     pub fn init(&self) -> StorageResult<()> {
         let sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (key TEXT PRIMARY KEY, value TEXT NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))",
@@ -304,7 +308,6 @@ impl QueryStore for D1KeyValueStore {
                     .iter()
                     .map(|(k, v)| {
                         let dv = match v {
-                            serde_json::Value::Null => DataValue::Null,
                             serde_json::Value::Number(n) => {
                                 if let Some(i) = n.as_i64() {
                                     DataValue::Integer(i)
@@ -353,10 +356,9 @@ impl QueryStore for D1KeyValueStore {
         let affected = response
             .pointer("/result/0/meta/changes")
             .and_then(serde_json::Value::as_i64)
-            .map(|c| c.unsigned_abs())
-            .unwrap_or(0);
+            .map_or(0, i64::unsigned_abs);
 
-        Ok(Self::wrap_value(affected as u64))
+        Ok(Self::wrap_value(affected))
     }
 
     fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -389,23 +391,26 @@ impl RateLimiterStore for D1KeyValueStore {
             .as_secs();
         let window_start = now - window_seconds;
 
-        let sql = format!("SELECT count, window_start FROM rate_limits WHERE key = ?");
+        let sql = "SELECT count, window_start FROM rate_limits WHERE key = ?";
         let response = self.execute_sql(
-            &sql,
+            sql,
             &[serde_json::Value::String(key.to_string())],
         )?;
         let rows = Self::extract_rows(&response);
 
         let allowed = match rows.first() {
             Some(row) => {
+                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                 let count = row
                     .get("count")
                     .and_then(serde_json::Value::as_i64)
                     .unwrap_or(0) as u32;
+                #[allow(clippy::cast_sign_loss)]
                 let stored_window = row
                     .get("window_start")
                     .and_then(serde_json::Value::as_i64)
-                    .unwrap_or(0) as u64;
+                    .unwrap_or(0)
+                    .cast_unsigned();
 
                 if stored_window < window_start {
                     true
@@ -425,12 +430,11 @@ impl RateLimiterStore for D1KeyValueStore {
             .unwrap()
             .as_secs();
 
-        let sql = format!(
-            "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start"
-        );
+        let sql =
+            "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start";
 
         self.execute_sql(
-            &sql,
+            sql,
             &[
                 serde_json::Value::String(key.to_string()),
                 serde_json::Value::Number(serde_json::Number::from(now)),
@@ -444,12 +448,12 @@ impl RateLimiterStore for D1KeyValueStore {
         )?;
         let rows = Self::extract_rows(&response);
 
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
         let count = rows
             .first()
             .and_then(|r| r.get("count"))
             .and_then(serde_json::Value::as_i64)
-            .map(|c| c as u32)
-            .unwrap_or(1);
+            .map_or(1, |c| c as u32);
 
         Ok(Self::wrap_value(count))
     }
@@ -492,7 +496,7 @@ impl BlobStore for D1KeyValueStore {
     }
 
     fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
-        let sql = format!("SELECT value FROM {} WHERE key = ?", self.table_name);
+        let sql = "SELECT value FROM {} WHERE key = ?".to_string();
         let response = self.execute_sql(
             &sql,
             &[serde_json::Value::String(key.to_string())],
@@ -517,8 +521,7 @@ impl BlobStore for D1KeyValueStore {
                 let is_blob = wrapper
                     .get("type")
                     .and_then(serde_json::Value::as_str)
-                    .map(|t| t == "blob")
-                    .unwrap_or(false);
+                    == Some("blob");
 
                 if !is_blob {
                     return Ok(Self::wrap_value(None));
@@ -541,13 +544,13 @@ impl BlobStore for D1KeyValueStore {
     }
 
     fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
-        let sql = format!("DELETE FROM {} WHERE key = ?", self.table_name);
+        let sql = "DELETE FROM {} WHERE key = ?".to_string();
         self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         Ok(Self::wrap_value(()))
     }
 
     fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
-        let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.table_name);
+        let sql = "SELECT 1 FROM {} WHERE key = ? LIMIT 1".to_string();
         let response = self.execute_sql(
             &sql,
             &[serde_json::Value::String(key.to_string())],

@@ -1,4 +1,4 @@
-//! Credential storage module wrapping foundation_db.
+//! Credential storage module wrapping `foundation_db`.
 
 use foundation_core::valtron::Stream;
 use foundation_db::{KeyValueStore, StorageBackend, StorageProvider, StorageError};
@@ -9,18 +9,38 @@ use crate::oauth::OAuthToken;
 /// Credential store trait for persistent credential storage.
 pub trait CredentialStore: Send + Sync {
     /// Get a credential by key.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails or if deserialization fails.
     fn get<V: for<'de> Deserialize<'de> + Send + 'static>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
 
     /// Set a credential.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails or if serialization fails.
     fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
 
     /// Delete a credential.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails.
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
 
     /// Check if a credential exists.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails.
     fn exists(&self, key: &str) -> Result<bool, CredentialStoreError>;
 
     /// List credentials with optional prefix.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails.
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
 }
 
@@ -60,6 +80,10 @@ pub struct TursoCredentialStore {
 
 impl TursoCredentialStore {
     /// Create a new Turso credential store.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage backend initialization fails.
     pub fn new(url: &str) -> Result<Self, CredentialStoreError> {
         let storage = StorageProvider::new(StorageBackend::Turso {
             url: url.to_string(),
@@ -68,13 +92,17 @@ impl TursoCredentialStore {
         Ok(Self { storage })
     }
 
-    /// Create from an existing StorageProvider.
+    /// Create from an existing [`StorageProvider`].
     #[must_use]
     pub fn from_storage(storage: StorageProvider) -> Self {
         Self { storage }
     }
 
     /// Initialize the database schema.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if schema initialization fails.
     pub fn init_schema(&self) -> Result<(), CredentialStoreError> {
         // The Turso backend already creates the kv_store table
         // Additional auth-specific tables can be added via migrations
@@ -103,26 +131,27 @@ impl CredentialStore for TursoCredentialStore {
     fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
         let stream = self.storage.set(key, value).map_err(CredentialStoreError::Storage)?;
 
-        // Consume the stream and return the result
-        Ok(stream
+        stream
             .flat_map(|stream_item| match stream_item {
                 Stream::Next(result) => vec![result],
                 _ => vec![],
             })
             .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
+        Ok(())
     }
 
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
         let stream = self.storage.delete(key).map_err(CredentialStoreError::Storage)?;
 
-        Ok(stream
+        stream
             .flat_map(|stream_item| match stream_item {
                 Stream::Next(result) => vec![result],
                 _ => vec![],
             })
             .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
+        Ok(())
     }
 
     fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
@@ -141,13 +170,13 @@ impl CredentialStore for TursoCredentialStore {
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
         let stream = self.storage.list_keys(prefix).map_err(CredentialStoreError::Storage)?;
 
-        Ok(stream
+        stream
             .flat_map(|stream_item| match stream_item {
                 Stream::Next(Ok(result)) => vec![Ok(result)],
                 Stream::Next(Err(e)) => vec![Err(CredentialStoreError::Storage(e))],
                 _ => vec![],
             })
-            .collect::<Result<Vec<_>, _>>()?)
+            .collect::<Result<Vec<_>, _>>()
     }
 }
 
@@ -192,25 +221,27 @@ impl CredentialStore for MemoryCredentialStore {
     fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
         let stream = self.storage.set(key, value).map_err(CredentialStoreError::Storage)?;
 
-        Ok(stream
+        stream
             .flat_map(|stream_item| match stream_item {
                 Stream::Next(result) => vec![result],
                 _ => vec![],
             })
             .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
+        Ok(())
     }
 
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
         let stream = self.storage.delete(key).map_err(CredentialStoreError::Storage)?;
 
-        Ok(stream
+        stream
             .flat_map(|stream_item| match stream_item {
                 Stream::Next(result) => vec![result],
                 _ => vec![],
             })
             .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
+        Ok(())
     }
 
     fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
@@ -229,19 +260,23 @@ impl CredentialStore for MemoryCredentialStore {
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
         let stream = self.storage.list_keys(prefix).map_err(CredentialStoreError::Storage)?;
 
-        Ok(stream
+        stream
             .flat_map(|stream_item| match stream_item {
                 Stream::Next(Ok(result)) => vec![Ok(result)],
                 Stream::Next(Err(e)) => vec![Err(CredentialStoreError::Storage(e))],
                 _ => vec![],
             })
-            .collect::<Result<Vec<_>, _>>()?)
+            .collect::<Result<Vec<_>, _>>()
     }
 }
 
 /// Helper methods for OAuth token storage.
 pub trait OAuthTokenStore: CredentialStore {
     /// Store OAuth tokens for a provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails.
     fn store_oauth_token(
         &self,
         provider: &str,
@@ -252,18 +287,30 @@ pub trait OAuthTokenStore: CredentialStore {
     }
 
     /// Get OAuth tokens for a provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails or if deserialization fails.
     fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
         self.get(&key)
     }
 
     /// Delete OAuth tokens for a provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails.
     fn delete_oauth_token(&self, provider: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
         self.delete(&key)
     }
 
     /// Store OAuth state (for PKCE flow).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails.
     fn store_oauth_state(
         &self,
         state: &str,
@@ -279,12 +326,20 @@ pub trait OAuthTokenStore: CredentialStore {
     }
 
     /// Get and validate OAuth state.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails or if deserialization fails.
     fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
         let key = format!("oauth:state:{state}");
         self.get(&key)
     }
 
     /// Delete OAuth state.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `CredentialStoreError` if the storage operation fails.
     fn delete_oauth_state(&self, state: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:state:{state}");
         self.delete(&key)

@@ -653,6 +653,7 @@ impl BlobStore for TursoStorage {
         // Encode binary data as base64 for safe storage
         let encoded = STANDARD.encode(data);
         let key = key.to_string();
+        #[allow(clippy::cast_possible_wrap)]
         let size = data.len() as i64;
         let size_str = size.to_string();
         let conn = Arc::clone(&self.conn);

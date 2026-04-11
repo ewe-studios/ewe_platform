@@ -23,15 +23,13 @@ const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 /// SQL schema — table name is prefixed with `{project}_{stage}_`.
 fn create_table_sql(table_name: &str) -> String {
     format!(
-        "CREATE TABLE IF NOT EXISTS {} (id TEXT PRIMARY KEY, kind TEXT NOT NULL, provider TEXT NOT NULL, status TEXT NOT NULL, environment TEXT, config_hash TEXT NOT NULL, output TEXT NOT NULL, config_snapshot TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
-        table_name
+        "CREATE TABLE IF NOT EXISTS {table_name} (id TEXT PRIMARY KEY, kind TEXT NOT NULL, provider TEXT NOT NULL, status TEXT NOT NULL, environment TEXT, config_hash TEXT NOT NULL, output TEXT NOT NULL, config_snapshot TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
     )
 }
 
 fn upsert_sql(table_name: &str) -> String {
     format!(
-        "INSERT INTO {} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET kind = excluded.kind, provider = excluded.provider, status = excluded.status, environment = excluded.environment, config_hash = excluded.config_hash, output = excluded.output, config_snapshot = excluded.config_snapshot, updated_at = excluded.updated_at",
-        table_name
+        "INSERT INTO {table_name} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET kind = excluded.kind, provider = excluded.provider, status = excluded.status, environment = excluded.environment, config_hash = excluded.config_hash, output = excluded.output, config_snapshot = excluded.config_snapshot, updated_at = excluded.updated_at",
     )
 }
 
@@ -56,8 +54,8 @@ impl D1StateStore {
     #[must_use]
     pub fn new(api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str) -> Self {
         let table_name = format!("{}_{}_resources",
-            project.replace('-', "_").replace(' ', "_"),
-            stage.replace('-', "_").replace(' ', "_")
+            project.replace(['-', ' '], "_"),
+            stage.replace(['-', ' '], "_")
         );
         Self {
             api_token: ZeroizingString::from_string(api_token.to_string()),
