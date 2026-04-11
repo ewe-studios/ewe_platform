@@ -282,7 +282,7 @@ mod tests {
     #[test]
     #[cfg(not(feature = "tracing"))]
     fn test_info_with_args_no_tracing() {
-        info!("Test info with args: {} {} {}", 42, "hello", 3.14);
+        info!("Test info with args: {} {} {}", 42, "hello", 3.54f32);
     }
 
     #[test]
