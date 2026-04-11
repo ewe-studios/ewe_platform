@@ -14,7 +14,7 @@ use zeroize::Zeroizing;
 
 use crate::errors::{StorageError, StorageResult};
 use crate::storage_provider::{
-    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use foundation_core::valtron::Stream;
 
@@ -242,5 +242,48 @@ impl RateLimiterStore for JsonFileStorage {
         Err(StorageError::Generic(
             "RateLimiterStore not supported for JsonFileStorage".to_string(),
         ))
+    }
+}
+
+impl BlobStore for JsonFileStorage {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+        let mut storage = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
+        drop(storage); // Release lock before flushing
+        self.flush_to_disk()?;
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+    }
+
+    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        let result = data.get(key).cloned().map(|z| z.to_vec());
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(result)))))
+    }
+
+    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        data.remove(key);
+        drop(data); // Release lock before flushing
+        self.flush_to_disk()?;
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+    }
+
+    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(
+            data.contains_key(key)
+        )))))
     }
 }

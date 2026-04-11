@@ -16,6 +16,8 @@ use crate::backends::libsql_backend::LibsqlStorage;
 use crate::backends::memory::MemoryStorage;
 #[cfg(feature = "turso")]
 use crate::backends::turso_backend::TursoStorage;
+use crate::backends::d1_kvstore::D1KeyValueStore;
+use crate::backends::r2_blobstore::R2BlobStore;
 pub use crate::errors::StorageError;
 use crate::errors::StorageResult;
 use foundation_core::valtron::Stream;
@@ -347,6 +349,8 @@ enum StorageProviderInner {
     Libsql(Box<LibsqlStorage>),
     JsonFile(JsonFileStorage),
     Memory(MemoryStorage),
+    D1(D1KeyValueStore),
+    R2(R2BlobStore),
 }
 
 impl StorageProvider {
@@ -372,12 +376,29 @@ impl StorageProvider {
                     inner: StorageProviderInner::Libsql(Box::new(storage)),
                 })
             }
-            StorageBackend::D1 => Err(crate::errors::StorageError::Generic(
-                "D1 backend not yet implemented".to_string(),
-            )),
-            StorageBackend::R2 { .. } => Err(crate::errors::StorageError::Generic(
-                "R2 backend not yet implemented".to_string(),
-            )),
+            StorageBackend::D1 => {
+                let storage = D1KeyValueStore::from_env()?;
+                Ok(Self {
+                    inner: StorageProviderInner::D1(storage),
+                })
+            }
+            StorageBackend::R2 { bucket } => {
+                let storage = R2BlobStore::from_env()?;
+                // Override prefix with bucket if specified
+                let storage = if !bucket.is_empty() {
+                    R2BlobStore::new(
+                        &std::env::var("CLOUDFLARE_API_TOKEN").unwrap_or_default(),
+                        &std::env::var("CLOUDFLARE_ACCOUNT_ID").unwrap_or_default(),
+                        &bucket,
+                        "blobs",
+                    )
+                } else {
+                    storage
+                };
+                Ok(Self {
+                    inner: StorageProviderInner::R2(storage),
+                })
+            }
             StorageBackend::JsonFile { path } => {
                 let storage = JsonFileStorage::new(&path)?;
                 Ok(Self {
@@ -426,6 +447,10 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.get(key),
             StorageProviderInner::JsonFile(storage) => storage.get(key),
             StorageProviderInner::Memory(storage) => storage.get(key),
+            StorageProviderInner::D1(storage) => storage.get(key),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
         }
     }
 
@@ -437,6 +462,10 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.set(key, value),
             StorageProviderInner::JsonFile(storage) => storage.set(key, value),
             StorageProviderInner::Memory(storage) => storage.set(key, value),
+            StorageProviderInner::D1(storage) => storage.set(key, value),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
         }
     }
 
@@ -448,6 +477,10 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.delete(key),
             StorageProviderInner::JsonFile(storage) => storage.delete(key),
             StorageProviderInner::Memory(storage) => storage.delete(key),
+            StorageProviderInner::D1(storage) => storage.delete(key),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
         }
     }
 
@@ -459,6 +492,10 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.exists(key),
             StorageProviderInner::JsonFile(storage) => storage.exists(key),
             StorageProviderInner::Memory(storage) => storage.exists(key),
+            StorageProviderInner::D1(storage) => storage.exists(key),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
         }
     }
 
@@ -470,6 +507,10 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.list_keys(prefix),
             StorageProviderInner::JsonFile(storage) => storage.list_keys(prefix),
             StorageProviderInner::Memory(storage) => storage.list_keys(prefix),
+            StorageProviderInner::D1(storage) => storage.list_keys(prefix),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
+            )),
         }
     }
 }
@@ -487,6 +528,10 @@ impl QueryStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.query(sql, params),
             StorageProviderInner::JsonFile(storage) => storage.query(sql, params),
             StorageProviderInner::Memory(storage) => storage.query(sql, params),
+            StorageProviderInner::D1(storage) => storage.query(sql, params),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
         }
     }
 
@@ -502,6 +547,10 @@ impl QueryStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.execute(sql, params),
             StorageProviderInner::JsonFile(storage) => storage.execute(sql, params),
             StorageProviderInner::Memory(storage) => storage.execute(sql, params),
+            StorageProviderInner::D1(storage) => storage.execute(sql, params),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
         }
     }
 
@@ -513,6 +562,10 @@ impl QueryStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.execute_batch(sql),
             StorageProviderInner::JsonFile(storage) => storage.execute_batch(sql),
             StorageProviderInner::Memory(storage) => storage.execute_batch(sql),
+            StorageProviderInner::D1(storage) => storage.execute_batch(sql),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support QueryStore - object storage is not SQL".to_string(),
+            )),
         }
     }
 }
@@ -539,6 +592,12 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Memory(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
+            StorageProviderInner::D1(storage) => {
+                storage.check_rate_limit(key, max_count, window_seconds)
+            }
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
+            )),
         }
     }
 
@@ -550,6 +609,10 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.record_rate_limit(key),
             StorageProviderInner::JsonFile(storage) => storage.record_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.record_rate_limit(key),
+            StorageProviderInner::D1(storage) => storage.record_rate_limit(key),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
+            )),
         }
     }
 
@@ -561,6 +624,64 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::JsonFile(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.reset_rate_limit(key),
+            StorageProviderInner::D1(storage) => storage.reset_rate_limit(key),
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
+            )),
+        }
+    }
+}
+
+impl BlobStore for StorageProvider {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.put_blob(key, data),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.put_blob(key, data),
+            StorageProviderInner::JsonFile(storage) => storage.put_blob(key, data),
+            StorageProviderInner::Memory(storage) => storage.put_blob(key, data),
+            StorageProviderInner::D1(storage) => storage.put_blob(key, data),
+            StorageProviderInner::R2(storage) => storage.put_blob(key, data),
+        }
+    }
+
+    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.get_blob(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.get_blob(key),
+            StorageProviderInner::JsonFile(storage) => storage.get_blob(key),
+            StorageProviderInner::Memory(storage) => storage.get_blob(key),
+            StorageProviderInner::D1(storage) => storage.get_blob(key),
+            StorageProviderInner::R2(storage) => storage.get_blob(key),
+        }
+    }
+
+    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.delete_blob(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.delete_blob(key),
+            StorageProviderInner::JsonFile(storage) => storage.delete_blob(key),
+            StorageProviderInner::Memory(storage) => storage.delete_blob(key),
+            StorageProviderInner::D1(storage) => storage.delete_blob(key),
+            StorageProviderInner::R2(storage) => storage.delete_blob(key),
+        }
+    }
+
+    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.blob_exists(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.blob_exists(key),
+            StorageProviderInner::JsonFile(storage) => storage.blob_exists(key),
+            StorageProviderInner::Memory(storage) => storage.blob_exists(key),
+            StorageProviderInner::D1(storage) => storage.blob_exists(key),
+            StorageProviderInner::R2(storage) => storage.blob_exists(key),
         }
     }
 }
