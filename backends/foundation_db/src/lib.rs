@@ -9,6 +9,7 @@
 //! - JSON File - Simple JSON-on-disk key-value store
 
 mod backends;
+mod cleanup;
 mod crypto;
 mod errors;
 mod rows_stream;
@@ -17,6 +18,7 @@ pub mod state;
 mod storage_provider;
 
 pub use backends::*;
+pub use cleanup::*;
 pub use crypto::*;
 pub use errors::*;
 pub use rows_stream::*;
