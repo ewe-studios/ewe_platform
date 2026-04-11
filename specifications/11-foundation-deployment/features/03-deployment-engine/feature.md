@@ -4,10 +4,40 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/03-deployment-engine"
 this_file: "specifications/11-foundation-deployment/features/03-deployment-engine/feature.md"
 
-status: complete
+status: rejected
 priority: high
 created: 2026-03-26
 completed: 2026-04-06
+updated: 2026-04-11
+
+---
+
+## Status: REJECTED (as user-facing API)
+
+**This feature is rejected as the primary USER-FACING deployment API.**
+
+**Reason:** The state machine / deployment engine approach added unnecessary complexity for users. The new design (Feature 35: Trait-Based Deployments) provides a simpler user-facing API where users implement `Deployable` on their own structs.
+
+**Important:** The engine implementation (`backends/foundation_deployment/src/engine/`) **remains as an internal utility** that provider implementations may use internally. It is not removed - it is simply not exposed as the primary user API.
+
+### User-Facing API (Recommended)
+
+Users should implement the `Deployable` trait from Feature 35:
+
+```rust
+impl Deployable for MyInfrastructure {
+    type Output = WorkerDeployment;
+    type Error = DeploymentError;
+    
+    async fn deploy(&self) -> Result<Self::Output, Self::Error> {
+        // Call provider clients directly
+    }
+}
+```
+
+### Internal Implementation (Valid)
+
+Provider implementations may internally use the deployment engine (StateMachine, DeploymentPlanner, DeploymentExecutor) as an implementation detail. This is transparent to users.
 
 depends_on: ["01-foundation-deployment-core", "02-state-stores"]
 

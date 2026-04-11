@@ -1,14 +1,15 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/11-foundation-deployment"
-feature_directory: "specifications/11-foundation-deployment/features/08-mise-integration"
-this_file: "specifications/11-foundation-deployment/features/08-mise-integration/feature.md"
+feature_directory: "specifications/11-foundation-deployment/features/12-mise-integration"
+this_file: "specifications/11-foundation-deployment/features/12-mise-integration/feature.md"
 
 status: pending
 priority: high
 created: 2026-03-26
+updated: 2026-04-11
 
-depends_on: ["07-templates"]
+depends_on: ["11-templates", "34-plan-executor"]
 
 tasks:
   completed: 0
@@ -31,25 +32,34 @@ tasks:
 
 ## Overview
 
-Define provider-agnostic mise.toml task definitions that work across all deployment targets. Task names are stable (`deploy`, `logs`, `status`) regardless of provider - the underlying commands detect the provider from the project's config file and dispatch accordingly.
+Define provider-agnostic mise.toml task definitions that work with **deployment plans**. Task names are stable (`deploy`, `logs`, `status`) regardless of provider - the underlying `ewe_platform` CLI reads the deployment plan and executes accordingly.
+
+## Updated for Deployment Plans
+
+**Key change:** mise tasks now support deployment plan execution via `--plan` flag:
+
+```toml
+[tasks.deploy]
+description = "Deploy to detected provider"
+depends = ["build"]
+run = "ewe_platform deploy --plan .deployment-plan.yaml"
+```
 
 ## Dependencies
 
 Depends on:
-- `07-templates` - Templates include mise.toml files
+- `11-templates` - Templates include mise.toml files
+- `34-plan-executor` - Plan execution engine
 
 Required by:
-- `09-examples-documentation` - Examples use mise tasks
+- `13-examples-documentation` - Examples use mise tasks
 
 ## Requirements
 
 ### Provider-Agnostic Task Model
 
-The key insight: task names should be **the same** regardless of provider. The `ewe_platform` CLI (or direct provider detection) handles dispatching to the right tool.
-
 ```toml
-# mise.toml - Provider-agnostic tasks
-# Works with wrangler.toml (Cloudflare), service.yaml (GCP), or template.yaml (AWS)
+# mise.toml - Provider-agnostic tasks with deployment plan support
 
 [tasks.build]
 description = "Build the project"
@@ -61,30 +71,35 @@ depends = ["build"]
 run = "ewe_platform dev"
 
 [tasks.deploy]
-description = "Deploy to detected provider"
+description = "Deploy using .deployment-plan.yaml"
 depends = ["build"]
-run = "ewe_platform deploy"
+run = "ewe_platform deploy --plan .deployment-plan.yaml"
 
 [tasks.deploy_staging]
 description = "Deploy to staging environment"
 depends = ["build"]
-run = "ewe_platform deploy --env staging"
+run = "ewe_platform deploy --plan .deployment-plan.yaml --stage staging"
 
 [tasks.deploy_dry]
-description = "Dry-run deployment (validate + build only)"
-run = "ewe_platform deploy --dry-run"
+description = "Dry-run deployment"
+run = "ewe_platform deploy --plan .deployment-plan.yaml --dry-run"
+
+[tasks.deploy_force]
+description = "Force deploy (skip change detection)"
+depends = ["build"]
+run = "ewe_platform deploy --plan .deployment-plan.yaml --force"
 
 [tasks.logs]
 description = "Tail logs from deployed service"
-run = "ewe_platform logs"
+run = "ewe_platform logs --plan .deployment-plan.yaml"
 
 [tasks.status]
 description = "Show deployment status"
-run = "ewe_platform status"
+run = "ewe_platform status --plan .deployment-plan.yaml"
 
 [tasks.destroy]
 description = "Tear down deployed resources"
-run = "ewe_platform destroy"
+run = "ewe_platform destroy --plan .deployment-plan.yaml"
 
 [tasks.check]
 description = "Run all code checks"
@@ -109,11 +124,35 @@ run = "cargo test"
 [tasks.clean]
 description = "Clean build artifacts"
 run = "cargo clean"
+
+[tasks.init_plan]
+description = "Initialize a new deployment plan"
+run = "ewe_platform init-plan --provider {{provider | default('cloudflare')}}"
 ```
 
-### Provider-Specific Tool Sections
+### Infrastructure Plan Tasks
 
-Each provider's mise.toml includes only the tools it needs:
+```toml
+# Additional tasks for infrastructure management
+
+[tasks.infra_up]
+description = "Create/update infrastructure from plan"
+run = "ewe_platform infra apply --plan .infrastructure-plan.yaml"
+
+[tasks.infra_destroy]
+description = "Destroy infrastructure from plan"
+run = "ewe_platform infra destroy --plan .infrastructure-plan.yaml"
+
+[tasks.infra_status]
+description = "Show infrastructure status"
+run = "ewe_platform infra status --plan .infrastructure-plan.yaml"
+
+[tasks.infra_drift]
+description = "Detect infrastructure drift"
+run = "ewe_platform infra drift --plan .infrastructure-plan.yaml"
+```
+
+### Tool Definitions by Provider
 
 **Cloudflare:**
 ```toml
@@ -121,15 +160,13 @@ Each provider's mise.toml includes only the tools it needs:
 rust = "1.87"
 nodejs = "20"
 wrangler = "latest"
-# wasm-pack = "latest"  # Uncomment for WASM templates
 ```
 
 **GCP Cloud Run:**
 ```toml
 [tools]
 rust = "1.87"
-# gcloud is typically installed system-wide or via mise plugin
-# docker is system-wide
+# gcloud typically system-wide
 ```
 
 **AWS Lambda:**
@@ -137,155 +174,79 @@ rust = "1.87"
 [tools]
 rust = "1.87"
 cargo-lambda = "latest"
-# aws-sam-cli installed via pip or brew
 ```
 
 ### ewe_platform CLI Commands
 
-The `ewe_platform` binary dispatches to the correct provider based on config file detection:
+```bash
+# Deploy using deployment plan
+ewe_platform deploy --plan .deployment-plan.yaml
+ewe_platform deploy --plan .deployment-plan.yaml --stage staging
+ewe_platform deploy --plan .deployment-plan.yaml --dry-run
 
-```
-ewe_platform deploy             # Auto-detect provider, deploy to default env
-ewe_platform deploy --env staging   # Deploy to staging
-ewe_platform deploy --target cf     # Force Cloudflare even if multiple configs exist
-ewe_platform deploy --dry-run       # Validate + build without deploying
-ewe_platform build                  # Build only
-ewe_platform dev                    # Start local dev server
-ewe_platform logs                   # Tail logs
-ewe_platform status                 # Show deployment state
-ewe_platform destroy                # Tear down resources
-```
+# Infrastructure management
+ewe_platform infra apply --plan .infrastructure-plan.yaml
+ewe_platform infra destroy --plan .infrastructure-plan.yaml
+ewe_platform infra status --plan .infrastructure-plan.yaml
 
-### Provider-Specific Overrides
+# Initialize new deployment plan
+ewe_platform init-plan --provider gcp --project my-app
 
-Templates can include provider-specific tasks alongside the generic ones:
-
-```toml
-# Cloudflare-specific extras
-[tasks.secret_put]
-description = "Add a secret (usage: mise run secret_put KEY)"
-run = "wrangler secret put"
-
-[tasks.secret_list]
-description = "List secrets"
-run = "wrangler secret list"
-
-# GCP-specific extras
-[tasks.job_execute]
-description = "Execute a Cloud Run Job"
-run = "gcloud run jobs execute $(yq .metadata.name service.yaml)"
-
-# AWS-specific extras
-[tasks.invoke]
-description = "Invoke Lambda function locally"
-run = "sam local invoke"
-
-[tasks.api_local]
-description = "Start local API Gateway"
-run = "sam local start-api"
-```
-
-### CI/CD Workflow Template
-
-Provider-agnostic GitHub Actions workflow:
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install mise
-        uses: jdx/mise-action@v2
-
-      - name: Install tools
-        run: mise install
-
-      - name: Check
-        run: mise run check
-
-      - name: Build
-        run: mise run build
-
-      - name: Deploy
-        if: github.ref == 'refs/heads/main'
-        run: mise run deploy
-        env:
-          # Cloudflare
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # GCP
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-          # AWS
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+# Legacy mode (provider config file detection)
+ewe_platform deploy  # Auto-detects from wrangler.toml, service.yaml, etc.
 ```
 
 ## Tasks
 
-1. **Define standard task names**
-   - [ ] Document the canonical task names (build, dev, deploy, logs, status, destroy)
-   - [ ] Document environment/flag conventions (--env, --target, --dry-run)
-   - [ ] Ensure all templates use consistent naming
+1. **Define mise.toml templates**
+   - [ ] Create provider-agnostic task definitions
+   - [ ] Add infrastructure plan tasks
+   - [ ] Include tool definitions per provider
+   - [ ] Write tests
 
-2. **Implement ewe_platform CLI commands**
-   - [ ] Add `deploy` subcommand to ewe_platform binary
-   - [ ] Add `build`, `dev`, `logs`, `status`, `destroy` subcommands
-   - [ ] Implement `--target` flag for explicit provider selection
-   - [ ] Implement `--env` flag for environment selection
-   - [ ] Implement `--dry-run` flag
+2. **Update ewe_platform CLI**
+   - [ ] Add `--plan` flag to deploy command
+   - [ ] Add `--plan` flag to logs/status/destroy
+   - [ ] Add `infra` subcommand
+   - [ ] Add `init-plan` command
+   - [ ] Write tests
 
-3. **Create mise.toml for each template**
-   - [ ] Cloudflare Rust worker mise.toml
-   - [ ] Cloudflare Rust WASM mise.toml
-   - [ ] GCP Cloud Run Rust mise.toml
-   - [ ] AWS Lambda Rust mise.toml
-   - [ ] All share the same task names, differ only in [tools]
+3. **Backward compatibility**
+   - [ ] Support legacy config file detection
+   - [ ] Deprecation warnings for old format
+   - [ ] Migration guide in CLI help
+   - [ ] Write tests
 
-4. **Create CI/CD workflow templates**
-   - [ ] Provider-agnostic deploy.yml
-   - [ ] Document which secrets to configure per provider
+4. **Environment variable expansion**
+   - [ ] Support `${env:VAR}` in mise.toml
+   - [ ] Document variable usage
+   - [ ] Write tests
 
-5. **Write tests**
-   - [ ] Test task execution for each template
-   - [ ] Test `ewe_platform deploy` auto-detection
-   - [ ] Test `--target` override
-   - [ ] Test `--dry-run` mode
+5. **Documentation**
+   - [ ] Document all mise tasks
+   - [ ] Document CLI commands
+   - [ ] Provide migration examples
 
 ## Success Criteria
 
 - [ ] All 5 tasks completed
-- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
-- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
-- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
-- [ ] `mise run deploy` works identically across all templates
-- [ ] `ewe_platform deploy` auto-detects provider correctly
-- [ ] CI/CD workflow deploys to the correct provider
-- [ ] Provider-specific tasks are available alongside generic ones
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+- [ ] mise tasks work with deployment plans
+- [ ] Legacy config file detection still works
+- [ ] CLI help documents both modes
+- [ ] Examples use new deployment plan format
 
 ## Verification
 
 ```bash
-# Test each template's mise tasks
-for dir in /tmp/test-cloudflare /tmp/test-gcp /tmp/test-aws; do
-  cd $dir
-  mise run check
-  mise run build
-  mise run deploy --dry-run
-done
+cd backends/foundation_deployment
+cargo check
+cargo clippy -- -D warnings
+cargo test mise -- --nocapture
 ```
 
 ---
 
 _Created: 2026-03-26_
+_Updated: 2026-04-11 - Added deployment plan support_
+
