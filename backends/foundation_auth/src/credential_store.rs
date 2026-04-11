@@ -25,21 +25,33 @@ pub trait CredentialStore: Send + Sync {
 }
 
 /// Credential store error type.
-#[derive(Debug, thiserror::Error)]
+#[derive(derive_more::From, Debug)]
 pub enum CredentialStoreError {
     /// Storage backend error.
-    #[error("Storage error: {0}")]
-    Storage(#[from] StorageError),
+    Storage(StorageError),
     /// Serialization error.
-    #[error("Serialization error: {0}")]
+    #[from(ignore)]
     Serialization(String),
     /// Credential not found.
-    #[error("Credential not found: {0}")]
+    #[from(ignore)]
     NotFound(String),
     /// Generic error.
-    #[error("Credential store error: {0}")]
+    #[from(ignore)]
     Generic(String),
 }
+
+impl core::fmt::Display for CredentialStoreError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            CredentialStoreError::Storage(e) => write!(f, "Storage error: {e}"),
+            CredentialStoreError::Serialization(s) => write!(f, "Serialization error: {s}"),
+            CredentialStoreError::NotFound(s) => write!(f, "Credential not found: {s}"),
+            CredentialStoreError::Generic(s) => write!(f, "Credential store error: {s}"),
+        }
+    }
+}
+
+impl std::error::Error for CredentialStoreError {}
 
 /// Turso-backed credential store.
 pub struct TursoCredentialStore {

@@ -1,4 +1,4 @@
-//! Helper functions for llama.cpp integration.
+//! Helper functions for `llama.cpp` integration.
 //!
 //! This module provides utility functions for building sampler chains,
 //! converting parameters, and other common operations.
@@ -7,10 +7,10 @@ use infrastructure_llama_cpp::sampling::LlamaSampler;
 
 use crate::types::ModelParams;
 
-/// Build a sampler chain from ModelParams configuration.
+/// Build a sampler chain from [`ModelParams`] configuration.
 ///
-/// This function converts the high-level ModelParams into a concrete
-/// LlamaSampler chain that can be used for token sampling.
+/// This function converts the high-level [`ModelParams`] into a concrete
+/// `LlamaSampler` chain that can be used for token sampling.
 ///
 /// # Parameters
 ///
@@ -18,7 +18,7 @@ use crate::types::ModelParams;
 ///
 /// # Returns
 ///
-/// A configured LlamaSampler chain ready for use in generation.
+/// A configured `LlamaSampler` chain ready for use in generation.
 ///
 /// # Sampler Chain Order
 ///
@@ -37,9 +37,10 @@ pub fn build_sampler_chain(params: &ModelParams) -> LlamaSampler {
         samplers.push(LlamaSampler::temp(params.temperature));
     }
 
-    // Top-K sampling (convert f32 to i32 internally)
+    // Top-K sampling (convert f32 to i32)
+    #[allow(clippy::cast_possible_truncation)]
     if params.top_k > 0.0 {
-        let k = params.top_k as i32;
+        let k = params.top_k.round() as i32;
         samplers.push(LlamaSampler::top_k(k));
     }
 
@@ -49,8 +50,8 @@ pub fn build_sampler_chain(params: &ModelParams) -> LlamaSampler {
         samplers.push(LlamaSampler::top_p(params.top_p, 1));
     }
 
-    // Repetition penalty
-    if params.repeat_penalty != 1.0 {
+    // Repetition penalty (use epsilon for float comparison)
+    if (params.repeat_penalty - 1.0).abs() > f32::EPSILON {
         // penalty_last_n of 64 means we look at last 64 tokens for repetition
         samplers.push(LlamaSampler::penalties(
             64,                     // penalty_last_n
@@ -63,7 +64,7 @@ pub fn build_sampler_chain(params: &ModelParams) -> LlamaSampler {
     // Final sampling method - use dist for stochastic or greedy for deterministic
     let final_sampler = if params.temperature > 0.0 {
         // Use random sampling with seed if provided
-        let seed = params.seed.unwrap_or(0xFFFFFFFF);
+        let seed = params.seed.unwrap_or(0xFFFF_FFFF);
         LlamaSampler::dist(seed)
     } else {
         // Greedy sampling (always picks highest probability)

@@ -3,16 +3,6 @@
 //! This crate provides authentication flows, credential management, and token handling
 //! for use with AI inference providers and other services requiring authentication.
 
-#![allow(
-    clippy::missing_errors_doc,
-    clippy::missing_panics_doc,
-    clippy::must_use_candidate,
-    clippy::doc_markdown,
-    clippy::cast_possible_wrap,
-    clippy::map_unwrap_or,
-    clippy::redundant_closure_for_method_calls
-)]
-
 pub mod credential_store;
 pub mod jwt;
 pub mod oauth;

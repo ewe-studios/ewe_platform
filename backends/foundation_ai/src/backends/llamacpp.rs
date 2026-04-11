@@ -1,6 +1,6 @@
-//! llama.cpp ModelBackend implementations.
+//! `llama.cpp` [`ModelBackend`] implementations.
 //!
-//! This module provides the llama.cpp integration for foundation_ai,
+//! This module provides the `llama.cpp` integration for `foundation_ai`,
 //! enabling local execution of GGUF-format models.
 //!
 //! # Architecture
@@ -11,54 +11,28 @@
 //! - [`LlamaCppStream`] - `StreamIterator` implementation for token-by-token streaming
 
 use infrastructure_llama_cpp::context::params::LlamaContextParams;
+use infrastructure_llama_cpp::context::LlamaContext;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
 use infrastructure_llama_cpp::model::params::LlamaModelParams;
 use infrastructure_llama_cpp::model::{AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special};
 use infrastructure_llama_cpp::sampling::LlamaSampler;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
+use infrastructure_llama_cpp::token::LlamaToken;
 
 use std::cell::RefCell;
 use std::num::NonZeroU32;
 use std::rc::Rc;
+use std::time::SystemTime;
 
 use foundation_core::valtron::{Stream, StreamIterator};
 
 use crate::backends::llamacpp_helpers::build_sampler_chain;
 use crate::errors::{GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    KVCacheType, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput,
+    KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelSpec, ModelProviders, ModelState, SplitMode, StopReason,
     TextContent, UsageCosting, UsageReport, UserModelContent,
 };
-
-/// Helper to convert MimeType to string representation
-fn mime_type_to_string(mime: &MimeType) -> String {
-    match mime {
-        MimeType::TextPlain => "text/plain",
-        MimeType::TextHtml => "text/html",
-        MimeType::TextMarkdown => "text/markdown",
-        MimeType::TextXml => "text/xml",
-        MimeType::TextCss => "text/css",
-        MimeType::ApplicationJson => "application/json",
-        MimeType::ApplicationXml => "application/xml",
-        MimeType::ApplicationOctetStream => "application/octet-stream",
-        MimeType::ApplicationPdf => "application/pdf",
-        MimeType::ImagePng => "image/png",
-        MimeType::ImageJpeg => "image/jpeg",
-        MimeType::ImageGif => "image/gif",
-        MimeType::ImageWebp => "image/webp",
-        MimeType::ImageSvgXml => "image/svg+xml",
-        MimeType::ImageBmp => "image/bmp",
-        MimeType::AudioMp3 => "audio/mp3",
-        MimeType::AudioWav => "audio/wav",
-        MimeType::AudioOgg => "audio/ogg",
-        MimeType::AudioMpeg => "audio/mpeg",
-        MimeType::VideoMp4 => "video/mp4",
-        MimeType::VideoWebm => "video/webm",
-        MimeType::VideoOgg => "video/ogg",
-        MimeType::Custom(s) => s.as_str(),
-    }.to_string()
-}
 
 // ==================================
 // LlamaBackendConfig
@@ -93,7 +67,7 @@ pub struct LlamaBackendConfig {
     pub use_mmap: bool,
     /// Enable memory locking to prevent swapping.
     pub use_mlock: bool,
-    /// KV cache type (F16, Q8_0, etc.).
+    /// [`KVCacheType`] (`F16`, `Q8_0`, etc.).
     pub kv_cache_type: KVCacheType,
     /// Split mode for multi-GPU.
     pub split_mode: SplitMode,
@@ -121,7 +95,7 @@ impl Default for LlamaBackendConfig {
 #[must_use]
 fn num_cpus() -> usize {
     std::thread::available_parallelism()
-        .map(|n| n.get())
+        .map(std::num::NonZeroUsize::get)
         .unwrap_or(4)
 }
 
@@ -149,6 +123,7 @@ impl LlamaBackendConfig {
 
     /// Convert this config into llama.cpp context parameters.
     #[must_use]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
     pub fn to_context_params(&self) -> LlamaContextParams {
         let mut params = LlamaContextParams::default();
         params = params.with_n_ctx(NonZeroU32::new(self.context_length as u32));
@@ -254,7 +229,7 @@ impl Default for LlamaBackendConfigBuilder {
 // LlamaModels
 // ==================================
 
-/// Internal state for LlamaModels with interior mutability.
+/// Internal state for `LlamaModels` with interior mutability.
 struct LlamaModelsInner {
     model: Rc<LlamaModel>,
     context: LlamaContextParams,
@@ -264,9 +239,9 @@ struct LlamaModelsInner {
     last_usage: Option<UsageReport>,
 }
 
-/// llama.cpp model wrapper implementing the Model trait.
+/// `llama.cpp` model wrapper implementing the `Model` trait.
 ///
-/// Uses interior mutability (RefCell) so that &self methods can mutate
+/// Uses interior mutability (`RefCell`) so that `&self` methods can mutate
 /// the context and sampler during generation.
 pub struct LlamaModels {
     inner: Rc<RefCell<LlamaModelsInner>>,
@@ -281,7 +256,7 @@ impl Clone for LlamaModels {
 }
 
 impl LlamaModels {
-    /// Create a new LlamaModels instance.
+    /// Create a new `LlamaModels` instance.
     fn new(
         model: LlamaModel,
         context: LlamaContextParams,
@@ -335,9 +310,7 @@ impl Model for LlamaModels {
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>> {
         // Get backend
-        let backend = LlamaBackend::init().map_err(|e| {
-            GenerationError::LlamaCpp(e)
-        })?;
+        let backend = LlamaBackend::init().map_err(GenerationError::LlamaCpp)?;
 
         // Get model, spec, and context params
         let (model, spec, ctx_params) = {
@@ -346,263 +319,26 @@ impl Model for LlamaModels {
         };
 
         // Create context
-        let mut ctx = model.new_context(&backend, ctx_params).map_err(|e| {
-            GenerationError::LlamaContextLoad(e)
-        })?;
+        let mut ctx = model.new_context(&backend, ctx_params).map_err(GenerationError::LlamaContextLoad)?;
 
         // Build sampler chain from params
         let params = specs.unwrap_or_default();
         let mut sampler = build_sampler_chain(&params);
 
         // Check if this is an embedding request
-        let is_embedding = interaction.messages.iter().any(|msg| {
-            if let Messages::Assistant { content, .. } = msg {
-                matches!(content, ModelOutput::Embedding { .. })
-            } else {
-                false
-            }
-        });
+        let is_embedding = is_embedding_request(&interaction.messages);
 
         // Apply chat template if messages are present
-        let prompt = if !interaction.messages.is_empty() {
-            // Use custom template if provided, otherwise use model's default template
-            let template = if let Some(custom_template) = &interaction.chat_template {
-                LlamaChatTemplate::new(custom_template).map_err(|e| {
-                    GenerationError::Generic(format!("Chat template creation error: {e}"))
-                })?
-            } else {
-                model.chat_template(None).map_err(|e| {
-                    GenerationError::ChatTemplate(e)
-                })?
-            };
-
-            // Convert our Messages to LlamaChatMessage
-            let mut chat_messages = Vec::new();
-            for msg in &interaction.messages {
-                match msg {
-                    Messages::User { content, .. } => {
-                        let content_str = match content {
-                            UserModelContent::Text(text_content) => {
-                                text_content.content.clone()
-                            }
-                            UserModelContent::Image(image_content) => {
-                                // For images, create a descriptive text placeholder
-                                // In a more advanced implementation, we could pass base64 to llama.cpp
-                                format!("[Image: {}]", mime_type_to_string(&image_content.mime_type))
-                            }
-                        };
-                        chat_messages.push(LlamaChatMessage::new(
-                            "user".to_string(),
-                            content_str,
-                        ).map_err(|e| {
-                            GenerationError::Generic(format!("Chat message error: {e}"))
-                        })?);
-                    }
-                    Messages::Assistant { content, .. } => {
-                        let content_str = match content {
-                            ModelOutput::Text(text_content) => {
-                                text_content.content.clone()
-                            }
-                            ModelOutput::ThinkingContent { thinking, .. } => {
-                                // Include thinking content as part of assistant message
-                                thinking.clone()
-                            }
-                            ModelOutput::ToolCall { name, arguments, .. } => {
-                                // Format tool call as text
-                                let args_str = arguments
-                                    .as_ref()
-                                    .map(|args| format!("{args:?}"))
-                                    .unwrap_or_default();
-                                format!("[Tool call: {}({})]", name, args_str)
-                            }
-                            ModelOutput::Embedding { .. } => {
-                                // Embeddings shouldn't be in chat history, skip
-                                continue;
-                            }
-                            ModelOutput::Image(image_content) => {
-                                format!("[Image: {}]", mime_type_to_string(&image_content.mime_type))
-                            }
-                        };
-                        chat_messages.push(LlamaChatMessage::new(
-                            "assistant".to_string(),
-                            content_str,
-                        ).map_err(|e| {
-                            GenerationError::Generic(format!("Chat message error: {e}"))
-                        })?);
-                    }
-                    Messages::ToolResult { content, name, id, .. } => {
-                        let content_str = match content {
-                            UserModelContent::Text(text_content) => {
-                                format!("[Tool result: {}]\n{}", name, text_content.content)
-                            }
-                            UserModelContent::Image(_) => {
-                                format!("[Tool result: {}]\n[Image output]", name)
-                            }
-                        };
-                        // Tool results are typically passed as system messages
-                        // or as part of the conversation depending on the template
-                        chat_messages.push(LlamaChatMessage::new(
-                            "tool".to_string(),
-                            format!("Tool call id: {}\n{}", id, content_str),
-                        ).map_err(|e| {
-                            GenerationError::Generic(format!("Chat message error: {e}"))
-                        })?);
-                    }
-                }
-            }
-
-            // Apply template
-            model.apply_chat_template(&template, &chat_messages, true).map_err(|e| {
-                GenerationError::ApplyChatTemplate(e)
-            })?
-        } else {
+        let prompt = if interaction.messages.is_empty() {
             interaction.system_prompt.unwrap_or_default()
+        } else {
+            apply_chat_template(&model, &interaction)?
         };
 
         if is_embedding {
-            // Generate embeddings
-            let tokens = model.str_to_token(&prompt, AddBos::Always).map_err(|e| {
-                GenerationError::Tokenization(e)
-            })?;
-
-            let mut batch = LlamaBatch::new(tokens.len(), 1);
-
-            // Add tokens to batch
-            for (i, &token) in tokens.iter().enumerate() {
-                batch.add(token, i as i32, &[0], i == tokens.len() - 1).map_err(|e| {
-                    GenerationError::Generic(format!("Batch add error: {e}"))
-                })?;
-            }
-
-            // Encode
-            ctx.encode(&mut batch).map_err(|e| {
-                GenerationError::Encode(e)
-            })?;
-
-            // Get embeddings
-            let embeddings = ctx.embeddings_seq_ith(0).map_err(|e| {
-                GenerationError::Generic(format!("Embedding error: {e}"))
-            })?;
-
-            let dimensions = embeddings.len();
-            let values = embeddings.to_vec();
-
-            let usage = UsageReport {
-                input: tokens.len() as f64,
-                output: 0.0,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: tokens.len() as f64,
-                cost: UsageCosting {
-                    currency: "USD".to_string(),
-                    input: 0.0,
-                    output: 0.0,
-                    cache_read: 0.0,
-                    cache_write: 0.0,
-                    total_tokens: 0.0,
-                },
-            };
-
-            self.inner.borrow_mut().last_usage = Some(usage.clone());
-
-            Ok(vec![Messages::Assistant {
-                model: spec.id.clone(),
-                timestamp: std::time::SystemTime::now(),
-                usage,
-                content: ModelOutput::Embedding { dimensions, values },
-                stop_reason: StopReason::Stop,
-                provider: ModelProviders::LLAMACPP,
-                error_detail: None,
-                signature: None,
-            }])
+            generate_embeddings(&model, &mut ctx, &prompt, &spec)
         } else {
-            // Text generation
-            let tokens = model.str_to_token(&prompt, AddBos::Always).map_err(|e| {
-                GenerationError::Tokenization(e)
-            })?;
-
-            let mut batch = LlamaBatch::new(tokens.len(), 1);
-
-            // Add prompt tokens to batch
-            for (i, &token) in tokens.iter().enumerate() {
-                batch.add(token, i as i32, &[0], i == tokens.len() - 1).map_err(|e| {
-                    GenerationError::Generic(format!("Batch add error: {e}"))
-                })?;
-            }
-
-            // Decode prompt
-            ctx.decode(&mut batch).map_err(|e| {
-                GenerationError::Decode(e)
-            })?;
-
-            let mut output_tokens = Vec::new();
-            let mut pos = tokens.len() as i32;
-            let max_tokens = params.max_tokens;
-
-            // Get EOS token
-            let eos_token = model.token_eos();
-
-            // Generation loop
-            for _ in 0..max_tokens {
-                // Sample next token
-                let new_token = sampler.sample(&ctx, -1);
-
-                // Check for EOS
-                if new_token == eos_token {
-                    break;
-                }
-
-                output_tokens.push(new_token);
-                sampler.accept(new_token);
-
-                // Prepare next batch
-                batch.clear();
-                batch.add(new_token, pos, &[0], true).map_err(|e| {
-                    GenerationError::Generic(format!("Batch add error: {e}"))
-                })?;
-                pos += 1;
-
-                // Decode
-                ctx.decode(&mut batch).map_err(|e| {
-                    GenerationError::Decode(e)
-                })?;
-            }
-
-            // Convert tokens to string
-            let output_text = model.tokens_to_str(&output_tokens, Special::Tokenize)
-                .unwrap_or_else(|_| String::from("[invalid tokens]"));
-
-            let usage = UsageReport {
-                input: tokens.len() as f64,
-                output: output_tokens.len() as f64,
-                cache_read: 0.0,
-                cache_write: 0.0,
-                total_tokens: (tokens.len() + output_tokens.len()) as f64,
-                cost: UsageCosting {
-                    currency: "USD".to_string(),
-                    input: 0.0,
-                    output: 0.0,
-                    cache_read: 0.0,
-                    cache_write: 0.0,
-                    total_tokens: 0.0,
-                },
-            };
-
-            self.inner.borrow_mut().last_usage = Some(usage.clone());
-
-            Ok(vec![Messages::Assistant {
-                model: spec.id.clone(),
-                timestamp: std::time::SystemTime::now(),
-                usage,
-                content: ModelOutput::Text(TextContent {
-                    content: output_text,
-                    signature: None,
-                }),
-                stop_reason: StopReason::Stop,
-                provider: ModelProviders::LLAMACPP,
-                error_detail: None,
-                signature: None,
-            }])
+            generate_text(&model, &mut ctx, &mut sampler, &prompt, &params, &spec)
         }
     }
 
@@ -648,6 +384,254 @@ impl Iterator for LlamaCppStream {
 
 // Note: StreamIterator is automatically implemented via blanket impl
 // for any Iterator<Item = Stream<D, P>>
+
+// ==================================
+// Helper Functions for generate()
+// ==================================
+
+/// Check if the request is for embeddings by looking for Embedding content.
+fn is_embedding_request(messages: &[Messages]) -> bool {
+    messages.iter().any(|msg| {
+        if let Messages::Assistant { content, .. } = msg {
+            matches!(content, ModelOutput::Embedding { .. })
+        } else {
+            false
+        }
+    })
+}
+
+/// Apply a chat template to the interaction messages.
+///
+/// Uses a custom template if provided, otherwise falls back to the model's default.
+fn apply_chat_template(
+    model: &LlamaModel,
+    interaction: &ModelInteraction,
+) -> GenerationResult<String> {
+    // Convert Messages to LlamaChatMessage format
+    let chat_messages: Vec<LlamaChatMessage> = interaction
+        .messages
+        .iter()
+        .filter_map(|msg| {
+            let (role, content_str) = match msg {
+                Messages::User { content, .. } => {
+                    let text = match content {
+                        UserModelContent::Text(TextContent { content, .. }) => content.clone(),
+                        UserModelContent::Image(_) => String::new(), // Skip images for now
+                    };
+                    ("user", text)
+                }
+                Messages::Assistant { content, .. } => {
+                    let text = match content {
+                        ModelOutput::Text(TextContent { content, .. }) => content.clone(),
+                        ModelOutput::ToolCall { name, arguments, .. } => {
+                            let args_str = arguments
+                                .as_ref()
+                                .map(|a| serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string()))
+                                .unwrap_or_default();
+                            format!("[Tool call: {name}({args_str})]")
+                        }
+                        ModelOutput::ThinkingContent { thinking, .. } => thinking.clone(),
+                        ModelOutput::Embedding { .. } | ModelOutput::Image(_) => String::new(),
+                    };
+                    ("assistant", text)
+                }
+                Messages::ToolResult { content, .. } => {
+                    let text = match content {
+                        UserModelContent::Text(TextContent { content, .. }) => content.clone(),
+                        UserModelContent::Image(_) => String::new(),
+                    };
+                    ("tool", text)
+                }
+            };
+            if content_str.is_empty() {
+                None
+            } else {
+                LlamaChatMessage::new(role.to_string(), content_str).ok()
+            }
+        })
+        .collect();
+
+    // Get chat template (use custom if provided, otherwise default)
+    let template = if let Some(custom_template) = &interaction.chat_template {
+        LlamaChatTemplate::new(custom_template)
+            .map_err(|e| GenerationError::Generic(format!("Failed to create chat template: {e}")))?
+    } else {
+        model
+            .chat_template(None)
+            .map_err(GenerationError::ChatTemplate)?
+    };
+
+    // Apply chat template
+    let prompt = model
+        .apply_chat_template(&template, &chat_messages, true)
+        .map_err(GenerationError::ApplyChatTemplate)?;
+
+    Ok(prompt)
+}
+
+/// Generate embeddings from the input prompt.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
+fn generate_embeddings(
+    model: &LlamaModel,
+    ctx: &mut LlamaContext,
+    prompt: &str,
+    _spec: &ModelSpec,
+) -> GenerationResult<Vec<Messages>> {
+    // Tokenize the prompt
+    let tokens = model
+        .str_to_token(prompt, AddBos::Always)
+        .map_err(GenerationError::Tokenization)?;
+
+    // Create batch and add sequence
+    let mut batch = LlamaBatch::new(tokens.len(), 1);
+    batch
+        .add_sequence(&tokens, 0, false)
+        .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
+
+    // Encode to get embeddings
+    ctx.encode(&mut batch)
+        .map_err(GenerationError::Encode)?;
+
+    // Get embeddings for the first sequence
+    let embeddings = ctx
+        .embeddings_seq_ith(0)
+        .map_err(GenerationError::Embeddings)?;
+
+    // Return embeddings as Assistant message
+    let dimensions = embeddings.len();
+    Ok(vec![Messages::Assistant {
+        model: ModelId::Name("llamacpp".to_string(), None),
+        timestamp: SystemTime::now(),
+        usage: UsageReport {
+            input: tokens.len() as f64,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: tokens.len() as f64,
+            cost: UsageCosting {
+                currency: "USD".to_string(),
+                input: 0.0,
+                output: 0.0,
+                cache_read: 0.0,
+                cache_write: 0.0,
+                total_tokens: 0.0,
+            },
+        },
+        content: ModelOutput::Embedding {
+            dimensions,
+            values: embeddings.to_vec(),
+        },
+        stop_reason: StopReason::Stop,
+        provider: ModelProviders::LLAMACPP,
+        error_detail: None,
+        signature: None,
+    }])
+}
+
+/// Generate text from the input prompt using autoregressive decoding.
+///
+/// This function implements the main token generation loop:
+/// 1. Tokenize the prompt
+/// 2. Evaluate the prompt through the model
+/// 3. Sample tokens using the provided sampler
+/// 4. Detokenize and accumulate the output
+/// 5. Check for stop conditions
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap, clippy::cast_precision_loss)]
+fn generate_text(
+    model: &LlamaModel,
+    ctx: &mut LlamaContext,
+    sampler: &mut LlamaSampler,
+    prompt: &str,
+    params: &ModelParams,
+    _spec: &ModelSpec,
+) -> GenerationResult<Vec<Messages>> {
+    // Tokenize the prompt
+    let tokens = model
+        .str_to_token(prompt, AddBos::Always)
+        .map_err(GenerationError::Tokenization)?;
+
+    // Create batch and add sequence for prompt
+    let mut batch = LlamaBatch::new(tokens.len(), 1);
+    batch
+        .add_sequence(&tokens, 0, true)
+        .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
+
+    // Decode the prompt
+    ctx.decode(&mut batch)
+        .map_err(GenerationError::Decode)?;
+
+    // Generate tokens up to max_tokens or until stop token
+    let max_tokens = params.max_tokens;
+    let mut generated_tokens: Vec<LlamaToken> = Vec::new();
+    let mut output_text = String::new();
+    let mut current_pos = tokens.len() as i32;
+
+    for _ in 0..max_tokens {
+        // Sample the next token (idx=0 for single sequence)
+        let next_token = sampler.sample(ctx, 0);
+        generated_tokens.push(next_token);
+
+        // Check for end of sequence
+        if model.is_eog_token(next_token) {
+            break;
+        }
+
+        // Detokenize and accumulate
+        let token_str = model
+            .token_to_str(next_token, Special::Tokenize)
+            .map_err(GenerationError::TokenToString)?;
+        output_text.push_str(&token_str);
+
+        // Check for stop tokens
+        if params.stop_tokens.iter().any(|seq| output_text.contains(seq)) {
+            break;
+        }
+
+        // Create batch for single token and decode
+        let mut batch = LlamaBatch::new(1, 1);
+        batch
+            .add(next_token, current_pos, &[0], true)
+            .map_err(|e| GenerationError::Generic(format!("Failed to add token to batch: {e}")))?;
+
+        ctx.decode(&mut batch)
+            .map_err(GenerationError::Decode)?;
+
+        current_pos += 1;
+    }
+
+    // Calculate token counts
+    let input_tokens = tokens.len() as f64;
+    let output_tokens = generated_tokens.len() as f64;
+
+    // Return generated text as Assistant message
+    Ok(vec![Messages::Assistant {
+        model: ModelId::Name("llamacpp".to_string(), None),
+        timestamp: SystemTime::now(),
+        usage: UsageReport {
+            input: input_tokens,
+            output: output_tokens,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: input_tokens + output_tokens,
+            cost: UsageCosting {
+                currency: "USD".to_string(),
+                input: 0.0,
+                output: 0.0,
+                cache_read: 0.0,
+                cache_write: 0.0,
+                total_tokens: 0.0,
+            },
+        },
+        content: ModelOutput::Text(TextContent {
+            content: output_text,
+            signature: None,
+        }),
+        stop_reason: StopReason::Stop,
+        provider: ModelProviders::LLAMACPP,
+        error_detail: None,
+        signature: None,
+    }])
+}
 
 // ==================================
 // LlamaBackends
