@@ -12,6 +12,7 @@
 
 [env]
 CARGO_TERM_COLOR = "always"
+PROJECT_ROOT = "{{config_root}}"
 
 # =============================================================================
 # Tool versions - mise manages these automatically
@@ -24,6 +25,7 @@ node = "22"
 "cargo:cargo-nextest" = "latest"
 "cargo:cargo-audit" = "latest"
 "cargo:bacon" = "latest"
+"npm:wrangler" = "latest"
 
 # =============================================================================
 # Tasks - Setup
@@ -52,23 +54,21 @@ echo "✓ WASM targets installed"
 """
 
 [tasks."setup:cloudflare"]
-description = "Show instructions for installing Cloudflare tools"
+description = "Install Cloudflare tools (wrangler via mise)"
+depends = ["install:cloudflare"]
 run = """
-echo "Cloudflare tools (wrangler) installation:"
+echo "✓ Cloudflare tools installed"
 echo ""
-echo "Option 1: Install via npm (recommended)"
-echo "  npm install -g wrangler"
-echo ""
-echo "Option 2: Use npx (no install, slower)"
-echo "  npx wrangler <command>"
-echo ""
-echo "Note: miniflare v3+ is bundled with wrangler - use 'wrangler dev' for local testing"
-echo ""
-echo "For running R2/D1 integration tests locally:"
-echo "  1. Install wrangler: npm install -g wrangler"
-echo "  2. Create wrangler.toml with D1/R2 bindings"
-echo "  3. Run: wrangler dev --local"
-echo "  4. Run tests: mise run test:cf"
+echo "Usage:"
+echo "  mise run cf:start   - Start local wrangler dev"
+echo "  mise run test:cf    - Run R2/D1 integration tests"
+"""
+
+[tasks."install:cloudflare"]
+description = "Install wrangler (Cloudflare CLI)"
+run = """
+mise install npm:wrangler@3.28.1
+mise use npm:wrangler@3.28.1
 """
 
 [tasks."setup:check"]
@@ -273,33 +273,18 @@ sleep 1
 
 echo "Starting wrangler dev for local testing..."
 
-# Check if wrangler.toml exists, create minimal one if not
-if [ ! -f "wrangler.toml" ]; then
-    echo "Creating minimal wrangler.toml..."
-    cat > wrangler.toml << 'EOF'
-name = "foundation-test"
-compatibility_date = "2024-01-01"
+# Use project root wrangler.toml
+cd "$PROJECT_ROOT"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "test-db"
-database_id = "test-db-id"
-
-[[r2_buckets]]
-binding = "BUCKET"
-bucket_name = "test-bucket"
-EOF
-fi
-
-# Start wrangler dev in background
-wrangler dev --local > /tmp/wrangler.log 2>&1 &
+# Start wrangler dev in background (no --local flag needed in v3+)
+wrangler dev > "$PROJECT_ROOT/wrangler.log" 2>&1 &
 WRANGLER_PID=$!
 echo $WRANGLER_PID > /tmp/wrangler-test.pid
 
 # Wait for wrangler to be ready
 echo "Waiting for wrangler to start..."
 for i in {1..30}; do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8787 2>/dev/null || echo "000")
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8789 2>/dev/null || echo "000")
     if [ "$STATUS" = "200" ] || [ "$STATUS" = "404" ]; then
         echo "Wrangler is ready (PID: $WRANGLER_PID)!"
         exit 0
@@ -307,8 +292,8 @@ for i in {1..30}; do
     sleep 1
 done
 
-echo "ERROR: Wrangler failed to start. Check /tmp/wrangler.log"
-cat /tmp/wrangler.log
+echo "ERROR: Wrangler failed to start. Check wrangler.log"
+cat "$PROJECT_ROOT/wrangler.log"
 exit 1
 """
 
@@ -326,6 +311,7 @@ if [ -f /tmp/wrangler-test.pid ]; then
     rm /tmp/wrangler-test.pid
 fi
 pkill -f "wrangler" 2>/dev/null || true
+echo "Wrangler cleanup complete"
 """
 
 [tasks."test:cf"]
@@ -335,13 +321,15 @@ run = """
 set -e
 
 echo "=== Cloudflare Integration Tests ==="
+echo ""
 
 # Start wrangler
 mise run cf:start
 
-# Run tests with cleanup on exit
+# Ensure cleanup on exit
 trap 'mise run cf:stop' EXIT
 
+# Run R2 tests
 echo ""
 echo "=== Running R2 Tests ==="
 export R2_INTEGRATION_TEST=1
@@ -349,10 +337,11 @@ export LOCAL_R2_URL="http://localhost:8788"
 export LOCAL_R2_BUCKET="test-bucket"
 cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
 
+# Run D1 tests
 echo ""
 echo "=== Running D1 Tests ==="
 export D1_INTEGRATION_TEST=1
-export LOCAL_D1_URL="http://localhost:8787"
+export LOCAL_D1_URL="http://localhost:8789"
 export LOCAL_D1_DATABASE_ID="test-db"
 cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
 
@@ -385,7 +374,7 @@ mise run cf:start
 trap 'mise run cf:stop' EXIT
 
 export D1_INTEGRATION_TEST=1
-export LOCAL_D1_URL="http://localhost:8787"
+export LOCAL_D1_URL="http://localhost:8789"
 export LOCAL_D1_DATABASE_ID="test-db"
 cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
 """
@@ -806,7 +795,8 @@ echo "Cloudflare (R2, D1):"
 echo "  cf:login           Authenticate with Cloudflare"
 echo "  cf:whoami          Check authentication status"
 echo "  cf:list            List D1 databases and R2 buckets"
-echo "  cf:dev             Start local development with miniflare"
+echo "  cf:start           Start wrangler dev for local testing"
+echo "  cf:stop            Stop wrangler background process"
 echo "  cf:env             Show Cloudflare environment config"
 echo "  cf:d1:create       Create a new D1 database"
 echo "  cf:d1:migrate      Run D1 migrations"
@@ -817,9 +807,9 @@ echo "Testing:"
 echo "  test:all           Run all tests (unit + integration)"
 echo "  test:unit          Run only unit tests (fast)"
 echo "  test:integration   Run only integration tests"
-echo "  test:cf            Run all Cloudflare tests (R2 + D1)"
-echo "  test:cf:r2         Run R2 blobstore tests"
-echo "  test:cf:d1         Run D1 kvstore tests"
+echo "  test:cf            Run all Cloudflare tests (auto-starts wrangler)"
+echo "  test:cf:r2         Run R2 blobstore tests (auto-starts wrangler)"
+echo "  test:cf:d1         Run D1 kvstore tests (auto-starts wrangler)"
 echo "  test:quick         Quick smoke test"
 echo "  test:nostd         All foundation_nostd tests"
 echo "  test:wasm          WASM compilation tests"

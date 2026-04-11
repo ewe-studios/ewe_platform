@@ -1,0 +1,44 @@
+# =============================================================================
+# Wrangler Configuration for Local Testing
+# =============================================================================
+# This configuration is used for running local integration tests with
+# miniflare (bundled with wrangler v3+).
+#
+# Usage:
+#   mise run cf:start
+#
+# Then run tests:
+#   mise run test:cf
+# =============================================================================
+
+name = "foundation-db-test"
+compatibility_date = "2024-01-01"
+
+# Entry point (stub worker for local testing)
+main = "worker-stub.js"
+
+# Local development server
+dev = { port = 8789 }
+
+# =============================================================================
+# D1 Database Configuration
+# =============================================================================
+# Creates a local D1 SQLite database for testing.
+# The database is stored in .wrangler/state/d1/test-db
+
+[[d1_databases]]
+binding = "DB"
+database_name = "test-db"
+database_id = "test-db-id"
+preview_database_id = "test-db-preview"
+
+# =============================================================================
+# R2 Bucket Configuration
+# =============================================================================
+# Creates a local R2 bucket for testing.
+# Objects are stored in .wrangler/state/r2/test-bucket
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "test-bucket"
+preview_bucket_name = "test-bucket-preview"

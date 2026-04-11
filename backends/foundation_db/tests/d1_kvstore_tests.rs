@@ -22,7 +22,7 @@ fn check_miniflare_available() -> bool {
     }
 
     // Check if miniflare is running by checking the local D1 endpoint
-    let local_d1_url = _env_var("LOCAL_D1_URL", "http://localhost:8787");
+    let local_d1_url = _env_var("LOCAL_D1_URL", "http://localhost:8789");
 
     // Try to ping the local D1 endpoint
     let response = std::process::Command::new("curl")

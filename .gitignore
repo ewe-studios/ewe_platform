@@ -157,6 +157,9 @@ dist
 bacon-ls.log
 .aider*
 
+# Wrangler local development
+wrangler.log
+.wrangler/
 
 artefacts/temples/output_directory
 !.claude
