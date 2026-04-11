@@ -16,7 +16,7 @@ use turso::Builder;
 use crate::errors::StorageError;
 use crate::rows_stream::RowsIterator;
 use crate::storage_provider::{
-    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 
 /// Turso storage backend with optional encryption support.
@@ -632,5 +632,149 @@ impl RateLimiterStore for TursoStorage {
         Ok(Box::new(
             circuit_stream.map_done(|result| result.map(|_| ())),
         ))
+    }
+}
+
+impl BlobStore for TursoStorage {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+        // Ensure blobs table exists
+        let create_table = r"
+            CREATE TABLE IF NOT EXISTS blobs (
+                key TEXT PRIMARY KEY,
+                data BLOB NOT NULL,
+                size INTEGER NOT NULL,
+                created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+                updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
+            )
+        ";
+        let conn = Arc::clone(&self.conn);
+        exec_future(async move { conn.execute_batch(create_table).await })?;
+
+        // Encode binary data as base64 for safe storage
+        let encoded = STANDARD.encode(data);
+        let key = key.to_string();
+        let size = data.len() as i64;
+        let size_str = size.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            conn.execute(
+                "INSERT INTO blobs (key, data, size, updated_at) VALUES (?, ?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET data = ?, size = ?, updated_at = strftime('%s', 'now') * 1000",
+                [key.clone(), encoded.clone(), size_str.clone(), encoded, size_str],
+            )
+            .await
+        })?;
+
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
+    }
+
+    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            let mut stmt = conn
+                .prepare("SELECT data FROM blobs WHERE key = ?")
+                .await?;
+            let mut rows = stmt.query([key]).await?;
+            match rows.next().await? {
+                Some(row) => {
+                    let encoded: String = row.get(0)?;
+                    Ok::<_, turso::Error>(Some(encoded))
+                }
+                None => Ok::<_, turso::Error>(None),
+            }
+        })?;
+
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream.map_done(|opt_result| {
+            match opt_result {
+                Ok(Some(encoded)) => {
+                    STANDARD.decode(&encoded)
+                        .map(Some)
+                        .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))
+                }
+                Ok(None) => Ok(None),
+                Err(e) => Err(e),
+            }
+        })))
+    }
+
+    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            conn.execute("DELETE FROM blobs WHERE key = ?", [key])
+                .await
+        })?;
+
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
+    }
+
+    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            let mut stmt = conn
+                .prepare("SELECT 1 FROM blobs WHERE key = ? LIMIT 1")
+                .await?;
+            let mut rows = stmt.query([key]).await?;
+            Ok::<bool, turso::Error>(rows.next().await?.is_some())
+        })?;
+
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 }

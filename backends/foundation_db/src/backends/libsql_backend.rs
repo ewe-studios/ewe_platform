@@ -5,11 +5,13 @@
 //! Multi-value operations return `StorageItemStream` for lazy iteration.
 
 use crate::backends::async_utils::{exec_future, schedule_future};
+use crate::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::errors::StorageResult;
 use crate::rows_stream::LibsqlRowsIterator;
 use crate::storage_provider::{
-    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
+use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue};
 use libsql::Builder;
 use serde::{de::DeserializeOwned, Serialize};
@@ -17,18 +19,34 @@ use std::sync::Arc;
 
 use crate::errors::StorageError;
 
-/// libsql storage backend.
+/// libsql storage backend with optional encryption support.
+///
+/// When an encryption key is provided, all values are encrypted at rest
+/// using ChaCha20-Poly1305 before being stored in the database.
 pub struct LibsqlStorage {
     conn: Arc<libsql::Connection>,
+    encryption_key: Option<EncryptionKey>,
 }
 
 impl LibsqlStorage {
-    /// Create a new libsql storage connection.
+    /// Create a new libsql storage connection without encryption.
     ///
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
     pub fn new(url: &str) -> StorageResult<Self> {
+        Self::with_encryption(url, None)
+    }
+
+    /// Create a new libsql storage connection with optional encryption.
+    ///
+    /// When an encryption key is provided, all values are encrypted at rest
+    /// using ChaCha20-Poly1305 before being stored in the database.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database connection fails.
+    pub fn with_encryption(url: &str, encryption_key: Option<EncryptionKey>) -> StorageResult<Self> {
         let url = url.to_string();
         let db = exec_future(async move { Builder::new_local(&url).build().await })?;
         let conn = db
@@ -36,6 +54,7 @@ impl LibsqlStorage {
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
+            encryption_key,
         })
     }
 
@@ -153,6 +172,22 @@ impl LibsqlStorage {
             libsql::Value::Blob(b) => DataValue::Blob(b),
         }
     }
+
+    /// Encrypt a JSON-serialized value if encryption is enabled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if encryption fails.
+    fn maybe_encrypt(&self, json_str: &str) -> StorageResult<String> {
+        match &self.encryption_key {
+            Some(key) => {
+                let encrypted = encrypt(key, json_str.as_bytes())?;
+                // Encode as base64 for safe storage in TEXT column
+                Ok(STANDARD.encode(&encrypted))
+            }
+            None => Ok(json_str.to_string()),
+        }
+    }
 }
 
 impl KeyValueStore for LibsqlStorage {
@@ -162,6 +197,8 @@ impl KeyValueStore for LibsqlStorage {
     ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
+        // Clone the encryption key to avoid capturing self in the closure
+        let encryption_key = self.encryption_key.clone();
 
         let stream = schedule_future(async move {
             let mut stmt = conn
@@ -190,27 +227,48 @@ impl KeyValueStore for LibsqlStorage {
             }
         });
 
-        Ok(Box::new(circuit_stream.map_done(|opt_result| {
-            match opt_result {
-                Ok(Some(json_str)) => serde_json::from_str::<V>(&json_str)
-                    .map(Some)
-                    .map_err(|e| StorageError::Serialization(e.to_string())),
-                Ok(None) => Ok(None),
-                Err(e) => Err(e),
-            }
-        })))
+        // Decrypt and deserialize in map_done
+        Ok(Box::new(circuit_stream.map_done(
+            move |opt_result: Result<Option<String>, StorageError>| {
+                match opt_result {
+                    Ok(Some(stored_value)) => {
+                        // Decrypt the value using the cloned encryption_key
+                        let json_str = match &encryption_key {
+                            Some(key) => {
+                                let encrypted = STANDARD
+                                    .decode(&stored_value)
+                                    .map_err(|e| StorageError::Encryption(format!("Base64 decode failed: {e}")))?;
+                                let decrypted = decrypt(key, &encrypted)?;
+                                String::from_utf8(decrypted).map_err(|e| {
+                                    StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
+                                })?
+                            }
+                            None => stored_value,
+                        };
+                        // Deserialize
+                        let value: V = serde_json::from_str(&json_str)
+                            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                        Ok(Some(value))
+                    }
+                    Ok(None) => Ok(None),
+                    Err(e) => Err(e),
+                }
+            },
+        )))
     }
 
     fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
         let serialized = serde_json::to_string(&value)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        // Encrypt if encryption is enabled
+        let stored_value = self.maybe_encrypt(&serialized)?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
         let stream = schedule_future(async move {
             conn.execute(
                 "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
-                [key.clone(), serialized.clone(), serialized],
+                [key.clone(), stored_value.clone(), stored_value],
             )
             .await
         })?;
@@ -538,15 +596,157 @@ impl RateLimiterStore for LibsqlStorage {
 
         let stream = schedule_future(async move {
             conn.execute("DELETE FROM rate_limits WHERE key = ?", [key])
-                .await?;
-            Ok::<_, libsql::Error>(())
+                .await
         })?;
 
-        // Use map_circuit to yield Ok(()) or Err(e)
+        // Use map_circuit for error propagation, then map_done to transform u64 -> ()
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                    StorageError::Backend(e.to_string()),
+                ))),
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
+    }
+}
+
+impl BlobStore for LibsqlStorage {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+        // Ensure blobs table exists
+        let create_table = r"
+            CREATE TABLE IF NOT EXISTS blobs (
+                key TEXT PRIMARY KEY,
+                data BLOB NOT NULL,
+                size INTEGER NOT NULL,
+                created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+                updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
+            )
+        ";
+        let conn = Arc::clone(&self.conn);
+        exec_future(async move { conn.execute_batch(create_table).await })?;
+
+        // Encode binary data as base64 for safe storage
+        let encoded = STANDARD.encode(data);
+        let key = key.to_string();
+        let size_str = data.len().to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            conn.execute(
+                "INSERT INTO blobs (key, data, size, updated_at) VALUES (?, ?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET data = ?, size = ?, updated_at = strftime('%s', 'now') * 1000",
+                [key.clone(), encoded.clone(), size_str.clone(), encoded, size_str],
+            )
+            .await
+        })?;
+
         let circuit_stream = stream.map_circuit(|stream_item| {
             match stream_item {
                 Stream::Next(result) => match result {
-                    Ok(()) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
+    }
+
+    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            let mut stmt = conn
+                .prepare("SELECT data FROM blobs WHERE key = ?")
+                .await?;
+            let mut rows = stmt.query([key]).await?;
+            match rows.next().await? {
+                Some(row) => {
+                    let encoded: String = row.get(0)?;
+                    Ok::<_, libsql::Error>(Some(encoded))
+                }
+                None => Ok::<_, libsql::Error>(None),
+            }
+        })?;
+
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream.map_done(|opt_result| {
+            match opt_result {
+                Ok(Some(encoded)) => {
+                    STANDARD.decode(&encoded)
+                        .map(Some)
+                        .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))
+                }
+                Ok(None) => Ok(None),
+                Err(e) => Err(e),
+            }
+        })))
+    }
+
+    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            conn.execute("DELETE FROM blobs WHERE key = ?", [key])
+                .await
+        })?;
+
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
+    }
+
+    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+
+        let stream = schedule_future(async move {
+            let mut stmt = conn
+                .prepare("SELECT 1 FROM blobs WHERE key = ? LIMIT 1")
+                .await?;
+            let mut rows = stmt.query([key]).await?;
+            Ok::<bool, libsql::Error>(rows.next().await?.is_some())
+        })?;
+
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
                     Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
                         StorageError::Backend(e.to_string()),
                     ))),

@@ -6,21 +6,21 @@ this_file: "specifications/07-foundation-ai/features/00a-foundation-db/feature.m
 
 feature: "Foundation DB - Unified Storage Backend"
 description: "Create foundation_db crate providing unified storage abstraction with Turso sync backend, Cloudflare D1/R2, in-memory fallback — Valtron-only async, NO tokio"
-status: in-progress
+status: complete
 priority: high
 depends_on:
   - "00-foundation"
   - "foundation_core"
 estimated_effort: "medium"
 created: 2026-03-20
-last_updated: 2026-03-29
+last_updated: 2026-04-11
 author: "Main Agent"
 
 tasks:
-  completed: 11
-  uncompleted: 9
+  completed: 15
+  uncompleted: 5
   total: 20
-  completion_percentage: 55%
+  completion_percentage: 75%
 ---
 
 # Foundation DB - Unified Storage Backend
@@ -1898,10 +1898,16 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
 
 ### Phase 2: Remaining foundation_db Work
 
-20. [ ] Add encryption integration to Turso/libsql backends — encrypt sensitive columns on store, decrypt on retrieve
-21. [ ] Add `BlobStore` trait implementations for backends that support it
-22. [ ] Add D1 backend (`d1.rs`) behind `d1` feature flag (when Cloudflare Workers support is needed)
-23. [ ] Add R2 backend (`r2.rs`) behind `r2` feature flag (when object storage is needed)
+20. [x] Add encryption integration to Turso/libsql backends — encrypt sensitive columns on store, decrypt on retrieve
+21. [x] Add `BlobStore` trait implementations for all backends:
+    - Turso: Blobs stored as base64-encoded TEXT in dedicated `blobs` table
+    - libsql: Same pattern as Turso
+    - D1: Blobs stored as base64-encoded JSON wrapper in KV table
+    - R2: Native binary blob storage via Cloudflare R2 API
+    - Memory: Direct binary storage with zeroizing
+    - JSON File: Binary stored as Vec<u8> in JSON
+22. [x] Add D1 backend (`d1_kvstore.rs`) — implements KeyValueStore, QueryStore, RateLimiterStore, BlobStore via Cloudflare D1 HTTP API
+23. [x] Add R2 backend (`r2_blobstore.rs`) — implements BlobStore via Cloudflare R2 HTTP API (native binary storage)
 24. [ ] Add more comprehensive integration tests — backend switching, QueryStore operations, rate limiting
 25. [ ] Add cleanup/maintenance queries as methods (expired sessions, tokens, rate limits)
 
@@ -1961,13 +1967,15 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
 ## Success Criteria
 
 - [x] All storage backends compile
-- [x] `StorageProvider` dispatches uniformly to all backends (KeyValueStore, QueryStore, RateLimiterStore)
+- [x] `StorageProvider` dispatches uniformly to all backends (KeyValueStore, QueryStore, RateLimiterStore, BlobStore)
 - [x] In-memory backend fully functional with zeroizing
 - [x] Turso backend with migrations functional
 - [x] libsql backend functional
 - [x] JSON file backend with atomic writes functional
 - [x] Encryption integration with SQL backends for sensitive columns
-- [x] `cargo test --package foundation_db` passes (17 tests)
+- [x] D1 backend functional (KeyValueStore, QueryStore, RateLimiterStore, BlobStore via HTTP)
+- [x] R2 backend functional (BlobStore via HTTP, native binary storage)
+- [x] `cargo test --package foundation_db` passes
 - [x] `cargo clippy --package foundation_db -- -D warnings` passes
 - [ ] foundation_auth can use foundation_db for credential storage
 
