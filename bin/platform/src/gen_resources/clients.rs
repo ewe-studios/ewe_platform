@@ -346,14 +346,32 @@ impl ClientGenerator {
                     operation_id: Some(ep.operation_id),
                     summary: ep.summary,
                     path_params: ep.path_params.iter().map(|p| ParameterInfo {
-                        name: p.replace('-', "_").replace('.', "_"),
+                        name: p.replace('-', "_")
+                            .replace('.', "_")
+                            .replace('~', "_")
+                            .replace('/', "_")
+                            .replace('@', "_")
+                            .replace(':', "_")
+                            .replace('<', "_")
+                            .replace('>', "_")
+                            .replace('[', "_")
+                            .replace(']', "_"),
                         original_name: p.clone(),
                         rust_type: "String".to_string(),
                         required: true,
                         description: None,
                     }).collect(),
                     query_params: ep.query_params.iter().map(|p| ParameterInfo {
-                        name: p.replace('-', "_").replace('.', "_"),
+                        name: p.replace('-', "_")
+                            .replace('.', "_")
+                            .replace('~', "_")
+                            .replace('/', "_")
+                            .replace('@', "_")
+                            .replace(':', "_")
+                            .replace('<', "_")
+                            .replace('>', "_")
+                            .replace('[', "_")
+                            .replace(']', "_"),
                         original_name: p.clone(),
                         rust_type: "Option<String>".to_string(),
                         required: false,
@@ -1075,7 +1093,10 @@ impl ClientGenerator {
                 .replace(']', "_")
                 .replace('(', "_")
                 .replace(')', "_")
-                .replace('\'', "_"); // Replace apostrophes
+                .replace('\'', "_")  // Replace apostrophes
+                .replace(',', "_")   // Replace commas
+                .replace('~', "_")   // Replace tildes
+                .replace('/', "_");  // Replace slashes
             return self.to_snake_case(&clean_id);
         }
 
@@ -1096,7 +1117,10 @@ impl ClientGenerator {
             .replace(']', "_") // Replace ] in path
             .replace('(', "") // Remove ( from path
             .replace(')', "") // Remove ) from path
-            .replace('\'', ""); // Remove apostrophes from path
+            .replace('\'', "") // Remove apostrophes from path
+            .replace(',', "_") // Replace commas in path
+            .replace('~', "_") // Replace tildes in path
+            .replace('/', "_"); // Replace slashes in path
         format!("{}_{}", endpoint.method.to_lowercase(), path_part)
     }
 
@@ -1113,7 +1137,10 @@ impl ClientGenerator {
             .replace(']', "_")
             .replace('(', "_")
             .replace(')', "_")
-            .replace('\'', "_"); // Replace apostrophes
+            .replace('\'', "_")  // Replace apostrophes
+            .replace(',', "_")   // Replace commas
+            .replace('~', "_")   // Replace tildes
+            .replace('/', "_");  // Replace slashes
 
         let mut result = String::new();
         let mut prev_was_upper = false;
@@ -1166,7 +1193,10 @@ impl ClientGenerator {
             .replace(']', "_")
             .replace('(', "_")
             .replace(')', "_")
-            .replace('\'', "_"); // Replace apostrophes
+            .replace('\'', "_")  // Replace apostrophes
+            .replace(',', "_")   // Replace commas
+            .replace('~', "_")   // Replace tildes
+            .replace('/', "_");  // Replace slashes
 
         normalized.split('_')
             .filter(|part| !part.is_empty())
