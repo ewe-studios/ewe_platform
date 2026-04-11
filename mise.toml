@@ -615,5 +615,19 @@ echo "  nextest            Run with bacon nextest"
 echo "  sandbox            Run ewe_platform sandbox"
 echo "  bacon              Start bacon language server"
 echo ""
+echo "Zed:"
+echo "  zed:rust-analyzer  Convert rust-analyzer.toml to .zed/settings.json"
+echo ""
 echo "Full task list: mise tasks"
+"""
+
+# =============================================================================
+# Tasks - Zed Editor
+# =============================================================================
+
+[tasks."zed:rust-analyzer"]
+description = "Convert rust-analyzer.toml to .zed/settings.json"
+run = """
+echo "Converting rust-analyzer.toml to Zed format..."
+python3 scripts/convert-rust-analyzer-config.py
 """
