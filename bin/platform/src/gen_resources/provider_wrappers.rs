@@ -17,6 +17,28 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 // ---------------------------------------------------------------------------
+// Sanitize special characters in operation IDs before converting to Rust identifiers
+// ---------------------------------------------------------------------------
+
+fn sanitize_operation_id(op_id: &str) -> String {
+    op_id
+        .replace('-', "_")
+        .replace('.', "_")
+        .replace('@', "_")
+        .replace(':', "_")
+        .replace('<', "_")
+        .replace('>', "_")
+        .replace('[', "_")
+        .replace(']', "_")
+        .replace('(', "_")
+        .replace(')', "_")
+        .replace('\'', "_")
+        .replace(',', "_")
+        .replace('~', "_")
+        .replace('/', "_")
+}
+
+// ---------------------------------------------------------------------------
 // Helper functions
 // ---------------------------------------------------------------------------
 
@@ -196,10 +218,11 @@ impl ProviderWrapperGenerator {
             // Use operation_type to determine if mutating
             let is_mutating = ep.operation_type.requires_state_tracking();
 
-            let base_name = to_snake_case(&ep.operation_id);
+            let sanitized_id = sanitize_operation_id(&ep.operation_id);
+            let base_name = to_snake_case(&sanitized_id);
             endpoints.push(EndpointFn {
                 base_name: base_name.clone(),
-                args_type: to_pascal_case(&ep.operation_id) + "Args",
+                args_type: to_pascal_case(&sanitized_id) + "Args",
                 response_type: ep.response_type.as_ref().map(|rt| rt.as_rust_type()).unwrap_or("serde_json::Value").to_string(),
                 is_mutating,
                 path_params: ep.path_params.clone(),
@@ -297,8 +320,16 @@ impl ProviderWrapperGenerator {
         }
 
         // Only generate imports for mutating endpoints if there are any
+        // For single-API providers (api_name == provider), clients are in clients/mod.rs
+        // For multi-API providers, clients are in clients/{api_name}.rs
+        let clients_module = if wrapper.api_name == provider {
+            "clients".to_string()
+        } else {
+            format!("clients::{}", wrapper.api_name)
+        };
+
         if !wrapper.endpoints.is_empty() {
-            writeln!(out, "use crate::providers::{}::clients::{}::{{", provider, wrapper.api_name)?;
+            writeln!(out, "use crate::providers::{}::{}::{{", provider, clients_module)?;
             for endpoint in &wrapper.endpoints {
                 writeln!(
                     out,
@@ -311,11 +342,11 @@ impl ProviderWrapperGenerator {
         writeln!(out, "use crate::providers::{}::clients::types::{{ApiError, ApiPending}};", provider)?;
         for response_type in response_types.keys() {
             if response_type != "()" && response_type != "serde_json::Value" {
-                writeln!(out, "use crate::providers::{}::clients::{}::{};", provider, wrapper.api_name, response_type)?;
+                writeln!(out, "use crate::providers::{}::{}::{};", provider, clients_module, response_type)?;
             }
         }
         for args_type in args_types.keys() {
-            writeln!(out, "use crate::providers::{}::clients::{}::{};", provider, wrapper.api_name, args_type)?;
+            writeln!(out, "use crate::providers::{}::{}::{};", provider, clients_module, args_type)?;
         }
         writeln!(out, "use crate::provider_client::{{ProviderClient, ProviderError}};")?;
         writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator}};")?;
