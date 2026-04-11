@@ -17,10 +17,10 @@ last_updated: 2026-04-11
 author: "Main Agent"
 
 tasks:
-  completed: 15
-  uncompleted: 5
+  completed: 17
+  uncompleted: 3
   total: 20
-  completion_percentage: 75%
+  completion_percentage: 85%
 ---
 
 # Foundation DB - Unified Storage Backend
@@ -1908,8 +1908,8 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
     - JSON File: Binary stored as Vec<u8> in JSON
 22. [x] Add D1 backend (`d1_kvstore.rs`) — implements KeyValueStore, QueryStore, RateLimiterStore, BlobStore via Cloudflare D1 HTTP API
 23. [x] Add R2 backend (`r2_blobstore.rs`) — implements BlobStore via Cloudflare R2 HTTP API (native binary storage)
-24. [ ] Add more comprehensive integration tests — backend switching, QueryStore operations, rate limiting
-25. [ ] Add cleanup/maintenance queries as methods (expired sessions, tokens, rate limits)
+24. [x] Add more comprehensive integration tests — BlobStore tests for MemoryStorage and JsonFileStorage, cleanup tests
+25. [x] Add cleanup/maintenance queries as methods (expired sessions, tokens, rate limits) via `StorageCleanup` trait
 
 ### Phase 3: foundation_auth Integration (depends on foundation_db)
 

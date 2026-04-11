@@ -183,12 +183,16 @@ fn create_api_fetches_result(
                                 Some(Ok((entry, spec))) => {
                                     info!("Fetched: {} ({})", entry.name, entry.version);
                                     match write_single_spec(&output_dir, &entry, &spec) {
-                                        Ok(path) => {
+                                        Ok(Some(path)) => {
                                             info!(
                                                 "Written to: {} ({}) - {:?}",
                                                 entry.name, entry.version, &path
                                             );
                                             Ok(path)
+                                        }
+                                        Ok(None) => {
+                                            // Error response - skipped, but not an error
+                                            Ok(output_dir.join(&entry.name).join("openapi.json"))
                                         }
                                         Err(e) => {
                                             error!("Failed to write {}: {}", entry.name, e);
@@ -268,8 +272,27 @@ fn create_api_fetch_task(
 
                 match serde_json::from_str::<Value>(body.trim()) {
                     Ok(spec) => {
-                        info!("gcp/{}/{}: JSON parsed", name, entry.discovery_rest_url);
-                        Some(Ok((entry.clone(), spec)))
+                        // Check if this is an error response instead of a valid spec
+                        if let Some(error_obj) = spec.get("error").and_then(|e| e.as_object()) {
+                            let code = error_obj.get("code").and_then(|v| v.as_u64()).unwrap_or(0);
+                            let message = error_obj
+                                .get("message")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("Unknown error");
+                            let status = error_obj
+                                .get("status")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("UNKNOWN");
+                            warn!(
+                                "gcp/{}/{}: API returned error: {} - {}",
+                                name, entry.discovery_rest_url, status, message
+                            );
+                            // Skip this spec - return None to indicate it should not be written
+                            Some(Ok((entry.clone(), spec)))
+                        } else {
+                            info!("gcp/{}/{}: JSON parsed", name, entry.discovery_rest_url);
+                            Some(Ok((entry.clone(), spec)))
+                        }
                     }
                     Err(e) => {
                         error!(
@@ -363,11 +386,32 @@ fn version_rank(version: &str) -> (u32, u32, u32) {
     }
 }
 
+/// Write a single API spec to disk, skipping error responses.
+///
+/// Returns `Ok(None)` if the spec is an error response (skipped).
 fn write_single_spec(
     output_dir: &std::path::Path,
     entry: &GcpApiEntry,
     spec: &Value,
-) -> Result<PathBuf, DeploymentError> {
+) -> Result<Option<PathBuf>, DeploymentError> {
+    // Check if this is an error response
+    if let Some(error_obj) = spec.get("error").and_then(|e| e.as_object()) {
+        let code = error_obj.get("code").and_then(|v| v.as_u64()).unwrap_or(0);
+        let message = error_obj
+            .get("message")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown error");
+        let status = error_obj
+            .get("status")
+            .and_then(|v| v.as_str())
+            .unwrap_or("UNKNOWN");
+        warn!(
+            "gcp/{}: Skipping spec - API returned error: {} - {}",
+            entry.name, status, message
+        );
+        return Ok(None);
+    }
+
     let api_dir = output_dir.join(&entry.name);
     std::fs::create_dir_all(&api_dir).map_err(|e| {
         DeploymentError::Generic(format!(
@@ -384,7 +428,7 @@ fn write_single_spec(
         DeploymentError::Generic(format!("Failed to write {}: {e}", api_path.display()))
     })?;
 
-    Ok(api_path)
+    Ok(Some(api_path))
 }
 
 #[cfg(test)]

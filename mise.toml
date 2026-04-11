@@ -31,7 +31,7 @@ node = "22"
 
 [tasks.setup]
 description = "Install all dev tools and WASM targets"
-depends = ["setup:tools", "setup:wasm"]
+depends = ["setup:tools", "setup:wasm", "setup:cloudflare"]
 run = 'echo "✓ Development environment setup complete"'
 
 [tasks."setup:tools"]
@@ -49,6 +49,26 @@ echo "Installing WASM targets..."
 rustup target add wasm32-unknown-unknown
 rustup target add wasm32-wasip1
 echo "✓ WASM targets installed"
+"""
+
+[tasks."setup:cloudflare"]
+description = "Show instructions for installing Cloudflare tools"
+run = """
+echo "Cloudflare tools (wrangler) installation:"
+echo ""
+echo "Option 1: Install via npm (recommended)"
+echo "  npm install -g wrangler"
+echo ""
+echo "Option 2: Use npx (no install, slower)"
+echo "  npx wrangler <command>"
+echo ""
+echo "Note: miniflare v3+ is bundled with wrangler - use 'wrangler dev' for local testing"
+echo ""
+echo "For running R2/D1 integration tests locally:"
+echo "  1. Install wrangler: npm install -g wrangler"
+echo "  2. Create wrangler.toml with D1/R2 bindings"
+echo "  3. Run: wrangler dev --local"
+echo "  4. Run tests: mise run test:cf"
 """
 
 [tasks."setup:check"]
@@ -218,6 +238,208 @@ run = "bacon -j nextest"
 alias = "test-foundation-core"
 description = "Run foundation_core tests via bacon + nextest"
 run = "bacon -j test_foundation_core"
+
+# =============================================================================
+# Tasks - Cloudflare Testing (R2, D1)
+# =============================================================================
+
+[tasks."cf:login"]
+description = "Authenticate with Cloudflare"
+run = "wrangler login"
+
+[tasks."cf:whoami"]
+description = "Check Cloudflare authentication status"
+run = "wrangler whoami"
+
+[tasks."cf:list"]
+description = "List D1 databases and R2 buckets"
+run = """
+echo "=== D1 Databases ==="
+wrangler d1 list
+echo ""
+echo "=== R2 Buckets ==="
+wrangler r2 bucket list
+"""
+
+[tasks."cf:start"]
+description = "Start wrangler dev for local testing (background)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+# Kill any existing wrangler processes
+pkill -f "wrangler" 2>/dev/null || true
+sleep 1
+
+echo "Starting wrangler dev for local testing..."
+
+# Check if wrangler.toml exists, create minimal one if not
+if [ ! -f "wrangler.toml" ]; then
+    echo "Creating minimal wrangler.toml..."
+    cat > wrangler.toml << 'EOF'
+name = "foundation-test"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "test-db"
+database_id = "test-db-id"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "test-bucket"
+EOF
+fi
+
+# Start wrangler dev in background
+wrangler dev --local > /tmp/wrangler.log 2>&1 &
+WRANGLER_PID=$!
+echo $WRANGLER_PID > /tmp/wrangler-test.pid
+
+# Wait for wrangler to be ready
+echo "Waiting for wrangler to start..."
+for i in {1..30}; do
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8787 2>/dev/null || echo "000")
+    if [ "$STATUS" = "200" ] || [ "$STATUS" = "404" ]; then
+        echo "Wrangler is ready (PID: $WRANGLER_PID)!"
+        exit 0
+    fi
+    sleep 1
+done
+
+echo "ERROR: Wrangler failed to start. Check /tmp/wrangler.log"
+cat /tmp/wrangler.log
+exit 1
+"""
+
+[tasks."cf:stop"]
+description = "Stop wrangler background process"
+run = """
+#!/usr/bin/env bash
+if [ -f /tmp/wrangler-test.pid ]; then
+    PID=$(cat /tmp/wrangler-test.pid)
+    if kill -0 $PID 2>/dev/null; then
+        echo "Stopping wrangler (PID: $PID)..."
+        kill $PID
+        echo "Wrangler stopped"
+    fi
+    rm /tmp/wrangler-test.pid
+fi
+pkill -f "wrangler" 2>/dev/null || true
+"""
+
+[tasks."test:cf"]
+description = "Run all Cloudflare integration tests (auto-starts wrangler)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+echo "=== Cloudflare Integration Tests ==="
+
+# Start wrangler
+mise run cf:start
+
+# Run tests with cleanup on exit
+trap 'mise run cf:stop' EXIT
+
+echo ""
+echo "=== Running R2 Tests ==="
+export R2_INTEGRATION_TEST=1
+export LOCAL_R2_URL="http://localhost:8788"
+export LOCAL_R2_BUCKET="test-bucket"
+cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
+
+echo ""
+echo "=== Running D1 Tests ==="
+export D1_INTEGRATION_TEST=1
+export LOCAL_D1_URL="http://localhost:8787"
+export LOCAL_D1_DATABASE_ID="test-db"
+cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
+
+echo ""
+echo "✓ All Cloudflare tests passed"
+"""
+
+[tasks."test:cf:r2"]
+description = "Run R2 blobstore tests (auto-starts wrangler)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mise run cf:start
+trap 'mise run cf:stop' EXIT
+
+export R2_INTEGRATION_TEST=1
+export LOCAL_R2_URL="http://localhost:8788"
+export LOCAL_R2_BUCKET="test-bucket"
+cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
+"""
+
+[tasks."test:cf:d1"]
+description = "Run D1 kvstore tests (auto-starts wrangler)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mise run cf:start
+trap 'mise run cf:stop' EXIT
+
+export D1_INTEGRATION_TEST=1
+export LOCAL_D1_URL="http://localhost:8787"
+export LOCAL_D1_DATABASE_ID="test-db"
+cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
+"""
+
+[tasks."cf:d1:create"]
+description = "Create a new D1 database"
+run = """
+#!/usr/bin/env bash
+DB_NAME="${1:-foundation-db}"
+echo "Creating D1 database: $DB_NAME"
+wrangler d1 create "$DB_NAME"
+echo "✓ D1 database created"
+"""
+
+[tasks."cf:d1:migrate"]
+description = "Run D1 migrations"
+run = """
+#!/usr/bin/env bash
+DB_NAME="${1:-foundation-db}"
+echo "Running D1 migrations for: $DB_NAME"
+wrangler d1 migrations execute "$DB_NAME" --local
+echo "✓ D1 migrations complete"
+"""
+
+[tasks."cf:r2:create"]
+description = "Create a new R2 bucket"
+run = """
+#!/usr/bin/env bash
+BUCKET_NAME="${1:-foundation-bucket}"
+echo "Creating R2 bucket: $BUCKET_NAME"
+wrangler r2 bucket create "$BUCKET_NAME"
+echo "✓ R2 bucket created"
+"""
+
+[tasks."cf:r2:ls"]
+description = "List objects in an R2 bucket"
+run = """
+#!/usr/bin/env bash
+BUCKET_NAME="${1:-foundation-bucket}"
+echo "Listing objects in R2 bucket: $BUCKET_NAME"
+wrangler r2 object list "$BUCKET_NAME"
+"""
+
+[tasks."cf:env"]
+description = "Show Cloudflare environment configuration"
+run = """
+echo "=== Cloudflare Environment ==="
+echo "DEPLOYMENT_D1_DATABASE_ID: ${DEPLOYMENT_D1_DATABASE_ID:-not set}"
+echo "DEPLOYMENT_R2_BUCKET: ${DEPLOYMENT_R2_BUCKET:-not set}"
+echo "CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:+set (hidden)}"
+echo "CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-not set}"
+echo "D1_INTEGRATION_TEST: ${D1_INTEGRATION_TEST:-not set}"
+echo "R2_INTEGRATION_TEST: ${R2_INTEGRATION_TEST:-not set}"
+"""
 
 # --- Foundation NoStd Testing ---
 
@@ -577,12 +799,27 @@ echo "Setup:"
 echo "  setup              Install all dev tools and WASM targets"
 echo "  setup:tools        Install rustfmt, clippy, cargo-nextest, etc."
 echo "  setup:wasm         Install WASM targets"
+echo "  setup:cloudflare   Install Cloudflare tools (wrangler, miniflare)"
 echo "  setup:check        Verify installed tools"
+echo ""
+echo "Cloudflare (R2, D1):"
+echo "  cf:login           Authenticate with Cloudflare"
+echo "  cf:whoami          Check authentication status"
+echo "  cf:list            List D1 databases and R2 buckets"
+echo "  cf:dev             Start local development with miniflare"
+echo "  cf:env             Show Cloudflare environment config"
+echo "  cf:d1:create       Create a new D1 database"
+echo "  cf:d1:migrate      Run D1 migrations"
+echo "  cf:r2:create       Create a new R2 bucket"
+echo "  cf:r2:ls           List objects in R2 bucket"
 echo ""
 echo "Testing:"
 echo "  test:all           Run all tests (unit + integration)"
 echo "  test:unit          Run only unit tests (fast)"
 echo "  test:integration   Run only integration tests"
+echo "  test:cf            Run all Cloudflare tests (R2 + D1)"
+echo "  test:cf:r2         Run R2 blobstore tests"
+echo "  test:cf:d1         Run D1 kvstore tests"
 echo "  test:quick         Quick smoke test"
 echo "  test:nostd         All foundation_nostd tests"
 echo "  test:wasm          WASM compilation tests"

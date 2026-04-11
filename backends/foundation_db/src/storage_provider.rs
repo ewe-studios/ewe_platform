@@ -385,15 +385,15 @@ impl StorageProvider {
             StorageBackend::R2 { bucket } => {
                 let storage = R2BlobStore::from_env()?;
                 // Override prefix with bucket if specified
-                let storage = if !bucket.is_empty() {
+                let storage = if bucket.is_empty() {
+                    storage
+                } else {
                     R2BlobStore::new(
                         &std::env::var("CLOUDFLARE_API_TOKEN").unwrap_or_default(),
                         &std::env::var("CLOUDFLARE_ACCOUNT_ID").unwrap_or_default(),
                         &bucket,
                         "blobs",
                     )
-                } else {
-                    storage
                 };
                 Ok(Self {
                     inner: StorageProviderInner::R2(storage),
