@@ -220,13 +220,22 @@ impl ProviderWrapperGenerator {
 
             let sanitized_id = sanitize_operation_id(&ep.operation_id);
             let base_name = to_snake_case(&sanitized_id);
+
+            // Sanitize parameter names (replace dots and other special chars with underscores)
+            let path_params: Vec<String> = ep.path_params.iter()
+                .map(|p| sanitize_operation_id(p))
+                .collect();
+            let query_params: Vec<String> = ep.query_params.iter()
+                .map(|p| sanitize_operation_id(p))
+                .collect();
+
             endpoints.push(EndpointFn {
                 base_name: base_name.clone(),
                 args_type: to_pascal_case(&sanitized_id) + "Args",
                 response_type: ep.response_type.as_ref().map(|rt| rt.as_rust_type()).unwrap_or("serde_json::Value").to_string(),
                 is_mutating,
-                path_params: ep.path_params.clone(),
-                query_params: ep.query_params.clone(),
+                path_params,
+                query_params,
             });
         }
 
