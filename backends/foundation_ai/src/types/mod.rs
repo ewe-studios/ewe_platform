@@ -9,7 +9,7 @@ use foundation_auth::AuthCredential;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
 use foundation_core::wire::simple_http::url::Uri;
-use lazy_regex::{lazy_regex, Lazy, Regex};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::GenerationResult;
@@ -23,15 +23,15 @@ use crate::errors::ModelProviderResult;
 /// Provider-specific patterns (with example error messages):
 ///
 /// - Anthropic: "prompt is too long: 213462 tokens > 200000 maximum"
-/// - OpenAI: "Your input exceeds the context window of this model"
+/// - `OpenAI`: "Your input exceeds the context window of this model"
 /// - Google: "The input token count (1196265) exceeds the maximum number of tokens allowed (1048575)"
 /// - xAI: "This model's maximum prompt length is 131072 but the request contains 537812 tokens"
 /// - Groq: "Please reduce the length of the messages or completion"
-/// - OpenRouter: "This endpoint's maximum context length is X tokens. However, you requested about Y tokens"
-/// - llama.cpp: "the request exceeds the available context size, try increasing it"
+/// - `OpenRouter`: "This endpoint's maximum context length is X tokens. However, you requested about Y tokens"
+/// - `llama.cpp`: "the request exceeds the available context size, try increasing it"
 /// - LM Studio: "tokens to keep from the initial prompt is greater than the context length"
 /// - GitHub Copilot: "prompt token count of X exceeds the limit of Y"
-/// - MiniMax: "invalid params, context window exceeds limit"
+/// - `MiniMax`: "invalid params, context window exceeds limit"
 /// - Kimi For Coding: "Your request exceeded model token limit: X (requested: Y)"
 /// - Cerebras: Returns "400/413 status code (no body)" - handled separately below
 /// - Mistral: Returns "400/413 status code (no body)" - handled separately below
@@ -675,8 +675,8 @@ pub enum Messages {
     },
 }
 
-static OVERFLOW_SILENT_PATTERN: Lazy<Regex> =
-    lazy_regex!(r"(?i)^4(00|13)\s*(status code)?\s*\(no body\)");
+static OVERFLOW_SILENT_PATTERN: std::sync::LazyLock<Regex> =
+    std::sync::LazyLock::new(|| regex::Regex::new(r"(?i)^4(00|13)\s*(status code)?\s*\(no body\)").unwrap());
 
 impl Messages {
     pub fn is_context_overflow(&self, context_window: u64) -> bool {
@@ -709,8 +709,9 @@ impl Messages {
 
                 // Case 2: Silent overflow (z.ai style) - successful but usage exceeds context
                 if *stop_reason == StopReason::Stop {
-                    let input_tokens = usage.input + usage.cache_read;
-                    if input_tokens > context_window as f64 {
+                    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                    let input_tokens = (usage.input + usage.cache_read).max(0.0) as u64;
+                    if input_tokens > context_window {
                         return true;
                     }
                 }
@@ -823,6 +824,10 @@ pub trait ModelProvider {
     ///
     /// It seems reasonable that the provider should handle the refresh and re-authentication/
     /// re-authorization necessary after the initial call by user.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ModelProviderErrors`] if the provider fails to initialize or authenticate.
     fn create(
         self,
         config: Option<Self::Config>,
@@ -831,6 +836,11 @@ pub trait ModelProvider {
     where
         Self: Sized;
 
+    /// Returns a descriptor for this model provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ModelProviderErrors`] if the provider descriptor cannot be generated.
     fn describe(&self) -> ModelProviderResult<ModelProviderDescriptor>;
 
     /// [`get_model_by_spec`] returns a Model interaction type that allows you to
@@ -869,10 +879,10 @@ pub trait ModelProvider {
 }
 
 // ==================================
-// llama.cpp Specific Types
+// `llama.cpp` Specific Types
 // ==================================
 
-/// ChatMessage provides an ergonomic way to construct chat messages
+/// `ChatMessage` provides an ergonomic way to construct chat messages
 /// for use with chat templates and model interactions.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ChatMessage {
@@ -883,7 +893,7 @@ pub struct ChatMessage {
 }
 
 impl ChatMessage {
-    /// Create a new ChatMessage with the given role and content.
+    /// Create a new `ChatMessage` with the given role and content.
     #[must_use]
     pub fn new(role: impl Into<String>, content: impl Into<String>) -> Self {
         Self {
@@ -911,7 +921,7 @@ impl ChatMessage {
     }
 }
 
-/// KVCacheType defines the precision/format of the KV cache.
+/// [`KVCacheType`] defines the precision/format of the KV cache.
 /// Lower precision types reduce memory usage but may affect quality.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
 pub enum KVCacheType {
@@ -933,13 +943,12 @@ impl KVCacheType {
         match self {
             KVCacheType::F32 => 4,
             KVCacheType::F16 => 2,
-            KVCacheType::Q8_0 => 1,
-            KVCacheType::Q5_0 => 1,
+            KVCacheType::Q8_0 | KVCacheType::Q5_0 => 1,
         }
     }
 }
 
-/// SplitMode defines how to split model layers across multiple GPUs.
+/// [`SplitMode`] defines how to split model layers across multiple GPUs.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
 pub enum SplitMode {
     /// No splitting - all layers on a single GPU.
@@ -951,7 +960,7 @@ pub enum SplitMode {
     Row,
 }
 
-/// LlamaConfig contains llama.cpp-specific configuration options
+/// `LlamaConfig` contains `llama.cpp`-specific configuration options
 /// for hardware acceleration and memory management.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LlamaConfig {
@@ -989,7 +998,7 @@ impl Default for LlamaConfig {
 }
 
 impl LlamaConfig {
-    /// Create a new LlamaConfig with default values.
+    /// Create a new `LlamaConfig` with default values.
     #[must_use]
     pub fn new() -> Self {
         Self::default()

@@ -501,42 +501,56 @@ struct TokenResponse {
 }
 
 /// OAuth-related errors.
-#[derive(Debug, thiserror::Error)]
+#[derive(derive_more::From, Debug)]
 pub enum OAuthError {
     /// Missing client ID.
-    #[error("Missing client ID")]
     MissingClientId,
     /// Missing client secret.
-    #[error("Missing client secret")]
     MissingClientSecret,
     /// Missing authorization URL.
-    #[error("Missing authorization URL")]
     MissingAuthorizationUrl,
     /// Missing token URL.
-    #[error("Missing token URL")]
     MissingTokenUrl,
     /// Missing redirect URI.
-    #[error("Missing redirect URI")]
     MissingRedirectUri,
     /// Invalid URL.
-    #[error("Invalid URL: {0}")]
+    #[from(ignore)]
     InvalidUrl(String),
     /// Invalid state parameter.
-    #[error("Invalid state parameter")]
     InvalidState,
     /// Token request failed.
-    #[error("Token request failed: {0}")]
+    #[from(ignore)]
     TokenRequestFailed(String),
     /// Token endpoint error.
-    #[error("Token endpoint error ({}): {}", .status, .message)]
     TokenEndpointError { status: u16, message: String },
     /// Token parse error.
-    #[error("Failed to parse token response: {0}")]
+    #[from(ignore)]
     TokenParseError(String),
     /// PKCE generation failed.
-    #[error("PKCE generation failed")]
     PkceFailed,
 }
+
+impl core::fmt::Display for OAuthError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            OAuthError::MissingClientId => write!(f, "Missing client ID"),
+            OAuthError::MissingClientSecret => write!(f, "Missing client secret"),
+            OAuthError::MissingAuthorizationUrl => write!(f, "Missing authorization URL"),
+            OAuthError::MissingTokenUrl => write!(f, "Missing token URL"),
+            OAuthError::MissingRedirectUri => write!(f, "Missing redirect URI"),
+            OAuthError::InvalidUrl(s) => write!(f, "Invalid URL: {s}"),
+            OAuthError::InvalidState => write!(f, "Invalid state parameter"),
+            OAuthError::TokenRequestFailed(s) => write!(f, "Token request failed: {s}"),
+            OAuthError::TokenEndpointError { status, message } => {
+                write!(f, "Token endpoint error ({status}): {message}")
+            }
+            OAuthError::TokenParseError(s) => write!(f, "Failed to parse token response: {s}"),
+            OAuthError::PkceFailed => write!(f, "PKCE generation failed"),
+        }
+    }
+}
+
+impl std::error::Error for OAuthError {}
 
 #[cfg(test)]
 mod tests {

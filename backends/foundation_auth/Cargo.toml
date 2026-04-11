@@ -12,9 +12,8 @@ keywords.workspace = true
 foundation_core = { workspace = true }
 foundation_db = { workspace = true }
 
-# Error handling
-derive_more = { version = "2.0", features = ["from", "debug", "error"] }
-thiserror = "2.0"
+# Error handling (derive_more::From + manual Display, NO thiserror)
+derive_more = { version = "2.0", features = ["from", "error", "display"] }
 
 # Cryptography
 zeroize = { version = "1" }

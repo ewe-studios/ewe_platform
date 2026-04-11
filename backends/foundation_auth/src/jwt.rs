@@ -290,36 +290,48 @@ impl Claims {
 }
 
 /// JWT-related errors.
-#[derive(Debug, thiserror::Error)]
+#[derive(derive_more::From, Debug)]
 pub enum JwtError {
     /// No token available.
-    #[error("No JWT token available")]
     NoToken,
     /// No refresh token available.
-    #[error("No refresh token available")]
     NoRefreshToken,
     /// Token refresh failed.
-    #[error("Token refresh failed: {0}")]
+    #[from(ignore)]
     RefreshFailed(String),
     /// Invalid token format.
-    #[error("Invalid JWT token format")]
     InvalidTokenFormat,
     /// Token is expired.
-    #[error("JWT token is expired")]
     TokenExpired,
     /// Missing expiration claim.
-    #[error("JWT token missing expiration claim")]
     MissingExpiration,
     /// Base64 decode error.
-    #[error("Base64 decode error")]
+    #[from(ignore)]
     DecodeError,
     /// JSON parse error.
-    #[error("JSON parse error: {0}")]
-    JsonError(#[from] serde_json::Error),
+    Json(serde_json::Error),
     /// Token generation error.
-    #[error("Token generation error: {0}")]
+    #[from(ignore)]
     GenerationError(String),
 }
+
+impl core::fmt::Display for JwtError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            JwtError::NoToken => write!(f, "No JWT token available"),
+            JwtError::NoRefreshToken => write!(f, "No refresh token available"),
+            JwtError::RefreshFailed(s) => write!(f, "Token refresh failed: {s}"),
+            JwtError::InvalidTokenFormat => write!(f, "Invalid JWT token format"),
+            JwtError::TokenExpired => write!(f, "JWT token is expired"),
+            JwtError::MissingExpiration => write!(f, "JWT token missing expiration claim"),
+            JwtError::DecodeError => write!(f, "Base64 decode error"),
+            JwtError::Json(e) => write!(f, "JSON parse error: {e}"),
+            JwtError::GenerationError(s) => write!(f, "Token generation error: {s}"),
+        }
+    }
+}
+
+impl std::error::Error for JwtError {}
 
 #[cfg(test)]
 mod tests {
