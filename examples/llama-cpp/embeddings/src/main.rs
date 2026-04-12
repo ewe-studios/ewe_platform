@@ -14,8 +14,8 @@ use anyhow::{bail, Context, Result};
 use clap::Parser;
 use hf_hub::api::sync::ApiBuilder;
 
-use infrastructure_llama_cpp::context::params::LlamaContextParams;
-use infrastructure_llama_cpp::context::LlamaContext;
+use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+use infrastructure_llama_cpp::context::LlamaModelContext;
 use infrastructure_llama_cpp::ggml_time_us;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
@@ -105,7 +105,7 @@ fn main() -> Result<()> {
         .with_context(|| "unable to load model")?;
 
     // initialize the context
-    let ctx_params = LlamaContextParams::default()
+    let ctx_params = LlamaModelContextParams::default()
         .with_n_threads_batch(std::thread::available_parallelism()?.get().try_into()?)
         .with_embeddings(true);
 
@@ -189,7 +189,7 @@ fn main() -> Result<()> {
 }
 
 fn batch_decode(
-    ctx: &mut LlamaContext,
+    ctx: &mut LlamaModelContext,
     batch: &mut LlamaBatch,
     s_batch: i32,
     output: &mut Vec<Vec<f32>>,

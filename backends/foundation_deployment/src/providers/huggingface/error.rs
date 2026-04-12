@@ -53,29 +53,29 @@ impl fmt::Display for HuggingFaceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             HuggingFaceError::Http { status, url, body } => {
-                write!(f, "HTTP error: {} {} - {}", status, url, body)
+                write!(f, "HTTP error: {status} {url} - {body}")
             }
             HuggingFaceError::AuthRequired => write!(f, "Authentication required"),
             HuggingFaceError::RepoNotFound { repo_id } => {
-                write!(f, "Repository not found: {}", repo_id)
+                write!(f, "Repository not found: {repo_id}")
             }
             HuggingFaceError::RevisionNotFound { repo_id, revision } => {
-                write!(f, "Revision not found: {} in {}", revision, repo_id)
+                write!(f, "Revision not found: {revision} in {repo_id}")
             }
             HuggingFaceError::FileNotFound { path, repo_id } => {
-                write!(f, "File not found: {} in {}", path, repo_id)
+                write!(f, "File not found: {path} in {repo_id}")
             }
             HuggingFaceError::InvalidRepoType { expected, actual } => {
-                write!(f, "Invalid repository type: expected {}, got {}", expected, actual)
+                write!(f, "Invalid repository type: expected {expected}, got {actual}")
             }
             HuggingFaceError::InvalidParameter(msg) => {
-                write!(f, "Invalid parameter: {}", msg)
+                write!(f, "Invalid parameter: {msg}")
             }
-            HuggingFaceError::Backend(msg) => write!(f, "Backend error: {}", msg),
-            HuggingFaceError::Valtron(msg) => write!(f, "Valtron error: {}", msg),
-            HuggingFaceError::Io(e) => write!(f, "I/O error: {}", e),
-            HuggingFaceError::Json(e) => write!(f, "JSON error: {}", e),
-            HuggingFaceError::HttpParse(e) => write!(f, "HTTP parse error: {}", e),
+            HuggingFaceError::Backend(msg) => write!(f, "Backend error: {msg}"),
+            HuggingFaceError::Valtron(msg) => write!(f, "Valtron error: {msg}"),
+            HuggingFaceError::Io(e) => write!(f, "I/O error: {e}"),
+            HuggingFaceError::Json(e) => write!(f, "JSON error: {e}"),
+            HuggingFaceError::HttpParse(e) => write!(f, "HTTP parse error: {e}"),
         }
     }
 }

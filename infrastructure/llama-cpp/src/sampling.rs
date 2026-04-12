@@ -4,7 +4,7 @@ use std::borrow::Borrow;
 use std::ffi::{c_char, CString};
 use std::fmt::{Debug, Formatter};
 
-use crate::context::LlamaContext;
+use crate::context::LlamaModelContext;
 use crate::model::LlamaModel;
 use crate::token::data_array::LlamaTokenDataArray;
 use crate::token::logit_bias::LlamaLogitBias;
@@ -25,7 +25,7 @@ impl Debug for LlamaSampler {
 impl LlamaSampler {
     /// Sample and accept a token from the idx-th output of the last evaluation
     #[must_use]
-    pub fn sample(&mut self, ctx: &LlamaContext, idx: i32) -> LlamaToken {
+    pub fn sample(&mut self, ctx: &LlamaModelContext, idx: i32) -> LlamaToken {
         let token = unsafe {
             infrastructure_llama_bindings::llama_sampler_sample(
                 self.sampler,

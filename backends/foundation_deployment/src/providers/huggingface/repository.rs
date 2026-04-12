@@ -45,6 +45,7 @@ pub struct RepositoryArgs {
 
 impl HFRepository {
     /// Create a new repository handle.
+    #[must_use] 
     pub fn new(
         client: HFClient,
         owner: String,
@@ -62,6 +63,7 @@ impl HFRepository {
     }
 
     /// Create a new repository handle with arguments.
+    #[must_use] 
     pub fn with_args(client: HFClient, args: RepositoryArgs) -> Self {
         let RepositoryArgs {
             owner,
@@ -80,11 +82,13 @@ impl HFRepository {
     }
 
     /// Get the repository path (owner/name).
+    #[must_use] 
     pub fn repo_path(&self) -> String {
         format!("{}/{}", self.inner.owner, self.inner.name)
     }
 
     /// Get the repository type.
+    #[must_use] 
     pub fn repo_type(&self) -> RepoType {
         self.inner.repo_type
     }
@@ -116,7 +120,7 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
     };
 
     let url = if let Some(ref revision) = params.revision {
-        format!("{}/revision/{}", url, revision)
+        format!("{url}/revision/{revision}")
     } else {
         url
     };
@@ -129,11 +133,11 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
         .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
     let builder = {
-        if let Some(ref token) = repo.inner.client.token() {
-            if !HFClient::is_implicit_token_disabled() {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-            } else {
+        if let Some(token) = repo.inner.client.token() {
+            if HFClient::is_implicit_token_disabled() {
                 builder
+            } else {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
         } else {
             builder
@@ -159,8 +163,7 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
                 Ok(info)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -200,11 +203,11 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
         .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
     let builder = {
-        if let Some(ref token) = repo.inner.client.token() {
-            if !HFClient::is_implicit_token_disabled() {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-            } else {
+        if let Some(token) = repo.inner.client.token() {
+            if HFClient::is_implicit_token_disabled() {
                 builder
+            } else {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
         } else {
             builder
@@ -264,11 +267,11 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
         .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
     let builder = {
-        if let Some(ref token) = repo.inner.client.token() {
-            if !HFClient::is_implicit_token_disabled() {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-            } else {
+        if let Some(token) = repo.inner.client.token() {
+            if HFClient::is_implicit_token_disabled() {
                 builder
+            } else {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
         } else {
             builder
@@ -324,11 +327,11 @@ pub fn repo_list_tree(
         .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
     let builder = {
-        if let Some(ref token) = repo.inner.client.token() {
-            if !HFClient::is_implicit_token_disabled() {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-            } else {
+        if let Some(token) = repo.inner.client.token() {
+            if HFClient::is_implicit_token_disabled() {
                 builder
+            } else {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
         } else {
             builder
@@ -354,8 +357,7 @@ pub fn repo_list_tree(
                 Ok(entries)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -375,9 +377,9 @@ pub fn repo_list_tree(
     }))
 }
 
-/// Download a file, handling HuggingFace's CDN redirect.
+/// Download a file, handling `HuggingFace`'s CDN redirect.
 ///
-/// HuggingFace returns a 302 redirect to their CDN for file downloads.
+/// `HuggingFace` returns a 302 redirect to their CDN for file downloads.
 /// This function handles that redirect manually.
 pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
     use foundation_core::wire::simple_http::{SimpleHeaders, SimpleHeader};
@@ -401,11 +403,11 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
     let builder = {
-        if let Some(ref token) = repo.inner.client.token() {
-            if !HFClient::is_implicit_token_disabled() {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-            } else {
+        if let Some(token) = repo.inner.client.token() {
+            if HFClient::is_implicit_token_disabled() {
                 builder
+            } else {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
         } else {
             builder
@@ -571,7 +573,7 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
     let boundary = "----RustBoundary".to_string();
     let mut body = String::new();
 
-    body.push_str(&format!("--{}\r\n", boundary));
+    body.push_str(&format!("--{boundary}\r\n"));
     body.push_str("Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
     body.push_str(&serde_json::to_string(&serde_json::json!({
         "type": "commit",
@@ -581,13 +583,12 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
     }))?);
     body.push_str("\r\n");
 
-    for (_i, op) in params.operations.iter().enumerate() {
+    for op in &params.operations {
         match op {
             CommitOperation::Add { path_in_repo, source } => {
-                body.push_str(&format!("--{}\r\n", boundary));
+                body.push_str(&format!("--{boundary}\r\n"));
                 body.push_str(&format!(
-                    "Content-Disposition: form-data; name=\"files\"; filename=\"{}\"\r\n",
-                    path_in_repo
+                    "Content-Disposition: form-data; name=\"files\"; filename=\"{path_in_repo}\"\r\n"
                 ));
                 body.push_str("Content-Type: application/octet-stream\r\n\r\n");
                 match source {
@@ -603,7 +604,7 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
                 body.push_str("\r\n");
             }
             CommitOperation::Delete { path_in_repo } => {
-                body.push_str(&format!("--{}\r\n", boundary));
+                body.push_str(&format!("--{boundary}\r\n"));
                 body.push_str("Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n");
                 body.push_str(path_in_repo);
                 body.push_str("\r\n");
@@ -611,22 +612,22 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
         }
     }
 
-    body.push_str(&format!("--{}--\r\n", boundary));
+    body.push_str(&format!("--{boundary}--\r\n"));
 
     let http_client = repo.inner.client.simple_http();
 
-    let content_type = format!("multipart/form-data; boundary={}", boundary);
+    let content_type = format!("multipart/form-data; boundary={boundary}");
     let builder = http_client
         .post(&url)
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
         .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
     let builder = {
-        if let Some(ref token) = repo.inner.client.token() {
-            if !HFClient::is_implicit_token_disabled() {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-            } else {
+        if let Some(token) = repo.inner.client.token() {
+            if HFClient::is_implicit_token_disabled() {
                 builder
+            } else {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
         } else {
             builder
@@ -656,8 +657,7 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
                 Ok(commit_info)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());

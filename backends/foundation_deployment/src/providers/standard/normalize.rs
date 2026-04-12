@@ -1,11 +1,11 @@
-//! Shared spec normalization utilities for OpenAPI 3.x providers.
+//! Shared spec normalization utilities for `OpenAPI` 3.x providers.
 //!
-//! WHY: The type and client generators expect a canonical OpenAPI 3.x structure:
+//! WHY: The type and client generators expect a canonical `OpenAPI` 3.x structure:
 //! schemas in `components/schemas`, a `servers` array with at least one entry,
 //! and `$ref` pointers instead of inline schemas. Not all provider specs arrive
 //! in this form.
 //!
-//! WHAT: Functions to normalize raw OpenAPI specs into the canonical form.
+//! WHAT: Functions to normalize raw `OpenAPI` specs into the canonical form.
 //!
 //! HOW: Each function transforms one aspect of the spec. Providers compose them
 //! in their `fetch.rs` to build a normalizer that matches their spec's quirks.
@@ -19,16 +19,16 @@ pub fn ensure_servers(spec: &mut Value, base_url: &str) {
     let needs_server = spec
         .get("servers")
         .and_then(|s| s.as_array())
-        .map_or(true, |a| a.is_empty());
+        .is_none_or(std::vec::Vec::is_empty);
 
     if needs_server {
         spec["servers"] = serde_json::json!([{"url": base_url}]);
     }
 }
 
-/// Convert OpenAPI 3.1.0 nullable type arrays to simple types with a serde default.
+/// Convert `OpenAPI` 3.1.0 nullable type arrays to simple types with a serde default.
 ///
-/// OpenAPI 3.1.0 uses `"type": ["string", "null"]` for nullable fields.
+/// `OpenAPI` 3.1.0 uses `"type": ["string", "null"]` for nullable fields.
 /// This normalizes them to `"type": "string"` so downstream Rust code
 /// generation can map them to `Option<T>`.
 pub fn normalize_nullable_types(schema: &mut Value) {
@@ -123,11 +123,12 @@ pub fn extract_inline_schemas(
     }
 }
 
-/// Convert a path like `/v1/databases/{databaseId}/backups` to a PascalCase
+/// Convert a path like `/v1/databases/{databaseId}/backups` to a `PascalCase`
 /// type name prefix like `DatabasesBackups`.
 ///
 /// Strips version prefix (`v1`, `v2`, etc.), removes path parameters,
 /// and capitalizes each segment.
+#[must_use] 
 pub fn path_to_type_name(path: &str) -> String {
     path.split('/')
         .filter(|s| !s.is_empty() && !s.starts_with('{') && !s.starts_with("v1") && !s.starts_with("v2"))

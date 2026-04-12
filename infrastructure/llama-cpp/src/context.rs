@@ -21,8 +21,7 @@ pub mod params;
 pub mod session;
 
 /// Safe wrapper around `llama_context`.
-#[allow(clippy::module_name_repetitions)]
-pub struct LlamaContext<'a> {
+pub struct LlamaModelContext<'a> {
     pub context: NonNull<infrastructure_llama_bindings::llama_context>,
     /// a reference to the contexts model.
     pub model: &'a LlamaModel,
@@ -30,15 +29,26 @@ pub struct LlamaContext<'a> {
     embeddings_enabled: bool,
 }
 
-impl Debug for LlamaContext<'_> {
+impl Debug for LlamaModelContext<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("LlamaContext")
+        f.debug_struct("LlamaModelContext")
             .field("context", &self.context)
             .finish()
     }
 }
 
-impl<'model> LlamaContext<'model> {
+impl Clone for LlamaModelContext<'_> {
+    fn clone(&self) -> Self {
+        Self {
+            context: self.context,
+            model: self.model,
+            initialized_logits: self.initialized_logits.clone(),
+            embeddings_enabled: self.embeddings_enabled,
+        }
+    }
+}
+
+impl<'model> LlamaModelContext<'model> {
     #[must_use]
     pub fn new(
         llama_model: &'model LlamaModel,
@@ -373,7 +383,7 @@ impl<'model> LlamaContext<'model> {
     }
 }
 
-impl Drop for LlamaContext<'_> {
+impl Drop for LlamaModelContext<'_> {
     fn drop(&mut self) {
         unsafe { infrastructure_llama_bindings::llama_free(self.context.as_ptr()) }
     }

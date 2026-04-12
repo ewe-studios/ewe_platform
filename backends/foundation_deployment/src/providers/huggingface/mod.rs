@@ -5,8 +5,8 @@
 //!
 //! # Module Organization
 //!
-//! - [`client`] - HFClient struct and core API operations (whoami, list_*, create_repo, etc.)
-//! - [`repository`] - HFRepository struct and repository operations (info, download, upload, etc.)
+//! - [`client`] - `HFClient` struct and core API operations (whoami, list_*, `create_repo`, etc.)
+//! - [`repository`] - `HFRepository` struct and repository operations (info, download, upload, etc.)
 //! - [`types`] - Type definitions for all API requests and responses
 //! - [`constants`] - API endpoints and configuration constants
 //! - [`error`] - Error types and Result alias

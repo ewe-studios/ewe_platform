@@ -1,6 +1,6 @@
 //! utilities for working with the kv cache
 
-use crate::context::LlamaContext;
+use crate::context::LlamaModelContext;
 use std::ffi::c_int;
 use std::num::{NonZeroU8, TryFromIntError};
 
@@ -19,7 +19,7 @@ pub enum KvCacheConversionError {
     P1TooLarge(#[source] TryFromIntError),
 }
 
-impl LlamaContext<'_> {
+impl LlamaModelContext<'_> {
     /// Copy the cache from one sequence to another.
     ///
     /// # Parameters
@@ -116,7 +116,7 @@ impl LlamaContext<'_> {
     #[allow(clippy::doc_markdown)]
     /// Adds relative position "delta" to all tokens that belong to the specified sequence and have positions in `[p0, p1)`
     /// If the KV cache is RoPEd, the KV data is updated accordingly:
-    ///   - lazily on next [`LlamaContext::decode`]
+    ///   - lazily on next [`LlamaModelContext::decode`]
     ///   - explicitly with [`Self::kv_cache_update`]
     ///
     /// # Returns
@@ -151,7 +151,7 @@ impl LlamaContext<'_> {
 
     /// Integer division of the positions by factor of `d > 1`
     /// If the KV cache is `RoPEd`, the KV data is updated accordingly:
-    ///   - lazily on next [`LlamaContext::decode`]
+    ///   - lazily on next [`LlamaModelContext::decode`]
     ///   - explicitly with [`Self::kv_cache_update`]
     ///
     /// # Returns

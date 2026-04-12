@@ -7,7 +7,7 @@
 //! provider's output directory.
 //!
 //! HOW: Delegates to `standard::fetch::fetch_standard_spec` for HTTP download,
-//! then normalizes the spec from Swagger 2.0 to OpenAPI 3.x format.
+//! then normalizes the spec from Swagger 2.0 to `OpenAPI` 3.x format.
 
 use crate::error::DeploymentError;
 use crate::providers::openapi::{self, ProcessedSpec};
@@ -29,7 +29,7 @@ pub const PROVIDER_NAME: &str = "planetscale";
 /// Fetch the `` `PlanetScale` `` `` `OpenAPI` `` spec and normalize it.
 ///
 /// After fetching the raw spec, applies normalization to convert from Swagger 2.0
-/// to OpenAPI 3.x format (host + schemes + basePath → servers).
+/// to `OpenAPI` 3.x format (host + schemes + basePath → servers).
 ///
 /// # Errors
 ///
@@ -117,7 +117,7 @@ pub fn fetch_planetscale_specs(
     Ok(stream.map_pending(|_| ()))
 }
 
-/// Normalize a PlanetScale Swagger 2.0 spec to OpenAPI 3.x format.
+/// Normalize a `PlanetScale` Swagger 2.0 spec to `OpenAPI` 3.x format.
 ///
 /// Converts:
 /// - `host` + `schemes` + `basePath` → `servers`

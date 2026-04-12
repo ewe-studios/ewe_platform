@@ -51,7 +51,7 @@ struct HFClientInner {
     token: Option<String>,
 }
 
-/// Builder for HFClient.
+/// Builder for `HFClient`.
 pub struct HFClientBuilder {
     endpoint: Option<String>,
     token: Option<String>,
@@ -65,6 +65,7 @@ impl Default for HFClientBuilder {
 
 impl HFClientBuilder {
     /// Create a new builder with defaults from environment.
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             endpoint: None,
@@ -90,7 +91,7 @@ impl HFClientBuilder {
             .endpoint
             .unwrap_or_else(|| std::env::var("HF_ENDPOINT").unwrap_or_else(|_| HF_DEFAULT_ENDPOINT.to_string()));
 
-        let token = self.token.or_else(|| resolve_token());
+        let token = self.token.or_else(resolve_token);
 
         // Configure client to preserve auth headers on redirects
         // HuggingFace redirects to CDN (cas-bridge.xethub.hf.co) for file downloads
@@ -144,7 +145,7 @@ fn resolve_token() -> Option<String> {
 #[inline]
 pub(crate) fn is_success_status(status: &Status) -> bool {
     let code: usize = status.clone().into();
-    code >= 200 && code < 300
+    (200..300).contains(&code)
 }
 
 /// Get status code as u16.
@@ -161,6 +162,7 @@ impl HFClient {
     }
 
     /// Get a builder for fine-grained configuration.
+    #[must_use] 
     pub fn builder() -> HFClientBuilder {
         HFClientBuilder::new()
     }
@@ -197,7 +199,7 @@ impl HFClient {
             .unwrap_or(false)
     }
 
-    /// Get a clone of the underlying SimpleHttpClient.
+    /// Get a clone of the underlying `SimpleHttpClient`.
     pub(crate) fn simple_http(&self) -> SimpleHttpClient {
         self.inner.client.clone()
     }
@@ -206,6 +208,7 @@ impl HFClient {
     ///
     /// Note: This returns only auth-related headers. For use with a request builder,
     /// use `apply_auth_headers()` to add them without replacing the Host header.
+    #[must_use] 
     pub fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = SimpleHeaders::new();
         headers.insert(SimpleHeader::USER_AGENT, vec![HF_USER_AGENT.to_string()]);
@@ -230,6 +233,7 @@ impl HFClient {
     /// Apply authentication headers to a request builder.
     ///
     /// This adds headers individually to avoid replacing the Host header.
+    #[must_use] 
     pub fn apply_auth_headers<T: DnsResolver + 'static>(
         &self,
         builder: ClientRequestBuilder<T>,
@@ -237,10 +241,10 @@ impl HFClient {
         let builder = builder.header(SimpleHeader::USER_AGENT, HF_USER_AGENT);
 
         if let Some(ref token) = self.inner.token {
-            if !Self::is_implicit_token_disabled() {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-            } else {
+            if Self::is_implicit_token_disabled() {
                 builder
+            } else {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {token}"))
             }
         } else {
             builder
@@ -248,6 +252,7 @@ impl HFClient {
     }
 
     /// Build API URL for a repository.
+    #[must_use] 
     pub fn api_url(&self, repo_type: Option<RepoType>, repo_id: &str) -> String {
         let prefix = match repo_type {
             Some(RepoType::Dataset) => "datasets/",
@@ -259,6 +264,7 @@ impl HFClient {
     }
 
     /// Build download URL for a file.
+    #[must_use] 
     pub fn download_url(
         &self,
         repo_type: Option<RepoType>,
@@ -304,10 +310,10 @@ pub fn whoami(client: &HFClient) -> Result<User> {
         let implicit_disabled = std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV)
             .map(|v| v == "1" || v == "true")
             .unwrap_or(false);
-        if !implicit_disabled {
-            builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-        } else {
+        if implicit_disabled {
             builder
+        } else {
+            builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {token}"))
         }
     } else {
         builder
@@ -331,8 +337,7 @@ pub fn whoami(client: &HFClient) -> Result<User> {
                 Ok(user)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -382,8 +387,7 @@ pub fn list_models(
                 Ok(models)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -434,8 +438,7 @@ pub fn list_datasets(
                 Ok(datasets)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -486,8 +489,7 @@ pub fn list_spaces(
                 Ok(spaces)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -560,8 +562,7 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
                 Ok(repo_url)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -622,8 +623,7 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
                 Ok(())
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -686,8 +686,7 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
                 Ok(repo_url)
             }
             RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
+                "Request failed: {e}"
             ))),
         })
         .map_pending(|_| ());
@@ -704,7 +703,7 @@ fn build_list_url<P>(endpoint: &str, base_path: &str, params: &P) -> String
 where
     P: ListParams,
 {
-    let mut url = format!("{}{}", endpoint, base_path);
+    let mut url = format!("{endpoint}{base_path}");
     let mut query_parts = Vec::new();
 
     if let Some(search) = params.search() {
@@ -726,16 +725,16 @@ where
         ));
     }
     if let Some(full) = params.full() {
-        query_parts.push(format!("full={}", full));
+        query_parts.push(format!("full={full}"));
     }
     if let Some(card_data) = params.card_data() {
-        query_parts.push(format!("cardData={}", card_data));
+        query_parts.push(format!("cardData={card_data}"));
     }
     if let Some(fetch_config) = params.fetch_config() {
-        query_parts.push(format!("config={}", fetch_config));
+        query_parts.push(format!("config={fetch_config}"));
     }
     if let Some(limit) = params.limit() {
-        query_parts.push(format!("limit={}", limit));
+        query_parts.push(format!("limit={limit}"));
     }
 
     if !query_parts.is_empty() {

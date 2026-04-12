@@ -1,12 +1,12 @@
 //! Prisma Postgres `` `OpenAPI` `` spec fetcher and normalizer.
 //!
-//! WHY: Prisma Postgres publishes an OpenAPI 3.1.0 spec at `/v1/doc` with two
+//! WHY: Prisma Postgres publishes an `OpenAPI` 3.1.0 spec at `/v1/doc` with two
 //! quirks the generators cannot consume directly:
 //! 1. No `servers` field — the base URL must be inferred from the fetch URL.
 //! 2. All request/response schemas are defined inline in path operations
 //!    rather than in `components/schemas` with `$ref` pointers.
 //!
-//! WHAT: Fetches the raw spec, then normalizes it into canonical OpenAPI 3.x
+//! WHAT: Fetches the raw spec, then normalizes it into canonical `OpenAPI` 3.x
 //! form so the type and client generators produce correct Rust code.
 //!
 //! HOW: After download, `normalize_prisma_spec` walks every path operation,
@@ -122,12 +122,12 @@ pub fn fetch_prisma_postgres_specs(
     Ok(stream.map_pending(|_| ()))
 }
 
-/// Normalize a Prisma Postgres OpenAPI 3.1.0 spec into canonical form.
+/// Normalize a Prisma Postgres `OpenAPI` 3.1.0 spec into canonical form.
 ///
 /// 1. Adds `servers: [{"url": "https://api.prisma.io"}]` if missing.
 /// 2. Walks every path operation and extracts inline request/response schemas
 ///    into `components/schemas` with `$ref` pointers.
-/// 3. Normalizes OpenAPI 3.1.0 nullable types (`["string", "null"]` → `type: "string"`).
+/// 3. Normalizes `OpenAPI` 3.1.0 nullable types (`["string", "null"]` → `type: "string"`).
 pub fn normalize_prisma_spec(spec: &mut Value) {
     normalize::ensure_servers(spec, BASE_URL);
 

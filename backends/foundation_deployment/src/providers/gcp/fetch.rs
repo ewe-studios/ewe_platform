@@ -274,7 +274,7 @@ fn create_api_fetch_task(
                     Ok(spec) => {
                         // Check if this is an error response instead of a valid spec
                         if let Some(error_obj) = spec.get("error").and_then(|e| e.as_object()) {
-                            let code = error_obj.get("code").and_then(|v| v.as_u64()).unwrap_or(0);
+                            let _code = error_obj.get("code").and_then(serde_json::Value::as_u64).unwrap_or(0);
                             let message = error_obj
                                 .get("message")
                                 .and_then(|v| v.as_str())
@@ -396,7 +396,7 @@ fn write_single_spec(
 ) -> Result<Option<PathBuf>, DeploymentError> {
     // Check if this is an error response
     if let Some(error_obj) = spec.get("error").and_then(|e| e.as_object()) {
-        let code = error_obj.get("code").and_then(|v| v.as_u64()).unwrap_or(0);
+        let _code = error_obj.get("code").and_then(serde_json::Value::as_u64).unwrap_or(0);
         let message = error_obj
             .get("message")
             .and_then(|v| v.as_str())

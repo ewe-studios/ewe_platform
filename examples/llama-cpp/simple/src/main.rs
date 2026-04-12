@@ -9,7 +9,7 @@
 use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
 use hf_hub::api::sync::ApiBuilder;
-use infrastructure_llama_cpp::context::params::LlamaContextParams;
+use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
 use infrastructure_llama_cpp::model::params::kv_overrides::ParamOverrideValue;
@@ -250,7 +250,7 @@ fn main() -> Result<()> {
 
     // initialize the context
     let mut ctx_params =
-        LlamaContextParams::default().with_n_ctx(ctx_size.or(Some(NonZeroU32::new(2048).unwrap())));
+        LlamaModelContextParams::default().with_n_ctx(ctx_size.or(Some(NonZeroU32::new(2048).unwrap())));
 
     if let Some(threads) = threads {
         ctx_params = ctx_params.with_n_threads(threads);

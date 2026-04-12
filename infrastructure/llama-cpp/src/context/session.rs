@@ -1,6 +1,6 @@
 //! utilities for working with session files
 
-use crate::context::LlamaContext;
+use crate::context::LlamaModelContext;
 use crate::token::LlamaToken;
 use std::ffi::{CString, NulError};
 use std::path::{Path, PathBuf};
@@ -46,7 +46,7 @@ pub enum LoadSessionError {
     },
 }
 
-impl LlamaContext<'_> {
+impl LlamaModelContext<'_> {
     /// Save the current session to a file.
     ///
     /// # Parameters

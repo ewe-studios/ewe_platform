@@ -21,7 +21,7 @@ PROJECT_ROOT = "{{config_root}}"
 # mise defers to rust-toolchain.toml when present, so we don't duplicate it.
 
 [tools]
-node = "22"
+node = "23"
 "cargo:cargo-nextest" = "latest"
 "cargo:cargo-audit" = "latest"
 "cargo:bacon" = "latest"
@@ -276,8 +276,8 @@ echo "Starting wrangler dev for local testing..."
 # Use project root wrangler.toml
 cd "$PROJECT_ROOT"
 
-# Start wrangler dev in background (no --local flag needed in v3+)
-wrangler dev > "$PROJECT_ROOT/wrangler.log" 2>&1 &
+# Start wrangler dev in background with --local flag
+wrangler dev --local > "$PROJECT_ROOT/wrangler.log" 2>&1 &
 WRANGLER_PID=$!
 echo $WRANGLER_PID > /tmp/wrangler-test.pid
 
