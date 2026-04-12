@@ -224,6 +224,13 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    /// Explicitly disable connection pooling for this request by setting pool to None.
+    #[must_use]
+    pub fn without_pool(mut self) -> Self {
+        self.pool = None;
+        self
+    }
+
     #[must_use]
     pub fn with_middleware(mut self, chain: Arc<MiddlewareChain>) -> Self {
         self.middleware_chain = Some(chain);

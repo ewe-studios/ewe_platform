@@ -17,8 +17,6 @@ fn test_client_config_default() {
 
     assert_eq!(config.max_redirects, 5);
     assert!(config.default_headers.is_empty());
-    assert!(!config.pool_enabled);
-    assert_eq!(config.pool_max_connections, 10);
 }
 
 #[test]
@@ -26,11 +24,9 @@ fn test_client_config_fields_public() {
     let mut config = ClientConfig::default()
         .with_connect_timeout(Duration::from_secs(10))
         .with_max_retries(3);
-    config.pool_enabled = true;
 
     assert_eq!(config.connect_timeout, Duration::from_secs(10));
     assert_eq!(config.max_retries, 3);
-    assert!(config.pool_enabled);
 }
 
 /// WHAT: Debug test for InvalidLocation error mapping using the public API.
@@ -62,5 +58,4 @@ fn test_client_config_clone() {
     let cloned = config.clone();
 
     assert_eq!(cloned.max_redirects, config.max_redirects);
-    assert_eq!(cloned.pool_enabled, config.pool_enabled);
 }

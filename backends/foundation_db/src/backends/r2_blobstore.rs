@@ -15,7 +15,8 @@ use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 use crate::errors::{StorageError, StorageResult};
 use crate::storage_provider::{BlobStore, StorageItemStream};
 
-const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
+/// Default Cloudflare API base. Tests override this via [`R2BlobStore::with_base_url`].
+pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 
 /// Cloudflare R2 blob storage backend.
 ///
@@ -28,20 +29,37 @@ pub struct R2BlobStore {
     account_id: String,
     bucket_name: String,
     prefix: String,
+    base_url: String,
     client: SimpleHttpClient,
 }
 
 impl R2BlobStore {
-    /// Create a new R2 blob store.
+    /// Create a new R2 blob store pointed at the production Cloudflare API.
     ///
     /// Object keys will be prefixed with `{prefix}/` for namespacing.
     #[must_use]
     pub fn new(api_token: &str, account_id: &str, bucket_name: &str, prefix: &str) -> Self {
+        Self::with_base_url(api_token, account_id, bucket_name, prefix, CF_API_BASE)
+    }
+
+    /// Create a new R2 blob store with a custom API base URL.
+    ///
+    /// Used by integration tests to point the client at a local wrangler
+    /// worker that emulates the Cloudflare R2 REST API.
+    #[must_use]
+    pub fn with_base_url(
+        api_token: &str,
+        account_id: &str,
+        bucket_name: &str,
+        prefix: &str,
+        base_url: &str,
+    ) -> Self {
         Self {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             bucket_name: bucket_name.to_string(),
             prefix: prefix.to_string(),
+            base_url: base_url.trim_end_matches('/').to_string(),
             client: SimpleHttpClient::from_system(),
         }
     }
@@ -78,8 +96,8 @@ impl R2BlobStore {
 
     fn object_url(&self, key: &str) -> String {
         format!(
-            "{CF_API_BASE}/accounts/{}/r2/buckets/{}/objects/{key}",
-            self.account_id, self.bucket_name
+            "{}/accounts/{}/r2/buckets/{}/objects/{key}",
+            self.base_url, self.account_id, self.bucket_name
         )
     }
 
@@ -171,6 +189,7 @@ impl BlobStore for R2BlobStore {
             .delete(&url)
             .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
             .header(SimpleHeader::AUTHORIZATION, self.auth_header())
+            .header(SimpleHeader::CONNECTION, "close")
             .build_client()
             .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
             .send()
@@ -198,6 +217,7 @@ impl BlobStore for R2BlobStore {
             .head(&url)
             .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
             .header(SimpleHeader::AUTHORIZATION, self.auth_header())
+            .header(SimpleHeader::CONNECTION, "close")
             .build_client()
             .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
             .send()

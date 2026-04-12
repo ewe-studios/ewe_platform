@@ -1,61 +1,18 @@
-//! KeyValueStore integration tests for D1 backend using miniflare.
+//! KeyValueStore integration tests for the D1 backend against a local
+//! wrangler worker emulating the Cloudflare D1 REST API.
 //!
-//! These tests run against miniflare's local D1 emulation.
-//! Requires miniflare to be installed and running.
-//!
-//! Set `D1_INTEGRATION_TEST=1` to enable these tests.
-//! If miniflare is not available, tests will be skipped.
+//! Endpoint configuration lives in [`common`] — set `CF_INTEGRATION_TEST=1`
+//! and optionally override `LOCAL_CF_API_BASE` to run these tests.
 
+mod common;
+
+use common::{init_valtron, make_d1_store};
 use foundation_core::valtron::collect_one;
-use foundation_db::{DataValue, D1KeyValueStore, KeyValueStore, QueryStore};
+use foundation_core::valtron::collect_result;
+use foundation_db::{DataValue, KeyValueStore, QueryStore};
 
-/// Initialize the Valtron executor for tests.
-fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
-}
-
-/// Check if miniflare is available and D1 tests are enabled.
-fn check_miniflare_available() -> bool {
-    // Check if D1 integration tests are enabled
-    if std::env::var("D1_INTEGRATION_TEST").ok().as_deref() != Some("1") {
-        return false;
-    }
-
-    // Check if miniflare is running by checking the local D1 endpoint
-    let local_d1_url = _env_var("LOCAL_D1_URL", "http://localhost:8789");
-
-    // Try to ping the local D1 endpoint
-    let response = std::process::Command::new("curl")
-        .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &local_d1_url])
-        .output();
-
-    match response {
-        Ok(output) => {
-            let status = String::from_utf8_lossy(&output.stdout);
-            status.trim() == "200" || status.trim() == "404"
-        }
-        Err(_) => false,
-    }
-}
-
-fn _env_var(name: &str, default: &str) -> String {
-    std::env::var(name).unwrap_or_else(|_| default.to_string())
-}
-
-/// Create a D1 key-value store configured for local miniflare testing.
-fn create_local_d1_store() -> Option<D1KeyValueStore> {
-    if !check_miniflare_available() {
-        return None;
-    }
-
-    let db_id = _env_var("LOCAL_D1_DATABASE_ID", "test-db");
-
-    Some(D1KeyValueStore::new(
-        "test-token", // Fake token for local testing
-        "test-account", // Fake account for local testing
-        &db_id,
-        "test",
-    ))
+fn create_local_d1_store() -> Option<foundation_db::D1KeyValueStore> {
+    make_d1_store()
 }
 
 #[test]
@@ -168,11 +125,10 @@ fn test_d1_kvstore_list_keys() {
     let _: () = collect_one(storage.set(&key3, "value_c").unwrap()).unwrap().unwrap();
 
     // List all keys with prefix
-    let keys: String = collect_one(storage.list_keys(Some(&prefix)).unwrap())
-        .unwrap()
+    let keys: Vec<String> = collect_result(storage.list_keys(Some(&prefix)).unwrap())
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()
         .unwrap();
-    // Keys are returned as a comma-separated string, split them
-    let keys: Vec<String> = keys.split(',').map(String::from).collect();
     assert_eq!(keys.len(), 3);
     assert!(keys.contains(&key1));
     assert!(keys.contains(&key2));

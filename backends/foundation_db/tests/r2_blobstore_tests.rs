@@ -1,61 +1,17 @@
-//! BlobStore integration tests for R2 backend using miniflare.
+//! BlobStore integration tests for the R2 backend against a local wrangler
+//! worker emulating the Cloudflare R2 REST API.
 //!
-//! These tests run against miniflare's local R2 emulation.
-//! Requires miniflare to be installed and running.
-//!
-//! Set `R2_INTEGRATION_TEST=1` to enable these tests.
-//! If miniflare is not available, tests will be skipped.
+//! Endpoint configuration lives in [`common`] — set `CF_INTEGRATION_TEST=1`
+//! and optionally override `LOCAL_CF_API_BASE` to run these tests.
 
+mod common;
+
+use common::{init_valtron, make_r2_store};
 use foundation_core::valtron::collect_one;
-use foundation_db::{BlobStore, R2BlobStore};
+use foundation_db::BlobStore;
 
-/// Initialize the Valtron executor for tests.
-fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
-}
-
-/// Check if miniflare is available and R2 tests are enabled.
-fn check_miniflare_available() -> bool {
-    // Check if R2 integration tests are enabled
-    if std::env::var("R2_INTEGRATION_TEST").ok().as_deref() != Some("1") {
-        return false;
-    }
-
-    // Check if miniflare is running by checking the local R2 endpoint
-    let local_r2_url = _env_var("LOCAL_R2_URL", "http://localhost:8788");
-
-    // Try to ping the local R2 endpoint
-    let response = std::process::Command::new("curl")
-        .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &local_r2_url])
-        .output();
-
-    match response {
-        Ok(output) => {
-            let status = String::from_utf8_lossy(&output.stdout);
-            status.trim() == "200" || status.trim() == "404"
-        }
-        Err(_) => false,
-    }
-}
-
-fn _env_var(name: &str, default: &str) -> String {
-    std::env::var(name).unwrap_or_else(|_| default.to_string())
-}
-
-/// Create an R2 blob store configured for local miniflare testing.
-fn create_local_r2_store() -> Option<R2BlobStore> {
-    if !check_miniflare_available() {
-        return None;
-    }
-
-    let bucket = _env_var("LOCAL_R2_BUCKET", "test-bucket");
-
-    Some(R2BlobStore::new(
-        "test-token", // Fake token for local testing
-        "test-account", // Fake account for local testing
-        &bucket,
-        "test",
-    ))
+fn create_local_r2_store() -> Option<foundation_db::R2BlobStore> {
+    make_r2_store()
 }
 
 #[test]

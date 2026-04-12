@@ -1485,7 +1485,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         .batch_size(8192 * 2)
         .read_timeout(Duration::from_secs(1))
         .max_retries(5)
-        .enable_pool(10);
+        .with_connection_pool();
 
     tracing::info!("Starting model descriptor generation with PARALLEL fetch...");
     let start_time = Instant::now();

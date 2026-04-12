@@ -23,8 +23,7 @@ use std::time::Duration;
 /// WHY: Centralizes all client configuration in one place. Makes it easy to
 /// share configuration across requests or customize per-instance.
 ///
-/// WHAT: Holds timeouts, redirect settings, default headers, connection pool settings,
-/// and proxy configuration.
+/// WHAT: Holds timeouts, redirect settings, default headers, and proxy configuration.
 ///
 /// HOW: Created via Default or explicit construction. Passed to `SimpleHttpClient`
 /// via builder pattern.
@@ -42,10 +41,6 @@ pub struct ClientConfig {
     pub max_redirects: u8,
     /// Headers to include in every request
     pub default_headers: SimpleHeaders,
-    /// Whether connection pooling is enabled
-    pub pool_enabled: bool,
-    /// Maximum connections in pool (if pooling enabled)
-    pub pool_max_connections: usize,
     /// Optional proxy configuration
     pub proxy: Option<ProxyConfig>,
     /// Whether to automatically detect proxy from environment variables
@@ -263,7 +258,7 @@ impl Default for ClientConfig {
     /// WHY: Sensible defaults for most use cases. Users can customize via builder.
     ///
     /// WHAT: Default timeouts (15s connect, 10s read, 10s write), 5 redirects,
-    /// no default headers, pooling disabled, no proxy, no body size limit (client-friendly),
+    /// no default headers, no proxy, no body size limit (client-friendly),
     /// auth/cookies stripped on cross-host redirects (security best practice).
     fn default() -> Self {
         Self {
@@ -273,8 +268,6 @@ impl Default for ClientConfig {
             write_timeout: std::time::Duration::from_secs(10),
             default_headers: BTreeMap::default(),
             max_redirects: 5,
-            pool_enabled: false,
-            pool_max_connections: 10,
             proxy: None,
             proxy_from_env: false,
             max_body_size: None, // Clients typically don't enforce body size limits
@@ -405,12 +398,9 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 }
 
 impl<R: DnsResolver + Default + Clone> SimpleHttpClient<R> {
-    /// Enables connection pooling with specified max connections and creates a pool instance.
+    /// Enables connection pooling by creating a pool instance.
     #[must_use]
-    pub fn enable_pool(mut self, max_connections: usize) -> Self {
-        self.config.pool_enabled = true;
-        self.config.pool_max_connections = max_connections;
-        // create a simple pool with default idle timeout (300s)
+    pub fn with_connection_pool(mut self) -> Self {
         self.pool = Some(Arc::new(HttpConnectionPool::new(
             ConnectionPool::default(),
             R::default(),

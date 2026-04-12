@@ -45,7 +45,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), SpecFetchError> {
         .batch_size(8192 * 2)
         .read_timeout(Duration::from_secs(5))
         .max_retries(3)
-        .enable_pool(10);
+        .with_connection_pool();
 
     if let Some(provider) = matches.get_one::<String>("provider") {
         // Fetch single provider
