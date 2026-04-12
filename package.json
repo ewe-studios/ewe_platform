@@ -18,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/ewe-studios/ewe_platform/issues"
   },
-  "homepage": "https://github.com/ewe-studios/ewe_platform#readme"
+  "homepage": "https://github.com/ewe-studios/ewe_platform#readme",
+  "devDependencies": {
+    "node-addon-api": "^8.3.0",
+    "node-gyp": "^12.2.0",
+    "pnpm": "10.33.0",
+    "wrangler": "^4.81.1"
+  }
 }

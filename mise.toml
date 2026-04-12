@@ -13,6 +13,7 @@
 [env]
 CARGO_TERM_COLOR = "always"
 PROJECT_ROOT = "{{config_root}}"
+_.path = ["./node_modules/.bin"]
 
 # =============================================================================
 # Tool versions - mise manages these automatically
@@ -22,10 +23,13 @@ PROJECT_ROOT = "{{config_root}}"
 
 [tools]
 node = "23"
+pnpm = "latest"
 "cargo:cargo-nextest" = "latest"
 "cargo:cargo-audit" = "latest"
 "cargo:bacon" = "latest"
-"npm:wrangler" = "latest"
+# wrangler is managed via project devDependencies (pnpm), not mise —
+# mise's npm shim installs wrangler into a nested tree where sharp's
+# prebuilt-binary check fails and falls back to a node-gyp build.
 
 # =============================================================================
 # Tasks - Setup
@@ -41,6 +45,8 @@ description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audi
 run = """
 echo "Installing development tools..."
 rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
+echo "Installing pnmp tools..."
+pnpm install
 echo "✓ Tools installed (cargo-nextest and cargo-audit managed by mise)"
 """
 
@@ -65,10 +71,9 @@ echo "  mise run test:cf    - Run R2/D1 integration tests"
 """
 
 [tasks."install:cloudflare"]
-description = "Install wrangler (Cloudflare CLI)"
+description = "Install wrangler (Cloudflare CLI) via pnpm"
 run = """
-mise install npm:wrangler@3.28.1
-mise use npm:wrangler@3.28.1
+pnpm install
 """
 
 [tasks."setup:check"]
@@ -267,8 +272,10 @@ run = """
 #!/usr/bin/env bash
 set -e
 
-# Kill any existing wrangler processes
+# Kill any existing wrangler/workerd processes (workerd is the actual
+# process holding the dev-server port, and pkill -f "wrangler" misses it).
 pkill -f "wrangler" 2>/dev/null || true
+pkill -f "workerd" 2>/dev/null || true
 sleep 1
 
 echo "Starting wrangler dev for local testing..."
@@ -311,6 +318,7 @@ if [ -f /tmp/wrangler-test.pid ]; then
     rm /tmp/wrangler-test.pid
 fi
 pkill -f "wrangler" 2>/dev/null || true
+pkill -f "workerd" 2>/dev/null || true
 echo "Wrangler cleanup complete"
 """
 
