@@ -1,46 +1,64 @@
-//! Credential storage module wrapping `foundation_db`.
+//! Credential storage wrapping `foundation_db::StorageProvider`.
+//!
+//! `foundation_db` already selects the backend (Turso, libsql, D1, R2, JSON
+//! file, in-memory) through `StorageBackend`. There is no reason to expose
+//! one credential-store wrapper per backend — the wrapper only needs to
+//! drain Valtron streams into sync `Result`s. A single [`CredentialStorage`]
+//! therefore covers every backend `foundation_db` supports.
 
 use foundation_core::valtron::Stream;
-use foundation_db::{KeyValueStore, StorageBackend, StorageProvider, StorageError};
+use foundation_db::{KeyValueStore, StorageBackend, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
 use crate::oauth::OAuthToken;
 
-/// Credential store trait for persistent credential storage.
+/// Synchronous credential storage API.
+///
+/// Implementations drain Valtron streams from `foundation_db` into plain
+/// `Result` values so that auth code can treat credential IO as blocking.
 pub trait CredentialStore: Send + Sync {
     /// Get a credential by key.
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails or if deserialization fails.
-    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
+    /// Returns [`CredentialStoreError`] if the storage operation or
+    /// deserialization fails.
+    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError>;
 
     /// Set a credential.
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails or if serialization fails.
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
+    /// Returns [`CredentialStoreError`] if the storage operation or
+    /// serialization fails.
+    fn set<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError>;
 
     /// Delete a credential.
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails.
+    /// Returns [`CredentialStoreError`] if the storage operation fails.
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
 
-    /// Check if a credential exists.
+    /// Check whether a credential exists.
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails.
+    /// Returns [`CredentialStoreError`] if the storage operation fails.
     fn exists(&self, key: &str) -> Result<bool, CredentialStoreError>;
 
-    /// List credentials with optional prefix.
+    /// List credential keys, optionally filtered by prefix.
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails.
+    /// Returns [`CredentialStoreError`] if the storage operation fails.
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
 }
 
@@ -73,139 +91,59 @@ impl core::fmt::Display for CredentialStoreError {
 
 impl std::error::Error for CredentialStoreError {}
 
-/// Turso-backed credential store.
-pub struct TursoCredentialStore {
+/// Credential storage backed by a [`foundation_db::StorageProvider`].
+///
+/// The backend (Turso, libsql, D1, R2, JSON file, in-memory) is chosen when
+/// the underlying [`StorageProvider`] is constructed. This type just adapts
+/// its streaming API to the synchronous [`CredentialStore`] trait.
+pub struct CredentialStorage {
     storage: StorageProvider,
 }
 
-impl TursoCredentialStore {
-    /// Create a new Turso credential store.
-    ///
-    /// # Errors
-    ///
-    /// Returns a `CredentialStoreError` if the storage backend initialization fails.
-    pub fn new(url: &str) -> Result<Self, CredentialStoreError> {
-        let storage = StorageProvider::new(StorageBackend::Turso {
-            url: url.to_string(),
-        })?;
-
-        Ok(Self { storage })
-    }
-
-    /// Create from an existing [`StorageProvider`].
+impl CredentialStorage {
+    /// Wrap an existing [`StorageProvider`].
     #[must_use]
-    pub fn from_storage(storage: StorageProvider) -> Self {
+    pub fn new(storage: StorageProvider) -> Self {
         Self { storage }
     }
 
-    /// Initialize the database schema.
+    /// Build credential storage against a Turso database URL.
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if schema initialization fails.
-    pub fn init_schema(&self) -> Result<(), CredentialStoreError> {
-        // The Turso backend already creates the kv_store table
-        // Additional auth-specific tables can be added via migrations
-        Ok(())
-    }
-}
-
-impl CredentialStore for TursoCredentialStore {
-    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
-        let stream = self.storage.get(key).map_err(|e| match e {
-            StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-            _ => CredentialStoreError::Storage(e),
+    /// Returns [`CredentialStoreError`] if the Turso backend cannot be
+    /// initialized.
+    pub fn turso(url: &str) -> Result<Self, CredentialStoreError> {
+        let storage = StorageProvider::new(StorageBackend::Turso {
+            url: url.to_string(),
         })?;
-
-        // Consume the stream to get the value
-        stream
-            .flat_map(|stream_item| match stream_item {
-                Stream::Next(result) => vec![result],
-                _ => vec![],
-            })
-            .next()
-            .ok_or_else(|| CredentialStoreError::NotFound(key.to_string()))?
-            .map_err(CredentialStoreError::Storage)
+        Ok(Self { storage })
     }
 
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
-        let stream = self.storage.set(key, value).map_err(CredentialStoreError::Storage)?;
-
-        stream
-            .flat_map(|stream_item| match stream_item {
-                Stream::Next(result) => vec![result],
-                _ => vec![],
-            })
-            .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
-        Ok(())
-    }
-
-    fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        let stream = self.storage.delete(key).map_err(CredentialStoreError::Storage)?;
-
-        stream
-            .flat_map(|stream_item| match stream_item {
-                Stream::Next(result) => vec![result],
-                _ => vec![],
-            })
-            .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
-        Ok(())
-    }
-
-    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        let stream = self.storage.exists(key).map_err(CredentialStoreError::Storage)?;
-
-        stream
-            .flat_map(|stream_item| match stream_item {
-                Stream::Next(result) => vec![result],
-                _ => vec![],
-            })
-            .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))?
-            .map_err(CredentialStoreError::Storage)
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        let stream = self.storage.list_keys(prefix).map_err(CredentialStoreError::Storage)?;
-
-        stream
-            .flat_map(|stream_item| match stream_item {
-                Stream::Next(Ok(result)) => vec![Ok(result)],
-                Stream::Next(Err(e)) => vec![Err(CredentialStoreError::Storage(e))],
-                _ => vec![],
-            })
-            .collect::<Result<Vec<_>, _>>()
-    }
-}
-
-/// In-memory credential store for development/testing.
-pub struct MemoryCredentialStore {
-    storage: StorageProvider,
-}
-
-impl MemoryCredentialStore {
-    /// Create a new in-memory credential store.
+    /// Build in-memory credential storage. Intended for tests and local
+    /// development.
     #[must_use]
-    pub fn new() -> Self {
+    pub fn memory() -> Self {
         Self {
             storage: StorageProvider::memory(),
         }
     }
-}
 
-impl Default for MemoryCredentialStore {
-    fn default() -> Self {
-        Self::new()
+    /// Borrow the underlying [`StorageProvider`].
+    #[must_use]
+    pub fn provider(&self) -> &StorageProvider {
+        &self.storage
     }
 }
 
-impl CredentialStore for MemoryCredentialStore {
-    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
+impl CredentialStore for CredentialStorage {
+    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError> {
         let stream = self.storage.get(key).map_err(|e| match e {
             StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-            _ => CredentialStoreError::Storage(e),
+            other => CredentialStoreError::Storage(other),
         })?;
 
         stream
@@ -218,8 +156,15 @@ impl CredentialStore for MemoryCredentialStore {
             .map_err(CredentialStoreError::Storage)
     }
 
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
-        let stream = self.storage.set(key, value).map_err(CredentialStoreError::Storage)?;
+    fn set<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError> {
+        let stream = self
+            .storage
+            .set(key, value)
+            .map_err(CredentialStoreError::Storage)?;
 
         stream
             .flat_map(|stream_item| match stream_item {
@@ -227,12 +172,17 @@ impl CredentialStore for MemoryCredentialStore {
                 _ => vec![],
             })
             .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
+            .ok_or_else(|| {
+                CredentialStoreError::Generic("Stream ended without result".to_string())
+            })??;
         Ok(())
     }
 
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        let stream = self.storage.delete(key).map_err(CredentialStoreError::Storage)?;
+        let stream = self
+            .storage
+            .delete(key)
+            .map_err(CredentialStoreError::Storage)?;
 
         stream
             .flat_map(|stream_item| match stream_item {
@@ -240,12 +190,17 @@ impl CredentialStore for MemoryCredentialStore {
                 _ => vec![],
             })
             .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??;
+            .ok_or_else(|| {
+                CredentialStoreError::Generic("Stream ended without result".to_string())
+            })??;
         Ok(())
     }
 
     fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        let stream = self.storage.exists(key).map_err(CredentialStoreError::Storage)?;
+        let stream = self
+            .storage
+            .exists(key)
+            .map_err(CredentialStoreError::Storage)?;
 
         stream
             .flat_map(|stream_item| match stream_item {
@@ -253,12 +208,17 @@ impl CredentialStore for MemoryCredentialStore {
                 _ => vec![],
             })
             .next()
-            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))?
+            .ok_or_else(|| {
+                CredentialStoreError::Generic("Stream ended without result".to_string())
+            })?
             .map_err(CredentialStoreError::Storage)
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        let stream = self.storage.list_keys(prefix).map_err(CredentialStoreError::Storage)?;
+        let stream = self
+            .storage
+            .list_keys(prefix)
+            .map_err(CredentialStoreError::Storage)?;
 
         stream
             .flat_map(|stream_item| match stream_item {
@@ -276,7 +236,7 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails.
+    /// Returns [`CredentialStoreError`] if the storage operation fails.
     fn store_oauth_token(
         &self,
         provider: &str,
@@ -290,7 +250,8 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails or if deserialization fails.
+    /// Returns [`CredentialStoreError`] if the storage operation or
+    /// deserialization fails.
     fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
         self.get(&key)
@@ -300,7 +261,7 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails.
+    /// Returns [`CredentialStoreError`] if the storage operation fails.
     fn delete_oauth_token(&self, provider: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
         self.delete(&key)
@@ -310,7 +271,7 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails.
+    /// Returns [`CredentialStoreError`] if the storage operation fails.
     fn store_oauth_state(
         &self,
         state: &str,
@@ -329,7 +290,8 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails or if deserialization fails.
+    /// Returns [`CredentialStoreError`] if the storage operation or
+    /// deserialization fails.
     fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
         let key = format!("oauth:state:{state}");
         self.get(&key)
@@ -339,7 +301,7 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// # Errors
     ///
-    /// Returns a `CredentialStoreError` if the storage operation fails.
+    /// Returns [`CredentialStoreError`] if the storage operation fails.
     fn delete_oauth_state(&self, state: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:state:{state}");
         self.delete(&key)
@@ -364,7 +326,7 @@ impl OAuthState {
     }
 }
 
-// Implement OAuthTokenStore for all types that implement CredentialStore
+// Blanket impl: any CredentialStore picks up OAuth helpers for free.
 impl<T: CredentialStore> OAuthTokenStore for T {}
 
 /// Credential wrapper for secure storage.
@@ -403,40 +365,58 @@ impl<T> StoredCredential<T> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_memory_credential_store_basic() {
-        let store = MemoryCredentialStore::new();
+    /// Initialise the Valtron single-thread executor for the current test
+    /// worker thread. The executor lives in a `thread_local!` `OnceCell`,
+    /// so every test thread needs its own call. `initialize_pool` is
+    /// idempotent per thread (internally `get_or_init`), so repeat calls
+    /// are safe.
+    fn init_valtron() {
+        foundation_core::valtron::single::initialize_pool(42);
+    }
 
-        // Test set and get
-        store.set("test_key", "test_value").expect("Failed to set credential");
+    /// Build a fresh [`CredentialStorage`] backed by a temporary `SQLite`
+    /// file via the Turso backend. Local tests exercise the real SQL path
+    /// instead of the in-memory shim so migrations, streaming, and
+    /// serialization are all validated end-to-end.
+    fn sqlite_store() -> (CredentialStorage, tempfile::TempDir) {
+        init_valtron();
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("auth.sqlite");
+        let store = CredentialStorage::turso(
+            db_path.to_str().expect("non-utf8 tempdir path"),
+        )
+        .expect("init turso credential storage");
+        (store, dir)
+    }
+
+    #[test]
+    fn sqlite_store_basic_roundtrip() {
+        let (store, _dir) = sqlite_store();
+
+        store
+            .set("test_key", "test_value")
+            .expect("Failed to set credential");
 
         let value: String = store
             .get("test_key")
             .expect("Failed to get credential")
             .expect("Credential not found");
-
         assert_eq!(value, "test_value");
 
-        // Test exists
-        assert!(store
-            .exists("test_key")
-            .expect("Failed to check existence"));
+        assert!(store.exists("test_key").expect("Failed to check existence"));
         assert!(!store
             .exists("nonexistent")
             .expect("Failed to check existence"));
 
-        // Test delete
         store
             .delete("test_key")
             .expect("Failed to delete credential");
-        assert!(!store
-            .exists("test_key")
-            .expect("Failed to check existence"));
+        assert!(!store.exists("test_key").expect("Failed to check existence"));
     }
 
     #[test]
-    fn test_memory_credential_store_oauth() {
-        let store = MemoryCredentialStore::new();
+    fn sqlite_store_oauth_helpers() {
+        let (store, _dir) = sqlite_store();
 
         let token = OAuthToken {
             access_token: "access_123".to_string(),
@@ -447,47 +427,40 @@ mod tests {
             id_token: None,
         };
 
-        // Store OAuth token
         store
             .store_oauth_token("test_provider", &token)
             .expect("Failed to store OAuth token");
 
-        // Retrieve OAuth token
         let retrieved = store
             .get_oauth_token("test_provider")
             .expect("Failed to get OAuth token")
             .expect("OAuth token not found");
-
         assert_eq!(retrieved.access_token, "access_123");
         assert_eq!(retrieved.refresh_token, Some("refresh_456".to_string()));
 
-        // Store and retrieve OAuth state
         store
-            .store_oauth_state("test_state", "verifier_abc", 9999999999)
+            .store_oauth_state("test_state", "verifier_abc", 9_999_999_999)
             .expect("Failed to store OAuth state");
 
         let state = store
             .get_oauth_state("test_state")
             .expect("Failed to get OAuth state")
             .expect("OAuth state not found");
-
         assert_eq!(state.code_verifier, "verifier_abc");
         assert!(!state.is_expired());
     }
 
     #[test]
-    fn test_memory_credential_store_list_keys() {
-        let store = MemoryCredentialStore::new();
+    fn sqlite_store_list_keys_filters_by_prefix() {
+        let (store, _dir) = sqlite_store();
 
         store.set("oauth:provider1", "value1").unwrap();
         store.set("oauth:provider2", "value2").unwrap();
         store.set("jwt:token", "value3").unwrap();
 
-        // List all keys
         let keys = store.list_keys(None).unwrap();
         assert_eq!(keys.len(), 3);
 
-        // List keys with prefix
         let keys = store.list_keys(Some("oauth:")).unwrap();
         assert_eq!(keys.len(), 2);
         assert!(keys.contains(&"oauth:provider1".to_string()));
@@ -495,13 +468,27 @@ mod tests {
     }
 
     #[test]
-    fn test_stored_credential() {
+    fn stored_credential_tracks_access() {
         let mut stored = StoredCredential::new("secret_data");
-
         assert!(stored.created_at > 0);
         assert!(stored.last_accessed_at.is_none());
 
         stored.mark_accessed();
         assert!(stored.last_accessed_at.is_some());
+    }
+
+    #[test]
+    fn credential_storage_wraps_arbitrary_provider() {
+        init_valtron();
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("wrap.sqlite");
+        let provider = StorageProvider::new(StorageBackend::Turso {
+            url: db_path.to_string_lossy().into_owned(),
+        })
+        .expect("init turso provider");
+        let store = CredentialStorage::new(provider);
+        store.set("k", "v").unwrap();
+        let got: String = store.get("k").unwrap().unwrap();
+        assert_eq!(got, "v");
     }
 }

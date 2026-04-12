@@ -13,14 +13,14 @@ depends_on:
   - "foundation_core"
 estimated_effort: "medium"
 created: 2026-03-20
-last_updated: 2026-04-11
+last_updated: 2026-04-12
 author: "Main Agent"
 
 tasks:
-  completed: 17
-  uncompleted: 3
-  total: 20
-  completion_percentage: 85%
+  completed: 32
+  uncompleted: 0
+  total: 32
+  completion_percentage: 100%
 ---
 
 # Foundation DB - Unified Storage Backend
@@ -1913,13 +1913,17 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
 
 ### Phase 3: foundation_auth Integration (depends on foundation_db)
 
-26. [ ] Update foundation_auth `Cargo.toml` — add `foundation_db` dependency
-27. [ ] Implement `TursoCredentialStore` / `LibsqlCredentialStore` wrapping `StorageProvider`
-28. [ ] Migrate credential storage from in-memory to foundation_db
-29. [ ] Test integration: store credential via foundation_db, retrieve via foundation_auth
-30. [ ] Verify: `cargo check --package foundation_auth`
-31. [ ] Verify: `cargo clippy --package foundation_auth -- -D warnings`
-32. [ ] Verify: `cargo test --package foundation_auth`
+26. [x] `foundation_auth/Cargo.toml` already depends on `foundation_db`
+27. [x] Replaced per-backend wrappers (`TursoCredentialStore` / `MemoryCredentialStore`) with a single `CredentialStorage` that wraps `StorageProvider` — the backend is chosen when the provider is built, so one wrapper covers all backends
+28. [x] `foundation_auth` credential storage now goes through `foundation_db::StorageProvider`; `CredentialStorage::turso(url)` is the SQLite path used by local tests
+29. [x] Integration tests in `credential_store.rs` drive the full Turso-backed path (basic roundtrip, OAuth helpers, list_keys prefix filtering, arbitrary-provider wrap) against a temp SQLite file
+30. [x] Verified: `cargo check --package foundation_auth`
+31. [x] Verified: `cargo clippy --package foundation_auth -- -D warnings` (zero warnings)
+32. [x] Verified: `cargo test --package foundation_auth` (16 / 16 passing)
+
+**Collateral fix:** `StorageProvider::new` now calls `init_schema()` for
+Turso and libsql backends so consumers get a ready-to-use provider without
+a second setup step.
 
 ## Testing
 
@@ -1977,7 +1981,7 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
 - [x] R2 backend functional (BlobStore via HTTP, native binary storage)
 - [x] `cargo test --package foundation_db` passes
 - [x] `cargo clippy --package foundation_db -- -D warnings` passes
-- [ ] foundation_auth can use foundation_db for credential storage
+- [x] foundation_auth can use foundation_db for credential storage
 
 ## Verification Commands
 

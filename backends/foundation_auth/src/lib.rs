@@ -15,8 +15,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::Zeroizing;
 
 pub use credential_store::{
-    CredentialStore, CredentialStoreError, MemoryCredentialStore, OAuthTokenStore,
-    StoredCredential, TursoCredentialStore,
+    CredentialStorage, CredentialStore, CredentialStoreError, OAuthTokenStore, StoredCredential,
 };
 pub use jwt::{JwtError, JwtManager, JwtToken};
 pub use oauth::{OAuthConfig, OAuthError, OAuthManager, OAuthToken, PkceChallenge};
