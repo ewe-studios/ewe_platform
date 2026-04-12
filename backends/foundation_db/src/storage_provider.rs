@@ -365,6 +365,7 @@ impl StorageProvider {
             #[cfg(feature = "turso")]
             StorageBackend::Turso { url } => {
                 let storage = TursoStorage::new(&url)?;
+                storage.init_schema()?;
                 Ok(Self {
                     inner: StorageProviderInner::Turso(Box::new(storage)),
                 })
@@ -372,6 +373,7 @@ impl StorageProvider {
             #[cfg(feature = "libsql")]
             StorageBackend::Libsql { url } => {
                 let storage = LibsqlStorage::new(&url)?;
+                storage.init_schema()?;
                 Ok(Self {
                     inner: StorageProviderInner::Libsql(Box::new(storage)),
                 })
