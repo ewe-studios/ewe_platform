@@ -4,7 +4,7 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/35-trait-based-deployments"
 this_file: "specifications/11-foundation-deployment/features/35-trait-based-deployments/feature.md"
 
-status: implemented
+status: proposed
 priority: high
 created: 2026-04-11
 completed: 2026-04-11
@@ -12,10 +12,10 @@ completed: 2026-04-11
 depends_on: ["01-foundation-deployment-core", "04-cloudflare-provider", "05-gcp-cloud-run-provider", "06-aws-lambda-provider"]
 
 tasks:
-  completed: 5
-  uncompleted: 0
-  total: 5
-  completion_percentage: 100%
+  completed: 0
+  uncompleted: 6
+  total: 6
+  completion_percentage: 0%
 ---
 
 
@@ -67,9 +67,11 @@ impl Deployable for MyWorker {
         impl TaskIterator<Ready = Result<Self::Output, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
         Self::Error,
     > {
-        // Construct client inside the method
-        let (config, pool) = setup_client();
-        let client = SimpleHttpClient::new(config, pool);
+        // Construct client with shared connection pool
+        let config = HttpClientConfig::default()
+            .with_base_url("https://api.cloudflare.com")
+            .with_timeout(Duration::from_secs(30));
+        let client = SimpleHttpClient::pooled(config);
         
         // Use generated provider client - already handles HTTP and valtron
         let task = put_workers_script_task(&client, &PutWorkersScriptArgs {
@@ -120,6 +122,50 @@ let result = execute(customized, None)?;
 - Client construction happens inside the trait methods - no need to pass it around
 
 ## Requirements
+
+### SimpleHttpClient with Reusable Connection Pool
+
+To ensure consistent connection pooling across multiple client instantiations, `SimpleHttpClient` provides a `pooled()` method:
+
+```rust
+// foundation_core/wire/simple_http/client.rs
+
+impl SimpleHttpClient {
+    /// Create a new client with a fresh connection pool.
+    pub fn new(config: HttpClientConfig, pool: ConnectionPool) -> Self {
+        // ...
+    }
+    
+    /// Create a client that reuses a shared, globally-initialized connection pool.
+    ///
+    /// This method ensures that all clients created via `pooled()` share the same
+    /// underlying connection pool, providing:
+    /// - Connection reuse across multiple client instantiations
+    /// - Reduced latency for repeated requests to the same host
+    /// - Lower resource consumption (fewer TCP handshakes)
+    ///
+    /// The shared pool is initialized once on first call and reused thereafter.
+    /// The pool is cleaned up when the program exits.
+    pub fn pooled(config: HttpClientConfig) -> Self {
+        // Uses a static/thread-local shared pool internally
+        Self::new(config, get_shared_pool())
+    }
+}
+```
+
+**Usage in Deployable implementations:**
+
+```rust
+impl Deployable for MyWorker {
+    fn deploy_task(&self) -> Result<impl TaskIterator<...>, Self::Error> {
+        // Use pooled client for consistent connection reuse
+        let config = HttpClientConfig::default().with_base_url("https://api.cloudflare.com");
+        let client = SimpleHttpClient::pooled(config);
+        
+        // ... rest of deployment logic
+    }
+}
+```
 
 ### Deployable Trait
 
@@ -247,9 +293,11 @@ impl Deployable for MyWorker {
         impl TaskIterator<Ready = Result<Self::Output, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
         Self::Error,
     > {
-        // Construct client inside the method
-        let (config, pool) = setup_client(); // User's setup function
-        let client = SimpleHttpClient::new(config, pool);
+        // Construct client with shared connection pool
+        let config = HttpClientConfig::default()
+            .with_base_url("https://api.cloudflare.com")
+            .with_timeout(Duration::from_secs(30));
+        let client = SimpleHttpClient::pooled(config);
         
         // Use generated provider client task function
         let task = put_workers_script_task(&client, &PutWorkersScriptArgs {
@@ -374,9 +422,11 @@ impl Deployable for MyWorker {
         impl TaskIterator<Ready = Result<Self::Output, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
         Self::Error,
     > {
-        // Construct client inside the method
-        let (config, pool) = setup_client();
-        let client = SimpleHttpClient::new(config, pool);
+        // Construct client with shared connection pool
+        let config = HttpClientConfig::default()
+            .with_base_url("https://api.cloudflare.com")
+            .with_timeout(Duration::from_secs(30));
+        let client = SimpleHttpClient::pooled(config);
         
         // Use generated provider client task function
         let task = put_workers_script_task(&client, &PutWorkersScriptArgs {
@@ -449,9 +499,11 @@ impl Deployable for CloudRunService {
         impl TaskIterator<Ready = Result<Self::Output, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
         Self::Error,
     > {
-        // Construct client inside the method
-        let (config, pool) = setup_client();
-        let client = SimpleHttpClient::new(config, pool);
+        // Construct client with shared connection pool
+        let config = HttpClientConfig::default()
+            .with_base_url("https://run.googleapis.com")
+            .with_timeout(Duration::from_secs(60));
+        let client = SimpleHttpClient::pooled(config);
         
         // Use generated GCP client for Cloud Run deploy
         let task = run_projects_locations_services_replace_service_task(&client, &RunProjectsLocationsServicesReplaceServiceArgs {
@@ -681,9 +733,11 @@ impl Deployable for MyWorker {
         impl TaskIterator<Ready = Result<Self::Output, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
         Self::Error,
     > {
-        // Construct client inside
-        let (config, pool) = setup_client();
-        let client = SimpleHttpClient::new(config, pool);
+        // Construct client with shared connection pool
+        let config = HttpClientConfig::default()
+            .with_base_url("https://api.cloudflare.com")
+            .with_timeout(Duration::from_secs(30));
+        let client = SimpleHttpClient::pooled(config);
         
         // ... deploy logic using provider client
         put_workers_script_task(&client, &PutWorkersScriptArgs {
@@ -702,9 +756,11 @@ impl Deployable for MyWorker {
         impl TaskIterator<Ready = Result<(), Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
         Self::Error,
     > {
-        // Construct client inside
-        let (config, pool) = setup_client();
-        let client = SimpleHttpClient::new(config, pool);
+        // Construct client with shared connection pool
+        let config = HttpClientConfig::default()
+            .with_base_url("https://api.cloudflare.com")
+            .with_timeout(Duration::from_secs(30));
+        let client = SimpleHttpClient::pooled(config);
         
         // Use generated delete function from provider client
         let task = delete_workers_script_task(&client, &DeleteWorkersScriptArgs {
@@ -741,48 +797,60 @@ fn destroy_worker() -> Result<(), ApiError> {
 
 ## Tasks
 
-1. **Define Deployable trait**
-   - [x] Create trait in `foundation_core/traits.rs`
-   - [x] Add associated types: `Output`, `Error`, `Pending`
-   - [x] Add two methods: `deploy()` (StreamIterator) and `deploy_task()` (TaskIterator)
-   - [x] Add optional `destroy()` and `destroy_task()` methods with default no-op impl
-   - [x] Document usage with examples
-   - [x] Write unit tests
+1. **Add reusable connection pool to SimpleHttpClient**
+   - [ ] Add a static/thread-local connection pool that is initialized once
+   - [ ] Add `SimpleHttpClient::pooled()` or similar method that reuses the shared pool
+   - [ ] Ensure pool is properly cleaned up on drop (or use lazy_static/once_cell for lifetime management)
+   - [ ] Users calling the pooled method get consistent connection reuse across multiple client creations
+   - [ ] Write unit tests for pool reuse
+   - [ ] Update examples to use the pooled client method
 
-2. **Create common output types**
-   - [x] `WorkerDeployment` for Cloudflare
-   - [x] `CloudRunDeployment` for GCP
-   - [x] `LambdaDeployment` for AWS
-   - [x] `DeploymentOutput` generic type
-   - [x] Write unit tests
+2. **Define Deployable trait**
+   - [ ] Create trait in `foundation_core/traits.rs`
+   - [ ] Add associated types: `Output`, `Error` (with Debug bound)
+   - [ ] Add generic `Deploying` enum with `Init, Processing, Done, Failed` variants
+   - [ ] Add two methods: `deploy()` (StreamIterator) and `deploy_task()` (TaskIterator)
+   - [ ] Add optional `destroy()` and `destroy_task()` methods with default no-op impl
+   - [ ] Document usage with examples
+   - [ ] Write unit tests
 
-3. **Update provider clients**
-   - [x] Ensure generated clients expose `*_task()` functions for composition
-   - [x] Verify all provider clients return compatible types
-   - [x] Write integration tests
+3. **Create common output types**
+   - [ ] `WorkerDeployment` for Cloudflare
+   - [ ] `CloudRunDeployment` for GCP
+   - [ ] `LambdaDeployment` for AWS
+   - [ ] `DeploymentOutput` generic type
+   - [ ] Write unit tests
 
-4. **Add destroy support**
-   - [x] Add `destroy_task()` method to trait with default no-op implementation
-   - [x] Add `destroy()` convenience method
-   - [x] Implement for all providers
-   - [x] Write tests
+4. **Update provider clients**
+   - [ ] Ensure generated clients expose `*_task()` functions for composition
+   - [ ] Verify all provider clients return compatible types
+   - [ ] Write integration tests
 
-5. **Documentation**
-   - [x] Document trait in rustdoc
-   - [x] Add examples to documentation
-   - [x] Create example deploy scripts
+5. **Add destroy support**
+   - [ ] Add `destroy_task()` method to trait with default no-op implementation
+   - [ ] Add `destroy()` convenience method
+   - [ ] Implement for all providers
+   - [ ] Write tests
+
+6. **Documentation**
+   - [ ] Document trait in rustdoc
+   - [ ] Add examples to documentation
+   - [ ] Create example deploy scripts
 
 ## Success Criteria
 
-- [x] All 5 tasks completed
-- [x] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
-- [x] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
-- [x] No `#[allow(...)]` or `#[expect(...)]` anywhere
-- [x] Users can implement `Deployable` on custom structs
-- [x] Provider clients compose correctly in `deploy_task()` implementations
-- [x] Examples compile and run
+- [ ] All 6 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere
+- [ ] Users can implement `Deployable` on custom structs
+- [ ] Provider clients compose correctly in `deploy_task()` implementations
+- [ ] Examples compile and run
+- [ ] `SimpleHttpClient::pooled()` reuses connection pool across multiple calls
 
 ## Lessons Learned
+
+- **Reusable connection pool**: Users calling `SimpleHttpClient::pooled()` across multiple `deploy_task()` implementations share the same underlying connection pool. This provides connection reuse, reduced latency, and lower resource consumption without requiring users to manage pool lifetime.
 
 - **Generic `Deploying` type**: No need for every implementation to define its own Pending enum. A single `Deploying { Init, Processing, Done, Failed }` covers all cases - reduces boilerplate and keeps user code cleaner.
 
