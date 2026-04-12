@@ -1,4 +1,5 @@
 use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
+use crate::extensions::strings_ext::TryIntoStringError;
 use core::fmt;
 use derive_more::From;
 use std::{
@@ -10,6 +11,21 @@ use std::{
 pub type Result<T, E> = std::result::Result<T, E>;
 
 use std::io;
+
+#[derive(From, Debug)]
+pub enum SimpleRequestError {
+    NoURLProvided,
+    InvalidURI(InvalidUri),
+    StringConversion(TryIntoStringError),
+}
+
+impl std::error::Error for SimpleRequestError {}
+
+impl core::fmt::Display for SimpleRequestError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
 
 /// Error returned when URI parsing fails.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -145,6 +161,10 @@ pub enum HttpClientError {
     WriteFailed,
     Timeout,
 
+    /// Error returned for invalid uri.
+    #[from(ignore)]
+    InvalidURI(InvalidUri),
+
     /// Too many redirects encountered while following Location headers.
     /// Carries the number of redirects that were attempted.
     TooManyRedirects,
@@ -154,6 +174,10 @@ pub enum HttpClientError {
 
     /// DNS resolution error.
     DnsError(DnsError),
+
+    /// Simple request error.
+    #[from(ignore)]
+    SimpleRequestError(SimpleRequestError),
 
     /// `HttpReader` error.
     ReaderError(HttpReaderError),
@@ -280,6 +304,12 @@ impl core::fmt::Display for HttpClientError {
             }
             Self::WriteFailed => {
                 write!(f, "Write failed, please investigate")
+            }
+            Self::SimpleRequestError(err) => {
+                write!(f, "Simple request error: {err}")
+            }
+            Self::InvalidURI(url) => {
+                write!(f, "Invalid URI: {url}")
             }
             Self::Timeout => {
                 write!(f, "Timeout occurred, please investigate")

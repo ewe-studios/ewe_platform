@@ -77,6 +77,7 @@ impl<S: AsRef<str>, E: std::fmt::Display> FetchPending<S, E> {
     pub fn from_http_request(p: HttpRequestPending, source: S) -> Self {
         match p {
             HttpRequestPending::WaitingForStream => Self::connecting(source),
+            HttpRequestPending::CheckRedirectResponse => Self::connecting(source),
             HttpRequestPending::WaitingIntroAndHeaders => Self::awaiting_response(source),
         }
     }

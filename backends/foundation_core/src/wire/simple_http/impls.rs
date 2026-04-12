@@ -14,10 +14,9 @@ use crate::valtron::{
 use crate::wire::simple_http::client::Extensions as ClientExtensions;
 use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
-    SimpleHttpResult, StringHandlingError,
+    SimpleHttpResult, SimpleRequestError, StringHandlingError,
 };
 use crate::wire::simple_http::url::Uri;
-use crate::wire::simple_http::InvalidUri;
 use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;
@@ -1712,21 +1711,6 @@ impl SimpleOutgoingResponseBuilder {
 }
 
 pub type SimpleRequestResult<T> = std::result::Result<T, SimpleRequestError>;
-
-#[derive(From, Debug)]
-pub enum SimpleRequestError {
-    NoURLProvided,
-    InvalidURI(InvalidUri),
-    StringConversion(TryIntoStringError),
-}
-
-impl std::error::Error for SimpleRequestError {}
-
-impl core::fmt::Display for SimpleRequestError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct RequestDescriptor {
