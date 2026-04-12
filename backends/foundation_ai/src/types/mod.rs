@@ -796,19 +796,17 @@ pub trait Model {
     /// results of the prompt from the underlying model.
     ///
     /// It purposely uses the [`crate::valtron::StreamIterator`] type
-    /// which supports a more ergonomic usecase in async (computation is async)
-    /// but provides a sync iterarator based API to receive result.
+    /// which supports a more ergonomic usecase in async (computations are async)
+    /// but provides a sync iterator based API to receive result.
     ///
     /// # Errors
     ///
     /// Returns a [`GenerationError`] if streaming fails.
-    fn stream<T>(
+    fn stream(
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<T>
-    where
-        T: StreamIterator<D = Messages, P = ModelState>;
+    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>>;
 }
 
 pub trait ModelProvider {

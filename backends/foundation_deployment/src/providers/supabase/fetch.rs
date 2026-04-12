@@ -118,7 +118,7 @@ pub fn fetch_supabase_specs(
     Ok(stream.map_pending(|_| ()))
 }
 
-/// Normalize a Supabase OpenAPI spec.
+/// Normalize a Supabase `OpenAPI` spec.
 ///
 /// Supabase spec has `servers: []` (empty array) - this adds the proper server URL.
 pub fn normalize_supabase_spec(spec: &mut Value) {

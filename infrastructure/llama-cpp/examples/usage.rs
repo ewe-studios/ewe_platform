@@ -8,7 +8,7 @@
 //! wget https://huggingface.co/Qwen/Qwen2-1.5B-Instruct-GGUF/resolve/main/qwen2-1_5b-instruct-q4_0.gguf
 //! cargo run --example usage -- qwen2-1_5b-instruct-q4_0.gguf
 //! ```
-use infrastructure_llama_cpp::context::params::LlamaContextParams;
+use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
 use infrastructure_llama_cpp::model::params::LlamaModelParams;
@@ -25,10 +25,10 @@ fn main() {
 
     let prompt =
         "<|im_start|>user\nHello! how are you?<|im_end|>\n<|im_start|>assistant\n".to_string();
-    LlamaContextParams::default();
+    LlamaModelContextParams::default();
     let model =
         LlamaModel::load_from_file(&backend, model_path, &params).expect("unable to load model");
-    let ctx_params = LlamaContextParams::default();
+    let ctx_params = LlamaModelContextParams::default();
     let mut ctx = model
         .new_context(&backend, ctx_params)
         .expect("unable to create the llama_context");

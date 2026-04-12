@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 pub struct LlamaBatch<'a> {
     /// The number of tokens the batch was allocated with. they are safe to write to - but not necessarily read from as they are not necessarily initialized
     allocated: usize,
-    /// The logits that are initialized. Used by [`LlamaContext`] to ensure that only initialized logits are accessed.
+    /// The logits that are initialized. Used by [`LlamaModelContext`] to ensure that only initialized logits are accessed.
     pub initialized_logits: Vec<i32>,
     #[allow(clippy::doc_markdown)]
     /// The llama_cpp batch. always initialize by `infrastructure_llama_bindings::llama_batch_init(allocated, <unknown>, <unknown>)`

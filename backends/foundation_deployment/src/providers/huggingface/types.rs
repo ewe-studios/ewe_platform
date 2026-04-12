@@ -8,7 +8,9 @@ use std::path::PathBuf;
 /// Type of repository on the Hub.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonHash)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum RepoType {
+    #[default]
     Model,
     Dataset,
     Space,
@@ -26,11 +28,6 @@ impl fmt::Display for RepoType {
     }
 }
 
-impl Default for RepoType {
-    fn default() -> Self {
-        RepoType::Model
-    }
-}
 
 /// Blob LFS information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,7 +54,7 @@ pub struct RepoSibling {
     pub lfs: Option<BlobLfsInfo>,
 }
 
-/// Tagged union for tree entries returned by list_repo_tree.
+/// Tagged union for tree entries returned by `list_repo_tree`.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum RepoTreeEntry {
@@ -169,6 +166,7 @@ pub enum RepoInfo {
 
 impl RepoInfo {
     /// Get the repository type.
+    #[must_use] 
     pub fn repo_type(&self) -> RepoType {
         match self {
             RepoInfo::Model(_) => RepoType::Model,
@@ -270,7 +268,7 @@ pub enum CommitOperation {
     Delete { path_in_repo: String },
 }
 
-/// URL returned by create_repo/move_repo.
+/// URL returned by `create_repo/move_repo`.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepoUrl {
     pub url: String,

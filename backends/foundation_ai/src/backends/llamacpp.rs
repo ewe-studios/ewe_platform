@@ -10,8 +10,8 @@
 //! - [`LlamaModels`] - `Model` trait implementation with interior mutability
 //! - [`LlamaCppStream`] - `StreamIterator` implementation for token-by-token streaming
 
-use infrastructure_llama_cpp::context::params::LlamaContextParams;
-use infrastructure_llama_cpp::context::LlamaContext;
+use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+use infrastructure_llama_cpp::context::LlamaModelContext;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
 use infrastructure_llama_cpp::model::params::LlamaModelParams;
 use infrastructure_llama_cpp::model::{AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special};
@@ -124,8 +124,8 @@ impl LlamaBackendConfig {
     /// Convert this config into llama.cpp context parameters.
     #[must_use]
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
-    pub fn to_context_params(&self) -> LlamaContextParams {
-        let mut params = LlamaContextParams::default();
+    pub fn to_context_params(&self) -> LlamaModelContextParams {
+        let mut params = LlamaModelContextParams::default();
         params = params.with_n_ctx(NonZeroU32::new(self.context_length as u32));
         params = params.with_n_batch(self.batch_size as u32);
         params = params.with_n_threads(self.n_threads as i32);
@@ -232,7 +232,7 @@ impl Default for LlamaBackendConfigBuilder {
 /// Internal state for `LlamaModels` with interior mutability.
 struct LlamaModelsInner {
     model: Rc<LlamaModel>,
-    context: LlamaContextParams,
+    context: LlamaModelContextParams,
     #[allow(dead_code)]
     sampler: Option<LlamaSampler>,
     spec: ModelSpec,
@@ -259,7 +259,7 @@ impl LlamaModels {
     /// Create a new `LlamaModels` instance.
     fn new(
         model: LlamaModel,
-        context: LlamaContextParams,
+        context: LlamaModelContextParams,
         spec: ModelSpec,
     ) -> Self {
         Self {
@@ -342,19 +342,12 @@ impl Model for LlamaModels {
         }
     }
 
-    fn stream<T>(
+    fn stream(
         &self,
-        _interaction: ModelInteraction,
-        _specs: Option<ModelParams>,
-    ) -> GenerationResult<T>
-    where
-        T: StreamIterator<D = Messages, P = ModelState>,
-    {
-        Err(GenerationError::Generic(
-            "Streaming is not yet implemented for LlamaModels. \
-             Use LlamaCppStream directly or call generate() instead."
-                .to_string(),
-        ))
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
+        LlamaCppStream::new(self.clone(), interaction, specs)
     }
 }
 
@@ -364,21 +357,234 @@ impl Model for LlamaModels {
 
 /// Stream iterator for token-by-token generation.
 ///
-/// Implements `StreamIterator` to yield `Messages` one at a time
-/// as tokens are generated.
+/// Implements `StreamIterator` to yield `Messages` one token at a time.
+/// Holds a clone of `LlamaModels` to access the model/context during iteration.
 pub struct LlamaCppStream {
-    // Stream state would go here
-    // This is a placeholder for future implementation
-    _phantom: std::marker::PhantomData<Messages>,
+    inner: Rc<RefCell<LlamaCppStreamInner>>,
+}
+
+/// Internal stream state - uses Clone for context
+struct LlamaCppStreamInner {
+    /// Reference to the model (cloned from LlamaModels)
+    model: LlamaModels,
+    /// Backend (owned)
+    backend: Option<LlamaBackend>,
+    /// Context (cloneable)
+    ctx: Option<LlamaModelContext<'static>>,
+    /// Sampler
+    sampler: Option<LlamaSampler>,
+    /// Current position in sequence
+    current_pos: i32,
+    /// Tokens generated so far
+    tokens_generated: i32,
+    /// Maximum tokens to generate
+    max_tokens: i32,
+    /// Input token count
+    input_tokens: usize,
+    /// Whether prompt has been evaluated
+    prompt_evaluated: bool,
+    /// Whether stream is finished
+    finished: bool,
+    /// Stored prompt string (evaluated lazily)
+    prompt: Option<String>,
+}
+
+impl LlamaCppStream {
+    /// Create a new stream for the given model and interaction.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `GenerationError` if stream initialization fails.
+    pub fn new(
+        model: LlamaModels,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<Self> {
+        // Build sampler from params
+        let params = specs.unwrap_or_default();
+        let sampler = build_sampler_chain(&params);
+
+        // Get max_tokens from params
+        let max_tokens = params.max_tokens as i32;
+
+        // Extract prompt from interaction (simplified - just use system prompt for now)
+        let prompt = interaction.system_prompt.unwrap_or_default();
+
+        Ok(Self {
+            inner: Rc::new(RefCell::new(LlamaCppStreamInner {
+                model,
+                backend: None,
+                ctx: None,
+                sampler: Some(sampler),
+                current_pos: 0,
+                tokens_generated: 0,
+                max_tokens,
+                input_tokens: 0,
+                prompt_evaluated: false,
+                finished: false,
+                prompt: Some(prompt),
+            })),
+        })
+    }
 }
 
 impl Iterator for LlamaCppStream {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // Placeholder implementation
-        // Full implementation would decode one token per call
-        None
+        let mut inner = self.inner.borrow_mut();
+
+        // Check if finished
+        if inner.finished {
+            return None;
+        }
+
+        // First call - return Init and mark prompt as needing evaluation
+        if !inner.prompt_evaluated {
+            inner.prompt_evaluated = true;
+            return Some(Stream::Init);
+        }
+
+        // Create backend and context on second call if not exists
+        if inner.backend.is_none() {
+            let backend = match LlamaBackend::init() {
+                Ok(b) => b,
+                Err(_) => {
+                    inner.finished = true;
+                    return Some(Stream::Pending(ModelState::Finished));
+                }
+            };
+
+            let (model, ctx_params) = {
+                let model_inner = inner.model.inner.borrow();
+                (Rc::clone(&model_inner.model), model_inner.context.clone())
+            };
+
+            match model.new_context(&backend, ctx_params) {
+                Ok(ctx) => {
+                    // Safety: We're transmuting the lifetime to 'static.
+                    // This is safe because:
+                    // 1. The context is stored in the same struct as the backend
+                    // 2. Both are dropped together when the stream is dropped
+                    // 3. The context only references the model which outlives the stream
+                    let ctx_static = unsafe {
+                        std::mem::transmute::<LlamaModelContext<'_>, LlamaModelContext<'static>>(ctx)
+                    };
+                    inner.backend = Some(backend);
+                    inner.ctx = Some(ctx_static);
+                }
+                Err(_) => {
+                    inner.finished = true;
+                    return Some(Stream::Pending(ModelState::Finished));
+                }
+            }
+            return Some(Stream::Pending(ModelState::GeneratingTokens(None)));
+        }
+
+        // Check max tokens first (before any borrows)
+        if inner.tokens_generated >= inner.max_tokens {
+            inner.finished = true;
+            return Some(Stream::Pending(ModelState::Finished));
+        }
+
+        // Clone context at the beginning - Clone is cheap (pointer copy + Vec clone)
+        let mut ctx = match inner.ctx.as_ref() {
+            Some(ctx) => ctx.clone(),
+            None => {
+                inner.finished = true;
+                return None;
+            }
+        };
+        let model = {
+            let model_inner = inner.model.inner.borrow();
+            Rc::clone(&model_inner.model)
+        };
+
+        // Check if sampler exists
+        let sampler_exists = inner.sampler.is_some();
+        if !sampler_exists {
+            inner.finished = true;
+            return None;
+        }
+
+        // On first token generation, tokenize and evaluate the prompt
+        if inner.tokens_generated == 0 {
+            // Extract prompt early to avoid borrow conflicts
+            let prompt_opt = inner.prompt.take();
+
+            let prompt = prompt_opt.unwrap_or_default();
+            let tokens = match model.str_to_token(&prompt, AddBos::Always) {
+                Ok(t) => t,
+                Err(_) => {
+                    inner.finished = true;
+                    return Some(Stream::Pending(ModelState::Finished));
+                }
+            };
+            inner.input_tokens = tokens.len();
+
+            // Create batch and evaluate prompt
+            let mut batch = LlamaBatch::new(tokens.len(), 1);
+            if batch.add_sequence(&tokens, 0, true).is_err() {
+                inner.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
+            }
+
+            // Decode with cloned context
+            if ctx.decode(&mut batch).is_err() {
+                inner.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
+            }
+
+            inner.current_pos = tokens.len() as i32;
+        }
+
+        // Sample next token
+        let sampler = inner.sampler.as_mut().unwrap();
+        let next_token = sampler.sample(&ctx, 0);
+
+        // Check for end of sequence
+        if model.is_eog_token(next_token) {
+            inner.finished = true;
+            return Some(Stream::Pending(ModelState::Finished));
+        }
+
+        // Detokenize
+        let token_str = match model.token_to_str(next_token, Special::Tokenize) {
+            Ok(s) => s,
+            Err(_) => String::new(),
+        };
+
+        inner.tokens_generated += 1;
+        inner.current_pos += 1;
+
+        // Return token as Messages::Assistant
+        Some(Stream::Next(Messages::Assistant {
+            model: ModelId::Name("llamacpp".to_string(), None),
+            timestamp: SystemTime::now(),
+            usage: UsageReport {
+                input: inner.input_tokens as f64,
+                output: inner.tokens_generated as f64,
+                cache_read: 0.0,
+                cache_write: 0.0,
+                total_tokens: (inner.input_tokens + inner.tokens_generated as usize) as f64,
+                cost: UsageCosting {
+                    currency: "USD".to_string(),
+                    input: 0.0,
+                    output: 0.0,
+                    cache_read: 0.0,
+                    cache_write: 0.0,
+                    total_tokens: 0.0,
+                },
+            },
+            content: ModelOutput::Text(TextContent {
+                content: token_str,
+                signature: None,
+            }),
+            stop_reason: StopReason::Stop,
+            provider: ModelProviders::LLAMACPP,
+            error_detail: None,
+            signature: None,
+        }))
     }
 }
 
@@ -473,7 +679,7 @@ fn apply_chat_template(
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
 fn generate_embeddings(
     model: &LlamaModel,
-    ctx: &mut LlamaContext,
+    ctx: &mut LlamaModelContext,
     prompt: &str,
     _spec: &ModelSpec,
 ) -> GenerationResult<Vec<Messages>> {
@@ -539,7 +745,7 @@ fn generate_embeddings(
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap, clippy::cast_precision_loss)]
 fn generate_text(
     model: &LlamaModel,
-    ctx: &mut LlamaContext,
+    ctx: &mut LlamaModelContext,
     sampler: &mut LlamaSampler,
     prompt: &str,
     params: &ModelParams,
@@ -725,7 +931,7 @@ impl ModelProvider for LlamaBackends {
                 ModelProviderErrors::ModelErrors(ModelErrors::LlamaModelLoad(e))
             })?;
 
-        let context_params = LlamaContextParams::default();
+        let context_params = LlamaModelContextParams::default();
 
         Ok(LlamaModels::new(model, context_params, model_spec))
     }

@@ -40,13 +40,11 @@ pub type CloudflareFetchPending = ();
 /// Replaces `-`, `.`, `@` with `_` and ensures the name starts with a letter.
 fn normalize_schema_name(name: &str) -> String {
     let normalized = name
-        .replace('-', "_")
-        .replace('.', "_")
-        .replace('@', "_");
+        .replace(['-', '.', '@'], "_");
 
     // Ensure name starts with a letter (prepend underscore if it starts with digit)
-    if normalized.chars().next().map_or(false, |c| c.is_ascii_digit()) {
-        format!("_{}", normalized)
+    if normalized.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        format!("_{normalized}")
     } else {
         normalized
     }
@@ -83,8 +81,8 @@ fn normalize_cloudflare_spec(spec: &mut Value) {
     let rename_map: Map<String, Value> = renames
         .iter()
         .map(|(old, new)| {
-            let old_ref = format!("#/components/schemas/{}", old);
-            let new_ref = format!("#/components/schemas/{}", new);
+            let old_ref = format!("#/components/schemas/{old}");
+            let new_ref = format!("#/components/schemas/{new}");
             (old_ref.clone(), Value::String(new_ref))
         })
         .collect();

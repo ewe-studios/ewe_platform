@@ -220,9 +220,9 @@ impl From<infrastructure_llama_bindings::ggml_type> for KvCacheType {
 ///
 /// ```rust
 /// # use std::num::NonZeroU32;
-/// use infrastructure_llama_cpp::context::params::LlamaContextParams;
+/// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
 ///
-///let ctx_params = LlamaContextParams::default()
+///let ctx_params = LlamaModelContextParams::default()
 ///    .with_n_ctx(NonZeroU32::new(2048));
 ///
 /// assert_eq!(ctx_params.n_ctx(), NonZeroU32::new(2048));
@@ -233,23 +233,23 @@ impl From<infrastructure_llama_bindings::ggml_type> for KvCacheType {
     clippy::struct_excessive_bools,
     clippy::module_name_repetitions
 )]
-pub struct LlamaContextParams {
+pub struct LlamaModelContextParams {
     pub context_params: infrastructure_llama_bindings::llama_context_params,
 }
 
 /// SAFETY: we do not currently allow setting or reading the pointers that cause this to not be automatically send or sync.
-unsafe impl Send for LlamaContextParams {}
-unsafe impl Sync for LlamaContextParams {}
+unsafe impl Send for LlamaModelContextParams {}
+unsafe impl Sync for LlamaModelContextParams {}
 
-impl LlamaContextParams {
+impl LlamaModelContextParams {
     /// Set the side of the context
     ///
     /// # Examples
     ///
     /// ```rust
     /// # use std::num::NonZeroU32;
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default();
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default();
     /// let params = params.with_n_ctx(NonZeroU32::new(2048));
     /// assert_eq!(params.n_ctx(), NonZeroU32::new(2048));
     /// ```
@@ -266,7 +266,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert_eq!(params.n_ctx(), std::num::NonZeroU32::new(512));
     #[must_use]
     pub fn n_ctx(&self) -> Option<NonZeroU32> {
@@ -279,8 +279,8 @@ impl LlamaContextParams {
     ///
     /// ```rust
     /// # use std::num::NonZeroU32;
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///     .with_n_batch(2048);
     /// assert_eq!(params.n_batch(), 2048);
     /// ```
@@ -295,8 +295,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default();
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default();
     /// assert_eq!(params.n_batch(), 2048);
     /// ```
     #[must_use]
@@ -310,8 +310,8 @@ impl LlamaContextParams {
     ///
     /// ```rust
     /// # use std::num::NonZeroU32;
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///     .with_n_ubatch(512);
     /// assert_eq!(params.n_ubatch(), 512);
     /// ```
@@ -326,8 +326,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default();
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default();
     /// assert_eq!(params.n_ubatch(), 512);
     /// ```
     #[must_use]
@@ -356,8 +356,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///     .with_offload_kqv(false);
     /// assert_eq!(params.offload_kqv(), false);
     /// ```
@@ -372,8 +372,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default();
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default();
     /// assert_eq!(params.offload_kqv(), true);
     /// ```
     #[must_use]
@@ -386,8 +386,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::{LlamaContextParams, RopeScalingType};
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::{LlamaModelContextParams, RopeScalingType};
+    /// let params = LlamaModelContextParams::default()
     ///     .with_rope_scaling_type(RopeScalingType::Linear);
     /// assert_eq!(params.rope_scaling_type(), RopeScalingType::Linear);
     /// ```
@@ -402,7 +402,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert_eq!(params.rope_scaling_type(), infrastructure_llama_cpp::context::params::RopeScalingType::Unspecified);
     /// ```
     #[must_use]
@@ -415,8 +415,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///    .with_rope_freq_base(0.5);
     /// assert_eq!(params.rope_freq_base(), 0.5);
     /// ```
@@ -431,7 +431,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert_eq!(params.rope_freq_base(), 0.0);
     /// ```
     #[must_use]
@@ -444,8 +444,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///   .with_rope_freq_scale(0.5);
     /// assert_eq!(params.rope_freq_scale(), 0.5);
     /// ```
@@ -460,7 +460,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert_eq!(params.rope_freq_scale(), 0.0);
     /// ```
     #[must_use]
@@ -473,7 +473,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert_eq!(params.n_threads(), 4);
     /// ```
     #[must_use]
@@ -486,7 +486,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert_eq!(params.n_threads_batch(), 4);
     /// ```
     #[must_use]
@@ -499,8 +499,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///    .with_n_threads(8);
     /// assert_eq!(params.n_threads(), 8);
     /// ```
@@ -515,8 +515,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///    .with_n_threads_batch(8);
     /// assert_eq!(params.n_threads_batch(), 8);
     /// ```
@@ -531,7 +531,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert!(!params.embeddings());
     /// ```
     #[must_use]
@@ -544,8 +544,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///    .with_embeddings(true);
     /// assert!(params.embeddings());
     /// ```
@@ -568,8 +568,8 @@ impl LlamaContextParams {
     ///     false
     /// }
     ///
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default().with_cb_eval(Some(cb_eval_fn));
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default().with_cb_eval(Some(cb_eval_fn));
     /// ```
     #[must_use]
     pub fn with_cb_eval(
@@ -585,8 +585,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```no_run
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default();
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default();
     /// let user_data = std::ptr::null_mut();
     /// let params = params.with_cb_eval_user_data(user_data);
     /// ```
@@ -601,8 +601,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::{LlamaContextParams, LlamaPoolingType};
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::{LlamaModelContextParams, LlamaPoolingType};
+    /// let params = LlamaModelContextParams::default()
     ///     .with_pooling_type(LlamaPoolingType::Last);
     /// assert_eq!(params.pooling_type(), LlamaPoolingType::Last);
     /// ```
@@ -617,7 +617,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// assert_eq!(params.pooling_type(), infrastructure_llama_cpp::context::params::LlamaPoolingType::Unspecified);
     /// ```
     #[must_use]
@@ -630,8 +630,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///     .with_swa_full(false);
     /// assert_eq!(params.swa_full(), false);
     /// ```
@@ -646,8 +646,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default();
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default();
     /// assert_eq!(params.swa_full(), true);
     /// ```
     #[must_use]
@@ -660,8 +660,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default()
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default()
     ///     .with_n_seq_max(64);
     /// assert_eq!(params.n_seq_max(), 64);
     /// ```
@@ -676,8 +676,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::LlamaContextParams;
-    /// let params = LlamaContextParams::default();
+    /// use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+    /// let params = LlamaModelContextParams::default();
     /// assert_eq!(params.n_seq_max(), 1);
     /// ```
     #[must_use]
@@ -685,8 +685,8 @@ impl LlamaContextParams {
         self.context_params.n_seq_max
     }
     /// Set the KV cache data type for K
-    /// use `infrastructure_llama_cpp::context::params::{LlamaContextParams`, `KvCacheType`};
-    /// let params = `LlamaContextParams::default().with_type_k(KvCacheType::Q4_0)`;
+    /// use `infrastructure_llama_cpp::context::params::{LlamaModelContextParams`, `KvCacheType`};
+    /// let params = `LlamaModelContextParams::default().with_type_k(KvCacheType::Q4_0)`;
     /// `assert_eq!(params.type_k()`, `KvCacheType::Q4_0`);
     /// ```
     #[must_use]
@@ -700,7 +700,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// let _ = params.type_k();
     /// ```
     #[must_use]
@@ -713,8 +713,8 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// use infrastructure_llama_cpp::context::params::{LlamaContextParams, KvCacheType};
-    /// let params = LlamaContextParams::default().with_type_v(KvCacheType::Q4_1);
+    /// use infrastructure_llama_cpp::context::params::{LlamaModelContextParams, KvCacheType};
+    /// let params = LlamaModelContextParams::default().with_type_v(KvCacheType::Q4_1);
     /// assert_eq!(params.type_v(), KvCacheType::Q4_1);
     /// ```
     #[must_use]
@@ -728,7 +728,7 @@ impl LlamaContextParams {
     /// # Examples
     ///
     /// ```rust
-    /// let params = infrastructure_llama_cpp::context::params::LlamaContextParams::default();
+    /// let params = infrastructure_llama_cpp::context::params::LlamaModelContextParams::default();
     /// let _ = params.type_v();
     /// ```
     #[must_use]
@@ -737,15 +737,15 @@ impl LlamaContextParams {
     }
 }
 
-/// Default parameters for `LlamaContext`. (as defined in llama.cpp by `llama_context_default_params`)
+/// Default parameters for `LlamaModelContext`. (as defined in llama.cpp by `llama_context_default_params`)
 /// ```
 /// # use std::num::NonZeroU32;
-/// use infrastructure_llama_cpp::context::params::{LlamaContextParams, RopeScalingType};
-/// let params = LlamaContextParams::default();
+/// use infrastructure_llama_cpp::context::params::{LlamaModelContextParams, RopeScalingType};
+/// let params = LlamaModelContextParams::default();
 /// assert_eq!(params.n_ctx(), NonZeroU32::new(512), "n_ctx should be 512");
 /// assert_eq!(params.rope_scaling_type(), RopeScalingType::Unspecified);
 /// ```
-impl Default for LlamaContextParams {
+impl Default for LlamaModelContextParams {
     fn default() -> Self {
         let context_params =
             unsafe { infrastructure_llama_bindings::llama_context_default_params() };

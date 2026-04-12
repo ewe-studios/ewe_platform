@@ -1,9 +1,9 @@
-//! Provider Client - Central client wrapping StateStore.
+//! Provider Client - Central client wrapping `StateStore`.
 //!
 //! WHY: Users need a single entry point that manages state tracking
 //!      for all API operations in a project/stage context.
 //!
-//! WHAT: Generic wrapper around any StateStore implementation,
+//! WHAT: Generic wrapper around any `StateStore` implementation,
 //!       storing project and stage metadata.
 //!
 //! HOW: Holds Arc<StateStore> for thread-safe sharing across
@@ -12,12 +12,12 @@
 use foundation_db::state::traits::StateStore;
 use std::sync::Arc;
 
-/// Central provider client wrapping a StateStore.
+/// Central provider client wrapping a `StateStore`.
 ///
 /// WHY: Users need a single entry point that manages state tracking
 ///      for all API operations in a project/stage context.
 ///
-/// WHAT: Generic wrapper around any StateStore implementation,
+/// WHAT: Generic wrapper around any `StateStore` implementation,
 ///       storing project and stage metadata.
 ///
 /// HOW: Holds Arc<StateStore> for thread-safe sharing across
@@ -62,23 +62,26 @@ where
     }
 
     /// Get reference to state store.
+    #[must_use] 
     pub fn state_store(&self) -> &S {
         &self.state_store
     }
 
     /// Get project name.
+    #[must_use] 
     pub fn project(&self) -> &str {
         &self.project
     }
 
     /// Get stage name.
+    #[must_use] 
     pub fn stage(&self) -> &str {
         &self.stage
     }
 }
 
-/// Re-export ProviderError for use in per-API providers.
+/// Re-export `ProviderError` for use in per-API providers.
 pub use foundation_db::state::store_state_task::ProviderError;
 
-/// Re-export StoreStateIdentifierTask for state-aware operations.
+/// Re-export `StoreStateIdentifierTask` for state-aware operations.
 pub use foundation_db::state::store_state_task::StoreStateIdentifierTask;

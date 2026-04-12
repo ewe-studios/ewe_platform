@@ -6,8 +6,8 @@ use std::path::Path;
 use std::ptr::NonNull;
 use std::str::Utf8Error;
 
-use crate::context::params::LlamaContextParams;
-use crate::context::LlamaContext;
+use crate::context::params::LlamaModelContextParams;
+use crate::context::LlamaModelContext;
 use crate::llama_backend::LlamaBackend;
 use crate::model::params::LlamaModelParams;
 use crate::token::LlamaToken;
@@ -695,13 +695,13 @@ impl LlamaModel {
     /// # Errors
     ///
     /// There is many ways this can fail. See [`LlamaContextLoadError`] for more information.
-    // we intentionally do not derive Copy on `LlamaContextParams` to allow llama.cpp to change the type to be non-trivially copyable.
+    // we intentionally do not derive Copy on `LlamaModelContextParams` to allow llama.cpp to change the type to be non-trivially copyable.
     #[allow(clippy::needless_pass_by_value)]
     pub fn new_context<'a>(
         &'a self,
         _: &LlamaBackend,
-        params: LlamaContextParams,
-    ) -> Result<LlamaContext<'a>, LlamaContextLoadError> {
+        params: LlamaModelContextParams,
+    ) -> Result<LlamaModelContext<'a>, LlamaContextLoadError> {
         let context_params = params.context_params;
         let context = unsafe {
             infrastructure_llama_bindings::llama_new_context_with_model(
@@ -711,7 +711,7 @@ impl LlamaModel {
         };
         let context = NonNull::new(context).ok_or(LlamaContextLoadError::NullReturn)?;
 
-        Ok(LlamaContext::new(self, context, params.embeddings()))
+        Ok(LlamaModelContext::new(self, context, params.embeddings()))
     }
 
     /// Apply the models chat template to some messages.

@@ -26,8 +26,8 @@ use std::time::Duration;
 use anyhow::{bail, Context, Result};
 use clap::Parser;
 
-use infrastructure_llama_cpp::context::params::{LlamaContextParams, LlamaPoolingType};
-use infrastructure_llama_cpp::context::LlamaContext;
+use infrastructure_llama_cpp::context::params::{LlamaModelContextParams, LlamaPoolingType};
+use infrastructure_llama_cpp::context::LlamaModelContext;
 use infrastructure_llama_cpp::ggml_time_us;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
@@ -100,7 +100,7 @@ fn main() -> Result<()> {
         _ => LlamaPoolingType::Unspecified,
     };
 
-    let ctx_params = LlamaContextParams::default()
+    let ctx_params = LlamaModelContextParams::default()
         .with_n_threads_batch(std::thread::available_parallelism()?.get().try_into()?)
         .with_embeddings(true)
         .with_pooling_type(pooling_type);
@@ -232,7 +232,7 @@ fn main() -> Result<()> {
 }
 
 fn batch_decode(
-    ctx: &mut LlamaContext,
+    ctx: &mut LlamaModelContext,
     batch: &mut LlamaBatch,
     s_batch: i32,
     output: &mut Vec<Vec<f32>>,

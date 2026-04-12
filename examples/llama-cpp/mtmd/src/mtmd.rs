@@ -7,8 +7,8 @@ use std::path::Path;
 
 use clap::Parser;
 
-use infrastructure_llama_cpp::context::params::LlamaContextParams;
-use infrastructure_llama_cpp::context::LlamaContext;
+use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+use infrastructure_llama_cpp::context::LlamaModelContext;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
 use infrastructure_llama_cpp::model::params::LlamaModelParams;
 use infrastructure_llama_cpp::mtmd::{
@@ -140,7 +140,7 @@ impl MtmdCliContext<'_> {
     pub fn eval_message(
         &mut self,
         model: &LlamaModel,
-        context: &mut LlamaContext,
+        context: &mut LlamaModelContext,
         msg: LlamaChatMessage,
         add_bos: bool,
         batch_size: i32,
@@ -181,7 +181,7 @@ impl MtmdCliContext<'_> {
     pub fn generate_response(
         &mut self,
         model: &LlamaModel,
-        context: &mut LlamaContext,
+        context: &mut LlamaModelContext,
         sampler: &mut LlamaSampler,
         n_predict: i32,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -221,7 +221,7 @@ impl MtmdCliContext<'_> {
 fn run_single_turn(
     ctx: &mut MtmdCliContext,
     model: &LlamaModel,
-    context: &mut LlamaContext,
+    context: &mut LlamaModelContext,
     sampler: &mut LlamaSampler,
     params: &MtmdCliParams,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -288,7 +288,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let model = LlamaModel::load_from_file(&backend, &params.model_path, &model_params)?;
 
     // Create context
-    let context_params = LlamaContextParams::default()
+    let context_params = LlamaModelContextParams::default()
         .with_n_threads(params.n_threads)
         .with_n_batch(params.batch_size.try_into()?)
         .with_n_ctx(Some(params.n_tokens));

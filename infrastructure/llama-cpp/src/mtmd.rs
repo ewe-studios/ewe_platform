@@ -9,7 +9,7 @@ use std::ffi::{CStr, CString};
 use std::ptr::NonNull;
 use std::slice;
 
-use crate::context::LlamaContext;
+use crate::context::LlamaModelContext;
 use crate::model::LlamaModel;
 use crate::token::LlamaToken;
 
@@ -694,7 +694,7 @@ impl MtmdInputChunks {
     pub fn eval_chunks(
         &self,
         mtmd_ctx: &MtmdContext,
-        llama_ctx: &LlamaContext,
+        llama_ctx: &LlamaModelContext,
         n_past: infrastructure_llama_bindings::llama_pos,
         seq_id: infrastructure_llama_bindings::llama_seq_id,
         n_batch: i32,

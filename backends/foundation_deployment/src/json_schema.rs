@@ -1,14 +1,14 @@
-//! Shared JSON Schema and OpenAPI response type extraction utilities.
+//! Shared JSON Schema and `OpenAPI` response type extraction utilities.
 //!
 //! WHY: Both the resource generator (bin/platform) and generated clients need to
-//! extract response types from OpenAPI specs. Centralizing this logic avoids
+//! extract response types from `OpenAPI` specs. Centralizing this logic avoids
 //! duplicating complex composition type handling.
 //!
-//! WHAT: Functions to extract response type names from OpenAPI operation responses,
+//! WHAT: Functions to extract response type names from `OpenAPI` operation responses,
 //! handling $ref references, composition types (allOf/oneOf/anyOf), and edge cases.
 //!
 //! HOW: Analyzes response schemas to determine if they're generatable types or
-//! should fall back to serde_json::Value.
+//! should fall back to `serde_json::Value`.
 
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -39,7 +39,7 @@ pub struct MediaType {
     pub schema: Option<JsonSchema>,
 }
 
-/// Extract the response type name from an OpenAPI operation's responses.
+/// Extract the response type name from an `OpenAPI` operation's responses.
 ///
 /// Returns:
 /// - `Some(type_name)` for generatable types (objects with properties or simple types)
@@ -49,8 +49,9 @@ pub struct MediaType {
 ///
 /// # Arguments
 ///
-/// * `responses` - The responses object from an OpenAPI operation
+/// * `responses` - The responses object from an `OpenAPI` operation
 /// * `components_schemas` - Optional schemas from components for resolving $ref targets
+#[must_use] 
 pub fn extract_response_type(
     responses: &BTreeMap<String, ResponseContent>,
     components_schemas: Option<&BTreeMap<String, JsonSchema>>,
@@ -88,10 +89,9 @@ pub fn extract_response_type(
 
                         if is_generatable {
                             return extract_type_name_from_schema(schema_to_check, components_schemas);
-                        } else {
-                            // Pure composition type - use serde_json::Value
-                            return Some("serde_json::Value".to_string());
                         }
+                        // Pure composition type - use serde_json::Value
+                        return Some("serde_json::Value".to_string());
                     }
                 }
             }
@@ -108,11 +108,11 @@ pub fn extract_response_type(
 pub fn extract_type_name_from_ref(ref_path: &str) -> Option<String> {
     // Handle OpenAPI format: #/components/schemas/TypeName
     if ref_path.starts_with("#/") {
-        return ref_path.split('/').last().map(String::from);
+        return ref_path.split('/').next_back().map(String::from);
     }
 
     // Handle GCP format: GoogleCloudRunV2Service (already the type name)
-    Some(ref_path.split('.').last().map(String::from)?)
+    ref_path.split('.').next_back().map(String::from)
 }
 
 /// Extract type name from a schema, resolving $ref if present.
@@ -121,10 +121,7 @@ fn extract_type_name_from_schema(
     _components_schemas: Option<&BTreeMap<String, JsonSchema>>,
 ) -> Option<String> {
     if let Some(ref_path) = &schema.ref_path {
-        let type_name = match extract_type_name_from_ref(ref_path) {
-            Some(name) => name,
-            None => return None,
-        };
+        let type_name = extract_type_name_from_ref(ref_path)?;
 
         // Apply PascalCase normalization for generated types
         Some(normalize_type_name(&type_name))
@@ -136,12 +133,13 @@ fn extract_type_name_from_schema(
 
 /// Normalize a type name to match generated Rust type conventions.
 ///
-/// Converts identifiers with dots, hyphens, underscores to PascalCase:
+/// Converts identifiers with dots, hyphens, underscores to `PascalCase`:
 /// - `treasury.transaction` → `TreasuryTransaction`
 /// - `Custom-pages` → `CustomPages`
 /// - `iam_response_collection_accounts` → `IamResponseCollectionAccounts`
+#[must_use] 
 pub fn normalize_type_name(name: &str) -> String {
-    name.split(|c| c == '.' || c == '-' || c == '@' || c == '_')
+    name.split(['.', '-', '@', '_'])
         .map(|part| {
             let mut chars = part.chars();
             chars
@@ -153,11 +151,12 @@ pub fn normalize_type_name(name: &str) -> String {
         .collect()
 }
 
-/// Extract path parameter names from an OpenAPI path template.
+/// Extract path parameter names from an `OpenAPI` path template.
 ///
 /// Examples:
 /// - `/v1/projects/{projectId}` → `["projectId"]`
 /// - `/v1/folders/{folderId}/files/{fileId}` → `["folderId", "fileId"]`
+#[must_use] 
 pub fn extract_path_params(path: &str) -> Vec<String> {
     let re = regex::Regex::new(r"\{([^}]+)\}").unwrap();
     re.captures_iter(path)
