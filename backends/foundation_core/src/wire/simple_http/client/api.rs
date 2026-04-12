@@ -23,7 +23,6 @@ use crate::wire::simple_http::client::{
 use crate::wire::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeaders, SimpleResponse, Status,
 };
-use std::io::Read;
 use std::sync::Arc;
 
 pub type DrivenBodyStream<R> = DrivenStreamIterator<
