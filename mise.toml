@@ -340,16 +340,14 @@ trap 'mise run cf:stop' EXIT
 # Run R2 tests
 echo ""
 echo "=== Running R2 Tests ==="
-export R2_INTEGRATION_TEST=1
-export LOCAL_R2_URL="http://localhost:8788"
+export CF_INTEGRATION_TEST=1
+export LOCAL_CF_API_BASE="http://localhost:8789"
 export LOCAL_R2_BUCKET="test-bucket"
 cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
 
 # Run D1 tests
 echo ""
 echo "=== Running D1 Tests ==="
-export D1_INTEGRATION_TEST=1
-export LOCAL_D1_URL="http://localhost:8789"
 export LOCAL_D1_DATABASE_ID="test-db"
 cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
 
@@ -366,8 +364,8 @@ set -e
 mise run cf:start
 trap 'mise run cf:stop' EXIT
 
-export R2_INTEGRATION_TEST=1
-export LOCAL_R2_URL="http://localhost:8788"
+export CF_INTEGRATION_TEST=1
+export LOCAL_CF_API_BASE="http://localhost:8789"
 export LOCAL_R2_BUCKET="test-bucket"
 cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
 """
@@ -381,8 +379,8 @@ set -e
 mise run cf:start
 trap 'mise run cf:stop' EXIT
 
-export D1_INTEGRATION_TEST=1
-export LOCAL_D1_URL="http://localhost:8789"
+export CF_INTEGRATION_TEST=1
+export LOCAL_CF_API_BASE="http://localhost:8789"
 export LOCAL_D1_DATABASE_ID="test-db"
 cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
 """

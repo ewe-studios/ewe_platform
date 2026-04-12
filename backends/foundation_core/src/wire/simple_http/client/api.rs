@@ -23,6 +23,7 @@ use crate::wire::simple_http::client::{
 use crate::wire::simple_http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeaders, SimpleResponse, Status,
 };
+use std::io::Read;
 use std::sync::Arc;
 
 pub type DrivenBodyStream<R> = DrivenStreamIterator<
@@ -122,10 +123,38 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     }
 }
 
+/// Drain any remaining data from a stream before returning it to the pool.
+///
+/// This ensures the connection is in a clean state for reuse. After no-body
+/// responses (204, 205, HEAD), the HTTP reader may leave unread bytes or
+/// intermediate state in the underlying `SharedByteBufferStream`. Draining
+/// consumes any remaining buffered data and resets the stream position.
+///
+/// # Arguments
+///
+/// * `stream` - The stream to drain
+fn drain_stream_before_pooling(
+    stream: &mut HttpClientConnection,
+) {
+    // Read any remaining buffered data into a small buffer
+    // This ensures the HTTP response reader state machine is fully consumed
+    let mut drain_buf = [0u8; 1024];
+    loop {
+        match stream.read(&mut drain_buf) {
+            Ok(0) => break, // EOF - stream fully drained
+            Ok(_) => continue, // More data read, keep draining
+            Err(_) => break, // Read error - stop draining to avoid blocking
+        }
+    }
+}
+
 impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
     fn drop(&mut self) {
         // Return stream to pool if we have one
-        if let (Some(pool), Some(stream)) = (self.1.take(), self.2.take()) {
+        if let (Some(pool), Some(mut stream)) = (self.1.take(), self.2.take()) {
+            // Drain any remaining data from the stream before pooling
+            // This ensures the connection is in a clean state for reuse
+            drain_stream_before_pooling(&mut stream);
             pool.return_to_pool(stream);
         }
         // Take and drop the response to release body

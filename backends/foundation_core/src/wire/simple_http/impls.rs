@@ -1933,11 +1933,8 @@ impl SimpleIncomingRequestBuilder {
                     .try_into_string()
                     .map_err(SimpleRequestError::StringConversion)?;
 
-                if let Some(header_values) = headers.get_mut(&SimpleHeader::CONTENT_LENGTH) {
-                    header_values.push(content_length);
-                } else {
-                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
-                }
+                // Always replace Content-Length - it must be a single value
+                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
             }
             SendSafeBody::Text(inner) => {
                 let content_length = inner
@@ -1945,11 +1942,8 @@ impl SimpleIncomingRequestBuilder {
                     .try_into_string()
                     .map_err(SimpleRequestError::StringConversion)?;
 
-                if let Some(header_values) = headers.get_mut(&SimpleHeader::CONTENT_LENGTH) {
-                    header_values.push(content_length);
-                } else {
-                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
-                }
+                // Always replace Content-Length - it must be a single value
+                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
             }
             _ => {}
         }
@@ -2004,12 +1998,13 @@ impl Iterator for Http11RequestDescriptorIterator {
         match self.0.take()? {
             Http11RequestDescriptorState::Intro(request) => {
                 let method = request.method.clone();
-                let url = request.request_url.url.clone();
+                // Use path+query for HTTP/1.1 request line, not the full URL
+                let path = request.request_uri.path_and_query().to_string();
                 // switch state to headers
                 self.0 = Some(Http11RequestDescriptorState::Headers(request));
 
                 // generate HTTP 1.1 intro
-                let http_intro_string = format!("{method} {url} HTTP/1.1\r\n",);
+                let http_intro_string = format!("{method} {path} HTTP/1.1\r\n");
 
                 Some(Ok(http_intro_string.into_bytes()))
             }

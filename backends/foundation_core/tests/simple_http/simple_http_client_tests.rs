@@ -20,7 +20,6 @@ fn test_simple_http_client_new() {
     let config = client.client_config();
 
     assert_eq!(config.max_redirects, 5);
-    assert!(!config.pool_enabled);
 }
 
 /// WHY: Verify SimpleHttpClient::with_resolver accepts custom resolver
@@ -86,15 +85,14 @@ fn test_simple_http_client_max_redirects() {
     assert_eq!(config.max_redirects, 3);
 }
 
-/// WHY: Verify SimpleHttpClient::enable_pool enables connection pooling
-/// WHAT: Tests that builder method enables pooling and sets max connections
+/// WHY: Verify SimpleHttpClient::with_connection_pool enables connection pooling
+/// WHAT: Tests that builder method creates a connection pool
 #[test]
-fn test_simple_http_client_enable_pool() {
-    let client = SimpleHttpClient::from_system().enable_pool(20);
+fn test_simple_http_client_with_connection_pool() {
+    let client = SimpleHttpClient::from_system().with_connection_pool();
 
-    let config = client.client_config();
-    assert!(config.pool_enabled);
-    assert_eq!(config.pool_max_connections, 20);
+    let pool = client.client_pool();
+    assert!(pool.is_some());
 }
 
 /// WHY: Verify SimpleHttpClient builder methods are chainable
@@ -104,13 +102,12 @@ fn test_simple_http_client_builder_chaining() {
     let client = SimpleHttpClient::from_system()
         .connect_timeout(Duration::from_secs(10))
         .max_redirects(3)
-        .enable_pool(15);
+        .with_connection_pool();
 
     let config = client.client_config();
     assert_eq!(config.connect_timeout, Duration::from_secs(10));
     assert_eq!(config.max_redirects, 3);
-    assert!(config.pool_enabled);
-    assert_eq!(config.pool_max_connections, 15);
+    assert!(client.client_pool().is_some());
 }
 
 /// WHY: Verify SimpleHttpClient::get creates GET request builder

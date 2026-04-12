@@ -19,7 +19,8 @@ use crate::storage_provider::{
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 
-const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
+/// Default Cloudflare API base. Tests override this via [`D1KeyValueStore::with_base_url`].
+pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 
 /// Cloudflare D1 key-value storage backend.
 ///
@@ -32,11 +33,12 @@ pub struct D1KeyValueStore {
     account_id: String,
     database_id: String,
     table_name: String,
+    base_url: String,
     client: SimpleHttpClient,
 }
 
 impl D1KeyValueStore {
-    /// Create a new D1 key-value store.
+    /// Create a new D1 key-value store pointed at the production Cloudflare API.
     ///
     /// Table name will be `{table_prefix}_kv` for namespacing.
     #[must_use]
@@ -46,12 +48,28 @@ impl D1KeyValueStore {
         database_id: &str,
         table_prefix: &str,
     ) -> Self {
+        Self::with_base_url(api_token, account_id, database_id, table_prefix, CF_API_BASE)
+    }
+
+    /// Create a new D1 key-value store with a custom API base URL.
+    ///
+    /// Used by integration tests to point the client at a local wrangler
+    /// worker that emulates the Cloudflare D1 REST API.
+    #[must_use]
+    pub fn with_base_url(
+        api_token: &str,
+        account_id: &str,
+        database_id: &str,
+        table_prefix: &str,
+        base_url: &str,
+    ) -> Self {
         let table_name = format!("{table_prefix}_kv");
         Self {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             table_name,
+            base_url: base_url.trim_end_matches('/').to_string(),
             client: SimpleHttpClient::from_system(),
         }
     }
@@ -82,8 +100,8 @@ impl D1KeyValueStore {
 
     fn query_url(&self) -> String {
         format!(
-            "{CF_API_BASE}/accounts/{}/d1/database/{}/query",
-            self.account_id, self.database_id
+            "{}/accounts/{}/d1/database/{}/query",
+            self.base_url, self.account_id, self.database_id
         )
     }
 
