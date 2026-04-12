@@ -25,6 +25,9 @@ use foundation_core::wire::simple_http::{
 
 type ResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>>>;
 
+/// Handler that can return both an interim (1xx) and final response.
+type InterimResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>>>;
+
 /// Simple HTTP request representation for testing.
 #[derive(Debug)]
 pub struct HttpRequest {
@@ -90,6 +93,17 @@ impl HttpResponse {
             status: code,
             status_text: text.to_string(),
             headers: vec![("Content-Length".to_string(), "0".to_string())],
+            body: Vec::new(),
+        }
+    }
+
+    /// Create 100 Continue interim response.
+    #[must_use]
+    pub fn continue_response() -> Self {
+        Self {
+            status: 100,
+            status_text: "Continue".to_string(),
+            headers: vec![],
             body: Vec::new(),
         }
     }
@@ -290,6 +304,79 @@ impl TestHttpServer {
         }
     }
 
+    /// Start server with handler that can send interim (1xx) and final responses.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Allows testing scenarios where server sends 100 Continue before the final response,
+    /// such as redirect-after-continue edge cases.
+    ///
+    /// # Arguments
+    ///
+    /// * `handler` - Function that takes request and returns (optional interim, final) response
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use foundation_testing::http::{TestHttpServer, HttpRequest, HttpResponse};
+    ///
+    /// let server = TestHttpServer::with_interim_response(|req| {
+    ///     // Send 100 Continue first, then final response
+    ///     (Some(HttpResponse::continue_response()), HttpResponse::redirect("/target"))
+    /// });
+    /// ```
+    #[must_use]
+    pub fn with_interim_response<F>(handler: F) -> Self
+    where
+        F: Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send + 'static,
+    {
+        let listener =
+            TcpListener::bind("127.0.0.1:0").expect("Failed to bind test HTTP server to localhost");
+        let addr = format!("http://{}", listener.local_addr().unwrap());
+
+        let running = Arc::new(AtomicBool::new(true));
+        let handler = Arc::new(Mutex::new(
+            Box::new(handler) as Box<dyn Fn(&HttpRequest) -> (Option<HttpResponse>, HttpResponse) + Send>
+        ));
+
+        let running_clone = Arc::clone(&running);
+        let handler_clone = Arc::clone(&handler);
+
+        let handle = thread::spawn(move || {
+            listener
+                .set_nonblocking(true)
+                .expect("Failed to set non-blocking");
+
+            while running_clone.load(Ordering::Relaxed) {
+                match listener.accept() {
+                    Ok((stream, sock_addr)) => {
+                        tracing::info!("Got a client connection: {sock_addr:?}");
+                        let handler = Arc::clone(&handler_clone);
+                        thread::spawn(move || {
+                            if let Err(e) = Self::handle_connection_with_interim(stream, &handler) {
+                                tracing::info!("TestHttpServer connection error: {e}");
+                            }
+                        });
+                    }
+                    Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        thread::sleep(std::time::Duration::from_millis(10));
+                    }
+                    Err(e) => {
+                        tracing::info!("TestHttpServer accept error: {e}");
+                        break;
+                    }
+                }
+            }
+        });
+
+        Self {
+            addr,
+            _handle: Some(handle),
+            running,
+            _handler: Arc::new(Mutex::new(Box::new(|_| HttpResponse::ok(b"")))),
+        }
+    }
+
     /// Get full URL for a path on this test server.
     ///
     /// # Arguments
@@ -423,6 +510,117 @@ impl TestHttpServer {
         stream.write_all(&rendered)?;
         stream.flush()?;
         tracing::info!("flush response");
+
+        Ok(())
+    }
+
+    /// Handle a single HTTP connection with interim (1xx) response support.
+    ///
+    /// WHY: Processes incoming HTTP request and sends interim + final responses.
+    fn handle_connection_with_interim(
+        mut stream: TcpStream,
+        handler: &InterimResponseHandler,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // Parse minimal HTTP request (method, path, version)
+        let conn = RawStream::from_tcp(stream.try_clone()?).expect("should wrap tcp stream");
+        let request_streams = http_streams::send::http_streams(conn);
+
+        tracing::info!("Read a line on connection!");
+
+        // fetch the intro portion and validate we have resources for processing request
+        let request_reader = request_streams.next_request();
+        tracing::debug!("Pulled next request");
+
+        let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
+            .into_iter()
+            .filter(|item| match item {
+                Ok(IncomingRequestParts::SKIP) => false,
+                Ok(_) | Err(_) => true,
+            })
+            .collect();
+
+        tracing::debug!("Collected all parts of request");
+        if let Err(part_err) = parts {
+            tracing::error!("Failed to read requests from reader due to: {:?}", part_err);
+            return Ok(());
+        }
+
+        tracing::debug!("Unwrap into request parts");
+        let mut request_parts = parts.unwrap();
+        if request_parts.len() != 3 {
+            tracing::error!(
+                "Failed to receive expected request parts of 3: {:?}",
+                &request_parts
+            );
+            return Ok(());
+        }
+
+        let body_part = request_parts.pop().unwrap();
+        let headers_part = request_parts.pop().unwrap();
+        let intros_part = request_parts.pop().unwrap();
+
+        tracing::debug!("Deconstruct request parts");
+
+        let IncomingRequestParts::Intro(method, url, proto) = intros_part else {
+            tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
+            return Ok(());
+        };
+
+        let IncomingRequestParts::Headers(headers) = headers_part else {
+            tracing::error!("Failed to receive a IncomingRequestParts::Headers(_)");
+            return Ok(());
+        };
+
+        tracing::debug!("Reviewing body part: {:?}", body_part);
+
+        let body = match body_part {
+            IncomingRequestParts::NoBody => SendSafeBody::None,
+            IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
+                body
+            }
+            _ => {
+                tracing::error!("Failed to receive a IncomingRequestParts::Body(_)");
+                return Ok(());
+            }
+        };
+
+        tracing::info!(
+            "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
+            method,
+            url,
+            proto,
+        );
+
+        tracing::info!("Got request");
+        let request = HttpRequest {
+            path: url,
+            method,
+            proto,
+            headers,
+            body,
+        };
+
+        // Call user's handler to get interim + final response
+        let (interim, final_response) = {
+            let handler_guard = handler.lock().unwrap();
+            handler_guard(&request)
+        };
+
+        // Send interim response if present
+        if let Some(interim) = interim {
+            tracing::info!("render interim response");
+            let rendered = interim.render();
+            stream.write_all(&rendered)?;
+            stream.flush()?;
+            tracing::info!("flush interim response");
+        }
+
+        // Send final response
+        tracing::info!("render final response");
+        let rendered = final_response.render();
+        stream.write_all(&rendered)?;
+        stream.flush()?;
+        tracing::info!("flush final response");
 
         Ok(())
     }
