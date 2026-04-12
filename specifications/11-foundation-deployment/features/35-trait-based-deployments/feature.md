@@ -43,6 +43,12 @@ Replace configuration-driven deployments with **pure Rust code**. Users define s
 
 ```rust
 // User defines their infrastructure as Rust types
+use foundation_core::traits::Deploying;
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator, BoxedSendExecutionAction};
+use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_deployment::{providers::cloudflare::clients::*, types::*};
+use std::time::Duration;
+
 pub struct MyWorker {
     pub name: String,
     pub script: String,
@@ -54,12 +60,18 @@ impl Deployable for MyWorker {
     type Output = WorkerDeployment;
     type Error = ApiError;
     
-    // deploy() uses default implementation which calls deploy_task() and executes
+    // deploy() executes the task via valtron's execute()
     fn deploy(&self) -> Result<
         impl StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(self.deploy_task())
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Valtron execution failed: {}", e),
+                ))
+            }))
     }
     
     // deploy_task() contains the actual deployment logic using provider clients
@@ -243,36 +255,6 @@ pub trait Deployable {
 }
 ```
 
-### Default Implementation Helper
-
-```rust
-// For simple cases, use this helper to implement deploy() in terms of deploy_task()
-
-pub fn deploy_from_task<T>(
-    task_result: Result<impl TaskIterator<
-        Ready = Result<T::Output, T::Error>,
-        Pending = Deploying,
-        Spawner = BoxedSendExecutionAction,
-    > + Send + 'static, T::Error>
-) -> Result<
-    impl StreamIterator<D = Result<T::Output, T::Error>, P = Deploying> + Send + 'static,
-    T::Error,
->
-where
-    T: Deployable,
-{
-    use foundation_core::valtron::execute;
-    task_result.and_then(|task| {
-        execute(task, None).map_err(|e| {
-            // Convert valtron execution error to your error type
-            // Most deployments will use a custom error that can represent this
-            use std::io::{Error, ErrorKind};
-            T::Error::from(Error::new(ErrorKind::Other, format!("Valtron execution failed: {}", e)))
-        })
-    })
-}
-```
-
 ### User Implementation Pattern
 
 ```rust
@@ -286,7 +268,14 @@ impl Deployable for MyWorker {
         impl StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(self.deploy_task())
+        use foundation_core::valtron::execute;
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Valtron execution failed: {}", e),
+                ))
+            }))
     }
     
     fn deploy_task(&self) -> Result<
@@ -395,10 +384,11 @@ Users don't interact with state stores directly — it's handled by provider cli
 ```rust
 // deploy/my_worker.rs
 
-use foundation_core::valtron::{TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
+use foundation_core::traits::Deploying;
+use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_deployment::{providers::cloudflare::clients::*, types::*};
-use foundation_core::traits::Deploying;
+use std::time::Duration;
 
 pub struct MyWorker {
     pub name: String,
@@ -409,12 +399,18 @@ impl Deployable for MyWorker {
     type Output = WorkerDeployment;
     type Error = ApiError;
     
-    // deploy() uses default implementation which calls deploy_task() and executes
+    // deploy() executes the task via valtron's execute()
     fn deploy(&self) -> Result<
         impl foundation_core::valtron::StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(self.deploy_task())
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Valtron execution failed: {}", e),
+                ))
+            }))
     }
     
     // deploy_task() contains the actual deployment logic using provider clients
@@ -472,10 +468,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```rust
 // deploy/my_service.rs
 
-use foundation_core::valtron::{TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
+use foundation_core::traits::Deploying;
+use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_deployment::{providers::gcp::clients::*, types::*};
-use foundation_core::traits::Deploying;
+use std::time::Duration;
 
 pub struct CloudRunService {
     pub name: String,
@@ -492,7 +489,13 @@ impl Deployable for CloudRunService {
         impl foundation_core::valtron::StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(self.deploy_task())
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Valtron execution failed: {}", e),
+                ))
+            }))
     }
     
     fn deploy_task(&self) -> Result<
@@ -530,10 +533,11 @@ impl Deployable for CloudRunService {
 ```rust
 // deploy/full_stack.rs
 
-use foundation_core::valtron::{TaskIterator, TaskIteratorExt, BoxedSendExecutionAction, collect_from_streams};
+use foundation_core::traits::Deploying;
+use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction, collect_from_streams};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_deployment::{providers::cloudflare::clients::*, types::*};
-use foundation_core::traits::Deploying;
+use std::time::Duration;
 
 pub struct FullStack {
     pub worker: MyWorker,
@@ -555,7 +559,13 @@ impl Deployable for FullStack {
         impl foundation_core::valtron::StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(self.deploy_task())
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Valtron execution failed: {}", e),
+                ))
+            }))
     }
     
     fn deploy_task(&self) -> Result<
@@ -595,10 +605,11 @@ impl Deployable for FullStack {
 ```rust
 // deploy/main.rs
 
-use foundation_core::valtron::{TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
+use foundation_core::traits::Deploying;
+use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_deployment::{providers::cloudflare::clients::*, types::*};
-use foundation_core::traits::Deploying;
+use std::time::Duration;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Env {
@@ -629,7 +640,13 @@ impl Deployable for EnvWorker {
         impl foundation_core::valtron::StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(self.deploy_task())
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Valtron execution failed: {}", e),
+                ))
+            }))
     }
     
     fn deploy_task(&self) -> Result<
@@ -676,8 +693,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```rust
 // Add destroy capability to Deployable trait
 
-use foundation_core::valtron::{TaskIterator, StreamIterator, BoxedSendExecutionAction};
 use foundation_core::traits::Deploying;
+use foundation_core::valtron::{execute, one_shot, StreamIterator, TaskIterator, BoxedSendExecutionAction};
 
 pub trait Deployable {
     type Output: Send + Sync;
@@ -699,7 +716,6 @@ pub trait Deployable {
         impl TaskIterator<Ready = Result<(), Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
         Self::Error,
     > {
-        use foundation_core::valtron::one_shot;
         Ok(one_shot(Ok(())).map_pending(|_| Deploying::Init))
     }
     
@@ -707,13 +723,13 @@ pub trait Deployable {
         impl StreamIterator<D = Result<(), Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(
-            self.destroy_task(output)
-                .map_err(|e| Self::Error::from(std::io::Error::new(
+        self.destroy_task(output)
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
                     std::io::ErrorKind::Other,
                     format!("Destroy task failed: {}", e),
-                )))
-        )
+                ))
+            }))
     }
 }
 
@@ -726,7 +742,13 @@ impl Deployable for MyWorker {
         impl foundation_core::valtron::StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        deploy_from_task::<Self>(self.deploy_task())
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(|e| {
+                Self::Error::from(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Valtron execution failed: {}", e),
+                ))
+            }))
     }
     
     fn deploy_task(&self) -> Result<
@@ -860,11 +882,44 @@ fn destroy_worker() -> Result<(), ApiError> {
 
 - **Two-method design**: The `deploy()` / `deploy_task()` split provides both convenience (call `deploy()` for immediate execution) and flexibility (call `deploy_task()` for composition with valtron combinators before execution).
 
-- **Default implementation helper**: `deploy_from_task()` eliminates boilerplate - most implementations just delegate to this helper for `deploy()` and focus all their logic in `deploy_task()`.
+- **No helper functions**: `deploy()` implementations inline the valtron `execute()` call directly - no intermediate helper functions needed, keeping the code straightforward.
+
+- **Imports at top**: All imports are at the top of each example - no local `use` statements inside function bodies. This improves readability and follows Rust best practices.
 
 - **Valtron-native composition**: Provider clients expose `*_task()` functions that return `TaskIterator`, allowing users to compose deployments using valtron combinators (`map_done`, `map_pending`, `map_err`) rather than async/await patterns.
 
 - **Destroy with state**: The `destroy(&self, output: &Self::Output)` signature requires the deployment output, which typically contains IDs/names needed for deletion. State stores track this output automatically.
+
+## Iron Law: Imports at Top
+
+**All imports must be at the top of the file or module - no local `use` statements inside function bodies.**
+
+```rust
+// ✅ CORRECT: Imports at top
+use foundation_core::traits::Deploying;
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+
+impl Deployable for MyWorker {
+    fn deploy(&self) -> Result<...> {
+        self.deploy_task()
+            .and_then(|task| execute(task, None).map_err(...))
+    }
+}
+
+// ❌ WRONG: Local import inside function
+impl Deployable for MyWorker {
+    fn deploy(&self) -> Result<...> {
+        use foundation_core::valtron::execute;  // Don't do this
+        execute(...)
+    }
+}
+```
+
+**Why:**
+- Easier to see all dependencies at a glance
+- Follows Rust community conventions
+- Better IDE support for navigation and refactoring
+- No hidden dependencies buried in function bodies
 
 ## Verification
 
