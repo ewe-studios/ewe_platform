@@ -49,14 +49,19 @@ future output. Suppressing warnings in generated files means:
 
 ---
 
-### 3. Dead Code Must Be Removed, Not Suppressed
+### 3. Dead Code Must Be Removed (Hand-Written Only)
 
-**Decision:** `#[allow(dead_code)]` is never the answer. Remove unused code.
+**Decision:** `#[allow(dead_code)]` is never the answer for hand-written code.
+Remove unused code. For generated code, fix the **generator** — never edit
+generated output directly.
 
 **Why:** Dead code is a liability:
 - It confuses readers ("why is this here?")
 - It can be accidentally resurrected
 - It increases cognitive load and IDE noise
+
+**Generated code exception:** If dead code appears in generated files, the
+generator template is producing it. Fix the generator, regenerate.
 
 **Exception:** If the code is part of a public API that consumers might use,
 consider deprecation first (`#[deprecated]`), then remove in a follow-up.
@@ -101,6 +106,27 @@ are treated the same as code warnings — fix them, don't suppress.
 ---
 
 ## Anti-Patterns to Avoid
+
+### ❌ Editing Generated Code Directly
+
+```rust
+// WRONG: Manually editing generated output
+// File: bin/platform/src/gen_resources/types.rs (generated)
+#[allow(dead_code)]  // Added by hand - will be lost on regen!
+struct Foo { ... }
+
+// WRONG: Removing dead code from generated file
+// (The generator will just recreate it next time)
+
+// RIGHT: Fix the generator
+// File: bin/platform/src/gen_resources/generator.rs
+fn generate_struct(...) {
+    // Only emit fields that are actually used
+    // or add #[allow] at module level in the template
+}
+```
+
+---
 
 ### ❌ Adding `#[allow]` Without Thinking
 
