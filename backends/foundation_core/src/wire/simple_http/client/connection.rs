@@ -4,6 +4,7 @@
 
 use crate::wire::simple_http::client::pool::ConnectionPool;
 use crate::wire::simple_http::client::SystemDnsResolver;
+use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
@@ -39,6 +40,31 @@ pub struct HttpClientConnection {
 impl DerefMut for HttpClientConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.stream
+    }
+}
+
+impl HttpClientConnection {
+    /// Drain any remaining data from a stream before returning it to the pool.
+    ///
+    /// This ensures the connection is in a clean state for reuse. After no-body
+    /// responses (204, 205, HEAD), the HTTP reader may leave unread bytes or
+    /// intermediate state in the underlying `SharedByteBufferStream`. Draining
+    /// consumes any remaining buffered data and resets the stream position.
+    ///
+    /// # Arguments
+    ///
+    /// * `stream` - The stream to drain
+    pub fn drain_stream(&mut self) {
+        // Read any remaining buffered data into a small buffer
+        // This ensures the HTTP response reader state machine is fully consumed
+        let mut drain_buf = [0u8; 1024];
+        loop {
+            match self.stream.read(&mut drain_buf) {
+                Ok(0) => break,    // EOF - stream fully drained
+                Ok(_) => continue, // More data read, keep draining
+                Err(_) => break,   // Read error - stop draining to avoid blocking
+            }
+        }
     }
 }
 

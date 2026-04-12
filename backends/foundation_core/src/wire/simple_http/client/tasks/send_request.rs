@@ -22,7 +22,11 @@ use crate::valtron::{
 use crate::wire::simple_http::client::{
     ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
 };
-use crate::wire::simple_http::{HttpClientError, IncomingResponseParts};
+use crate::wire::simple_http::url::Uri;
+use crate::wire::simple_http::{
+    HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
+    SimpleMethod, Status,
+};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -51,11 +55,19 @@ where
     /// and provides the request response.
     SkipReading(Box<Option<RequestIntro>>),
 
+    /// `CheckRedirect` checks if the response is a redirect and if so,
+    /// moves to [`Self::Connecting`] to follow the redirect.
+    CheckRedirect(Box<Option<RequestIntro>>),
+
     /// No more work to do
     Done,
 }
 
-pub struct SendRequestTask<R>(Option<SendRequestState<R>>, ClientConfig)
+pub struct SendRequestTask<R>(
+    Option<SendRequestState<R>>,
+    ClientConfig,
+    Arc<HttpConnectionPool<R>>,
+)
 where
     R: DnsResolver + Send + 'static;
 
@@ -74,10 +86,11 @@ where
             Some(SendRequestState::Init(Some(Box::new(SendRequest::new(
                 request,
                 max_redirects,
-                pool,
+                pool.clone(),
                 config.clone(),
             ))))),
             config,
+            pool,
         )
     }
 }
@@ -85,6 +98,7 @@ where
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
 pub enum HttpRequestPending {
     WaitingForStream,
+    CheckRedirectResponse,
     WaitingIntroAndHeaders,
 }
 
@@ -314,7 +328,13 @@ where
                         "HttpRequestTaskState::Reading: received intro already, forwarding"
                     );
 
-                    Some(TaskStatus::Ready(container))
+                    // do one last check for a redirect as final response
+                    self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(container))));
+
+                    // Some(TaskStatus::Ready(container))
+                    Some(TaskStatus::Pending(
+                        HttpRequestPending::CheckRedirectResponse,
+                    ))
                 }
             },
             SendRequestState::Reading(mut intro_recv) => {
@@ -349,15 +369,109 @@ where
                     }
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Ready(item)) => {
-                        self.0.take();
-
                         tracing::debug!(
-                            "HttpRequestTaskState::Reading: got ready value returning Ready item"
+                            "HttpRequestTaskState::Reading: got ready value sending for final redirect check"
                         );
-                        Some(TaskStatus::Ready(item))
+
+                        // do one last check for a redirect as final response
+                        self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(item))));
+
+                        Some(TaskStatus::Pending(
+                            HttpRequestPending::CheckRedirectResponse,
+                        ))
                     }
                 }
             }
+            SendRequestState::CheckRedirect(boxed) => match *boxed {
+                None => {
+                    tracing::debug!("HttpRequestTaskState::Reading: received intro already");
+
+                    Some(TaskStatus::Ready(RequestIntro::Failed(
+                        HttpClientError::ReadError,
+                    )))
+                }
+                Some(mut inner) => {
+                    if let RequestIntro::Success {
+                        stream: _,
+                        conn,
+                        intro,
+                        headers,
+                    } = &mut inner
+                    {
+                        if (Status::MovedPermanently..=Status::PermanentRedirect).contains(&intro.0)
+                        {
+                            // drain connection
+                            conn.drain_stream();
+
+                            return match headers
+                                .get(&SimpleHeader::LOCATION)
+                                .and_then(|v| v.first())
+                            {
+                                Some(redirect_url) => match Uri::parse(redirect_url.as_str()) {
+                                    Ok(parsed_uri) => {
+                                        let mut new_request = SimpleIncomingRequest::builder()
+                                            .with_uri(parsed_uri)
+                                            .with_body(SendSafeBody::None)
+                                            .with_method(SimpleMethod::GET);
+
+                                        if let Some(link_values) = headers.get(&SimpleHeader::LINK)
+                                        {
+                                            for link in link_values {
+                                                new_request = new_request
+                                                    .add_header(SimpleHeader::LINK, link.clone());
+                                            }
+                                        }
+
+                                        match new_request.build() {
+                                            Ok(newly_built_request) => {
+                                                let (get_stream_action, get_stream_receiver) = inlined_task(
+                                                    crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                                    Vec::new(),
+                                                    GetHttpRequestRedirectTask::new(
+                                                        newly_built_request,
+                                                        self.2.clone(),
+                                                        self.1.clone(),
+                                                        self.1.max_redirects,
+                                                    ),
+                                                    self.1.inline_processing_timeout,
+                                                );
+
+                                                self.0 = Some(SendRequestState::Connecting(
+                                                    get_stream_receiver,
+                                                ));
+
+                                                tracing::debug!(
+                                                    "HttpRequestTaskState::Init: Spawned task to for received redirect response"
+                                                );
+                                                Some(TaskStatus::Spawn(
+                                                    get_stream_action
+                                                        .into_box_send_execution_action(),
+                                                ))
+                                            }
+                                            Err(err) => {
+                                                Some(TaskStatus::Ready(RequestIntro::Failed(
+                                                    HttpClientError::SimpleRequestError(err),
+                                                )))
+                                            }
+                                        }
+                                    }
+                                    Err(parsed_err) => {
+                                        Some(TaskStatus::Ready(RequestIntro::Failed(
+                                            HttpClientError::InvalidURI(parsed_err),
+                                        )))
+                                    }
+                                },
+                                None => Some(TaskStatus::Ready(RequestIntro::Failed(
+                                    HttpClientError::ReadError,
+                                ))),
+                            };
+                        }
+                    }
+
+                    self.0 = Some(SendRequestState::Done);
+                    Some(TaskStatus::Ready(inner))
+                }
+            },
             SendRequestState::Done => None,
         }
     }

@@ -86,33 +86,61 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     /// `true` if status code is in range 200-299, `false` otherwise.
     #[must_use]
     pub fn is_success(&self) -> bool {
-        let status_code = self.0.as_ref().expect("response already taken").get_status().into_usize();
+        let status_code = self
+            .0
+            .as_ref()
+            .expect("response already taken")
+            .get_status()
+            .into_usize();
         (200..=299).contains(&status_code)
     }
 }
 
 impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     pub fn get_status(&self) -> Status {
-        self.0.as_ref().expect("response already taken").get_status()
+        self.0
+            .as_ref()
+            .expect("response already taken")
+            .get_status()
     }
 
     pub fn get_headers_ref(&self) -> &SimpleHeaders {
-        self.0.as_ref().expect("response already taken").get_headers_ref()
+        self.0
+            .as_ref()
+            .expect("response already taken")
+            .get_headers_ref()
     }
 
     pub fn get_headers_mut(&mut self) -> &mut SimpleHeaders {
-        self.0.as_mut().expect("response already taken").get_headers_mut()
+        self.0
+            .as_mut()
+            .expect("response already taken")
+            .get_headers_mut()
     }
 
     pub fn get_body_ref(&self) -> &T {
-        self.0.as_ref().expect("response already taken").get_body_ref()
+        self.0
+            .as_ref()
+            .expect("response already taken")
+            .get_body_ref()
     }
 
     pub fn get_body_mut(&mut self) -> &mut T {
-        self.0.as_mut().expect("response already taken").get_body_mut()
+        self.0
+            .as_mut()
+            .expect("response already taken")
+            .get_body_mut()
     }
 
-    pub fn into_parts(mut self) -> (Status, SimpleHeaders, T, Option<Arc<HttpConnectionPool<R>>>, Option<HttpClientConnection>) {
+    pub fn into_parts(
+        mut self,
+    ) -> (
+        Status,
+        SimpleHeaders,
+        T,
+        Option<Arc<HttpConnectionPool<R>>>,
+        Option<HttpClientConnection>,
+    ) {
         let response = self.0.take().expect("response already taken");
         let status = response.get_status();
         let headers = response.get_headers_ref().clone();
@@ -123,38 +151,15 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     }
 }
 
-/// Drain any remaining data from a stream before returning it to the pool.
-///
-/// This ensures the connection is in a clean state for reuse. After no-body
-/// responses (204, 205, HEAD), the HTTP reader may leave unread bytes or
-/// intermediate state in the underlying `SharedByteBufferStream`. Draining
-/// consumes any remaining buffered data and resets the stream position.
-///
-/// # Arguments
-///
-/// * `stream` - The stream to drain
-fn drain_stream_before_pooling(
-    stream: &mut HttpClientConnection,
-) {
-    // Read any remaining buffered data into a small buffer
-    // This ensures the HTTP response reader state machine is fully consumed
-    let mut drain_buf = [0u8; 1024];
-    loop {
-        match stream.read(&mut drain_buf) {
-            Ok(0) => break, // EOF - stream fully drained
-            Ok(_) => continue, // More data read, keep draining
-            Err(_) => break, // Read error - stop draining to avoid blocking
-        }
-    }
-}
-
 impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
     fn drop(&mut self) {
         // Return stream to pool if we have one
         if let (Some(pool), Some(mut stream)) = (self.1.take(), self.2.take()) {
             // Drain any remaining data from the stream before pooling
             // This ensures the connection is in a clean state for reuse
-            drain_stream_before_pooling(&mut stream);
+            stream.drain_stream();
+
+            // return to stream
             pool.return_to_pool(stream);
         }
         // Take and drop the response to release body
