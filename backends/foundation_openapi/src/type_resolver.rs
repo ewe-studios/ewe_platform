@@ -1,9 +1,9 @@
-//! Type resolution logic for OpenAPI schemas.
+//! Type resolution logic for `OpenAPI` schemas.
 //!
 //! WHY: Clear rules for what constitutes a "generatable" type vs what should be
 //! `serde_json::Value`.
 //!
-//! WHAT: TypeResolver struct with schema lookup and resolution logic.
+//! WHAT: `TypeResolver` struct with schema lookup and resolution logic.
 //!
 //! HOW: Analyzes schema structure to determine if a type should be generated
 //! as a struct or handled as raw JSON.
@@ -13,7 +13,7 @@ use crate::endpoint::ResponseType;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-/// Resolver for OpenAPI schema types.
+/// Resolver for `OpenAPI` schema types.
 pub struct TypeResolver {
     /// Known object schemas (for $ref validation)
     object_schemas: BTreeSet<String>,
@@ -23,6 +23,7 @@ pub struct TypeResolver {
 
 impl TypeResolver {
     /// Create resolver with schema map.
+    #[must_use] 
     pub fn new(schemas: Arc<BTreeMap<String, Schema>>) -> Self {
         let object_schemas = Self::collect_object_schema_names(&schemas);
         Self {
@@ -61,7 +62,8 @@ impl TypeResolver {
 
     /// Resolve a `$ref` to a type name.
     ///
-    /// Handles both OpenAPI (`#/components/schemas/`) and GCP (`#/schemas/`) formats.
+    /// Handles both `OpenAPI` (`#/components/schemas/`) and GCP (`#/schemas/`) formats.
+    #[must_use] 
     pub fn resolve_ref(&self, ref_path: &str) -> Option<String> {
         let ref_name = ref_path
             .trim_start_matches("#/components/schemas/")
@@ -78,6 +80,7 @@ impl TypeResolver {
     /// Check if a schema is "generatable" (has properties or simple structure).
     ///
     /// Returns false for composition types (oneOf/anyOf) and empty objects.
+    #[must_use] 
     pub fn is_generatable(&self, schema: &Schema) -> bool {
         Self::check_schema_generatable(schema, self.schemas.as_ref())
     }
@@ -87,7 +90,7 @@ impl TypeResolver {
     /// Handles allOf by merging properties from all members.
     fn check_schema_generatable(schema: &Schema, schemas: &BTreeMap<String, Schema>) -> bool {
         // Has explicit properties at top level - generatable
-        if schema.properties.as_ref().map_or(false, |p| !p.is_empty()) {
+        if schema.properties.as_ref().is_some_and(|p| !p.is_empty()) {
             return true;
         }
 
@@ -95,7 +98,7 @@ impl TypeResolver {
         if let Some(all_of) = &schema.all_of {
             // Check if any member has properties
             for member in all_of {
-                if member.properties.as_ref().map_or(false, |p| !p.is_empty()) {
+                if member.properties.as_ref().is_some_and(|p| !p.is_empty()) {
                     return true;
                 }
                 // Recursively check nested allOf
@@ -130,6 +133,7 @@ impl TypeResolver {
     /// Get the response type for a response object.
     ///
     /// Handles composition types, $refs, and inline schemas.
+    #[must_use] 
     pub fn get_response_type(&self, response: &Response) -> Option<ResponseType> {
         let content = response.content.as_ref()?;
         let media_type = content.get("application/json")?;
@@ -163,14 +167,15 @@ impl TypeResolver {
         }
     }
 
-    /// Normalize type name to Rust PascalCase.
+    /// Normalize type name to Rust `PascalCase`.
     ///
     /// Handles various naming conventions:
-    /// - "treasury.transaction" → "TreasuryTransaction"
-    /// - "Custom-pages" → "CustomPages"
-    /// - "@cf_ai4bharat.translation" → "CfAi4bharatTranslation"
+    /// - "treasury.transaction" → "`TreasuryTransaction`"
+    /// - "Custom-pages" → "`CustomPages`"
+    /// - "@`cf_ai4bharat.translation`" → "`CfAi4bharatTranslation`"
+    #[must_use] 
     pub fn to_pascal_case(name: &str) -> String {
-        name.split(|c| c == '.' || c == '-' || c == '@' || c == '_')
+        name.split(['.', '-', '@', '_'])
             .map(|part| {
                 let mut chars = part.chars();
                 chars
@@ -183,6 +188,7 @@ impl TypeResolver {
     }
 
     /// Rename if the type name conflicts with Rust keywords/builtins.
+    #[must_use] 
     pub fn rename_if_keyword(name: String) -> String {
         match name.as_str() {
             "Option" => "ApiOption".to_string(),
@@ -199,7 +205,8 @@ impl TypeResolver {
         }
     }
 
-    /// Convert identifier to snake_case.
+    /// Convert identifier to `snake_case`.
+    #[must_use] 
     pub fn to_snake_case(name: &str) -> String {
         let mut parts = Vec::new();
         let mut current = String::new();
@@ -215,7 +222,7 @@ impl TypeResolver {
             } else if c.is_uppercase() {
                 if !current.is_empty() {
                     let next_is_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
-                    if next_is_lower || current.chars().last().map_or(false, |p| p.is_lowercase()) {
+                    if next_is_lower || current.chars().last().is_some_and(char::is_lowercase) {
                         parts.push(current.clone());
                         current.clear();
                     }
@@ -234,6 +241,7 @@ impl TypeResolver {
     }
 
     /// Get all generatable type names.
+    #[must_use] 
     pub fn generatable_types(&self) -> Vec<String> {
         self.schemas
             .keys()

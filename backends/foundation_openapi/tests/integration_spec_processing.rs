@@ -1,9 +1,9 @@
-//! Integration tests for processing real OpenAPI specs from cloud providers.
+//! Integration tests for processing real `OpenAPI` specs from cloud providers.
 //!
-//! These tests validate that the foundation_openapi crate can correctly process
-//! OpenAPI specs from various cloud providers and generate normalized representations.
+//! These tests validate that the `foundation_openapi` crate can correctly process
+//! `OpenAPI` specs from various cloud providers and generate normalized representations.
 //!
-//! Test fixtures are frozen snapshots copied from artefacts/cloud_providers/
+//! Test fixtures are frozen snapshots copied from `artefacts/cloud_providers`/
 //! to ensure tests are deterministic and don't change when upstream specs update.
 
 use foundation_openapi::{normalize_spec, process_spec, NormalizedEndpoint};
@@ -24,7 +24,7 @@ fn fixtures_path() -> PathBuf {
 fn load_fixture(name: &str) -> String {
     let path = fixtures_path().join(format!("{name}.json"));
     fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("Failed to read fixture at {:?}: {}", path, e))
+        .unwrap_or_else(|e| panic!("Failed to read fixture at {}: {e}", path.display()))
 }
 
 // =============================================================================
@@ -105,8 +105,8 @@ fn processes_gcp_groupsmigration_spec() {
 
     // Validate at least one endpoint has proper GCP structure
     let mut found_valid = false;
-    for (_path, methods) in &normalized.endpoints {
-        for (_method, endpoint) in methods {
+    for methods in normalized.endpoints.values() {
+        for endpoint in methods.values() {
             if endpoint.operation_id.contains("groupsmigration") {
                 found_valid = true;
                 break;
@@ -126,7 +126,7 @@ fn normalized_output_contains_endpoint_details() {
     let normalized = normalize_spec(&spec_json).expect("Should normalize fly_io spec");
 
     // All endpoints must have non-empty operation_id and method
-    for (_path, methods) in &normalized.endpoints {
+    for methods in normalized.endpoints.values() {
         for (method, endpoint) in methods {
             assert!(!endpoint.operation_id.is_empty());
             assert!(!method.is_empty());
@@ -155,7 +155,7 @@ fn type_definitions_include_required_fields() {
     let normalized = normalize_spec(&spec_json).expect("Should normalize spec");
 
     // Validate all type definitions have required fields
-    for (_name, type_def) in &normalized.types {
+    for type_def in normalized.types.values() {
         assert!(!type_def.name.is_empty());
         let type_json = serde_json::to_string(&type_def).expect("Should serialize type");
         assert!(type_json.contains("\"name\""));

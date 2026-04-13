@@ -1,10 +1,10 @@
-//! Endpoint extraction from OpenAPI specs.
+//! Endpoint extraction from `OpenAPI` specs.
 //!
-//! WHY: Extract endpoint metadata from both standard OpenAPI paths and GCP Discovery resources.
+//! WHY: Extract endpoint metadata from both standard `OpenAPI` paths and GCP Discovery resources.
 //!
-//! WHAT: EndpointExtractor with format-aware extraction logic.
+//! WHAT: `EndpointExtractor` with format-aware extraction logic.
 //!
-//! HOW: Iterates paths (OpenAPI) or resources (GCP) and extracts operation metadata.
+//! HOW: Iterates paths (`OpenAPI`) or resources (GCP) and extracts operation metadata.
 
 use crate::spec::{OpenApiSpec, Operation, Response, GcpMethod, Schema};
 use crate::endpoint::{EndpointInfo, ResponseType, GcpParameter, OperationType};
@@ -13,7 +13,7 @@ use crate::classifier::OperationTypeClassifier;
 use std::collections::{BTreeMap, HashSet};
 use std::sync::Arc;
 
-/// Extracts endpoints from OpenAPI specs.
+/// Extracts endpoints from `OpenAPI` specs.
 pub struct EndpointExtractor {
     spec: Arc<OpenApiSpec>,
     resolver: TypeResolver,
@@ -21,6 +21,7 @@ pub struct EndpointExtractor {
 
 impl EndpointExtractor {
     /// Create extractor from spec.
+    #[must_use] 
     pub fn new(spec: Arc<OpenApiSpec>) -> Self {
         let schemas = spec.all_schemas();
         let schema_map: BTreeMap<String, Schema> = schemas
@@ -32,7 +33,8 @@ impl EndpointExtractor {
     }
 
     /// Extract all endpoints from the spec.
-    /// Handles both OpenAPI 3.x and GCP Discovery formats.
+    /// Handles both `OpenAPI` 3.x and GCP Discovery formats.
+    #[must_use] 
     pub fn extract_all(&self) -> Vec<EndpointInfo> {
         let mut endpoints = Vec::new();
 
@@ -52,7 +54,8 @@ impl EndpointExtractor {
         endpoints
     }
 
-    /// Extract endpoints from standard OpenAPI paths.
+    /// Extract endpoints from standard `OpenAPI` paths.
+    #[must_use] 
     pub fn extract_from_paths(&self) -> Vec<EndpointInfo> {
         let mut endpoints = Vec::new();
         let base_url = self.spec.base_url();
@@ -68,7 +71,7 @@ impl EndpointExtractor {
 
             for (method_name, operation_opt) in methods {
                 if let Some(operation) = operation_opt {
-                    if let Some(info) = self.extract_operation(operation, path, method_name, &base_url) {
+                    if let Some(info) = self.extract_operation(operation, path, method_name, base_url.as_deref()) {
                         endpoints.push(info);
                     }
                 }
@@ -79,12 +82,13 @@ impl EndpointExtractor {
     }
 
     /// Extract endpoints from GCP Discovery resources (recursive).
+    #[must_use]
     pub fn extract_from_resources(&self) -> Vec<EndpointInfo> {
         let mut endpoints = Vec::new();
         let base_url = self.spec.base_url();
 
         if let Some(resources) = &self.spec.resources {
-            self.extract_resources_recursive(resources, &mut endpoints, &base_url);
+            Self::extract_resources_recursive(resources, &mut endpoints, base_url.as_deref());
         }
 
         endpoints
@@ -92,16 +96,15 @@ impl EndpointExtractor {
 
     /// Recursively extract endpoints from GCP resources.
     fn extract_resources_recursive(
-        &self,
         resources: &BTreeMap<String, crate::spec::Resource>,
         endpoints: &mut Vec<EndpointInfo>,
-        base_url: &Option<String>,
+        base_url: Option<&str>,
     ) {
-        for (_resource_name, resource) in resources {
+        for resource in resources.values() {
             // Extract methods from this resource
             if let Some(methods) = &resource.methods {
-                for (_method_name, method) in methods {
-                    if let Some(info) = self.extract_gcp_method(method, base_url) {
+                for method in methods.values() {
+                    if let Some(info) = Self::extract_gcp_method(method, base_url) {
                         endpoints.push(info);
                     }
                 }
@@ -109,18 +112,18 @@ impl EndpointExtractor {
 
             // Recurse into nested resources
             if let Some(nested) = &resource.resources {
-                self.extract_resources_recursive(nested, endpoints, base_url);
+                Self::extract_resources_recursive(nested, endpoints, base_url);
             }
         }
     }
 
-    /// Extract endpoint info from an OpenAPI operation.
+    /// Extract endpoint info from an `OpenAPI` operation.
     fn extract_operation(
         &self,
         operation: &Operation,
         path: &str,
         method: &str,
-        base_url: &Option<String>,
+        base_url: Option<&str>,
     ) -> Option<EndpointInfo> {
         let operation_id = operation.operation_id.clone()?;
 
@@ -136,7 +139,7 @@ impl EndpointExtractor {
 
         // Use path template params if parameter array didn't provide path params
         if param_path.is_empty() && !path_params.is_empty() {
-            param_path = path_params.clone();
+            param_path.clone_from(&path_params);
         }
 
         // Extract request type
@@ -163,7 +166,7 @@ impl EndpointExtractor {
             response_type,
             error_types,
             success_codes,
-            base_url: base_url.clone(),
+            base_url: base_url.map(str::to_string),
             summary: operation.summary.clone(),
             operation_type: OperationType::Read, // Temporary, will be classified below
         };
@@ -226,9 +229,8 @@ impl EndpointExtractor {
 
     /// Extract endpoint info from a GCP method.
     fn extract_gcp_method(
-        &self,
         method: &GcpMethod,
-        base_url: &Option<String>,
+        base_url: Option<&str>,
     ) -> Option<EndpointInfo> {
         let operation_id = method.id.clone()?;
 
@@ -253,7 +255,8 @@ impl EndpointExtractor {
             .unwrap_or_default();
 
         // Extract path placeholders from the path template (e.g., {folder} from /v1/folders/{folder})
-        let placeholder_re = regex::Regex::new(r"\{([^}]+)\}").unwrap();
+        let placeholder_re = regex::Regex::new(r"\{([^}]+)\}")
+            .expect("hard-coded placeholder regex must compile");
         let path_placeholders: Vec<String> = placeholder_re
             .captures_iter(path)
             .map(|cap| cap[1].to_string())
@@ -284,10 +287,11 @@ impl EndpointExtractor {
         let mut query_params = Vec::new();
         for (param_name, param) in &params {
             if !used_params.contains(param_name) {
-                match param.location.as_deref() {
-                    Some("query") => query_params.push(param_name.clone()),
-                    Some("path") => {} // Already handled
-                    _ => query_params.push(param_name.clone()), // Default to query
+                if param.location.as_deref() == Some("path") {
+                    // Already handled above as a path parameter.
+                } else {
+                    // "query" or unspecified locations default to query parameters.
+                    query_params.push(param_name.clone());
                 }
             }
         }
@@ -315,13 +319,13 @@ impl EndpointExtractor {
             operation_id,
             method: method.http_method.clone().unwrap_or_else(|| "GET".to_string()),
             path: path.to_string(),
-            path_params: path_params,
-            query_params: query_params,
+            path_params,
+            query_params,
             request_type,
             response_type,
             error_types: BTreeMap::new(), // GCP typically uses a common error type
             success_codes: vec!["200".to_string()],
-            base_url: base_url.clone(),
+            base_url: base_url.map(str::to_string),
             summary: method.description.clone(),
             operation_type: OperationType::Read, // Temporary, will be classified below
         };

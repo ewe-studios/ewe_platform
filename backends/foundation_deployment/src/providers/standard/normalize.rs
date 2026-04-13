@@ -65,6 +65,11 @@ pub fn normalize_nullable_types(schema: &mut Value) {
 /// and replaces the inline definition with a `$ref`.
 ///
 /// For array properties whose `items` contain an inline object, extracts similarly.
+///
+/// # Panics
+///
+/// Panics if a key collected from the map is no longer present when accessed
+/// (which should never happen in normal usage since we iterate over a snapshot of keys).
 pub fn extract_inline_schemas(
     properties: &mut Map<String, Value>,
     parent_name: &str,

@@ -1,19 +1,19 @@
-//! Minimal OpenAPI spec structures for deserialization.
+//! Minimal `OpenAPI` spec structures for deserialization.
 //!
-//! WHY: We only need a subset of OpenAPI for endpoint extraction.
+//! WHY: We only need a subset of `OpenAPI` for endpoint extraction.
 //! Minimal structures reduce memory and parsing overhead.
 //!
-//! WHAT: Core OpenAPI 3.x and GCP Discovery structures needed for processing.
+//! WHAT: Core `OpenAPI` 3.x and GCP Discovery structures needed for processing.
 //!
 //! HOW: Uses serde for flexible JSON deserialization.
 
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
-/// Root OpenAPI specification (handles multiple formats).
+/// Root `OpenAPI` specification (handles multiple formats).
 #[derive(Debug, Deserialize, Clone)]
 pub struct OpenApiSpec {
-    /// OpenAPI version (e.g., "3.0.1") - optional for GCP Discovery format
+    /// `OpenAPI` version (e.g., "3.0.1") - optional for GCP Discovery format
     #[serde(default)]
     pub openapi: Option<String>,
 
@@ -21,7 +21,7 @@ pub struct OpenApiSpec {
     #[serde(default)]
     pub info: Option<Info>,
 
-    /// Server URLs (OpenAPI 3.x)
+    /// Server URLs (`OpenAPI` 3.x)
     #[serde(default)]
     pub servers: Option<Vec<Server>>,
 
@@ -57,6 +57,7 @@ pub struct OpenApiSpec {
 
 impl OpenApiSpec {
     /// Get the base URL from the spec (handles multiple formats).
+    #[must_use] 
     pub fn base_url(&self) -> Option<String> {
         self.servers
             .as_ref()
@@ -65,7 +66,7 @@ impl OpenApiSpec {
             .or_else(|| self.base_url.clone())
             .or_else(|| {
                 match (&self.root_url, &self.service_path) {
-                    (Some(root), Some(service)) => Some(format!("{}{}", root, service)),
+                    (Some(root), Some(service)) => Some(format!("{root}{service}")),
                     (Some(root), None) => Some(root.clone()),
                     (None, Some(service)) => Some(service.clone()),
                     (None, None) => None,
@@ -73,7 +74,8 @@ impl OpenApiSpec {
             })
     }
 
-    /// Get all schemas from the spec (both OpenAPI and GCP formats).
+    /// Get all schemas from the spec (both `OpenAPI` and GCP formats).
+    #[must_use] 
     pub fn all_schemas(&self) -> BTreeMap<String, &Schema> {
         let mut schemas = BTreeMap::new();
 
@@ -95,6 +97,7 @@ impl OpenApiSpec {
     }
 
     /// Detect the spec format.
+    #[must_use] 
     pub fn format(&self) -> SpecFormat {
         if self.resources.is_some() || (self.schemas.is_some() && self.components.is_none()) {
             SpecFormat::GcpDiscovery
@@ -330,19 +333,18 @@ where
     let opt = Option::<serde_json::Value>::deserialize(deserializer)?;
     Ok(match opt {
         Some(serde_json::Value::Bool(b)) => Some(b),
-        Some(serde_json::Value::Object(_)) => Some(true), // Schema object = true
-        Some(serde_json::Value::Null) => None,
-        Some(_) => Some(true), // Any other value = true
-        None => None,
+        Some(serde_json::Value::Null) | None => None,
+        // Schema object or any other value is treated as `true`.
+        Some(_) => Some(true),
     })
 }
 
 /// Deserialize the `type` field which can be a string or an array of strings.
 ///
-/// OpenAPI 3.0 uses `"type": "string"`.
-/// OpenAPI 3.1 uses `"type": ["string", "null"]` for nullable types.
+/// `OpenAPI` 3.0 uses `"type": "string"`.
+/// `OpenAPI` 3.1 uses `"type": ["string", "null"]` for nullable types.
 ///
-/// For arrays, we extract the non-null type (e.g., ["string", "null"] -> "string").
+/// For arrays, we extract the non-null type (e.g. `["string", "null"]` becomes `"string"`).
 fn deserialize_type_field<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
     D: serde::Deserializer<'de>,

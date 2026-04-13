@@ -3,6 +3,8 @@
 //! This module provides the [`HFRepository`] struct and repository-specific operations.
 //! All functions take a `&HFRepository` as the first parameter.
 
+#![allow(clippy::too_many_lines)]
+
 use crate::providers::huggingface::client::{is_success_status, status_code, HFClient};
 use crate::providers::huggingface::constants;
 use crate::providers::huggingface::error::{HuggingFaceError, Result};
@@ -100,6 +102,13 @@ impl HFRepository {
 // Operations that work with an HFRepository instance.
 
 /// Get repository info.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Http` if the Hub responds with a non-2xx
+/// status (e.g., 404 if the repo or revision does not exist),
+/// `HuggingFaceError::Json` if the response cannot be deserialized into
+/// `RepoInfo`, or a transport/executor failure variant.
 pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInfo> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
@@ -176,6 +185,12 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
 }
 
 /// Check if repository exists.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
+/// `HuggingFaceError::Valtron` if the executor cannot be scheduled. A 4xx
+/// response from the Hub is mapped to `Ok(false)` rather than an error.
 pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
@@ -237,6 +252,12 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
 }
 
 /// Check if revision exists.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
+/// `HuggingFaceError::Valtron` if the executor cannot be scheduled. A 4xx
+/// response from the Hub (missing revision) is mapped to `Ok(false)`.
 pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
@@ -301,6 +322,13 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
 }
 
 /// List tree entries.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
+/// `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+/// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
+/// the returned stream.
 pub fn repo_list_tree(
     repo: &HFRepository,
     params: &RepoListTreeParams,
@@ -381,6 +409,11 @@ pub fn repo_list_tree(
 ///
 /// `HuggingFace` returns a 302 redirect to their CDN for file downloads.
 /// This function handles that redirect manually.
+///
+/// # Errors
+///
+/// Returns an error if the HTTP request fails, the redirect URL is malformed,
+/// or the file cannot be written to the destination directory.
 pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
     use foundation_core::wire::simple_http::{SimpleHeaders, SimpleHeader};
 
@@ -519,6 +552,10 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
 }
 
 /// Upload a file.
+///
+/// # Errors
+///
+/// Returns an error if the upload request fails or the commit cannot be created.
 pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> Result<CommitInfo> {
     let commit_params = RepoCreateCommitParams {
         operations: vec![CommitOperation::Add {
@@ -537,6 +574,10 @@ pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> R
 }
 
 /// Delete a file.
+///
+/// # Errors
+///
+/// Returns an error if the delete request fails or the commit cannot be created.
 pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> Result<CommitInfo> {
     let commit_params = RepoCreateCommitParams {
         operations: vec![CommitOperation::Delete {
@@ -554,7 +595,17 @@ pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> R
 }
 
 /// Create a commit with multiple operations.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Io` if a local source file cannot be read,
+/// `HuggingFaceError::Json` if the embedded summary cannot be serialised,
+/// `HuggingFaceError::Http` if the Hub responds with a non-2xx status, or
+/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
+/// executor failures.
 pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) -> Result<CommitInfo> {
+    use std::fmt::Write as _;
+
     let base_path = match repo.inner.repo_type {
         RepoType::Dataset => "datasets",
         RepoType::Space => "spaces",
@@ -573,7 +624,7 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
     let boundary = "----RustBoundary".to_string();
     let mut body = String::new();
 
-    body.push_str(&format!("--{boundary}\r\n"));
+    let _ = write!(body, "--{boundary}\r\n");
     body.push_str("Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
     body.push_str(&serde_json::to_string(&serde_json::json!({
         "type": "commit",
@@ -586,10 +637,11 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
     for op in &params.operations {
         match op {
             CommitOperation::Add { path_in_repo, source } => {
-                body.push_str(&format!("--{boundary}\r\n"));
-                body.push_str(&format!(
+                let _ = write!(body, "--{boundary}\r\n");
+                let _ = write!(
+                    body,
                     "Content-Disposition: form-data; name=\"files\"; filename=\"{path_in_repo}\"\r\n"
-                ));
+                );
                 body.push_str("Content-Type: application/octet-stream\r\n\r\n");
                 match source {
                     AddSource::Bytes(data) => {
@@ -604,7 +656,7 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
                 body.push_str("\r\n");
             }
             CommitOperation::Delete { path_in_repo } => {
-                body.push_str(&format!("--{boundary}\r\n"));
+                let _ = write!(body, "--{boundary}\r\n");
                 body.push_str("Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n");
                 body.push_str(path_in_repo);
                 body.push_str("\r\n");
@@ -612,7 +664,7 @@ pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) 
         }
     }
 
-    body.push_str(&format!("--{boundary}--\r\n"));
+    let _ = write!(body, "--{boundary}--\r\n");
 
     let http_client = repo.inner.client.simple_http();
 

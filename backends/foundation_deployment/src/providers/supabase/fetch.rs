@@ -41,8 +41,6 @@ pub fn fetch_supabase_specs(
     impl StreamIterator<D = Result<PathBuf, DeploymentError>, P = ()> + Send + 'static,
     DeploymentError,
 > {
-    let output_dir = output_dir.clone();
-
     let future = async move {
         info!("Fetching Supabase OpenAPI spec from {}", SPEC_URL);
 

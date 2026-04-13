@@ -2,7 +2,7 @@
 //!
 //! WHY: Produce a simplified JSON representation for quick introspection and code generation.
 //!
-//! WHAT: NormalizedSpec struct with serializable endpoint and type definitions.
+//! WHAT: `NormalizedSpec` struct with serializable endpoint and type definitions.
 //!
 //! HOW: Aggregates endpoint and type information into a single serializable structure.
 
@@ -15,7 +15,7 @@ use crate::endpoint::EndpointInfo;
 use crate::type_resolver::TypeResolver;
 use crate::extractor::EndpointExtractor;
 
-/// Normalized OpenAPI spec representation.
+/// Normalized `OpenAPI` spec representation.
 #[derive(Debug, Serialize)]
 pub struct NormalizedSpec {
     /// Map of endpoint path -> method -> details
@@ -93,6 +93,7 @@ pub struct SpecProcessor {
 
 impl SpecProcessor {
     /// Create processor from parsed spec.
+    #[must_use] 
     pub fn new(spec: Arc<OpenApiSpec>) -> Self {
         let schemas = spec.all_schemas();
         let schema_map: BTreeMap<String, Schema> = schemas
@@ -106,27 +107,27 @@ impl SpecProcessor {
     }
 
     /// Get all endpoints with full type information.
+    #[must_use] 
     pub fn endpoints(&self) -> Vec<EndpointInfo> {
         let extractor = EndpointExtractor::new(self.spec.clone());
         extractor.extract_all()
     }
 
     /// Get all type definitions.
+    #[must_use] 
     pub fn types(&self) -> Vec<TypeDefinition> {
         let resolver = TypeResolver::new(self.schemas.clone());
         let mut types = Vec::new();
 
-        for (name, schema) in self.schemas.iter() {
-            if let Some(type_def) = Self::schema_to_type_def(&resolver, &name, schema) {
-                types.push(type_def);
-            }
+        for (name, schema) in self.schemas.as_ref() {
+            types.push(Self::schema_to_type_def(&resolver, name, schema));
         }
 
         types
     }
 
     /// Convert a schema to a type definition.
-    fn schema_to_type_def(_resolver: &TypeResolver, name: &str, schema: &Schema) -> Option<TypeDefinition> {
+    fn schema_to_type_def(_resolver: &TypeResolver, name: &str, schema: &Schema) -> TypeDefinition {
         let kind = if let Some(all_of) = &schema.all_of {
             let refs: Vec<String> = all_of
                 .iter()
@@ -179,7 +180,7 @@ impl SpecProcessor {
                     let n = ref_path.trim_start_matches("#/components/schemas/");
                     TypeResolver::to_pascal_case(n)
                 })
-                .or_else(|| items.schema_type.as_ref().map(|t| t.clone()))
+                .or_else(|| items.schema_type.clone())
                 .unwrap_or_else(|| "unknown".to_string());
 
             TypeKind::Array { items: item_type }
@@ -203,7 +204,7 @@ impl SpecProcessor {
                             let n = ref_path.trim_start_matches("#/components/schemas/");
                             TypeResolver::to_pascal_case(n)
                         })
-                        .or_else(|| prop_schema.schema_type.as_ref().map(|t| t.clone()))
+                        .or_else(|| prop_schema.schema_type.clone())
                         .unwrap_or_else(|| "unknown".to_string());
 
                     PropertyDefinition {
@@ -215,14 +216,15 @@ impl SpecProcessor {
                 .collect()
         }).unwrap_or_default();
 
-        Some(TypeDefinition {
+        TypeDefinition {
             name: TypeResolver::rename_if_keyword(TypeResolver::to_pascal_case(name)),
             kind,
             properties,
-        })
+        }
     }
 
     /// Get normalized representation.
+    #[must_use] 
     pub fn normalize(&self) -> NormalizedSpec {
         let endpoints = self.endpoints();
         let types = self.types();
@@ -279,34 +281,53 @@ impl SpecProcessor {
     }
 
     /// Export normalized spec as JSON string.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`serde_json::Error`] if the normalized spec cannot be
+    /// serialized to JSON. In practice this only happens when a contained
+    /// value's `Serialize` implementation fails.
     pub fn to_normalized_json(&self) -> Result<String, serde_json::Error> {
         let normalized = self.normalize();
         serde_json::to_string_pretty(&normalized)
     }
 
     /// Get base URL for the API.
+    #[must_use] 
     pub fn base_url(&self) -> Option<String> {
         self.spec.base_url()
     }
 
     /// Get API version from info.
+    #[must_use] 
     pub fn version(&self) -> Option<&str> {
         self.spec.info.as_ref().map(|i| i.version.as_str())
     }
 
     /// Get API title from info.
+    #[must_use] 
     pub fn title(&self) -> Option<&str> {
         self.spec.info.as_ref().map(|i| i.title.as_str())
     }
 }
 
 /// Convenience function to process a spec JSON string.
+///
+/// # Errors
+///
+/// Returns [`ProcessError::Json`] if `json` is not a valid `OpenAPI`
+/// spec document that can be deserialized into [`OpenApiSpec`].
 pub fn process_spec(json: &str) -> Result<SpecProcessor, ProcessError> {
     let spec: OpenApiSpec = serde_json::from_str(json).map_err(ProcessError::Json)?;
     Ok(SpecProcessor::new(Arc::new(spec)))
 }
 
 /// Convenience function to process and normalize a spec.
+///
+/// # Errors
+///
+/// Returns [`ProcessError::Json`] if `json` cannot be parsed as an
+/// `OpenAPI` document. See [`process_spec`].
 pub fn normalize_spec(json: &str) -> Result<NormalizedSpec, ProcessError> {
     let processor = process_spec(json)?;
     Ok(processor.normalize())
@@ -319,7 +340,7 @@ pub enum ProcessError {
     #[display("JSON parse error: {_0}")]
     Json(serde_json::Error),
 
-    /// Invalid OpenAPI spec structure
+    /// Invalid `OpenAPI` spec structure
     #[display("Invalid OpenAPI spec: {_0}")]
     InvalidSpec(String),
 

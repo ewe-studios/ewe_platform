@@ -9,6 +9,8 @@
 //! operation, then `execute()` to get a `StreamIterator`. The stream yields
 //! the result when the clone + file processing completes.
 
+#![allow(clippy::too_many_lines)]
+
 use crate::error::DeploymentError;
 use foundation_core::valtron::{execute, from_future, StreamIterator, StreamIteratorExt};
 use serde_json::{Map, Value};
@@ -91,7 +93,9 @@ fn normalize_cloudflare_spec(spec: &mut Value) {
     if !rename_map.is_empty() {
         let mut spec_value = Value::Object(std::mem::take(obj));
         update_refs_in_value(&mut spec_value, &rename_map);
-        *obj = spec_value.as_object_mut().unwrap().clone();
+        if let Value::Object(map) = spec_value {
+            *obj = map;
+        }
     }
 }
 

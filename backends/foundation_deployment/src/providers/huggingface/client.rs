@@ -74,18 +74,25 @@ impl HFClientBuilder {
     }
 
     /// Set the API endpoint.
+    #[must_use]
     pub fn endpoint(mut self, endpoint: impl Into<String>) -> Self {
         self.endpoint = Some(endpoint.into());
         self
     }
 
     /// Set the authentication token.
+    #[must_use]
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.token = Some(token.into());
         self
     }
 
     /// Build the client.
+    ///
+    /// # Errors
+    ///
+    /// Currently infallible, but returns `Result` to allow future configuration
+    /// validation (e.g., endpoint URL parsing) without a breaking change.
     pub fn build(self) -> Result<HFClient> {
         let endpoint = self
             .endpoint
@@ -148,15 +155,23 @@ pub(crate) fn is_success_status(status: &Status) -> bool {
     (200..300).contains(&code)
 }
 
-/// Get status code as u16.
+/// Get status code as `u16`.
+///
+/// Saturates to `u16::MAX` if the underlying value exceeds the `u16` range
+/// (which should never happen for HTTP status codes — they are always 100-599).
 #[inline]
 pub(crate) fn status_code(status: &Status) -> u16 {
     let code: usize = status.clone().into();
-    code as u16
+    u16::try_from(code).unwrap_or(u16::MAX)
 }
 
 impl HFClient {
     /// Create a new client with defaults from environment.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the underlying builder fails to construct an
+    /// `HFClient` (currently infallible, see `HFClientBuilder::build`).
     pub fn new() -> Result<Self> {
         HFClientBuilder::new().build()
     }
@@ -297,6 +312,13 @@ impl HFClient {
 /// Get authenticated user info.
 ///
 /// Blocks internally — acceptable for single-value ops where result is needed immediately.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
+/// `HuggingFaceError::Json` if the response body cannot be deserialized into
+/// a `User`, or `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` if the
+/// underlying HTTP request or executor fails.
 pub fn whoami(client: &HFClient) -> Result<User> {
     let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_WHOAMI);
@@ -350,6 +372,12 @@ pub fn whoami(client: &HFClient) -> Result<User> {
 }
 
 /// Check if token is valid.
+///
+/// # Errors
+///
+/// Returns the same errors as `whoami` — a non-2xx HTTP response (typically
+/// 401 if the token is invalid or missing), a transport failure, or a
+/// deserialization failure on the user payload.
 pub fn auth_check(client: &HFClient) -> Result<()> {
     whoami(client).map(|_| ())
 }
@@ -357,6 +385,13 @@ pub fn auth_check(client: &HFClient) -> Result<()> {
 /// List models with pagination.
 ///
 /// Returns stream — caller composes and collects at boundary.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
+/// or `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+/// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
+/// the returned stream.
 pub fn list_models(
     client: &HFClient,
     params: &ListModelsParams,
@@ -408,6 +443,12 @@ pub fn list_models(
 }
 
 /// List datasets with pagination.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
+/// or `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+/// errors surface as `Err` items inside the returned stream.
 pub fn list_datasets(
     client: &HFClient,
     params: &ListDatasetsParams,
@@ -459,6 +500,12 @@ pub fn list_datasets(
 }
 
 /// List spaces with pagination.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
+/// or `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+/// errors surface as `Err` items inside the returned stream.
 pub fn list_spaces(
     client: &HFClient,
     params: &ListSpacesParams,
@@ -510,6 +557,14 @@ pub fn list_spaces(
 }
 
 /// Create a repository.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status
+/// (e.g., 409 if the repo already exists and `exist_ok` is `false`),
+/// `HuggingFaceError::Json` on malformed response bodies, or
+/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
+/// executor failures.
 pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoUrl> {
     let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_CREATE);
@@ -575,6 +630,13 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
 }
 
 /// Delete a repository.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status
+/// (e.g., 404 when the repo does not exist and `missing_ok` is `false`), or
+/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
+/// executor failures.
 pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
     let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_DELETE);
@@ -636,6 +698,13 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
 }
 
 /// Move/rename a repository.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
+/// `HuggingFaceError::Json` on malformed response bodies, or
+/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
+/// executor failures.
 pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> {
     let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_MOVE);
