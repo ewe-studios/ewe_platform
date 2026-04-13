@@ -1,11 +1,11 @@
-//! Unit tests for event_source writer module.
+//! Unit tests for `event_source` writer module.
 //!
-//! Tests EventWriter functionality for SSE event formatting.
+//! Tests `EventWriter` functionality for SSE event formatting.
 
 use foundation_core::wire::event_source::{EventWriter, SseEvent};
 
-/// WHY: EventWriter must format simple messages correctly.
-/// WHAT: Verify message() writes "data: <text>" followed by empty line.
+/// WHY: `EventWriter` must format simple messages correctly.
+/// WHAT: Verify `message()` writes "data: <text>" followed by empty line.
 #[test]
 fn test_writer_simple_message() {
     let mut buffer = Vec::new();
@@ -17,8 +17,8 @@ fn test_writer_simple_message() {
     assert_eq!(output, "data: Hello\n\n");
 }
 
-/// WHY: EventWriter must format full events with all fields.
-/// WHAT: Verify send() writes fields in correct order.
+/// WHY: `EventWriter` must format full events with all fields.
+/// WHAT: Verify `send()` writes fields in correct order.
 #[test]
 fn test_writer_full_event() {
     let mut buffer = Vec::new();
@@ -39,7 +39,7 @@ fn test_writer_full_event() {
     assert!(output.ends_with("\n\n"));
 }
 
-/// WHY: EventWriter must format multi-line data correctly.
+/// WHY: `EventWriter` must format multi-line data correctly.
 /// WHAT: Verify each data line is prefixed with "data: ".
 #[test]
 fn test_writer_multiline_data() {
@@ -58,8 +58,8 @@ fn test_writer_multiline_data() {
     assert_eq!(output, "data: Line 1\ndata: Line 2\ndata: Line 3\n\n");
 }
 
-/// WHY: EventWriter must send comments for keep-alive.
-/// WHAT: Verify comment() writes ": <text>" format.
+/// WHY: `EventWriter` must send comments for keep-alive.
+/// WHAT: Verify `comment()` writes ": <text>" format.
 #[test]
 fn test_writer_comment() {
     let mut buffer = Vec::new();
@@ -71,7 +71,7 @@ fn test_writer_comment() {
     assert_eq!(output, ": keep-alive\n");
 }
 
-/// WHY: EventWriter must send retry events.
+/// WHY: `EventWriter` must send retry events.
 /// WHAT: Verify retry field is written correctly.
 #[test]
 fn test_writer_retry() {

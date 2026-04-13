@@ -1,4 +1,4 @@
-//! Tests for ThreadedIterFuture executor (single-threaded std mode).
+//! Tests for `ThreadedIterFuture` executor (single-threaded std mode).
 
 #![cfg(all(feature = "std", not(feature = "multi")))]
 
@@ -16,7 +16,7 @@ fn test_threaded_future_basic() {
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            _ => None,
+            ThreadedValue::Value(Err(_)) => None,
         })
         .collect();
 
@@ -69,7 +69,7 @@ fn test_threaded_future_large_iterator() {
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            _ => None,
+            ThreadedValue::Value(Err(_)) => None,
         })
         .collect();
 

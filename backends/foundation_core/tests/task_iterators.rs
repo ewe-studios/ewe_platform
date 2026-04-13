@@ -1,5 +1,5 @@
 // Integration tests for TaskIterator combinators
-use foundation_core::valtron::{NoAction, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+use foundation_core::valtron::{NoAction, Stream, TaskIteratorExt, TaskStatus};
 
 // Simple test task iterator for unit tests
 struct TestTask {
@@ -83,7 +83,7 @@ fn test_split_collector_map_sends_transformed_items() {
 
     // Observer gets string representations of items > 5
     let (observer, mut continuation) =
-        task.split_collector_map(|x| (*x > 5, Some(format!("val:{}", x))), 10);
+        task.split_collector_map(|x| (*x > 5, Some(format!("val:{x}"))), 10);
 
     // Drive the continuation to completion
     while Iterator::next(&mut continuation).is_some() {}
@@ -108,7 +108,7 @@ fn test_split_collector_map_transform_returns_none_skips() {
 
     // Matched but transform returns None for odd numbers → skipped
     let (observer, mut continuation) = task.split_collector_map(
-        |x| (true, if x % 2 == 0 { Some(*x as u64) } else { None }),
+        |x| (true, if x % 2 == 0 { Some(u64::from(*x)) } else { None }),
         10,
     );
 
@@ -178,7 +178,7 @@ fn test_stream_collect() {
             assert!(vec.contains(&1));
             assert!(vec.contains(&2));
         }
-        other => panic!("Expected Ready(Vec), got {:?}", other),
+        other => panic!("Expected Ready(Vec), got {other:?}"),
     }
 
     // Should be done after yielding the collected result

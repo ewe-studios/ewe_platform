@@ -1,55 +1,53 @@
 //! Unit tests for 101 Switching Protocols response handling.
 //!
-//! These tests verify that Status::SwitchingProtocols is correctly defined
-//! and that IncomingResponseParts::NoBody is used for 1xx responses.
+//! These tests verify that `Status::SwitchingProtocols` is correctly defined
+//! and that `IncomingResponseParts::NoBody` is used for 1xx responses.
 //!
 //! RFC 7230 Section 3.3 specifies that 1xx responses MUST NOT contain a body.
-//! The actual HttpResponseReader handling is tested at the integration level.
+//! The actual `HttpResponseReader` handling is tested at the integration level.
 
 use foundation_core::wire::simple_http::{IncomingResponseParts, Proto, SimpleHeaders, Status};
 
-/// WHY: Verify Status::SwitchingProtocols is correctly defined as 101.
+/// WHY: Verify `Status::SwitchingProtocols` is correctly defined as 101.
 /// WHAT: Tests that the status code value is 101.
 #[test]
 fn test_switching_protocols_status_code() {
     assert_eq!(Status::SwitchingProtocols.into_usize(), 101);
 }
 
-/// WHY: Verify Status::SwitchingProtocols can be parsed from "101".
-/// WHAT: Tests parsing "101" returns SwitchingProtocols.
+/// WHY: Verify `Status::SwitchingProtocols` can be parsed from "101".
+/// WHAT: Tests parsing "101" returns `SwitchingProtocols`.
 #[test]
 fn test_switching_protocols_from_string() {
     let status = Status::from("101".to_string());
     assert_eq!(status, Status::SwitchingProtocols);
 }
 
-/// WHY: Verify Status::SwitchingProtocols status line format.
-/// WHAT: Tests that status_line() contains "101" and "Switching".
+/// WHY: Verify `Status::SwitchingProtocols` status line format.
+/// WHAT: Tests that `status_line()` contains "101" and "Switching".
 #[test]
 fn test_switching_protocols_status_line() {
     let status = Status::SwitchingProtocols;
     let line = status.status_line();
     assert!(
         line.contains("101"),
-        "Status line should contain '101', got: {}",
-        line
+        "Status line should contain '101', got: {line}"
     );
     assert!(
         line.to_lowercase().contains("switching"),
-        "Status line should contain 'Switching', got: {}",
-        line
+        "Status line should contain 'Switching', got: {line}"
     );
 }
 
-/// WHY: Verify IncomingResponseParts::NoBody variant exists and is usable.
-/// WHAT: Tests that NoBody can be constructed and matched.
+/// WHY: Verify `IncomingResponseParts::NoBody` variant exists and is usable.
+/// WHAT: Tests that `NoBody` can be constructed and matched.
 #[test]
 fn test_no_body_variant() {
     let parts = IncomingResponseParts::NoBody;
     assert!(matches!(parts, IncomingResponseParts::NoBody));
 }
 
-/// WHY: Verify IncomingResponseParts::Headers variant works.
+/// WHY: Verify `IncomingResponseParts::Headers` variant works.
 /// WHAT: Tests Headers variant with empty headers.
 #[test]
 fn test_headers_variant() {
@@ -58,8 +56,8 @@ fn test_headers_variant() {
     assert!(matches!(parts, IncomingResponseParts::Headers(_)));
 }
 
-/// WHY: Verify IncomingResponseParts::Intro works with 101 status.
-/// WHAT: Tests Intro variant with SwitchingProtocols.
+/// WHY: Verify `IncomingResponseParts::Intro` works with 101 status.
+/// WHAT: Tests Intro variant with `SwitchingProtocols`.
 #[test]
 fn test_intro_with_101_status() {
     let parts = IncomingResponseParts::Intro(
@@ -116,8 +114,7 @@ fn test_all_1xx_status_codes() {
         let actual = status.into_usize();
         assert_eq!(
             actual, expected,
-            "Status should be {}, got {}",
-            expected, actual
+            "Status should be {expected}, got {actual}"
         );
     }
 }

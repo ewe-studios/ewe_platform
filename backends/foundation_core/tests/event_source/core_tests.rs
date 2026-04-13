@@ -1,6 +1,6 @@
-//! Unit tests for event_source core module.
+//! Unit tests for `event_source` core module.
 //!
-//! Tests SseEvent and SseEventBuilder functionality.
+//! Tests `SseEvent` and `SseEventBuilder` functionality.
 
 use foundation_core::wire::event_source::SseEvent;
 

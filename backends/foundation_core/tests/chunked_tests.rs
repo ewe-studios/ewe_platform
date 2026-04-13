@@ -3,6 +3,8 @@
 //! These tests verify that chunked encoding correctly parses HTTP/1.1 chunked
 //! transfer encoding without including CRLF markers in the actual data.
 
+#![allow(clippy::naive_bytecount)]
+
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::wire::simple_http::{ChunkedData, SimpleHeaders, SimpleHttpChunkIterator};
 use std::io::Cursor;
@@ -49,7 +51,7 @@ fn test_chunked_json_no_crlf_in_data() {
             }
             Ok(ChunkedData::DataEnded) => break,
             Ok(ChunkedData::Trailers(_)) => {}
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
         }
     }
 
@@ -63,8 +65,7 @@ fn test_chunked_json_no_crlf_in_data() {
     for (i, byte) in collected_bytes.iter().enumerate() {
         assert_ne!(
             *byte, b'\r',
-            "Found carriage return at position {} - CRLF not properly stripped",
-            i
+            "Found carriage return at position {i} - CRLF not properly stripped"
         );
     }
 }
@@ -99,7 +100,7 @@ fn test_chunked_exact_content_preservation() {
                 collected_bytes.extend_from_slice(&data);
             }
             Ok(ChunkedData::DataEnded) => break,
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
             _ => {}
         }
     }
@@ -142,7 +143,7 @@ fn test_many_small_chunks() {
                 collected_bytes.extend_from_slice(&data);
             }
             Ok(ChunkedData::DataEnded) => break,
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
             _ => {}
         }
     }
@@ -152,7 +153,7 @@ fn test_many_small_chunks() {
     assert_eq!(&collected_bytes, &expected, "Multi-chunk output corrupted");
 
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-    assert_eq!(cr_count, 0, "Found {} stray CR characters", cr_count);
+    assert_eq!(cr_count, 0, "Found {cr_count} stray CR characters");
 }
 
 /// Test: Chunk with embedded newlines in content.
@@ -185,7 +186,7 @@ fn test_chunked_content_with_embedded_newlines() {
                 collected_bytes.extend_from_slice(&data);
             }
             Ok(ChunkedData::DataEnded) => break,
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
             _ => {}
         }
     }
@@ -242,7 +243,7 @@ fn test_chunk_boundary_crlf_consumption() {
                 collected_bytes.extend_from_slice(&data);
             }
             Ok(ChunkedData::DataEnded) => break,
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
             _ => {}
         }
     }
@@ -303,7 +304,7 @@ fn test_gcp_lf_only_chunk_terminators() {
             }
             Ok(ChunkedData::DataEnded) => break,
             Ok(ChunkedData::Trailers(_)) => {}
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
         }
     }
 
@@ -317,8 +318,7 @@ fn test_gcp_lf_only_chunk_terminators() {
     for (i, byte) in collected_bytes.iter().enumerate() {
         assert_ne!(
             *byte, b'\r',
-            "Found CR at position {} - corruption in LF-only parsing",
-            i
+            "Found CR at position {i} - corruption in LF-only parsing"
         );
     }
 }
@@ -363,7 +363,7 @@ fn test_lf_only_multi_chunk() {
                 collected_bytes.extend_from_slice(&data);
             }
             Ok(ChunkedData::DataEnded) => break,
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
             _ => {}
         }
     }
@@ -423,7 +423,7 @@ fn test_mixed_crlf_and_lf() {
                 collected_bytes.extend_from_slice(&data);
             }
             Ok(ChunkedData::DataEnded) => break,
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
             _ => {}
         }
     }
@@ -476,7 +476,7 @@ fn test_chunk_data_cr_stripped() {
                 collected_bytes.extend_from_slice(&data);
             }
             Ok(ChunkedData::DataEnded) => break,
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
             _ => {}
         }
     }
@@ -487,8 +487,7 @@ fn test_chunk_data_cr_stripped() {
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
     assert_eq!(
         cr_count, 0,
-        "All CR bytes should be stripped (found {})",
-        cr_count
+        "All CR bytes should be stripped (found {cr_count})"
     );
 }
 
@@ -505,7 +504,7 @@ fn test_gcp_lf_only_with_streaming_buffer() {
     let mut raw_response = Vec::new();
 
     for i in 0..100 {
-        let chunk_data = format!("Chunk {} data with some content to make it longer\n", i);
+        let chunk_data = format!("Chunk {i} data with some content to make it longer\n");
         raw_response.extend(format!("{:x}\n", chunk_data.len()).as_bytes());
         raw_response.extend_from_slice(chunk_data.as_bytes());
         raw_response.extend_from_slice(b"\n");
@@ -530,7 +529,7 @@ fn test_gcp_lf_only_with_streaming_buffer() {
             }
             Ok(ChunkedData::DataEnded) => break,
             Ok(ChunkedData::Trailers(_)) => {}
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
         }
     }
 
@@ -539,17 +538,15 @@ fn test_gcp_lf_only_with_streaming_buffer() {
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
     assert_eq!(
         cr_count, 0,
-        "Found {} stray CR characters in streaming output",
-        cr_count
+        "Found {cr_count} stray CR characters in streaming output"
     );
 
     let output_str = String::from_utf8_lossy(&collected_bytes);
     for i in 0..100 {
-        let expected_chunk = format!("Chunk {} data with some content to make it longer\n", i);
+        let expected_chunk = format!("Chunk {i} data with some content to make it longer\n");
         assert!(
             output_str.contains(&expected_chunk),
-            "Chunk {} data corrupted or missing",
-            i
+            "Chunk {i} data corrupted or missing"
         );
     }
 }
@@ -585,7 +582,7 @@ fn test_cr_stripping_no_op_on_clean_content() {
             }
             Ok(ChunkedData::DataEnded) => break,
             Ok(ChunkedData::Trailers(_)) => {}
-            Err(e) => panic!("Chunk iterator error: {}", e),
+            Err(e) => panic!("Chunk iterator error: {e}"),
         }
     }
 

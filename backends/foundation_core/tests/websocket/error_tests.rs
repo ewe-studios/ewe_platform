@@ -11,7 +11,7 @@ use tracing_test::traced_test;
 #[traced_test]
 fn test_error_display_upgrade_failed() {
     let err = WebSocketError::UpgradeFailed(404);
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("upgrade failed"));
     assert!(display.contains("404"));
 }
@@ -21,7 +21,7 @@ fn test_error_display_upgrade_failed() {
 #[traced_test]
 fn test_error_display_invalid_accept_key() {
     let err = WebSocketError::InvalidAcceptKey;
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("invalid Sec-WebSocket-Accept"));
 }
 
@@ -30,7 +30,7 @@ fn test_error_display_invalid_accept_key() {
 #[traced_test]
 fn test_error_display_missing_accept_key() {
     let err = WebSocketError::MissingAcceptKey;
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("missing Sec-WebSocket-Accept"));
 }
 
@@ -39,7 +39,7 @@ fn test_error_display_missing_accept_key() {
 #[traced_test]
 fn test_error_display_missing_key() {
     let err = WebSocketError::MissingKey;
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("missing Sec-WebSocket-Key"));
 }
 
@@ -48,7 +48,7 @@ fn test_error_display_missing_key() {
 #[traced_test]
 fn test_error_display_invalid_frame() {
     let err = WebSocketError::InvalidFrame("bad opcode".to_string());
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("invalid frame"));
     assert!(display.contains("bad opcode"));
 }
@@ -59,7 +59,7 @@ fn test_error_display_invalid_frame() {
 fn test_error_display_invalid_utf8() {
     let invalid_string = String::from_utf8(vec![0xFF, 0xFE]).unwrap_err();
     let err = WebSocketError::InvalidUtf8(invalid_string);
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("invalid UTF-8"));
 }
 
@@ -68,7 +68,7 @@ fn test_error_display_invalid_utf8() {
 #[traced_test]
 fn test_error_display_connection_closed() {
     let err = WebSocketError::ConnectionClosed;
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("connection closed"));
 }
 
@@ -77,7 +77,7 @@ fn test_error_display_connection_closed() {
 #[traced_test]
 fn test_error_display_protocol_error() {
     let err = WebSocketError::ProtocolError("masking violation".to_string());
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("protocol error"));
     assert!(display.contains("masking violation"));
 }
@@ -88,7 +88,7 @@ fn test_error_display_protocol_error() {
 fn test_error_display_io_error() {
     let io_err = io::Error::new(io::ErrorKind::ConnectionReset, "connection reset");
     let err = WebSocketError::IoError(io_err);
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("I/O error"));
     assert!(display.contains("connection reset"));
 }
@@ -98,7 +98,7 @@ fn test_error_display_io_error() {
 #[traced_test]
 fn test_error_display_invalid_url() {
     let err = WebSocketError::InvalidUrl("not a valid url".to_string());
-    let display = format!("{}", err);
+    let display = format!("{err}");
     assert!(display.contains("invalid URL"));
     assert!(display.contains("not a valid url"));
 }
@@ -136,7 +136,7 @@ fn test_error_trait() {
 #[traced_test]
 fn test_error_debug() {
     let err = WebSocketError::UpgradeFailed(500);
-    let debug = format!("{:?}", err);
+    let debug = format!("{err:?}");
     assert!(debug.contains("UpgradeFailed"));
     assert!(debug.contains("500"));
 }

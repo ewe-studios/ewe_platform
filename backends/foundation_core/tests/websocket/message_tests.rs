@@ -214,11 +214,11 @@ fn test_text_frame_various_utf8() {
 
         let message = frame
             .to_message()
-            .expect(&format!("should convert {} to message", name));
+            .unwrap_or_else(|_| panic!("should convert {name} to message"));
         if let WebSocketMessage::Text(t) = message {
-            assert_eq!(t, text, "{} should roundtrip correctly", name);
+            assert_eq!(t, text, "{name} should roundtrip correctly");
         } else {
-            panic!("expected Text message for {}", name);
+            panic!("expected Text message for {name}");
         }
     }
 }

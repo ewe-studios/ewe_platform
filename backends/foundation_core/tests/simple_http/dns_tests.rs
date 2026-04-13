@@ -1,4 +1,4 @@
-//! Unit tests for simple_http DNS resolvers moved into the canonical units test tree.
+//! Unit tests for `simple_http` DNS resolvers moved into the canonical units test tree.
 //!
 //! These tests exercise `DnsResolver` implementations used by the `foundation_core`
 //! simple HTTP client: `StaticSocketAddr`, `SystemDnsResolver`, `MockDnsResolver`,
@@ -18,7 +18,7 @@ use std::{io, thread};
 
 #[test]
 fn test_static_socket_addr_resolves_to_configured_address() {
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let resolver = StaticSocketAddr::new(addr);
     let result = resolver.resolve("example.com", 80);
 
@@ -29,7 +29,7 @@ fn test_static_socket_addr_resolves_to_configured_address() {
 
 #[test]
 fn test_mock_resolver_returns_configured_response() {
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let resolver = MockDnsResolver::new().with_response("example.com", vec![addr]);
 
     let result = resolver.resolve("example.com", 80);
@@ -60,7 +60,7 @@ fn test_mock_resolver_returns_not_found_for_unconfigured_host() {
 
 #[test]
 fn test_caching_resolver_caches_results() {
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let mock = MockDnsResolver::new().with_response("cache-test.com", vec![addr]);
     let resolver = CachingDnsResolver::new(mock, Duration::from_secs(60));
 
@@ -79,7 +79,7 @@ fn test_caching_resolver_caches_results() {
 
 #[test]
 fn test_caching_resolver_expires_entries() {
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let mock = MockDnsResolver::new().with_response("expire-test.com", vec![addr]);
     // Short TTL for deterministic expiration
     let resolver = CachingDnsResolver::new(mock, Duration::from_millis(100));
@@ -101,7 +101,7 @@ fn test_caching_resolver_expires_entries() {
 
 #[test]
 fn test_caching_resolver_clear_cache() {
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let mock = MockDnsResolver::new().with_response("clear-test.com", vec![addr]);
     let resolver = CachingDnsResolver::new(mock, Duration::from_secs(60));
 
@@ -116,8 +116,8 @@ fn test_caching_resolver_clear_cache() {
 
 #[test]
 fn test_caching_resolver_differentiates_by_port() {
-    let addr1 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 80);
-    let addr2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443);
+    let addr1 = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 80);
+    let addr2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 443);
     let mock = MockDnsResolver::new()
         .with_response("port-test.com", vec![addr1])
         .with_response("port-test.com", vec![addr2]);
@@ -140,77 +140,77 @@ fn test_dns_resolver_is_send_sync() {
     assert_send_sync::<CachingDnsResolver<SystemDnsResolver>>();
 }
 
-/// WHY: Verify DnsError::ResolutionFailed creates correct error message
+/// WHY: Verify `DnsError::ResolutionFailed` creates correct error message
 /// WHAT: Tests that the error message includes the hostname
 #[test]
 fn test_dns_error_resolution_failed_display() {
     let error = DnsError::ResolutionFailed("example.com".to_string());
-    let display = format!("{}", error);
+    let display = format!("{error}");
     assert!(display.contains("DNS resolution failed"));
     assert!(display.contains("example.com"));
 }
 
-/// WHY: Verify DnsError::InvalidHost creates correct error message
+/// WHY: Verify `DnsError::InvalidHost` creates correct error message
 /// WHAT: Tests that invalid hostname errors are clearly communicated
 #[test]
 fn test_dns_error_invalid_host_display() {
-    let error = DnsError::InvalidHost("".to_string());
-    let display = format!("{}", error);
+    let error = DnsError::InvalidHost(String::new());
+    let display = format!("{error}");
     assert!(display.contains("Invalid hostname"));
 }
 
-/// WHY: Verify DnsError::NoAddressesFound creates correct error message
+/// WHY: Verify `DnsError::NoAddressesFound` creates correct error message
 /// WHAT: Tests that no addresses error includes the hostname
 #[test]
 fn test_dns_error_no_addresses_display() {
     let error = DnsError::NoAddressesFound("localhost".to_string());
-    let display = format!("{}", error);
+    let display = format!("{error}");
     assert!(display.contains("No addresses found"));
     assert!(display.contains("localhost"));
 }
 
-/// WHY: Verify DnsError::IoError wraps std::io::Error correctly
+/// WHY: Verify `DnsError::IoError` wraps `std::io::Error` correctly
 /// WHAT: Tests that I/O errors are properly converted and displayed
 #[test]
 fn test_dns_error_io_error_conversion() {
     let io_error = io::Error::new(io::ErrorKind::TimedOut, "timeout");
     let dns_error = DnsError::from(io_error);
-    let display = format!("{}", dns_error);
+    let display = format!("{dns_error}");
     assert!(display.contains("I/O error"));
 }
 
-/// WHY: Verify HttpClientError::DnsError wraps DnsError correctly
+/// WHY: Verify `HttpClientError::DnsError` wraps `DnsError` correctly
 /// WHAT: Tests that DNS errors are properly converted to HTTP client errors
 #[test]
 fn test_http_client_error_from_dns_error() {
     let dns_error = DnsError::ResolutionFailed("test.com".to_string());
     let http_error = HttpClientError::from(dns_error);
-    let display = format!("{}", http_error);
+    let display = format!("{http_error}");
     assert!(display.contains("DNS error"));
     assert!(display.contains("test.com"));
 }
 
-/// WHY: Verify HttpClientError::ConnectionFailed creates correct message
+/// WHY: Verify `HttpClientError::ConnectionFailed` creates correct message
 /// WHAT: Tests that connection failures are clearly described
 #[test]
 fn test_http_client_error_connection_failed() {
     let error = HttpClientError::ConnectionFailed("connection reset".to_string());
-    let display = format!("{}", error);
+    let display = format!("{error}");
     assert!(display.contains("Connection failed"));
     assert!(display.contains("connection reset"));
 }
 
-/// WHY: Verify HttpClientError::InvalidUrl creates correct message
+/// WHY: Verify `HttpClientError::InvalidUrl` creates correct message
 /// WHAT: Tests that invalid URL errors include the URL
 #[test]
 fn test_http_client_error_invalid_url() {
     let error = HttpClientError::InvalidUrl("not a url".to_string());
-    let display = format!("{}", error);
+    let display = format!("{error}");
     assert!(display.contains("Invalid URL"));
     assert!(display.contains("not a url"));
 }
 
-/// WHY: Verify error types implement std::error::Error trait
+/// WHY: Verify error types implement `std::error::Error` trait
 /// WHAT: Tests that errors can be used with error handling infrastructure
 #[test]
 fn test_errors_implement_std_error() {
@@ -222,7 +222,7 @@ fn test_errors_implement_std_error() {
     assert!(!http_error.to_string().is_empty());
 }
 
-/// WHY: Verify SystemDnsResolver can resolve localhost
+/// WHY: Verify `SystemDnsResolver` can resolve localhost
 /// WHAT: Tests basic DNS resolution functionality with a known hostname
 #[test]
 fn test_system_resolver_resolves_localhost() {
@@ -237,7 +237,7 @@ fn test_system_resolver_resolves_localhost() {
     );
 }
 
-/// WHY: Verify SystemDnsResolver rejects empty hostnames
+/// WHY: Verify `SystemDnsResolver` rejects empty hostnames
 /// WHAT: Tests that invalid input is properly rejected
 #[test]
 fn test_system_resolver_rejects_empty_host() {
@@ -248,7 +248,7 @@ fn test_system_resolver_rejects_empty_host() {
     matches!(result.unwrap_err(), DnsError::InvalidHost(_));
 }
 
-/// WHY: Verify SystemDnsResolver handles invalid hostnames
+/// WHY: Verify `SystemDnsResolver` handles invalid hostnames
 /// WHAT: Tests error handling for hostnames that don't resolve
 #[test]
 fn test_system_resolver_handles_invalid_host() {
@@ -258,7 +258,7 @@ fn test_system_resolver_handles_invalid_host() {
     assert!(result.is_err(), "invalid hostname should fail to resolve");
 }
 
-/// WHY: Verify CachingDnsResolver propagates errors from inner resolver
+/// WHY: Verify `CachingDnsResolver` propagates errors from inner resolver
 /// WHAT: Tests that DNS resolution errors are not cached and properly propagated
 #[test]
 fn test_caching_resolver_propagates_errors() {

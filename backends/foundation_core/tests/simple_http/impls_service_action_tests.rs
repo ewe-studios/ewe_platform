@@ -25,13 +25,12 @@ use foundation_core::wire::simple_http::{ServiceAction, SimpleHeader, SimpleMeth
 fn test_service_action_builder_chain_compiles() {
     // Chain a few common builder methods that the original tests used.
     // We don't call into network behavior here; just validate the builder API.
-    let _builder = ServiceAction::builder()
+    let _ = ServiceAction::builder()
         .with_route("/service/endpoint/v1")
         .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
         .with_method(SimpleMethod::GET);
 
-    // If the chain above compiles, the public API surface exists as expected.
-    assert!(true);
+    // ServiceAction builder API verified by successful compilation
 }
 
 /// Compile-time assertion: `ServiceAction` is `Clone`.
@@ -60,6 +59,5 @@ fn test_service_action_header_and_method_accessible() {
         .add_header(SimpleHeader::HOST, "localhost")
         .with_method(SimpleMethod::HEAD);
 
-    // No runtime assertions necessary beyond successful compilation/execution.
-    assert!(true);
+    // ServiceAction builder API verified by successful compilation
 }

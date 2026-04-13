@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-//! WebSocket ReconnectingWebSocketTask state machine tests.
+//! WebSocket `ReconnectingWebSocketTask` state machine tests.
 
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
@@ -11,7 +11,7 @@ use tracing_test::traced_test;
 #[test]
 #[traced_test]
 fn test_connect_creates_task() {
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat");
 
     assert!(result.is_ok(), "should create task with valid URL");
@@ -23,7 +23,7 @@ fn test_connect_creates_task() {
 #[test]
 #[traced_test]
 fn test_connect_invalid_url() {
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "not-a-url");
 
     assert!(result.is_err(), "should reject invalid URL");
@@ -36,7 +36,7 @@ fn test_connect_invalid_url() {
 #[test]
 #[traced_test]
 fn test_connect_wrong_scheme() {
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "http://localhost:8080/chat");
 
     assert!(result.is_err(), "should reject non-WebSocket scheme");
@@ -50,14 +50,11 @@ fn test_connect_wrong_scheme() {
 #[traced_test]
 fn test_reconnecting_websocket_progress_variants() {
     // Just verifying the enum exists and variants are accessible
-    let _connecting = ReconnectingWebSocketProgress::Connecting;
-    let _handshaking = ReconnectingWebSocketProgress::Handshaking;
-    let _reading = ReconnectingWebSocketProgress::Reading;
-    let _reconnecting = ReconnectingWebSocketProgress::Reconnecting;
-
     // Debug implementation
-    let debug = format!("{:?}", ReconnectingWebSocketProgress::Connecting);
-    assert!(debug.contains("Connecting"));
+    assert!(format!("{:?}", ReconnectingWebSocketProgress::Connecting).contains("Connecting"));
+    assert!(format!("{:?}", ReconnectingWebSocketProgress::Handshaking).contains("Handshaking"));
+    assert!(format!("{:?}", ReconnectingWebSocketProgress::Reading).contains("Reading"));
+    assert!(format!("{:?}", ReconnectingWebSocketProgress::Reconnecting).contains("Reconnecting"));
 }
 
 // Test 5: ReconnectingWebSocketProgress PartialEq
@@ -103,7 +100,7 @@ fn test_reconnecting_websocket_progress_eq() {
 #[test]
 #[traced_test]
 fn test_with_max_retries() {
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_max_retries(10);
@@ -118,7 +115,7 @@ fn test_with_max_retries() {
 fn test_with_max_reconnect_duration() {
     use std::time::Duration;
 
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_max_reconnect_duration(Duration::from_secs(60));
@@ -130,7 +127,7 @@ fn test_with_max_reconnect_duration() {
 #[test]
 #[traced_test]
 fn test_with_subprotocol() {
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_subprotocol("chat");
@@ -142,7 +139,7 @@ fn test_with_subprotocol() {
 #[test]
 #[traced_test]
 fn test_with_subprotocols() {
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_subprotocols(&["chat", "superchat"]);
@@ -156,7 +153,7 @@ fn test_with_subprotocols() {
 fn test_with_header() {
     use foundation_core::wire::simple_http::SimpleHeader;
 
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_header(SimpleHeader::Custom("X-Custom".to_string()), "value");
@@ -170,7 +167,7 @@ fn test_with_header() {
 fn test_with_read_timeout() {
     use std::time::Duration;
 
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_read_timeout(Duration::from_secs(10));
@@ -193,9 +190,9 @@ fn test_task_is_send() {
 #[test]
 #[traced_test]
 fn test_fresh_task_pending_connecting() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1").unwrap();
 
     // First next() should return Pending(Connecting) as it tries to connect
@@ -212,9 +209,9 @@ fn test_fresh_task_pending_connecting() {
 #[test]
 #[traced_test]
 fn test_failing_connection_eventual_exhaust() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1")
         .unwrap()
         .with_max_retries(2); // Low retry count for faster test
@@ -226,16 +223,9 @@ fn test_failing_connection_eventual_exhaust() {
 
     while iterations < max_iterations {
         iterations += 1;
-        match task.next_status() {
-            None => {
-                got_exhaust = true;
-                break;
-            }
-            Some(TaskStatus::Ready(Err(_))) => {
-                // Got an error, connection might be closed now
-                continue;
-            }
-            _ => continue,
+        if task.next_status().is_none() {
+            got_exhaust = true;
+            break;
         }
     }
 
@@ -253,7 +243,7 @@ fn test_builder_chain() {
     use foundation_core::wire::simple_http::SimpleHeader;
     use std::time::Duration;
 
-    let resolver = SystemDnsResolver::default();
+    let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_max_retries(10)

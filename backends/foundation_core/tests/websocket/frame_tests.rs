@@ -35,6 +35,7 @@ fn test_opcode_is_control() {
 
 // Test 2: Small payload frame encode/decode (< 126 bytes)
 #[test]
+#[allow(clippy::cast_possible_truncation)]
 fn test_small_payload_unmasked_roundtrip() {
     let payload = b"Hello, WebSocket!".to_vec();
     let frame = WebSocketFrame {
@@ -53,7 +54,7 @@ fn test_small_payload_unmasked_roundtrip() {
     // Decode and verify roundtrip
     let mut cursor = Cursor::new(encoded);
     let decoded = WebSocketFrame::decode(&mut cursor).unwrap();
-    assert_eq!(decoded.fin, true);
+    assert!(decoded.fin);
     assert_eq!(decoded.opcode, Opcode::Text);
     assert_eq!(decoded.mask, None);
     assert_eq!(decoded.payload, payload);
@@ -79,7 +80,7 @@ fn test_medium_payload_roundtrip() {
 
     let mut cursor = Cursor::new(encoded);
     let decoded = WebSocketFrame::decode(&mut cursor).unwrap();
-    assert_eq!(decoded.fin, true);
+    assert!(decoded.fin);
     assert_eq!(decoded.opcode, Opcode::Binary);
     assert_eq!(decoded.payload, payload);
 }
@@ -104,7 +105,7 @@ fn test_large_payload_roundtrip() {
 
     let mut cursor = Cursor::new(encoded);
     let decoded = WebSocketFrame::decode(&mut cursor).unwrap();
-    assert_eq!(decoded.fin, true);
+    assert!(decoded.fin);
     assert_eq!(decoded.opcode, Opcode::Binary);
     assert_eq!(decoded.payload.len(), 70_000);
     assert_eq!(decoded.payload, payload);
@@ -135,7 +136,7 @@ fn test_masked_frame_roundtrip() {
     // Decode and verify we get back the original plaintext
     let mut cursor = Cursor::new(encoded);
     let decoded = WebSocketFrame::decode(&mut cursor).unwrap();
-    assert_eq!(decoded.fin, true);
+    assert!(decoded.fin);
     assert_eq!(decoded.opcode, Opcode::Text);
     assert_eq!(decoded.mask, Some(mask_key));
     assert_eq!(decoded.payload, payload);

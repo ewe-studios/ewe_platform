@@ -23,8 +23,7 @@ mod line_feed_tests {
     /// WHAT: Smoke/assertion placeholder to ensure the test module is discovered
     #[test]
     fn test_line_feed_parser_module_present() {
-        // No-op smoke test: module existence and discovery will be verified by the test runner.
-        assert!(true, "line-feed parser test module loaded");
+        // Module existence verified by test runner
     }
 
     /// WHY: Placeholder for parsing multiple line-feed styles

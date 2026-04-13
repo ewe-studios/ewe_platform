@@ -25,7 +25,7 @@ fn test_service_action_with_function_simple_server_can_clone() {
             SimpleOutgoingResponse::builder()
                 .with_status(Status::BadRequest)
                 .build()
-                .map_err(|err| err.into_boxed_error())
+                .map_err(foundation_core::extensions::result_ext::BoxedResult::into_boxed_error)
         }))
         .build()
         .expect("should generate service action");

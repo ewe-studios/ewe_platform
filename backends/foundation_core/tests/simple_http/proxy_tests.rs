@@ -1,10 +1,10 @@
 /// Unit tests for proxy support
 ///
-/// WHY: Verify proxy configuration parsing, environment detection, and NO_PROXY bypass logic
+/// WHY: Verify proxy configuration parsing, environment detection, and `NO_PROXY` bypass logic
 ///
-/// WHAT: Tests for ProxyConfig, ProxyAuth, ProxyProtocol parsing and functionality
+/// WHAT: Tests for `ProxyConfig`, `ProxyAuth`, `ProxyProtocol` parsing and functionality
 ///
-/// HOW: External unit tests following ewe_platform testing conventions
+/// HOW: External unit tests following `ewe_platform` testing conventions
 use foundation_core::wire::simple_http::client::{ProxyAuth, ProxyConfig, ProxyProtocol};
 use foundation_core::wire::simple_http::url::Scheme;
 use serial_test::serial;

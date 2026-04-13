@@ -43,7 +43,7 @@ fn test_cleanup_and_clear_idempotent() {
     assert!(pool.checkout("localhost", 8080).is_none());
 }
 
-/// WHY: Verify ConnectionPool::new creates pool
+/// WHY: Verify `ConnectionPool::new` creates pool
 #[test]
 fn test_connection_pool_new() {
     let pool = ConnectionPool::new(10, Duration::from_secs(60));

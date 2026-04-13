@@ -257,7 +257,7 @@ fn test_gcp_chunked_fixture_from_file() {
 /// GCP Discovery API endpoint and verifies our parser handles it correctly.
 ///
 /// Fixture: `gcp_real_chunked_response.bin` - 5.8MB raw chunked response body
-/// from https://www.googleapis.com/discovery/v1/apis/compute/v1/rest
+/// from <https://www.googleapis.com/discovery/v1/apis/compute/v1/rest>
 ///
 /// The captured response contains ~384 CR bytes embedded in JSON content
 /// (not just framing) that must be stripped for valid JSON parsing.

@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-//! WebSocket MessageAssembler tests (RFC 6455 Section 4.5 - Fragmentation).
+//! WebSocket `MessageAssembler` tests (RFC 6455 Section 4.5 - Fragmentation).
 
 use foundation_core::wire::websocket::{
     MessageAssembler, Opcode, WebSocketError, WebSocketFrame, WebSocketMessage,
@@ -212,11 +212,11 @@ fn test_fragmented_size_limit() {
     let mut assembler = MessageAssembler::new(100); // 100 byte limit
 
     // Send first fragment (50 bytes)
-    let frame1 = text_frame(&vec![b'a'; 50], false);
+    let frame1 = text_frame(&[b'a'; 50], false);
     let _ = assembler.process_frame(frame1).unwrap();
 
     // Send second fragment that pushes over limit
-    let frame2 = continuation_frame(&vec![b'b'; 51], true);
+    let frame2 = continuation_frame(&[b'b'; 51], true);
     let result = assembler.process_frame(frame2);
 
     assert!(result.is_err());

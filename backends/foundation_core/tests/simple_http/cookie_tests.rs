@@ -2,7 +2,7 @@ use foundation_core::wire::simple_http::client::{Cookie, CookieJar, CookieParseE
 use std::time::{Duration, SystemTime};
 
 /// WHY: Basic cookie creation is the foundation - must work correctly
-/// WHAT: Cookie::new() should create cookie with name and value
+/// WHAT: `Cookie::new()` should create cookie with name and value
 #[test]
 fn test_cookie_new_basic() {
     let cookie = Cookie::new("session", "abc123");
@@ -12,8 +12,8 @@ fn test_cookie_new_basic() {
     assert_eq!(cookie.path, None);
     assert_eq!(cookie.expires, None);
     assert_eq!(cookie.max_age, None);
-    assert_eq!(cookie.secure, false);
-    assert_eq!(cookie.http_only, false);
+    assert!(!cookie.secure);
+    assert!(!cookie.http_only);
     assert_eq!(cookie.same_site, SameSite::Lax);
 }
 
@@ -37,8 +37,8 @@ fn test_cookie_builder_methods() {
     assert_eq!(cookie.value, "abc123");
     assert_eq!(cookie.domain, Some("example.com".to_string()));
     assert_eq!(cookie.path, Some("/api".to_string()));
-    assert_eq!(cookie.secure, true);
-    assert_eq!(cookie.http_only, true);
+    assert!(cookie.secure);
+    assert!(cookie.http_only);
     assert_eq!(cookie.expires, Some(expires));
     assert_eq!(cookie.max_age, Some(max_age));
     assert_eq!(cookie.same_site, SameSite::Strict);
@@ -65,8 +65,8 @@ fn test_cookie_parse_with_attributes() {
     assert_eq!(cookie.value, "abc123");
     assert_eq!(cookie.domain, Some("example.com".to_string()));
     assert_eq!(cookie.path, Some("/api".to_string()));
-    assert_eq!(cookie.secure, true);
-    assert_eq!(cookie.http_only, true);
+    assert!(cookie.secure);
+    assert!(cookie.http_only);
     assert_eq!(cookie.max_age, Some(Duration::from_secs(3600)));
     assert_eq!(cookie.same_site, SameSite::Strict);
 }
@@ -88,7 +88,7 @@ fn test_cookie_parse_invalid_format() {
     assert!(result.is_err());
 }
 
-/// WHY: CookieJar is the central storage - must correctly store cookies
+/// WHY: `CookieJar` is the central storage - must correctly store cookies
 /// WHAT: Should add cookie and allow retrieval by domain/path/name
 #[test]
 fn test_cookie_jar_add_basic() {
@@ -235,7 +235,7 @@ fn test_secure_cookie_filtering() {
 }
 
 /// WHY: Need to remove specific cookies or clear entire jar
-/// WHAT: clear() should remove all cookies, remove() should remove specific cookie
+/// WHAT: `clear()` should remove all cookies, `remove()` should remove specific cookie
 #[test]
 fn test_cookie_jar_clear_and_remove() {
     let mut jar = CookieJar::new();

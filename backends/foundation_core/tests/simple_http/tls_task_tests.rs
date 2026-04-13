@@ -8,17 +8,17 @@
 use foundation_core::valtron::{NoAction, TaskIterator};
 use foundation_core::wire::simple_http::client::{TlsHandshakeState, TlsHandshakeTask};
 
-/// WHY: Verify all TlsHandshakeState variants exist and are constructible
+/// WHY: Verify all `TlsHandshakeState` variants exist and are constructible
 /// WHAT: Ensure enum variants are present (compile-time / runtime sanity)
 #[test]
 fn test_tls_handshake_state_variants() {
-    let _init = TlsHandshakeState::Init;
-    let _handshaking = TlsHandshakeState::Handshaking;
-    let _complete = TlsHandshakeState::Complete;
-    let _error = TlsHandshakeState::Error;
+    let init = TlsHandshakeState::Init;
+    let handshaking = TlsHandshakeState::Handshaking;
+    let complete = TlsHandshakeState::Complete;
+    let error = TlsHandshakeState::Error;
 
     // Basic equality checks to ensure variants behave as expected
-    assert_ne!(_init, _complete);
+    assert_ne!(init, complete);
     assert_eq!(TlsHandshakeState::Init, TlsHandshakeState::Init);
 }
 
@@ -27,7 +27,7 @@ fn test_tls_handshake_state_variants() {
 #[test]
 fn test_tls_handshake_state_debug() {
     let state = TlsHandshakeState::Init;
-    let debug_str = format!("{:?}", state);
+    let debug_str = format!("{state:?}");
     assert!(
         debug_str.contains("Init"),
         "Debug string should include variant name"
@@ -43,8 +43,8 @@ fn test_tls_handshake_task_is_task_iterator() {
     assert_task_iterator::<TlsHandshakeTask>();
 }
 
-/// WHY: Verify associated types of TaskIterator for TlsHandshakeTask are correct
-/// WHAT: Ensure Pending = TlsHandshakeState, Ready = (), Spawner = NoAction
+/// WHY: Verify associated types of `TaskIterator` for `TlsHandshakeTask` are correct
+/// WHAT: Ensure Pending = `TlsHandshakeState`, Ready = (), Spawner = `NoAction`
 #[test]
 fn test_tls_handshake_task_associated_types() {
     // If TlsHandshakeTask does not match the required associated types, this will fail to compile.

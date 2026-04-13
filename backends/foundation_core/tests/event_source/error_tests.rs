@@ -1,6 +1,6 @@
-//! Unit tests for event_source error module.
+//! Unit tests for `event_source` error module.
 //!
-//! Tests EventSourceError Display implementation.
+//! Tests `EventSourceError` Display implementation.
 
 use foundation_core::wire::event_source::EventSourceError;
 

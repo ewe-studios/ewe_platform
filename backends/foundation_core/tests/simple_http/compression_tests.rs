@@ -13,7 +13,7 @@ use std::io;
 use std::io::Read;
 
 /// WHY: Content-Encoding parsing must be case-insensitive per HTTP spec
-/// WHAT: Verify from_header() correctly parses all standard encodings
+/// WHAT: Verify `from_header()` correctly parses all standard encodings
 #[test]
 fn test_content_encoding_from_header_gzip() {
     assert_eq!(ContentEncoding::from_header("gzip"), ContentEncoding::Gzip);
@@ -73,7 +73,7 @@ fn test_content_encoding_from_header_unknown() {
 }
 
 /// WHY: Default config should enable compression with all encodings
-/// WHAT: Verify Default::default() returns compression-enabled config
+/// WHAT: Verify `Default::default()` returns compression-enabled config
 #[test]
 fn test_compression_config_default() {
     let config = CompressionConfig::default();
@@ -86,7 +86,7 @@ fn test_compression_config_default() {
 }
 
 /// WHY: Must be able to disable compression entirely
-/// WHAT: Verify disabled() returns config with compression off
+/// WHAT: Verify `disabled()` returns config with compression off
 #[test]
 fn test_compression_config_disabled() {
     let config = CompressionConfig::disabled();
@@ -96,7 +96,7 @@ fn test_compression_config_disabled() {
 }
 
 /// WHY: Accept-Encoding header must be properly formatted comma-separated list
-/// WHAT: Verify accept_encoding_value() generates correct header value
+/// WHAT: Verify `accept_encoding_value()` generates correct header value
 #[test]
 fn test_compression_config_accept_encoding_value() {
     let config = CompressionConfig::default();
@@ -137,7 +137,7 @@ fn test_compression_config_custom_encodings() {
 }
 
 /// WHY: Identity encoding (no compression) should pass through data unchanged
-/// WHAT: Verify DecompressingReader with Identity works as pass-through
+/// WHAT: Verify `DecompressingReader` with Identity works as pass-through
 #[test]
 fn test_decompressing_reader_identity() {
     let data = b"Hello, World! This is uncompressed data.";
@@ -211,7 +211,7 @@ fn test_decompressing_reader_deflate() {
 }
 
 /// WHY: Brotli offers better compression than gzip
-/// WHAT: Verify DecompressingReader correctly decompresses brotli data
+/// WHAT: Verify `DecompressingReader` correctly decompresses brotli data
 #[test]
 #[cfg(feature = "brotli")]
 fn test_decompressing_reader_brotli() {
@@ -242,7 +242,7 @@ fn test_decompressing_reader_brotli() {
 }
 
 /// WHY: Unknown encodings should be rejected gracefully
-/// WHAT: Verify DecompressingReader returns error for unknown encodings
+/// WHAT: Verify `DecompressingReader` returns error for unknown encodings
 #[test]
 fn test_decompressing_reader_unknown_encoding() {
     let data = b"Some data";

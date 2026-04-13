@@ -1,4 +1,4 @@
-//! Tests for ThreadedIterFuture executor.
+//! Tests for `ThreadedIterFuture` executor.
 
 #![cfg(feature = "multi")]
 
@@ -18,7 +18,7 @@ fn test_threaded_future_basic() {
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            _ => None,
+            ThreadedValue::Value(_) => None,
         })
         .collect();
 
@@ -36,8 +36,8 @@ fn test_threaded_future_future_error() {
 
     let iter = threaded.execute().expect("should submit job");
     let results: Vec<Result<i32, &'static str>> = iter
-        .filter_map(|v| match v {
-            ThreadedValue::Value(result) => Some(result),
+        .map(|v| match v {
+            ThreadedValue::Value(result) => result,
         })
         .collect();
 
@@ -54,8 +54,8 @@ fn test_threaded_future_empty_iterator() {
 
     let iter = threaded.execute().expect("should submit job");
     let results: Vec<Result<i32, ()>> = iter
-        .filter_map(|v| match v {
-            ThreadedValue::Value(result) => Some(result),
+        .map(|v| match v {
+            ThreadedValue::Value(result) => result,
         })
         .collect();
 
@@ -78,7 +78,7 @@ fn test_threaded_future_custom_queue_size() {
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            _ => None,
+            ThreadedValue::Value(_) => None,
         })
         .collect();
 
@@ -108,8 +108,8 @@ fn test_threaded_future_backpressure() {
 
     // Collect results using the iterator directly
     let results: Vec<i32> = iter
-        .filter_map(|v| match v {
-            ThreadedValue::Value(Ok(val)) => Some(val),
+        .map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => val,
             ThreadedValue::Value(Err(e)) => panic!("Unexpected error: {e:?}"),
         })
         .collect();

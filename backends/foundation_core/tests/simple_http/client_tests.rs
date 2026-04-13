@@ -29,7 +29,7 @@ fn test_client_config_fields_public() {
     assert_eq!(config.max_retries, 3);
 }
 
-/// WHAT: Debug test for InvalidLocation error mapping using the public API.
+/// WHAT: Debug test for `InvalidLocation` error mapping using the public API.
 /// WHY: Prints actual error string for invalid URL to adjust assertion accordingly.
 #[test]
 fn debug_invalid_location_error() {
@@ -45,8 +45,8 @@ fn debug_invalid_location_error() {
 
     // Print actual error string for visibility
     if let Err(err) = request_result {
-        let err_str = format!("{:?}", err);
-        println!("Actual error string for invalid location: {}", err_str);
+        let err_str = format!("{err:?}");
+        println!("Actual error string for invalid location: {err_str}");
     } else {
         panic!("Expected error due to invalid location, but got Ok");
     }

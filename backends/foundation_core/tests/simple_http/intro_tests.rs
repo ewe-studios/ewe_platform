@@ -32,11 +32,12 @@ fn test_intro_module_types_are_accessible() {
     // - `SimpleHeader` (header-name enum)
     // - `SimpleHeaders` (header container type)
     // These should all be re-exported by `client` module.
-    let _proto = Proto::HTTP11;
-    let _header_name: SimpleHeader = SimpleHeader::HOST;
-    // Construct an empty headers container using the public type. We don't assume constructors;
-    // prefer the common associated type name so this test remains lightweight.
-    let _headers: SimpleHeaders = SimpleHeaders::default();
+    let proto = Proto::HTTP11;
+    let header_name: SimpleHeader = SimpleHeader::HOST;
+    let headers: SimpleHeaders = SimpleHeaders::default();
+
+    // Verify types are accessible
+    let _ = (proto, header_name, headers);
 }
 
 #[test]
@@ -50,7 +51,8 @@ fn test_response_intro_debug_and_clone_if_available() {
         // this block uses a small number of likely constructors/patterns guarded by `let _ =`.
         //
         // We do not assert runtime behavior here — the purpose is to exercise compile-time usage.
-        let maybe_intro = (|| {
+        
+        (|| {
             // Preferred: a `ResponseIntro::builder()`/`new()` style (common patterns).
             if let Some(ctor) = None::<fn() -> ResponseIntro> {
                 // unreachable branch used only to hint intent; won't run
@@ -66,10 +68,8 @@ fn test_response_intro_debug_and_clone_if_available() {
             // This is only used at compile time to validate the type exists; at runtime it's never reached
             // because one of the above paths should succeed in normal codebases that export sensible defaults.
             // Use MaybeUninit to avoid UB on types without `Default` in tests that compile in CI.
-            use std::mem::MaybeUninit;
-            unsafe { MaybeUninit::<ResponseIntro>::zeroed().assume_init() }
-        })();
-        maybe_intro
+            unsafe { std::mem::MaybeUninit::<ResponseIntro>::zeroed().assume_init() }
+        })()
     };
 
     // Debug formatting (if implemented) should not panic when invoked.
@@ -81,8 +81,8 @@ fn test_response_intro_debug_and_clone_if_available() {
     });
 }
 
-/// WHY: Verify ResponseIntro::from converts tuple correctly
-/// WHAT: Tests that From trait creates ResponseIntro from tuple
+/// WHY: Verify `ResponseIntro::from` converts tuple correctly
+/// WHAT: Tests that From trait creates `ResponseIntro` from tuple
 #[test]
 fn test_response_intro_from_tuple() {
     let intro = ResponseIntro::from((Status::OK, Proto::HTTP11, Some("OK".to_string())));
@@ -91,7 +91,7 @@ fn test_response_intro_from_tuple() {
     assert_eq!(intro.reason, Some("OK".to_string()));
 }
 
-/// WHY: Verify ResponseIntro::from handles None reason
+/// WHY: Verify `ResponseIntro::from` handles None reason
 /// WHAT: Tests that None reason is preserved
 #[test]
 fn test_response_intro_from_tuple_no_reason() {
@@ -101,7 +101,7 @@ fn test_response_intro_from_tuple_no_reason() {
     assert_eq!(intro.reason, None);
 }
 
-/// WHY: Verify ResponseIntro holds all status codes
+/// WHY: Verify `ResponseIntro` holds all status codes
 /// WHAT: Tests various status codes
 #[test]
 fn test_response_intro_various_status() {
@@ -116,7 +116,7 @@ fn test_response_intro_various_status() {
     assert!(matches!(intro2.status, Status::InternalServerError));
 }
 
-/// WHY: Verify ResponseIntro holds all protocols
+/// WHY: Verify `ResponseIntro` holds all protocols
 /// WHAT: Tests various protocol versions
 #[test]
 fn test_response_intro_various_proto() {
@@ -127,7 +127,7 @@ fn test_response_intro_various_proto() {
     assert!(matches!(intro2.proto, Proto::HTTP20));
 }
 
-/// WHY: Verify ResponseIntro fields are public
+/// WHY: Verify `ResponseIntro` fields are public
 /// WHAT: Tests that status, proto, reason can be accessed directly
 #[test]
 fn test_response_intro_public_fields() {

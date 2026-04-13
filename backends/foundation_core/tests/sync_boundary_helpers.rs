@@ -10,14 +10,14 @@
 use foundation_core::valtron::Stream;
 use foundation_core::valtron::{
     collect_one, collect_result, initialize_pool, sync_all, sync_collect_one, sync_one, NoAction,
-    TaskIterator, TaskStatus,
+    TaskStatus,
 };
 
 // ---------------------------------------------------------------------------
 // Test task: produces N pending states then a single Ready value
 // ---------------------------------------------------------------------------
 
-/// WHY: Provides a controllable TaskIterator for testing executor helpers.
+/// WHY: Provides a controllable `TaskIterator` for testing executor helpers.
 ///
 /// WHAT: Yields `pending_count` Pending states, then one Ready with `ready_value`.
 ///
@@ -42,14 +42,17 @@ impl Iterator for CounterTask {
     type Item = TaskStatus<u32, u32, NoAction>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current < self.pending_count {
-            self.current += 1;
-            Some(TaskStatus::Pending(self.current))
-        } else if self.current == self.pending_count {
-            self.current += 1;
-            Some(TaskStatus::Ready(self.ready_value))
-        } else {
-            None
+        use std::cmp::Ordering;
+        match self.current.cmp(&self.pending_count) {
+            Ordering::Less => {
+                self.current += 1;
+                Some(TaskStatus::Pending(self.current))
+            }
+            Ordering::Equal => {
+                self.current += 1;
+                Some(TaskStatus::Ready(self.ready_value))
+            }
+            Ordering::Greater => None,
         }
     }
 }
@@ -92,7 +95,7 @@ impl Iterator for MultiValueTask {
 // collect_result tests
 // ============================================================================
 
-/// collect_result on a stream with a single Next value returns a Vec with one item.
+/// `collect_result` on a stream with a single Next value returns a Vec with one item.
 #[test]
 fn test_collect_result_single_next() {
     let stream: Vec<Stream<u32, ()>> = vec![Stream::Next(42)];
@@ -100,7 +103,7 @@ fn test_collect_result_single_next() {
     assert_eq!(results, vec![42]);
 }
 
-/// collect_result on a stream with multiple Next values collects all of them.
+/// `collect_result` on a stream with multiple Next values collects all of them.
 #[test]
 fn test_collect_result_multiple_next() {
     let stream: Vec<Stream<u32, ()>> = vec![Stream::Next(1), Stream::Next(2), Stream::Next(3)];
@@ -108,7 +111,7 @@ fn test_collect_result_multiple_next() {
     assert_eq!(results, vec![1, 2, 3]);
 }
 
-/// collect_result skips Pending, Delayed, Init, and Ignore items.
+/// `collect_result` skips Pending, Delayed, Init, and Ignore items.
 #[test]
 fn test_collect_result_skips_non_next() {
     let stream: Vec<Stream<u32, String>> = vec![
@@ -124,7 +127,7 @@ fn test_collect_result_skips_non_next() {
     assert_eq!(results, vec![99, 100]);
 }
 
-/// collect_result on an empty stream returns an empty Vec.
+/// `collect_result` on an empty stream returns an empty Vec.
 #[test]
 fn test_collect_result_empty_stream() {
     let stream: Vec<Stream<u32, ()>> = vec![];
@@ -132,7 +135,7 @@ fn test_collect_result_empty_stream() {
     assert!(results.is_empty());
 }
 
-/// collect_result on a stream with no Next values returns an empty Vec.
+/// `collect_result` on a stream with no Next values returns an empty Vec.
 #[test]
 fn test_collect_result_no_next_values() {
     let stream: Vec<Stream<u32, &str>> =
@@ -145,7 +148,7 @@ fn test_collect_result_no_next_values() {
 // sync_one tests
 // ============================================================================
 
-/// sync_one executes a task that produces a single value after pending states.
+/// `sync_one` executes a task that produces a single value after pending states.
 #[test]
 fn test_sync_one_single_value_task() {
     let _guard = initialize_pool(42, None);
@@ -155,7 +158,7 @@ fn test_sync_one_single_value_task() {
     assert_eq!(results, vec![77]);
 }
 
-/// sync_one executes a task that produces a value with no pending states.
+/// `sync_one` executes a task that produces a value with no pending states.
 #[test]
 fn test_sync_one_immediate_ready() {
     let _guard = initialize_pool(42, None);
@@ -165,7 +168,7 @@ fn test_sync_one_immediate_ready() {
     assert_eq!(results, vec![55]);
 }
 
-/// sync_one collects multiple Ready values from a multi-value task.
+/// `sync_one` collects multiple Ready values from a multi-value task.
 #[test]
 fn test_sync_one_multi_value_task() {
     let _guard = initialize_pool(42, None);
@@ -179,7 +182,7 @@ fn test_sync_one_multi_value_task() {
 // sync_all tests
 // ============================================================================
 
-/// sync_all executes multiple tasks in parallel and collects all results.
+/// `sync_all` executes multiple tasks in parallel and collects all results.
 #[test]
 fn test_sync_all_multiple_tasks() {
     let _guard = initialize_pool(42, None);
@@ -196,7 +199,7 @@ fn test_sync_all_multiple_tasks() {
     assert!(results.contains(&30));
 }
 
-/// sync_all with a single task behaves like sync_one.
+/// `sync_all` with a single task behaves like `sync_one`.
 #[test]
 fn test_sync_all_single_task() {
     let _guard = initialize_pool(42, None);
@@ -206,7 +209,7 @@ fn test_sync_all_single_task() {
     assert_eq!(results, vec![42]);
 }
 
-/// sync_all with an empty task list returns an error (no results produced).
+/// `sync_all` with an empty task list returns an error (no results produced).
 #[test]
 fn test_sync_all_empty_tasks() {
     let _guard = initialize_pool(42, None);
@@ -216,7 +219,7 @@ fn test_sync_all_empty_tasks() {
     assert!(result.is_err(), "sync_all with empty tasks should error");
 }
 
-/// sync_all collects results from tasks with varying pending counts.
+/// `sync_all` collects results from tasks with varying pending counts.
 #[test]
 fn test_sync_all_varying_pending_counts() {
     let _guard = initialize_pool(42, None);
@@ -239,7 +242,7 @@ fn test_sync_all_varying_pending_counts() {
 // collect_one tests
 // ============================================================================
 
-/// collect_one on a stream with a single Next value returns Some(value).
+/// `collect_one` on a stream with a single Next value returns Some(value).
 #[test]
 fn test_collect_one_single_next() {
     let stream: Vec<Stream<u32, ()>> = vec![Stream::Next(42)];
@@ -247,7 +250,7 @@ fn test_collect_one_single_next() {
     assert_eq!(result, Some(42));
 }
 
-/// collect_one returns the first Next, ignoring subsequent ones.
+/// `collect_one` returns the first Next, ignoring subsequent ones.
 #[test]
 fn test_collect_one_returns_first_next_only() {
     let stream: Vec<Stream<u32, ()>> = vec![Stream::Next(1), Stream::Next(2), Stream::Next(3)];
@@ -255,7 +258,7 @@ fn test_collect_one_returns_first_next_only() {
     assert_eq!(result, Some(1));
 }
 
-/// collect_one skips Pending/Init/Ignore/Delayed before finding Next.
+/// `collect_one` skips Pending/Init/Ignore/Delayed before finding Next.
 #[test]
 fn test_collect_one_skips_non_next() {
     let stream: Vec<Stream<u32, String>> = vec![
@@ -269,7 +272,7 @@ fn test_collect_one_skips_non_next() {
     assert_eq!(result, Some(99));
 }
 
-/// collect_one on an empty stream returns None.
+/// `collect_one` on an empty stream returns None.
 #[test]
 fn test_collect_one_empty_stream() {
     let stream: Vec<Stream<u32, ()>> = vec![];
@@ -277,7 +280,7 @@ fn test_collect_one_empty_stream() {
     assert_eq!(result, None);
 }
 
-/// collect_one on a stream with no Next values returns None.
+/// `collect_one` on a stream with no Next values returns None.
 #[test]
 fn test_collect_one_no_next_values() {
     let stream: Vec<Stream<u32, &str>> =
@@ -290,7 +293,7 @@ fn test_collect_one_no_next_values() {
 // sync_collect_one tests
 // ============================================================================
 
-/// sync_collect_one executes a task and returns the single result directly.
+/// `sync_collect_one` executes a task and returns the single result directly.
 #[test]
 fn test_sync_collect_one_single_value() {
     let _guard = initialize_pool(42, None);
@@ -300,7 +303,7 @@ fn test_sync_collect_one_single_value() {
     assert_eq!(result, 77);
 }
 
-/// sync_collect_one with immediate ready (no pending states).
+/// `sync_collect_one` with immediate ready (no pending states).
 #[test]
 fn test_sync_collect_one_immediate_ready() {
     let _guard = initialize_pool(42, None);
@@ -310,7 +313,7 @@ fn test_sync_collect_one_immediate_ready() {
     assert_eq!(result, 55);
 }
 
-/// sync_collect_one with a multi-value task returns the first value.
+/// `sync_collect_one` with a multi-value task returns the first value.
 #[test]
 fn test_sync_collect_one_multi_value_returns_first() {
     let _guard = initialize_pool(42, None);

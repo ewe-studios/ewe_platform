@@ -1,11 +1,11 @@
-//! Unit tests for event_source consumer module.
+//! Unit tests for `event_source` consumer module.
 //!
-//! Tests SseStream, ReconnectingSseStream, and SseStreamEvent.
-//! These tests use MockDnsResolver and never make real network connections.
+//! Tests `SseStream`, `ReconnectingSseStream`, and `SseStreamEvent`.
+//! These tests use `MockDnsResolver` and never make real network connections.
 
 use foundation_core::wire::event_source::{Event, SseStreamEvent};
 
-/// WHY: SseStreamEvent should wrap Event variants correctly.
+/// WHY: `SseStreamEvent` should wrap Event variants correctly.
 /// WHAT: Verify From<ParseResult> implementation creates Event variant.
 #[test]
 fn test_sse_stream_event_from_parse_result() {
@@ -31,7 +31,7 @@ fn test_sse_stream_event_from_parse_result() {
     }
 }
 
-/// WHY: SseStreamEvent should have Event variant for actual events.
+/// WHY: `SseStreamEvent` should have Event variant for actual events.
 /// WHAT: Verify Event variant can be constructed directly.
 #[test]
 fn test_sse_stream_event_event_variant() {
@@ -52,7 +52,7 @@ fn test_sse_stream_event_event_variant() {
     }
 }
 
-/// WHY: SseStreamEvent should have Skip variant for pending/delayed states.
+/// WHY: `SseStreamEvent` should have Skip variant for pending/delayed states.
 /// WHAT: Verify Skip variant can be constructed.
 #[test]
 fn test_sse_stream_event_skip_variant() {
@@ -66,7 +66,7 @@ fn test_sse_stream_event_skip_variant() {
     }
 }
 
-/// WHY: SseStreamEvent should derive Debug for logging.
+/// WHY: `SseStreamEvent` should derive Debug for logging.
 /// WHAT: Verify Debug trait is implemented.
 #[test]
 fn test_sse_stream_event_debug() {
@@ -76,21 +76,21 @@ fn test_sse_stream_event_debug() {
         data: "test".to_string(),
         retry: None,
     });
-    let debug_str = format!("{:?}", event);
+    let debug_str = format!("{event:?}");
     assert!(
         debug_str.contains("Event"),
         "Debug output should contain 'Event'"
     );
 
     let skip = SseStreamEvent::Skip;
-    let skip_debug = format!("{:?}", skip);
+    let skip_debug = format!("{skip:?}");
     assert!(
         skip_debug.contains("Skip"),
         "Debug output should contain 'Skip'"
     );
 }
 
-/// WHY: SseStreamEvent should derive Clone.
+/// WHY: `SseStreamEvent` should derive Clone.
 /// WHAT: Verify Clone trait works correctly.
 #[test]
 fn test_sse_stream_event_clone() {
