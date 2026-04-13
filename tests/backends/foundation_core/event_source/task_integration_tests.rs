@@ -107,7 +107,7 @@ fn test_event_source_task_dns_resolves_to_server() {
     let resolver = MockDnsResolver::new().with_response("sse.test", vec![addr]);
 
     let mut task =
-        EventSourceTask::connect(resolver, &format!("http://sse.test:{}/events", addr.port()))
+        EventSourceTask::connect(resolver, format!("http://sse.test:{}/events", addr.port()))
             .unwrap();
 
     // First call: Init → Connecting (pool handles DNS internally)
@@ -258,7 +258,7 @@ fn test_event_source_task_connection_refused() {
 
     let mut task = EventSourceTask::connect(
         resolver,
-        &format!("http://{}:{}/events", addr.ip(), addr.port()),
+        format!("http://{}:{}/events", addr.ip(), addr.port()),
     )
     .unwrap();
 

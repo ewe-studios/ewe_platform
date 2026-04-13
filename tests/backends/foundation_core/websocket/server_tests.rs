@@ -12,7 +12,7 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
-use foundation_core::wire::websocket::{Opcode, WebSocketMessage};
+use foundation_core::wire::websocket::WebSocketMessage;
 use foundation_core::wire::websocket::{WebSocketServerConnection, WebSocketUpgrade};
 use tracing_test::traced_test;
 

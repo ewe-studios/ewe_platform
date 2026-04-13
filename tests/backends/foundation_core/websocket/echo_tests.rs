@@ -13,13 +13,13 @@ use tracing_test::traced_test;
 #[test]
 #[traced_test]
 fn test_text_message_echo() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(4),
         Duration::from_secs(1),
@@ -48,13 +48,13 @@ fn test_text_message_echo() {
 #[test]
 #[traced_test]
 fn test_binary_message_echo() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(3),
         Duration::from_secs(1),
@@ -84,13 +84,13 @@ fn test_binary_message_echo() {
 #[test]
 #[traced_test]
 fn test_multiple_messages_sequence() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(3),
         Duration::from_millis(10),
@@ -132,13 +132,13 @@ fn test_multiple_messages_sequence() {
 #[test]
 #[traced_test]
 fn test_ping_pong_exchange() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(3),
         Duration::from_secs(1),
@@ -168,13 +168,13 @@ fn test_ping_pong_exchange() {
 #[test]
 #[traced_test]
 fn test_client_initiated_close() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(3),
         Duration::from_secs(1),
@@ -202,13 +202,13 @@ fn test_client_initiated_close() {
 #[test]
 #[traced_test]
 fn test_large_message_echo() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(3),
         Duration::from_secs(1),
@@ -239,13 +239,13 @@ fn test_large_message_echo() {
 #[test]
 #[traced_test]
 fn test_very_large_message_echo() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(3),
         Duration::from_secs(1),
@@ -276,13 +276,13 @@ fn test_very_large_message_echo() {
 #[test]
 #[traced_test]
 fn test_utf8_text_messages() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(3),
         Duration::from_secs(1),
@@ -319,13 +319,13 @@ fn test_utf8_text_messages() {
 #[test]
 #[traced_test]
 fn test_message_iterator() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         url,
         Duration::from_secs(2),
         Duration::from_secs(1),

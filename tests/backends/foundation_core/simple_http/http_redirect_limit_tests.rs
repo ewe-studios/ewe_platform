@@ -17,17 +17,15 @@ fn spawn_redirect_server() -> u16 {
     let port = listener.local_addr().unwrap().port();
     // Start a thread for the server
     thread::spawn(move || {
-        for stream in listener.incoming() {
-            if let Ok(mut stream) = stream {
-                let mut buffer = [0u8; 512];
-                let _ = stream.read(&mut buffer);
-                // Always reply with 302 redirect to /redirect (itself)
-                let response = "HTTP/1.1 302 Found\r\n\
-                                Location: /redirect\r\n\
-                                Content-Length: 0\r\n\
-                                Connection: close\r\n\r\n";
-                let _ = stream.write_all(response.as_bytes());
-            }
+        for mut stream in listener.incoming().flatten() {
+            let mut buffer = [0u8; 512];
+            let _ = stream.read(&mut buffer);
+            // Always reply with 302 redirect to /redirect (itself)
+            let response = "HTTP/1.1 302 Found\r\n\
+                            Location: /redirect\r\n\
+                            Content-Length: 0\r\n\
+                            Connection: close\r\n\r\n";
+            let _ = stream.write_all(response.as_bytes());
         }
     });
     port
@@ -37,7 +35,7 @@ fn spawn_redirect_server() -> u16 {
 #[traced_test]
 fn redirect_limit_triggers_too_many_redirects() {
     // Initialize Valtron executor for HTTP client concurrency
-    valtron::initialize_pool(42, None);
+    let _ = valtron::initialize_pool(42, None);
 
     // Spin up local redirect server
     let port = spawn_redirect_server();

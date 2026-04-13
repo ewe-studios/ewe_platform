@@ -14,7 +14,7 @@ use tracing_test::traced_test;
 #[test]
 #[traced_test]
 fn test_client_requests_subprotocol() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     // Start server with subprotocol support
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
@@ -24,7 +24,7 @@ fn test_client_requests_subprotocol() {
 
     // Connect with subprotocol
     let result = WebSocketClient::with_options(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         &url,
         Some("chat".to_string()),
         Vec::new(),
@@ -58,7 +58,7 @@ fn test_client_requests_subprotocol() {
 #[test]
 #[traced_test]
 fn test_client_with_subprotocol_builder() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::with_subprotocols("chat");
     let base_url = server.base_url().split('|').next().unwrap();
@@ -66,7 +66,7 @@ fn test_client_with_subprotocol_builder() {
 
     // Connect using with_options to set subprotocol
     let result = WebSocketClient::with_options(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         &url,
         Some("chat".to_string()),
         Vec::new(),
@@ -81,7 +81,7 @@ fn test_client_with_subprotocol_builder() {
 #[test]
 #[traced_test]
 fn test_server_selects_first_matching_protocol() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     // Server supports "chat" and "superchat"
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
@@ -90,7 +90,7 @@ fn test_server_selects_first_matching_protocol() {
 
     // Client requests "chat" first
     let result = WebSocketClient::with_options(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         &url,
         Some("chat".to_string()),
         Vec::new(),
@@ -108,7 +108,7 @@ fn test_server_selects_first_matching_protocol() {
 #[test]
 #[traced_test]
 fn test_client_requests_multiple_subprotocols() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     // Server supports "superchat" (second in list)
     let server = WebSocketEchoServer::with_subprotocols("superchat,chat");
@@ -117,7 +117,7 @@ fn test_client_requests_multiple_subprotocols() {
 
     // Client requests both, server should pick first match
     let result = WebSocketClient::with_options(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         &url,
         Some("superchat,chat".to_string()),
         Vec::new(),
@@ -153,7 +153,7 @@ fn test_client_requests_multiple_subprotocols() {
 #[test]
 #[traced_test]
 fn test_connection_without_subprotocol() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     // Server supports protocols but client doesn't request any
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
@@ -161,7 +161,7 @@ fn test_connection_without_subprotocol() {
     let url = format!("{}/echo", base_url);
 
     let result = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         &url,
         Duration::from_secs(5),
         Duration::from_secs(1),
@@ -177,7 +177,7 @@ fn test_connection_without_subprotocol() {
 #[test]
 #[traced_test]
 fn test_server_without_subprotocol_support() {
-    foundation_core::valtron::initialize_pool(42, None);
+    let _ = foundation_core::valtron::initialize_pool(42, None);
 
     // Standard echo server without subprotocol configuration
     let server = WebSocketEchoServer::start();
@@ -185,7 +185,7 @@ fn test_server_without_subprotocol_support() {
 
     // Client connects without requesting subprotocol
     let result = WebSocketClient::connect(
-        SystemDnsResolver::default(),
+        SystemDnsResolver,
         &url,
         Duration::from_secs(5),
         Duration::from_secs(1),
