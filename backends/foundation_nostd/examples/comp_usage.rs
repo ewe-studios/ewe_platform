@@ -17,6 +17,8 @@ use foundation_nostd::comp::basic::{Barrier, Mutex, Once, OnceLock, RwLock};
 use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex};
 use std::time::Duration;
 
+static INIT: Once = Once::new();
+
 fn main() {
     println!("=== Foundation NoStd Comp Module Demo ===\n");
 
@@ -70,7 +72,6 @@ fn main() {
 
     // Once example
     println!("5. Once Example:");
-    static INIT: Once = Once::new();
     let mut counter = 0;
     INIT.call_once(|| {
         counter += 1;
