@@ -13,11 +13,10 @@ mod tests {
 
     fn get_token() -> Option<String> {
         let token = std::env::var("HF_TOKEN").ok();
-        if token.is_none() {
-            eprintln!("WARNING: HF_TOKEN not set in environment!");
-        } else {
-            let t = token.as_ref().unwrap();
+        if let Some(t) = &token {
             eprintln!("HF_TOKEN found, length: {}, starts with: {}", t.len(), &t[..10.min(t.len())]);
+        } else {
+            eprintln!("WARNING: HF_TOKEN not set in environment!");
         }
         token
     }
@@ -152,13 +151,12 @@ mod tests {
         match repository::repo_info(&repo, &types::RepoInfoParams::default()) {
             Ok(info) => {
                 tracing::info!("Repository info retrieved successfully");
-                match info {
-                    types::RepoInfo::Model(model) => {
-                        tracing::info!("  Model ID: {}", model.id);
-                        tracing::info!("  Downloads: {:?}", model.downloads);
-                        tracing::info!("  Likes: {:?}", model.likes);
-                    }
-                    _ => tracing::warn!("Unexpected repo type"),
+                if let types::RepoInfo::Model(model) = info {
+                    tracing::info!("  Model ID: {}", model.id);
+                    tracing::info!("  Downloads: {:?}", model.downloads);
+                    tracing::info!("  Likes: {:?}", model.likes);
+                } else {
+                    tracing::warn!("Unexpected repo type");
                 }
             }
             Err(e) => {

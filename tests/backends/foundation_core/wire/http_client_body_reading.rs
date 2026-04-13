@@ -20,7 +20,7 @@ use tracing_test::traced_test;
 #[traced_test]
 fn test_send_returns_complete_response_with_body() {
     // Initialize valtron pool
-    valtron::initialize_pool(0, None);
+    let _ = valtron::initialize_pool(0, None);
 
     // Create test server with larger body
     let test_body = "This is a complete response body from send()";
@@ -52,7 +52,7 @@ fn test_send_returns_complete_response_with_body() {
             assert_eq!(text, test_body);
         }
         SendSafeBody::Bytes(data) => {
-            let body_str = String::from_utf8_lossy(&data);
+            let body_str = String::from_utf8_lossy(data);
             println!("Response body (bytes): {body_str:}");
             assert_eq!(body_str, test_body);
         }

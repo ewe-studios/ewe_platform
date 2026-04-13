@@ -66,7 +66,7 @@ fn test_redirect_chain_limit_enforced() {
 #[test]
 fn test_post_without_redirect() {
     use foundation_core::valtron::single::initialize_pool;
-    let _pool_guard = initialize_pool(42);
+    initialize_pool(42);
 
     let server = TestHttpServer::http_chain(vec![(200, "OK")]);
 

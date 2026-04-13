@@ -804,7 +804,7 @@ mod http_response_compliance {
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -858,7 +858,7 @@ mod http_response_compliance {
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -990,7 +990,7 @@ mod http_response_compliance {
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1021,7 +1021,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1050,7 +1050,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1079,7 +1079,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1107,7 +1107,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1136,7 +1136,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1164,7 +1164,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1193,7 +1193,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1222,7 +1222,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1379,7 +1379,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1432,7 +1432,7 @@ mod http_response_compliance {
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1486,7 +1486,7 @@ mod http_response_compliance {
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1515,7 +1515,7 @@ mod http_response_compliance {
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1569,7 +1569,7 @@ mod http_response_compliance {
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -1623,7 +1623,7 @@ mod http_response_compliance {
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -2098,12 +2098,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2128,12 +2127,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2158,12 +2156,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2188,12 +2185,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2218,12 +2214,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2248,13 +2243,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2279,13 +2273,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -2310,12 +2303,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2340,12 +2332,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2370,12 +2361,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2400,12 +2390,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2430,12 +2419,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2460,12 +2448,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2490,12 +2477,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2520,12 +2506,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2550,12 +2535,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2580,12 +2564,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -2610,12 +2593,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2640,12 +2622,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2670,12 +2651,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2700,12 +2680,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2738,12 +2717,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2776,12 +2754,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2814,12 +2791,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2844,12 +2820,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2875,12 +2850,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -2913,12 +2887,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2943,13 +2916,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -2974,13 +2946,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3005,13 +2976,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3036,13 +3006,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3067,13 +3036,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3098,12 +3066,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3128,12 +3095,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3158,13 +3124,12 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -3189,12 +3154,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3219,12 +3183,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3249,12 +3212,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3279,12 +3241,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3309,12 +3270,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -3339,12 +3299,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             let response_parts = request_one.unwrap();
 
@@ -3382,12 +3341,11 @@ mod http_response_compliance {
 
             let request_one = request_stream
                 .next_response()
-                .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             let response_parts = request_one.unwrap();
 
@@ -4861,7 +4819,7 @@ Hello world!";
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -4924,7 +4882,7 @@ Hello world!";
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5076,7 +5034,7 @@ Hello world!";
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5107,7 +5065,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5136,7 +5094,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5165,7 +5123,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5193,7 +5151,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5221,7 +5179,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5249,7 +5207,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5277,7 +5235,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5306,7 +5264,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5483,7 +5441,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5546,7 +5504,7 @@ Hello world!";
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5610,7 +5568,7 @@ Hello world!";
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5640,7 +5598,7 @@ Hello world!";
 
             dbg!(&request_parts_result);
 
-            assert!(matches!(request_parts_result, Err(_)));
+            assert!(request_parts_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5704,7 +5662,7 @@ Hello world!";
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -5768,7 +5726,7 @@ Hello world!";
             };
 
             let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
-            assert!(matches!(content_result, Err(_)));
+            assert!(content_result.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -6697,7 +6655,7 @@ Hello world!";
 
             dbg!(&request_parts);
 
-            assert!(matches!(request_parts, Err(_)));
+            assert!(request_parts.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -6726,7 +6684,7 @@ Hello world!";
 
             dbg!(&request_parts);
 
-            assert!(matches!(request_parts, Err(_)));
+            assert!(request_parts.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -7020,7 +6978,6 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
@@ -7048,7 +7005,6 @@ Hello world!";
 
             let request_two = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
             assert_eq!(
@@ -7078,7 +7034,6 @@ Hello world!";
 
             let request_three = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
             assert_eq!(
@@ -7137,7 +7092,6 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
@@ -7183,7 +7137,6 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
@@ -7235,7 +7188,6 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
@@ -7287,7 +7239,6 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
@@ -7340,7 +7291,6 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
@@ -7396,10 +7346,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7424,10 +7373,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7452,10 +7400,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7480,10 +7427,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7508,10 +7454,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7537,10 +7482,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7565,10 +7509,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7593,10 +7536,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7621,10 +7563,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7649,10 +7590,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7677,10 +7617,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7713,10 +7652,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7749,10 +7687,9 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7777,12 +7714,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -7807,12 +7743,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -7845,11 +7780,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7874,11 +7808,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -7903,11 +7836,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -7932,11 +7864,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -7961,11 +7892,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -7990,11 +7920,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8019,11 +7948,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8048,11 +7976,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8078,11 +8005,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -8107,11 +8033,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8136,11 +8061,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8165,11 +8089,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8194,11 +8117,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Ok(_)));
+            assert!(request_one.is_ok());
 
             req_thread.join().expect("should be closed");
         }
@@ -8223,11 +8145,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8252,11 +8173,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8281,11 +8201,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8310,11 +8229,10 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Result: {:?}", request_one);
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -8350,11 +8268,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8379,19 +8296,17 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 let request_two = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_two);
-                assert!(matches!(request_two, Ok(_)));
+                assert!(request_two.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8416,11 +8331,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8445,11 +8359,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8474,11 +8387,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8503,11 +8415,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8532,11 +8443,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Err(_)));
+                assert!(request_one.is_err());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8567,11 +8477,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8596,11 +8505,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8625,11 +8533,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8661,11 +8568,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8690,11 +8596,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8719,11 +8624,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8748,11 +8652,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8777,11 +8680,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Err(_)));
+                assert!(request_one.is_err());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8806,11 +8708,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Err(_)));
+                assert!(request_one.is_err());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8841,11 +8742,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8870,11 +8770,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8899,11 +8798,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -8928,11 +8826,10 @@ Hello world!";
 
                 let request_one = request_stream
                     .next_request()
-                    .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
                 tracing::debug!("Result: {:?}", request_one);
-                assert!(matches!(request_one, Ok(_)));
+                assert!(request_one.is_ok());
 
                 req_thread.join().expect("should be closed");
             }
@@ -9145,12 +9042,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9175,12 +9071,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9204,12 +9099,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9262,12 +9156,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9291,12 +9184,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9320,12 +9212,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9380,12 +9271,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9409,12 +9299,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9438,12 +9327,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9528,12 +9416,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9620,12 +9507,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9650,12 +9536,11 @@ Hello world!";
 
             let request_one = request_stream
                 .next_request()
-                .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             tracing::debug!("Finished with {:?}", request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            assert!(request_one.is_err());
 
             req_thread.join().expect("should be closed");
         }
@@ -9822,7 +9707,7 @@ mod hardening_tests {
             if let Some(result) = stream.next() {
                 // Should get an error when trying to parse the oversized chunk
                 assert!(
-                    matches!(result, Err(_)),
+                    result.is_err(),
                     "Should reject chunk >16MB, got: {:?}",
                     result
                 );
