@@ -1,4 +1,4 @@
-//! Unit tests for the JsonHash derive macro.
+//! Unit tests for the `JsonHash` derive macro.
 
 use foundation_macros::JsonHash;
 use serde::Serialize;
