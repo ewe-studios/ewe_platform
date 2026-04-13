@@ -1,11 +1,11 @@
 //! Operation type classification for API endpoints.
 //!
-//! WHY: Provider wrappers need to know which operations modify state (wrap with StoreStateIdentifierTask)
+//! WHY: Provider wrappers need to know which operations modify state (wrap with `StoreStateIdentifierTask`)
 //!      and which are read-only (simple execute without state tracking).
 //!
-//! WHAT: OperationTypeClassifier with keyword-based and method/path-based classification.
+//! WHAT: `OperationTypeClassifier` with keyword-based and method/path-based classification.
 //!
-//! HOW: Analyzes operation_id keywords first, falls back to HTTP method and path patterns.
+//! HOW: Analyzes `operation_id` keywords first, falls back to HTTP method and path patterns.
 
 use crate::endpoint::{EndpointInfo, OperationType, OperationEffect};
 
@@ -14,6 +14,7 @@ pub struct OperationTypeClassifier;
 
 impl OperationTypeClassifier {
     /// Classify an endpoint's operation type.
+    #[must_use] 
     pub fn classify(endpoint: &EndpointInfo) -> OperationType {
         // Check operation_id keywords first
         if let Some(op_type) = Self::classify_by_operation_id(&endpoint.operation_id) {
@@ -24,7 +25,7 @@ impl OperationTypeClassifier {
         Self::classify_by_method_and_path(endpoint)
     }
 
-    /// Classify by operation_id keywords.
+    /// Classify by `operation_id` keywords.
     fn classify_by_operation_id(operation_id: &str) -> Option<OperationType> {
         let lower = operation_id.to_lowercase();
 

@@ -1,11 +1,11 @@
-//! Endpoint information extracted from OpenAPI specs.
+//! Endpoint information extracted from `OpenAPI` specs.
 //!
 //! WHY: We need a unified representation of endpoints with their request/response
 //! types for code generation and runtime introspection.
 //!
-//! WHAT: EndpointInfo struct with all metadata needed for client generation.
+//! WHAT: `EndpointInfo` struct with all metadata needed for client generation.
 //!
-//! HOW: Extracted from OpenAPI paths or GCP Discovery resources.
+//! HOW: Extracted from `OpenAPI` paths or GCP Discovery resources.
 
 use crate::spec::Parameter;
 use std::collections::BTreeMap;
@@ -35,7 +35,8 @@ pub enum OperationEffect {
 }
 
 impl OperationType {
-    /// Check if this operation type should wrap with StoreStateIdentifierTask.
+    /// Check if this operation type should wrap with `StoreStateIdentifierTask`.
+    #[must_use] 
     pub fn requires_state_tracking(&self) -> bool {
         match self {
             OperationType::Create | OperationType::Update | OperationType::Delete => true,
@@ -45,7 +46,7 @@ impl OperationType {
     }
 }
 
-/// A single API endpoint extracted from an OpenAPI spec.
+/// A single API endpoint extracted from an `OpenAPI` spec.
 #[derive(Debug, Clone)]
 pub struct EndpointInfo {
     /// Operation ID (e.g., "getV1ComputeServices")
@@ -54,7 +55,7 @@ pub struct EndpointInfo {
     pub method: String,
     /// Path template (e.g., "/v1/compute-services/{id}")
     pub path: String,
-    /// Path parameter names in order (e.g., ["projectId", "databaseId"])
+    /// Path parameter names in order (e.g. `projectId`, `databaseId`).
     pub path_params: Vec<String>,
     /// Query parameter names
     pub query_params: Vec<String>,
@@ -77,7 +78,7 @@ pub struct EndpointInfo {
 /// Response type discriminator.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ResponseType {
-    /// Generated struct type (e.g., "GetProjectResponse")
+    /// Generated struct type (e.g., "`GetProjectResponse`")
     Generated(String),
     /// Raw JSON value (for composition types like oneOf/anyOf)
     JsonValue,
@@ -87,6 +88,7 @@ pub enum ResponseType {
 
 impl ResponseType {
     /// Get the Rust type string for this response type.
+    #[must_use] 
     pub fn as_rust_type(&self) -> &str {
         match self {
             ResponseType::Generated(name) => name,
@@ -95,7 +97,8 @@ impl ResponseType {
         }
     }
 
-    /// Check if this is a generatable type (not JsonValue or NoContent).
+    /// Check if this is a generatable type (not `JsonValue` or `NoContent`).
+    #[must_use] 
     pub fn is_generated(&self) -> bool {
         matches!(self, ResponseType::Generated(_))
     }
@@ -103,20 +106,23 @@ impl ResponseType {
 
 impl EndpointInfo {
     /// Generate a struct name for the request arguments.
+    #[must_use] 
     pub fn args_struct_name(&self) -> String {
         let pascal_case_op = Self::to_pascal_case(&self.operation_id);
-        format!("{}Args", pascal_case_op)
+        format!("{pascal_case_op}Args")
     }
 
     /// Generate a function name from the operation ID.
+    #[must_use] 
     pub fn fn_name(&self) -> String {
         Self::to_snake_case(&self.operation_id)
     }
 
-    /// Convert identifier to PascalCase.
+    /// Convert identifier to `PascalCase`.
+    #[must_use] 
     pub fn to_pascal_case(s: &str) -> String {
         // First split by delimiters (., -, _, @)
-        let parts: Vec<&str> = s.split(|c| c == '.' || c == '-' || c == '_' || c == '@').collect();
+        let parts: Vec<&str> = s.split(['.', '-', '_', '@']).collect();
 
         let mut result = String::new();
 
@@ -168,7 +174,8 @@ impl EndpointInfo {
         result
     }
 
-    /// Convert identifier to snake_case.
+    /// Convert identifier to `snake_case`.
+    #[must_use] 
     pub fn to_snake_case(s: &str) -> String {
         let mut parts = Vec::new();
         let mut current = String::new();
@@ -184,7 +191,7 @@ impl EndpointInfo {
             } else if c.is_uppercase() {
                 if !current.is_empty() {
                     let next_is_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
-                    if next_is_lower || current.chars().last().map_or(false, |p| p.is_lowercase()) {
+                    if next_is_lower || current.chars().last().is_some_and(char::is_lowercase) {
                         parts.push(current.clone());
                         current.clear();
                     }
@@ -203,14 +210,21 @@ impl EndpointInfo {
     }
 
     /// Extract path parameters from a path template.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal placeholder regex (a fixed literal pattern)
+    /// fails to compile, which is not expected to happen.
+    #[must_use]
     pub fn extract_path_params(path: &str) -> Vec<String> {
-        let re = regex::Regex::new(r"\{([^}]+)\}").unwrap();
+        let re = regex::Regex::new(r"\{([^}]+)\}").expect("hard-coded placeholder regex must compile");
         re.captures_iter(path)
             .map(|cap| cap[1].to_string())
             .collect()
     }
 
-    /// Extract parameters by location from OpenAPI operation parameters.
+    /// Extract parameters by location from `OpenAPI` operation parameters.
+    #[must_use] 
     pub fn extract_parameters(parameters: &[Parameter]) -> (Vec<String>, Vec<String>) {
         let mut path_params = Vec::new();
         let mut query_params = Vec::new();
@@ -242,6 +256,7 @@ impl EndpointInfo {
     }
 
     /// Extract parameters by location from GCP method parameters.
+    #[must_use] 
     pub fn extract_gcp_parameters(
         parameter_order: Option<&[String]>,
         params: &BTreeMap<String, GcpParameter>,
@@ -254,9 +269,10 @@ impl EndpointInfo {
             for param_name in order {
                 if let Some(param) = params.get(param_name) {
                     match param.location.as_deref() {
-                        Some("path") => path_params.push(param_name.clone()),
                         Some("query") => query_params.push(param_name.clone()),
-                        _ => path_params.push(param_name.clone()), // Default to path if in order
+                        // "path" or unspecified locations both default to a path parameter
+                        // when listed in `parameterOrder`.
+                        _ => path_params.push(param_name.clone()),
                     }
                 }
             }
@@ -265,10 +281,11 @@ impl EndpointInfo {
         // Add remaining params as query params
         for (param_name, param) in params {
             if !path_params.contains(param_name) {
-                match param.location.as_deref() {
-                    Some("query") => query_params.push(param_name.clone()),
-                    Some("path") => {} // Already handled
-                    _ => query_params.push(param_name.clone()), // Default to query
+                if param.location.as_deref() == Some("path") {
+                    // Already handled above as a path parameter.
+                } else {
+                    // "query" or unspecified locations default to query parameters.
+                    query_params.push(param_name.clone());
                 }
             }
         }

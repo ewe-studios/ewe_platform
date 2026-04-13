@@ -156,7 +156,12 @@ pub fn normalize_type_name(name: &str) -> String {
 /// Examples:
 /// - `/v1/projects/{projectId}` → `["projectId"]`
 /// - `/v1/folders/{folderId}/files/{fileId}` → `["folderId", "fileId"]`
-#[must_use] 
+///
+/// # Panics
+///
+/// Panics if the regex pattern is invalid (which cannot happen with the current
+/// static pattern `\{([^}]+)\}`).
+#[must_use]
 pub fn extract_path_params(path: &str) -> Vec<String> {
     let re = regex::Regex::new(r"\{([^}]+)\}").unwrap();
     re.captures_iter(path)
@@ -167,7 +172,7 @@ pub fn extract_path_params(path: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
+    
 
     #[test]
     fn extracts_type_name_from_openapi_ref() {

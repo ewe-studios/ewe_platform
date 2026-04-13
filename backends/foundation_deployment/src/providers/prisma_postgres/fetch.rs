@@ -13,6 +13,8 @@
 //! lifts inline schemas into `components/schemas`, replaces them with `$ref`,
 //! and injects the `servers` array.
 
+#![allow(clippy::too_many_lines)]
+
 use crate::error::DeploymentError;
 use crate::providers::openapi::{self, ProcessedSpec};
 use crate::providers::standard::normalize;
@@ -45,8 +47,6 @@ pub fn fetch_prisma_postgres_specs(
     impl StreamIterator<D = Result<PathBuf, DeploymentError>, P = ()> + Send + 'static,
     DeploymentError,
 > {
-    let output_dir = output_dir.clone();
-
     let future = async move {
         info!("Fetching Prisma Postgres OpenAPI spec from {}", SPEC_URL);
 
@@ -128,6 +128,11 @@ pub fn fetch_prisma_postgres_specs(
 /// 2. Walks every path operation and extracts inline request/response schemas
 ///    into `components/schemas` with `$ref` pointers.
 /// 3. Normalizes `OpenAPI` 3.1.0 nullable types (`["string", "null"]` → `type: "string"`).
+///
+/// # Panics
+///
+/// Panics if the spec structure is malformed (e.g., `components` is not an object).
+/// This is expected to never happen for valid Prisma specs.
 pub fn normalize_prisma_spec(spec: &mut Value) {
     normalize::ensure_servers(spec, BASE_URL);
 

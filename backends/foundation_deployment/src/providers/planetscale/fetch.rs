@@ -40,8 +40,6 @@ pub fn fetch_planetscale_specs(
     impl StreamIterator<D = Result<PathBuf, DeploymentError>, P = ()> + Send + 'static,
     DeploymentError,
 > {
-    let output_dir = output_dir.clone();
-
     let future = async move {
         info!("Fetching PlanetScale OpenAPI spec from {}", SPEC_URL);
 
@@ -123,6 +121,11 @@ pub fn fetch_planetscale_specs(
 /// - `host` + `schemes` + `basePath` → `servers`
 /// - `definitions` → `components/schemas`
 /// - `swagger: "2.0"` → `openapi: "3.0.3"`
+///
+/// # Panics
+///
+/// Panics if the spec structure is malformed (e.g., `components` is not an object).
+/// This is expected to never happen for valid `PlanetScale` specs.
 pub fn normalize_planetscale_spec(spec: &mut Value) {
     let Some(obj) = spec.as_object_mut() else { return };
 

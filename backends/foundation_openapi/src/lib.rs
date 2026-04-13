@@ -1,10 +1,10 @@
-//! Foundation OpenAPI - OpenAPI spec processing and normalization.
+//! Foundation `OpenAPI` - `OpenAPI` spec processing and normalization.
 //!
-//! WHY: Both code generation and runtime need to process OpenAPI specs to extract
+//! WHY: Both code generation and runtime need to process `OpenAPI` specs to extract
 //! endpoint information, request/response types, and error schemas. Centralizing
 //! this logic avoids duplication and ensures consistency.
 //!
-//! WHAT: Provides utilities to parse OpenAPI specs, extract endpoint metadata,
+//! WHAT: Provides utilities to parse `OpenAPI` specs, extract endpoint metadata,
 //! resolve $ref references, handle composition types (allOf/oneOf/anyOf), and
 //! produce normalized JSON representations for quick lookup.
 //!

@@ -4,9 +4,9 @@
 //!      what APIs exist, their endpoints, and what functions to generate.
 //!      This provides a single source of truth instead of regex parsing.
 //!
-//! WHAT: ApiCatalog struct with per-API endpoint listings and function names.
+//! WHAT: `ApiCatalog` struct with per-API endpoint listings and function names.
 //!
-//! HOW: Uses foundation_openapi spec processing to extract structured data
+//! HOW: Uses `foundation_openapi` spec processing to extract structured data
 //!      about providers, APIs, endpoints, and their builder/task functions.
 
 use crate::{process_spec, EndpointInfo, OperationType};
@@ -34,59 +34,75 @@ pub struct ApiInfo {
 
 impl ApiInfo {
     /// Get the builder function name for an endpoint.
+    #[must_use] 
     pub fn builder_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id) + "_builder"
     }
 
     /// Get the task function name for an endpoint.
+    #[must_use] 
     pub fn task_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id) + "_task"
     }
 
     /// Get the execute function name for an endpoint.
+    #[must_use] 
     pub fn execute_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id) + "_execute"
     }
 
     /// Get the convenience function name for an endpoint.
+    #[must_use] 
     pub fn convenience_fn_name(&self, endpoint: &EndpointInfo) -> String {
         to_snake_case(&endpoint.operation_id)
     }
 
     /// Get the args struct name for an endpoint.
+    #[must_use] 
     pub fn args_struct_name(&self, endpoint: &EndpointInfo) -> String {
         to_pascal_case(&endpoint.operation_id) + "Args"
     }
 }
 
-/// Builder for creating an ApiCatalog from various sources.
+/// Builder for creating an `ApiCatalog` from various sources.
 pub struct ApiCatalogBuilder {
     provider: String,
 }
 
 impl ApiCatalogBuilder {
+    #[must_use] 
     pub fn new(provider: &str) -> Self {
         Self {
             provider: provider.to_string(),
         }
     }
 
-    /// Build catalog from a single OpenAPI spec file.
+    /// Build catalog from a single `OpenAPI` spec file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the file cannot be read from `spec_path`
+    /// or if its contents cannot be parsed as an `OpenAPI` spec.
     pub fn from_spec_file(&self, spec_path: &Path) -> Result<ApiCatalog, String> {
         let content = std::fs::read_to_string(spec_path)
-            .map_err(|e| format!("Failed to read spec: {}", e))?;
+            .map_err(|e| format!("Failed to read spec: {e}"))?;
 
         self.from_spec_content(&content)
     }
 
     /// Build catalog from spec content string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if `content` cannot be parsed as an `OpenAPI`
+    /// spec, including when wrapped in a known envelope object.
     pub fn from_spec_content(&self, content: &str) -> Result<ApiCatalog, String> {
         // Try direct processing first
         let processor = process_spec(content)
             .or_else(|_| {
                 // Try unwrapping from nested structure (e.g., {"openapi.json": {...}})
                 let wrapped: serde_json::Value = serde_json::from_str(content)
-                    .map_err(|e| format!("JSON parse error: {}", e))?;
+                    .map_err(|e| format!("JSON parse error: {e}"))?;
                 if let Some(obj) = wrapped.as_object() {
                     for key in ["openapi.json", "openapi", "spec"] {
                         if let Some(inner) = obj.get(key) {
@@ -98,7 +114,7 @@ impl ApiCatalogBuilder {
                 }
                 Err("Failed to parse spec".to_string())
             })
-            .map_err(|e| format!("Failed to process spec: {}", e))?;
+            .map_err(|e| format!("Failed to process spec: {e}"))?;
 
         let endpoints = processor.endpoints();
         let base_url = processor.base_url();
@@ -115,7 +131,12 @@ impl ApiCatalogBuilder {
         })
     }
 
-    /// Build catalog from multiple OpenAPI spec files (for multi-API providers like GCP).
+    /// Build catalog from multiple `OpenAPI` spec files (for multi-API providers like GCP).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if any of the provided spec contents fail
+    /// to parse. The error includes the offending API name.
     pub fn from_spec_files(
         &self,
         specs: Vec<(String, String)>, // (api_name, spec_content)
@@ -124,7 +145,7 @@ impl ApiCatalogBuilder {
 
         for (api_name, content) in specs {
             let processor = process_spec(&content)
-                .map_err(|e| format!("Failed to process spec for {}: {}", api_name, e))?;
+                .map_err(|e| format!("Failed to process spec for {api_name}: {e}"))?;
 
             let endpoints = processor.endpoints();
             let base_url = processor.base_url();
@@ -145,8 +166,14 @@ impl ApiCatalogBuilder {
         })
     }
 
-    /// Build catalog from a directory of API specs (provider/api_name/openapi.json).
+    /// Build catalog from a directory of API specs (`provider/api_name/openapi.json`).
     /// Skips specs that fail to parse, logging a warning.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if reading the directory or its single
+    /// top-level `openapi.json` fails. Per-API parse failures are logged
+    /// and skipped rather than propagated.
     pub fn from_provider_dir(&self, provider_dir: &Path) -> Result<ApiCatalog, String> {
         let mut apis = Vec::new();
 
@@ -175,7 +202,7 @@ impl ApiCatalogBuilder {
                         let processor = match process_spec(&content)
                             .or_else(|_| {
                                 let wrapped: serde_json::Value = serde_json::from_str(&content)
-                                    .map_err(|e| format!("JSON parse error: {}", e))?;
+                                    .map_err(|e| format!("JSON parse error: {e}"))?;
                                 if let Some(obj) = wrapped.as_object() {
                                     for key in ["openapi.json", "openapi", "spec"] {
                                         if let Some(inner) = obj.get(key) {
@@ -189,7 +216,7 @@ impl ApiCatalogBuilder {
                             }) {
                             Ok(p) => p,
                             Err(e) => {
-                                eprintln!("    Warning: Failed to process {}: {}", api_name, e);
+                                eprintln!("    Warning: Failed to process {api_name}: {e}");
                                 continue;
                             }
                         };
@@ -221,11 +248,13 @@ impl ApiCatalogBuilder {
 
 impl ApiCatalog {
     /// Create a catalog builder for the given provider.
+    #[must_use] 
     pub fn builder(provider: &str) -> ApiCatalogBuilder {
         ApiCatalogBuilder::new(provider)
     }
 
     /// Get total number of endpoints across all APIs.
+    #[must_use] 
     pub fn total_endpoints(&self) -> usize {
         self.apis.iter().map(|api| api.endpoints.len()).sum()
     }
@@ -236,11 +265,13 @@ impl ApiCatalog {
     }
 
     /// Get a specific API by name.
+    #[must_use] 
     pub fn get_api(&self, name: &str) -> Option<&ApiInfo> {
         self.apis.iter().find(|api| api.name == name)
     }
 
     /// Get mutating endpoints (operations that require state tracking) for an API.
+    #[must_use] 
     pub fn mutating_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -253,6 +284,7 @@ impl ApiCatalog {
     }
 
     /// Get read-only endpoints (operations that don't modify state) for an API.
+    #[must_use] 
     pub fn read_only_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -265,6 +297,7 @@ impl ApiCatalog {
     }
 
     /// Get create endpoints for an API.
+    #[must_use] 
     pub fn create_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -277,6 +310,7 @@ impl ApiCatalog {
     }
 
     /// Get read endpoints for an API.
+    #[must_use] 
     pub fn read_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -289,6 +323,7 @@ impl ApiCatalog {
     }
 
     /// Get update endpoints for an API.
+    #[must_use] 
     pub fn update_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -301,6 +336,7 @@ impl ApiCatalog {
     }
 
     /// Get delete endpoints for an API.
+    #[must_use] 
     pub fn delete_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -313,6 +349,7 @@ impl ApiCatalog {
     }
 
     /// Get action endpoints for an API.
+    #[must_use] 
     pub fn action_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
@@ -330,6 +367,12 @@ impl ApiCatalog {
 /// A provider is a directory that either:
 /// - Contains an openapi.json file directly, OR
 /// - Contains subdirectories each with an openapi.json file
+///
+/// # Errors
+///
+/// Returns an [`std::io::Error`] if `artefacts_dir` exists but cannot be
+/// read (e.g. permission denied). A non-existent path is treated as an
+/// empty result and is not an error.
 pub fn discover_providers(artefacts_dir: &Path) -> Result<Vec<String>, std::io::Error> {
     let mut providers = Vec::new();
 
@@ -344,7 +387,7 @@ pub fn discover_providers(artefacts_dir: &Path) -> Result<Vec<String>, std::io::
             let name = path
                 .file_name()
                 .and_then(|n| n.to_str())
-                .map(|s| s.to_string());
+                .map(std::string::ToString::to_string);
             if let Some(name) = name {
                 // Check if this is a provider (has openapi.json or sub-APIs)
                 if path.join("openapi.json").exists() || has_sub_apis(&path) {
@@ -359,6 +402,7 @@ pub fn discover_providers(artefacts_dir: &Path) -> Result<Vec<String>, std::io::
 }
 
 /// Check if a provider directory has sub-APIs.
+#[must_use] 
 pub fn has_sub_apis(provider_dir: &Path) -> bool {
     if let Ok(entries) = std::fs::read_dir(provider_dir) {
         for entry in entries.flatten() {
@@ -370,10 +414,11 @@ pub fn has_sub_apis(provider_dir: &Path) -> bool {
     false
 }
 
-/// Convert a string to PascalCase.
+/// Convert a string to `PascalCase`.
+#[must_use] 
 pub fn to_pascal_case(s: &str) -> String {
     // First split by delimiters (., -, _, @)
-    let parts: Vec<&str> = s.split(|c| c == '.' || c == '-' || c == '_' || c == '@').collect();
+    let parts: Vec<&str> = s.split(['.', '-', '_', '@']).collect();
 
     let mut result = String::new();
 
@@ -389,14 +434,12 @@ pub fn to_pascal_case(s: &str) -> String {
             let is_upper = c.is_ascii_uppercase();
             let is_lower = c.is_ascii_lowercase();
 
-            // Split on digit -> letter or letter -> digit transitions
-            if is_digit && !prev_was_digit && !current.is_empty() {
-                sub_parts.push(current.clone());
-                current.clear();
-            } else if is_lower && prev_was_digit && !current.is_empty() {
-                sub_parts.push(current.clone());
-                current.clear();
-            } else if is_upper && prev_was_lower && !current.is_empty() {
+            // Split on digit <-> letter and lower -> upper transitions.
+            let boundary = !current.is_empty()
+                && ((is_digit && !prev_was_digit)
+                    || (is_lower && prev_was_digit)
+                    || (is_upper && prev_was_lower));
+            if boundary {
                 sub_parts.push(current.clone());
                 current.clear();
             }
@@ -424,7 +467,8 @@ pub fn to_pascal_case(s: &str) -> String {
     result
 }
 
-/// Convert PascalCase or camelCase to snake_case.
+/// Convert `PascalCase` or camelCase to `snake_case`.
+#[must_use] 
 pub fn to_snake_case(s: &str) -> String {
     let pascal = to_pascal_case(s);
 
@@ -443,7 +487,8 @@ pub fn to_snake_case(s: &str) -> String {
     result
 }
 
-/// Convert snake_case function name to sentence case for docs.
+/// Convert `snake_case` function name to sentence case for docs.
+#[must_use] 
 pub fn to_sentence_case(s: &str) -> String {
     let mut result = s.replace('_', " ");
     if let Some(first) = result.chars().next() {
