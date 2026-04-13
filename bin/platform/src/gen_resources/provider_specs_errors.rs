@@ -19,6 +19,7 @@ use derive_more::Display;
 /// All errors MUST be defined in this file (`errors.rs`). Do NOT define
 /// error types in provider-specific modules or other files.
 #[derive(Debug, Display)]
+#[allow(dead_code)] // Some variants reserved for future fetching implementation
 pub enum SpecFetchError {
     /// HTTP transport error - wraps `HttpClientError` automatically.
     #[display("HTTP error for {provider}: {source}")]
@@ -93,6 +94,7 @@ impl From<std::io::Error> for SpecFetchError {
 
 impl SpecFetchError {
     /// Create a generic error from a string.
+    #[allow(dead_code)] // Reserved for future spec fetching implementation
     pub fn generic(msg: impl Into<String>) -> Self {
         Self::Generic(msg.into())
     }
@@ -113,8 +115,7 @@ impl Clone for SpecFetchError {
             },
             SpecFetchError::Json { provider, source } => SpecFetchError::Json {
                 provider: provider.clone(),
-                source: serde_json::Error::io(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                source: serde_json::Error::io(std::io::Error::other(
                     source.to_string(),
                 )),
             },

@@ -1045,7 +1045,7 @@ fn format_u32(v: u32) -> String {
 
 /// Formats an f64 literal for Rust source output.
 /// Ensures a decimal point is present and adds underscore separators
-/// to the integer part for values >= `10_000`.
+/// to both integer and fractional parts for readability.
 fn format_f64(v: f64) -> String {
     if v == 0.0 {
         return "0.0".to_string();
@@ -1053,18 +1053,28 @@ fn format_f64(v: f64) -> String {
     let s = format!("{v}");
     let s = if s.contains('.') { s } else { format!("{s}.0") };
 
-    // Add underscore separators to the integer part if >= 10_000
     if let Some(dot_pos) = s.find('.') {
         let int_part = &s[..dot_pos];
-        if let Ok(int_val) = int_part.parse::<i64>() {
+        let frac_part = &s[dot_pos + 1..];
+
+        // Format integer part with separators if >= 10_000
+        let formatted_int = if let Ok(int_val) = int_part.parse::<i64>() {
             if int_val.unsigned_abs() >= 10_000 {
-                let frac_part = &s[dot_pos..];
-                let formatted_int = format_int_with_separators(int_part);
-                return format!("{formatted_int}{frac_part}");
+                format_int_with_separators(int_part)
+            } else {
+                int_part.to_string()
             }
-        }
+        } else {
+            int_part.to_string()
+        };
+
+        // Format fractional part with separators every 3 digits from the left
+        let formatted_frac = format_frac_with_separators(frac_part);
+
+        format!("{formatted_int}.{formatted_frac}")
+    } else {
+        s
     }
-    s
 }
 
 /// Inserts underscore separators every 3 digits from the right in an
@@ -1080,6 +1090,20 @@ fn format_int_with_separators(s: &str) -> String {
     result.push_str(sign);
     for (i, ch) in bytes.iter().enumerate() {
         if i > 0 && (bytes.len() - i).is_multiple_of(3) {
+            result.push('_');
+        }
+        result.push(*ch as char);
+    }
+    result
+}
+
+/// Inserts underscore separators every 3 digits from the left in a
+/// fractional part string (no sign handling needed).
+fn format_frac_with_separators(s: &str) -> String {
+    let bytes: Vec<u8> = s.bytes().collect();
+    let mut result = String::with_capacity(s.len() + s.len() / 3);
+    for (i, ch) in bytes.iter().enumerate() {
+        if i > 0 && i.is_multiple_of(3) {
             result.push('_');
         }
         result.push(*ch as char);
@@ -1436,6 +1460,7 @@ fn parse_ai_gateway_response(body: &str, _source: &'static str) -> Vec<ModelEntr
     models
 }
 
+#[allow(dead_code)] // Reserved for future CLI integration
 pub fn register(command: clap::Command) -> clap::Command {
     command.subcommand(
         clap::Command::new("gen_model_descriptors")

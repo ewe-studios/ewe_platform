@@ -26,6 +26,7 @@ use std::process::Command;
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, derive_more::Display)]
+#[allow(dead_code)] // Some variants used for future extensions
 pub enum GenClientError {
     #[display("failed to read {path}: {source}")]
     ReadFile {
@@ -112,6 +113,7 @@ struct ApiEndpoint {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)] // Fields reserved for future query parameter support
 struct ParameterInfo {
     name: String,           // Sanitized Rust-safe name
     original_name: String,  // Original API parameter name for query strings
@@ -206,7 +208,7 @@ impl ClientGenerator {
                     let name = entry.file_name().to_string_lossy().to_string();
                     // Check if this is a provider (has openapi.json or sub-APIs)
                     if entry.path().join("openapi.json").exists()
-                        || self.discover_sub_apis(&entry.path()).is_empty() == false
+                        || !self.discover_sub_apis(&entry.path()).is_empty()
                     {
                         providers.push(name);
                     }
@@ -309,7 +311,7 @@ impl ClientGenerator {
             .or_else(|_| {
                 // Try unwrapping from nested structure (e.g., {"openapi.json": {...}})
                 let wrapped: serde_json::Value = serde_json::from_str(&content)
-                    .map_err(|e| foundation_openapi::ProcessError::Json(e))?;
+                    .map_err(foundation_openapi::ProcessError::Json)?;
                 if let Some(obj) = wrapped.as_object() {
                     for key in ["openapi.json", "openapi", "spec"] {
                         if let Some(inner) = obj.get(key) {
@@ -346,32 +348,14 @@ impl ClientGenerator {
                     operation_id: Some(ep.operation_id),
                     summary: ep.summary,
                     path_params: ep.path_params.iter().map(|p| ParameterInfo {
-                        name: p.replace('-', "_")
-                            .replace('.', "_")
-                            .replace('~', "_")
-                            .replace('/', "_")
-                            .replace('@', "_")
-                            .replace(':', "_")
-                            .replace('<', "_")
-                            .replace('>', "_")
-                            .replace('[', "_")
-                            .replace(']', "_"),
+                        name: p.replace(['-', '.', '~', '/', '@', ':', '<', '>', '[', ']'], "_"),
                         original_name: p.clone(),
                         rust_type: "String".to_string(),
                         required: true,
                         description: None,
                     }).collect(),
                     query_params: ep.query_params.iter().map(|p| ParameterInfo {
-                        name: p.replace('-', "_")
-                            .replace('.', "_")
-                            .replace('~', "_")
-                            .replace('/', "_")
-                            .replace('@', "_")
-                            .replace(':', "_")
-                            .replace('<', "_")
-                            .replace('>', "_")
-                            .replace('[', "_")
-                            .replace(']', "_"),
+                        name: p.replace(['-', '.', '~', '/', '@', ':', '<', '>', '[', ']'], "_"),
                         original_name: p.clone(),
                         rust_type: "Option<String>".to_string(),
                         required: false,
@@ -610,11 +594,8 @@ impl ClientGenerator {
                 } else {
                     writeln!(out, "    if let Some(val) = {}.as_ref() {{", escaped_name)?;
                     // For String types, use val directly; for others, use format
-                    if rust_type == "String" {
-                        writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
-                    } else {
-                        writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
-                    }
+                    // Note: Both branches are identical currently, keeping for future extension
+                    writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
                     writeln!(out, "    }}")?;
                 }
             }
@@ -1083,20 +1064,7 @@ impl ClientGenerator {
         if let Some(ref op_id) = endpoint.operation_id {
             // Replace special characters with underscores before converting to snake case
             let clean_id = op_id
-                .replace('-', "_")
-                .replace('.', "_")
-                .replace('@', "_")
-                .replace(':', "_")
-                .replace('<', "_")
-                .replace('>', "_")
-                .replace('[', "_")
-                .replace(']', "_")
-                .replace('(', "_")
-                .replace(')', "_")
-                .replace('\'', "_")  // Replace apostrophes
-                .replace(',', "_")   // Replace commas
-                .replace('~', "_")   // Replace tildes
-                .replace('/', "_");  // Replace slashes
+                .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_");  // Replace slashes
             return self.to_snake_case(&clean_id);
         }
 
@@ -1105,42 +1073,17 @@ impl ClientGenerator {
             .path
             .trim_matches('/')
             .replace('/', "_")
-            .replace('{', "")
-            .replace('}', "")
-            .replace('-', "_")  // Replace dashes in path
-            .replace('.', "_") // Replace dots in path
-            .replace('@', "_") // Replace @ in path
-            .replace(':', "_") // Replace : in path
-            .replace('<', "_") // Replace < in path
-            .replace('>', "_") // Replace > in path
-            .replace('[', "_") // Replace [ in path
-            .replace(']', "_") // Replace ] in path
-            .replace('(', "") // Remove ( from path
-            .replace(')', "") // Remove ) from path
-            .replace('\'', "") // Remove apostrophes from path
-            .replace(',', "_") // Replace commas in path
-            .replace('~', "_") // Replace tildes in path
-            .replace('/', "_"); // Replace slashes in path
+            .replace(['{', '}'], "")
+            .replace(['-', '.', '@', ':', '<', '>', '[', ']'], "_") // Replace ] in path
+            .replace(['(', ')', '\''], "") // Remove apostrophes from path
+            .replace([',', '~', '/'], "_"); // Replace slashes in path
         format!("{}_{}", endpoint.method.to_lowercase(), path_part)
     }
 
     fn to_snake_case(&self, s: &str) -> String {
         // First replace special characters with underscores
         let normalized = s
-            .replace('-', "_")
-            .replace('.', "_")
-            .replace('@', "_")
-            .replace(':', "_")
-            .replace('<', "_")
-            .replace('>', "_")
-            .replace('[', "_")
-            .replace(']', "_")
-            .replace('(', "_")
-            .replace(')', "_")
-            .replace('\'', "_")  // Replace apostrophes
-            .replace(',', "_")   // Replace commas
-            .replace('~', "_")   // Replace tildes
-            .replace('/', "_");  // Replace slashes
+            .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_");  // Replace slashes
 
         let mut result = String::new();
         let mut prev_was_upper = false;
@@ -1183,20 +1126,7 @@ impl ClientGenerator {
     fn to_pascal_case(&self, s: &str) -> String {
         // First normalize special characters to underscores
         let normalized = s
-            .replace('-', "_")
-            .replace('.', "_")
-            .replace('@', "_")
-            .replace(':', "_")
-            .replace('<', "_")
-            .replace('>', "_")
-            .replace('[', "_")
-            .replace(']', "_")
-            .replace('(', "_")
-            .replace(')', "_")
-            .replace('\'', "_")  // Replace apostrophes
-            .replace(',', "_")   // Replace commas
-            .replace('~', "_")   // Replace tildes
-            .replace('/', "_");  // Replace slashes
+            .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_");  // Replace slashes
 
         normalized.split('_')
             .filter(|part| !part.is_empty())
@@ -1312,7 +1242,7 @@ impl ClientGenerator {
         if let Ok(entries) = std::fs::read_dir(dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
-                if path.extension().map_or(false, |ext| ext == "rs") {
+                if path.extension().is_some_and(|ext| ext == "rs") {
                     rust_files.push(path);
                 }
             }
@@ -1328,8 +1258,7 @@ impl ClientGenerator {
             .output()
             .map_err(|e| GenClientError::WriteFile {
                 path: format!("rustfmt {}", dir.display()),
-                source: std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                source: std::io::Error::other(
                     format!("rustfmt failed: {}", e),
                 ),
             })?;

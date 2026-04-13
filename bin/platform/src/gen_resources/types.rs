@@ -42,6 +42,7 @@ struct CodegenEndpoint {
 ///
 /// HOW: Uses `derive_more` for Display, manual From implementations to avoid conflicts.
 #[derive(Debug, derive_more::Display)]
+#[allow(dead_code)] // Some variants reserved for future resource generation
 pub enum GenResourceError {
     /// Could not read input spec file.
     #[display("failed to read {path}: {source}")]
@@ -95,7 +96,7 @@ impl From<std::fmt::Error> for GenResourceError {
     fn from(e: std::fmt::Error) -> Self {
         GenResourceError::WriteFile {
             path: String::new(),
-            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+            source: std::io::Error::other(e),
         }
     }
 }
@@ -145,7 +146,7 @@ pub struct FieldDef {
 fn write_fmt_error(_e: std::fmt::Error) -> GenResourceError {
     GenResourceError::WriteFile {
         path: "generated mod.rs".to_string(),
-        source: std::io::Error::new(std::io::ErrorKind::Other, "fmt error"),
+        source: std::io::Error::other("fmt error"),
     }
 }
 
@@ -204,11 +205,13 @@ fn sanitize_doc_comment(description: &str, first_line_only: bool) -> String {
 /// WHAT: Reads specs, extracts schemas, generates Rust code.
 ///
 /// HOW: Multi-pass approach: parse, normalize, generate.
+#[allow(dead_code)] // Some methods reserved for future resource generation
 pub struct ResourceGenerator {
     artefacts_dir: PathBuf,
     output_dir: PathBuf,
 }
 
+#[allow(dead_code)] // Some methods reserved for future resource generation
 impl ResourceGenerator {
     pub fn new(artefacts_dir: PathBuf, output_dir: PathBuf) -> Self {
         Self {
@@ -570,7 +573,7 @@ impl ResourceGenerator {
             return None;
         }
 
-        let has_own_properties = schema.properties.as_ref().map_or(false, |p| !p.is_empty());
+        let has_own_properties = schema.properties.as_ref().is_some_and(|p| !p.is_empty());
         let is_ref_only = schema.ref_path.is_some() && !has_own_properties;
         let has_composition = schema.one_of.is_some() || schema.any_of.is_some();
         let has_allof = schema.all_of.is_some();
@@ -692,7 +695,7 @@ impl ResourceGenerator {
                 }
             }
             Some("object") => "serde_json::Value".to_string(),
-            Some(null) if null == "null" => "::core::option::Option<serde_json::Value>".to_string(),
+            Some("null") => "::core::option::Option<serde_json::Value>".to_string(),
             None => {
                 // Could be a reference or complex type
                 if let Some(ref_path) = &schema.ref_path {
@@ -705,7 +708,8 @@ impl ResourceGenerator {
                         }
                     }
                     "serde_json::Value".to_string()
-                } else if schema.any_of.is_some() || schema.one_of.is_some() {
+                } else if schema.any_of.is_some() || schema.one_of.is_some() || schema.all_of.is_none() {
+                    // anyOf, oneOf, or unknown: use Value
                     "serde_json::Value".to_string()
                 } else {
                     "serde_json::Value".to_string()
@@ -768,7 +772,7 @@ impl ResourceGenerator {
                 if !current.is_empty() {
                     // Check if this is an acronym (e.g., "URL" in "getURLPath")
                     let next_is_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
-                    if next_is_lower || current.chars().last().map_or(false, |p| p.is_lowercase()) {
+                    if next_is_lower || current.chars().last().is_some_and(|p| p.is_lowercase()) {
                         parts.push(current.clone());
                         current.clear();
                     }
@@ -789,7 +793,7 @@ impl ResourceGenerator {
 
         // Prepend "field_" if starts with digit (more semantic than just "_")
         // e.g., "1" -> "field_1", "24" -> "field_24"
-        if escaped.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+        if escaped.chars().next().is_some_and(|c| c.is_ascii_digit()) {
             format!("field_{}", escaped)
         } else {
             escaped
@@ -890,7 +894,7 @@ impl ResourceGenerator {
         )
         .map_err(|e| GenResourceError::WriteFile {
             path: format!("generated code for {provider}"),
-            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+            source: std::io::Error::other(e),
         })?;
 
         // Generate structs for each resource
@@ -1025,13 +1029,13 @@ impl ResourceGenerator {
                     if has_written_doc {
                         writeln!(out, "///").map_err(|e| GenResourceError::WriteFile {
                             path: format!("struct {}", resource.name),
-                            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                            source: std::io::Error::other(e),
                         })?;
                     }
                 } else {
                     writeln!(out, "/// {line}").map_err(|e| GenResourceError::WriteFile {
                         path: format!("struct {}", resource.name),
-                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                        source: std::io::Error::other(e),
                     })?;
                     has_written_doc = true;
                 }
@@ -1040,21 +1044,21 @@ impl ResourceGenerator {
             writeln!(out, "/// {} resource type.", resource.name).map_err(|e| {
                 GenResourceError::WriteFile {
                     path: format!("struct {}", resource.name),
-                    source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                    source: std::io::Error::other(e),
                 }
             })?;
         }
         writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]").map_err(|e| {
             GenResourceError::WriteFile {
                 path: format!("struct {}", resource.name),
-                source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                source: std::io::Error::other(e),
             }
         })?;
         // Deny unknown fields is too strict for evolving APIs; just generate the struct
         writeln!(out, "pub struct {} {{", resource.name).map_err(|e| {
             GenResourceError::WriteFile {
                 path: format!("struct {}", resource.name),
-                source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                source: std::io::Error::other(e),
             }
         })?;
 
@@ -1064,7 +1068,7 @@ impl ResourceGenerator {
             writeln!(out, "    pub value: serde_json::Value,").map_err(|e| {
                 GenResourceError::WriteFile {
                     path: format!("struct {}", resource.name),
-                    source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                    source: std::io::Error::other(e),
                 }
             })?;
         } else {
@@ -1075,7 +1079,7 @@ impl ResourceGenerator {
                     let sanitized = sanitize_doc_comment(desc, true);
                     writeln!(out, "    /// {sanitized}").map_err(|e| GenResourceError::WriteFile {
                         path: format!("field {}.{}", resource.name, field.name),
-                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                        source: std::io::Error::other(e),
                     })?;
                 }
                 // Add serde attributes
@@ -1088,14 +1092,14 @@ impl ResourceGenerator {
                     )
                     .map_err(|e| GenResourceError::WriteFile {
                         path: format!("field {}.{}", resource.name, field.name),
-                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                        source: std::io::Error::other(e),
                     })?;
                 } else if field.name != field.original_name {
                     // Rename only for required renamed fields
                     writeln!(out, "    #[serde(rename = \"{}\")]", field.original_name).map_err(
                         |e| GenResourceError::WriteFile {
                             path: format!("field {}.{}", resource.name, field.name),
-                            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                            source: std::io::Error::other(e),
                         },
                     )?;
                 } else if !field.required {
@@ -1103,7 +1107,7 @@ impl ResourceGenerator {
                     writeln!(out, "    #[serde(default)]").map_err(|e| {
                         GenResourceError::WriteFile {
                             path: format!("field {}.{}", resource.name, field.name),
-                            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                            source: std::io::Error::other(e),
                         }
                     })?;
                 }
@@ -1113,7 +1117,7 @@ impl ResourceGenerator {
                 writeln!(out, "    pub {}: {},", field.name, field_ty).map_err(|e| {
                     GenResourceError::WriteFile {
                         path: format!("field {}.{}", resource.name, field.name),
-                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                        source: std::io::Error::other(e),
                     }
                 })?;
             }
@@ -1121,7 +1125,7 @@ impl ResourceGenerator {
 
         writeln!(out, "}}\n").map_err(|e| GenResourceError::WriteFile {
             path: format!("struct {}", resource.name),
-            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+            source: std::io::Error::other(e),
         })?;
 
         Ok(())
@@ -1224,27 +1228,27 @@ impl ResourceGenerator {
         };
 
         writeln!(out, "//! Auto-generated resource types for {provider_display}.")
-            .map_err(|e| write_fmt_error(e))?;
+            .map_err(write_fmt_error)?;
         writeln!(out, "//!")
-            .map_err(|e| write_fmt_error(e))?;
+            .map_err(write_fmt_error)?;
         writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_resource_types`.")
-            .map_err(|e| write_fmt_error(e))?;
+            .map_err(write_fmt_error)?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")
-            .map_err(|e| write_fmt_error(e))?;
+            .map_err(write_fmt_error)?;
         writeln!(out)
-            .map_err(|e| write_fmt_error(e))?;
+            .map_err(write_fmt_error)?;
 
         // Multi-API - declare submodules and re-exports
         // Each API is a file: resources/{api}.rs
         for api in apis {
             writeln!(out, "pub mod {api};")
-                .map_err(|e| write_fmt_error(e))?;
+                .map_err(write_fmt_error)?;
         }
         writeln!(out)
-            .map_err(|e| write_fmt_error(e))?;
+            .map_err(write_fmt_error)?;
         for api in apis {
             writeln!(out, "pub use {api}::*;")
-                .map_err(|e| write_fmt_error(e))?;
+                .map_err(write_fmt_error)?;
         }
 
         // Output to providers/{provider}/resources/mod.rs
@@ -1359,7 +1363,7 @@ impl ResourceGenerator {
              use super::*;\n\
              {resource_identifier_import}\n\
              {clients_import}\n"
-        ).map_err(|e| GenResourceError::WriteFile { path: format!("generated code for {label}"), source: std::io::Error::new(std::io::ErrorKind::Other, e) })?;
+        ).map_err(|e| GenResourceError::WriteFile { path: format!("generated code for {label}"), source: std::io::Error::other(e) })?;
 
         // Topologically sort resources and detect recursive types
         let (sorted, recursive_types) = self.sort_resources_topo(resources);
@@ -1505,7 +1509,7 @@ fn extract_type_names(ty: &str) -> Vec<String> {
             '<' | ',' | '>' | ' ' => {
                 if !current.is_empty() && depth == 0 {
                     // Check if it looks like a type name (starts with uppercase)
-                    if current.chars().next().map_or(false, |c| c.is_uppercase()) {
+                    if current.chars().next().is_some_and(|c| c.is_uppercase()) {
                         result.push(current.clone());
                     }
                     current.clear();
@@ -1519,7 +1523,7 @@ fn extract_type_names(ty: &str) -> Vec<String> {
             _ => current.push(c),
         }
     }
-    if !current.is_empty() && current.chars().next().map_or(false, |c| c.is_uppercase()) {
+    if !current.is_empty() && current.chars().next().is_some_and(|c| c.is_uppercase()) {
         result.push(current);
     }
 

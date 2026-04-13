@@ -10,7 +10,7 @@
 //! 3. Generate Provider struct with methods per endpoint
 //! 4. Each method wraps the task with StoreStateIdentifierTask
 
-use foundation_openapi::{ApiCatalog, EndpointInfo, to_snake_case, to_pascal_case, to_sentence_case};
+use foundation_openapi::{ApiCatalog, to_snake_case, to_pascal_case, to_sentence_case};
 use std::collections::BTreeMap;
 use std::fmt::Write as FmtWrite;
 use std::fs;
@@ -22,20 +22,7 @@ use std::path::{Path, PathBuf};
 
 fn sanitize_operation_id(op_id: &str) -> String {
     op_id
-        .replace('-', "_")
-        .replace('.', "_")
-        .replace('@', "_")
-        .replace(':', "_")
-        .replace('<', "_")
-        .replace('>', "_")
-        .replace('[', "_")
-        .replace(']', "_")
-        .replace('(', "_")
-        .replace(')', "_")
-        .replace('\'', "_")
-        .replace(',', "_")
-        .replace('~', "_")
-        .replace('/', "_")
+        .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_")
 }
 
 // ---------------------------------------------------------------------------
@@ -420,7 +407,7 @@ impl ProviderWrapperGenerator {
         out: &mut String,
         endpoint: &EndpointFn,
         provider: &str,
-        api_name: &str,
+        _api_name: &str,
     ) -> Result<(), GenWrapperError> {
         let base_name = &endpoint.base_name;
 

@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// HOW: Used as the `Pending` type in `TaskIterator` combinators.
 #[derive(Debug, Clone)]
+#[allow(dead_code)] // Reserved for future progress reporting in task iterator
 pub enum SpecFetchPending {
     Connecting { provider: &'static str },
     AwaitingResponse { provider: &'static str },
@@ -81,4 +82,5 @@ pub struct SpecEndpoint {
 /// WHAT: Contains the API metadata and metadata about the fetch.
 ///
 /// HOW: Returned by individual fetch tasks.
+#[allow(dead_code)] // Reserved for future spec fetching implementation
 pub type FetchResult = Result<APIMetadata, crate::gen_resources::provider_specs_errors::SpecFetchError>;
