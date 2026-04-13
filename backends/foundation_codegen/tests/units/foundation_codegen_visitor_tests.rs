@@ -23,10 +23,10 @@ fn scan_source(source: &str, target_attr: &str) -> Vec<foundation_codegen::Found
 #[test]
 fn finds_annotated_struct() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub struct AuthHandler;
-        "#,
+        ",
         "module",
     );
 
@@ -39,10 +39,10 @@ fn finds_annotated_struct() {
 #[test]
 fn finds_annotated_enum() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub enum Status { Active, Inactive }
-        "#,
+        ",
         "module",
     );
 
@@ -54,10 +54,10 @@ fn finds_annotated_enum() {
 #[test]
 fn finds_annotated_trait() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub trait Handler {}
-        "#,
+        ",
         "module",
     );
 
@@ -69,10 +69,10 @@ fn finds_annotated_trait() {
 #[test]
 fn finds_annotated_function() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub fn handle_request() {}
-        "#,
+        ",
         "module",
     );
 
@@ -84,10 +84,10 @@ fn finds_annotated_function() {
 #[test]
 fn finds_annotated_type_alias() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub type MyResult = Result<(), String>;
-        "#,
+        ",
         "module",
     );
 
@@ -101,13 +101,13 @@ fn finds_annotated_type_alias() {
 #[test]
 fn ignores_unannotated_items() {
     let items = scan_source(
-        r#"
+        r"
         pub struct Plain;
         #[derive(Debug)]
         pub struct WithDerive;
         #[other_attr]
         pub struct WithOther;
-        "#,
+        ",
         "module",
     );
 
@@ -119,7 +119,7 @@ fn ignores_unannotated_items() {
 #[test]
 fn finds_multiple_items_in_one_file() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub struct First;
 
@@ -130,7 +130,7 @@ fn finds_multiple_items_in_one_file() {
 
         #[module]
         fn third() {}
-        "#,
+        ",
         "module",
     );
 
@@ -145,14 +145,14 @@ fn finds_multiple_items_in_one_file() {
 #[test]
 fn tracks_inline_module_nesting() {
     let items = scan_source(
-        r#"
+        r"
         mod outer {
             mod inner {
                 #[module]
                 pub struct Nested;
             }
         }
-        "#,
+        ",
         "module",
     );
 
@@ -164,10 +164,10 @@ fn tracks_inline_module_nesting() {
 #[test]
 fn top_level_item_has_empty_module_path() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub struct TopLevel;
-        "#,
+        ",
         "module",
     );
 
@@ -199,10 +199,10 @@ fn parses_string_attribute_value() {
 #[test]
 fn parses_bool_attribute_value() {
     let items = scan_source(
-        r#"
+        r"
         #[module(export = true)]
         pub struct Handler;
-        "#,
+        ",
         "module",
     );
 
@@ -215,10 +215,10 @@ fn parses_bool_attribute_value() {
 #[test]
 fn parses_int_attribute_value() {
     let items = scan_source(
-        r#"
+        r"
         #[module(priority = 5)]
         pub struct Handler;
-        "#,
+        ",
         "module",
     );
 
@@ -231,10 +231,10 @@ fn parses_int_attribute_value() {
 #[test]
 fn parses_ident_attribute_value() {
     let items = scan_source(
-        r#"
+        r"
         #[module(kind = Handler)]
         pub struct MyHandler;
-        "#,
+        ",
         "module",
     );
 
@@ -249,10 +249,10 @@ fn parses_ident_attribute_value() {
 #[test]
 fn parses_bare_flag_attribute() {
     let items = scan_source(
-        r#"
+        r"
         #[module(export)]
         pub struct Handler;
-        "#,
+        ",
         "module",
     );
 
@@ -284,10 +284,10 @@ fn parses_multiple_attribute_args() {
 #[test]
 fn parses_nested_list_attribute() {
     let items = scan_source(
-        r#"
+        r"
         #[module(depends_on(auth, api))]
         pub struct Handler;
-        "#,
+        ",
         "module",
     );
 
@@ -301,10 +301,10 @@ fn parses_nested_list_attribute() {
 #[test]
 fn empty_attribute_produces_empty_map() {
     let items = scan_source(
-        r#"
+        r"
         #[module]
         pub struct Handler;
-        "#,
+        ",
         "module",
     );
 

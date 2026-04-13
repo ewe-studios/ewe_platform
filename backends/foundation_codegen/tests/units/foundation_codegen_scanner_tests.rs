@@ -28,10 +28,10 @@ fn scan_file_finds_annotated_struct() {
     write_source(
         tmp.path(),
         "lib.rs",
-        r#"
+        r"
         #[module]
         pub struct Handler;
-        "#,
+        ",
     );
 
     let scanner = SourceScanner::new("module");
@@ -49,28 +49,28 @@ fn scan_directory_finds_items_across_multiple_files() {
     write_source(
         tmp.path(),
         "src/lib.rs",
-        r#"
+        r"
         #[component]
         pub struct App;
-        "#,
+        ",
     );
     write_source(
         tmp.path(),
         "src/handlers/auth.rs",
-        r#"
+        r"
         #[component]
         pub struct AuthHandler;
 
         #[component]
         pub fn login() {}
-        "#,
+        ",
     );
     write_source(
         tmp.path(),
         "src/models/user.rs",
-        r#"
+        r"
         pub struct User;  // not annotated
-        "#,
+        ",
     );
 
     let scanner = SourceScanner::new("component");
@@ -90,10 +90,10 @@ fn scan_directory_skips_unparseable_files() {
     write_source(
         tmp.path(),
         "src/good.rs",
-        r#"
+        r"
         #[module]
         pub struct Good;
-        "#,
+        ",
     );
     write_source(tmp.path(), "src/bad.rs", "fn { broken syntax");
 
@@ -124,6 +124,6 @@ fn scan_directory_returns_empty_for_no_annotated_items() {
 #[test]
 fn scan_file_errors_on_missing_file() {
     let scanner = SourceScanner::new("module");
-    let result = scanner.scan_file(&Path::new("/nonexistent/file.rs").to_path_buf());
+    let result = scanner.scan_file(Path::new("/nonexistent/file.rs"));
     assert!(result.is_err());
 }
