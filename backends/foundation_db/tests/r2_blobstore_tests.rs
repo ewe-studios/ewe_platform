@@ -1,4 +1,4 @@
-//! BlobStore integration tests for the R2 backend against a local wrangler
+//! `BlobStore` integration tests for the R2 backend against a local wrangler
 //! worker emulating the Cloudflare R2 REST API.
 //!
 //! Endpoint configuration lives in [`common`] — set `CF_INTEGRATION_TEST=1`

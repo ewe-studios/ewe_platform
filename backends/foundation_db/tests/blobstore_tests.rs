@@ -1,4 +1,4 @@
-//! BlobStore integration tests for all backends.
+//! `BlobStore` integration tests for all backends.
 
 use foundation_core::valtron::collect_one;
 use foundation_db::{BlobStore, MemoryStorage};

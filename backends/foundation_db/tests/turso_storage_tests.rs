@@ -1,7 +1,7 @@
 //! Turso storage backend integration tests.
 
 use foundation_core::valtron::collect_one;
-use foundation_db::{EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
+use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
 use tempfile::TempDir;
 
 /// Initialize the Valtron executor for tests.
@@ -76,7 +76,6 @@ fn test_turso_storage_encryption() {
     assert_eq!(value, Some(secret_value.clone()));
 
     // Verify the value is encrypted in the database (not plaintext)
-    use foundation_db::DataValue;
     let raw_result = storage
         .query(
             "SELECT value FROM kv_store WHERE key = ?",
