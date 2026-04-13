@@ -30,7 +30,7 @@ fn test_llama_backend_creation() {
     assert!(result.is_ok());
 }
 
-/// Test llama.cpp model loading using the SmolLM2 model from TestHarness.
+/// Test llama.cpp model loading using the `SmolLM2` model from `TestHarness`.
 ///
 /// This test downloads the model if not present and then verifies
 /// the backend can load it.
@@ -79,10 +79,10 @@ fn test_llama_model_loading() {
     println!("Model loaded successfully from: {}", model_path.display());
 }
 
-/// Download the SmolLM2 test model from HuggingFace using TestHarness.
+/// Download the `SmolLM2` test model from `HuggingFace` using `TestHarness`.
 ///
-/// This test downloads a small GGUF model (~150MB Q2_K quantized)
-/// from HuggingFace Hub for testing the llama.cpp backend.
+/// This test downloads a small GGUF model (~150MB `Q2_K` quantized)
+/// from `HuggingFace` Hub for testing the llama.cpp backend.
 /// The model is cached in the `.artifacts` directory.
 #[test]
 #[traced_test]
@@ -112,7 +112,7 @@ fn test_download_smollm_model() {
     println!("Model downloaded to: {}", model_path.display());
 }
 
-/// Test llama.cpp backend with the SmolLM2 model.
+/// Test llama.cpp backend with the `SmolLM2` model.
 ///
 /// This test downloads the model if not present and then verifies
 /// the backend can load and use it for generation.
@@ -185,7 +185,7 @@ fn test_llama_with_smollm_model() {
 
     let response = result.unwrap();
     assert!(!response.is_empty(), "Response should not be empty");
-    println!("Generated: {:?}", response);
+    println!("Generated: {response:?}");
 }
 
 #[test]
