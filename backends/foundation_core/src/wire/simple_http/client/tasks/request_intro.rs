@@ -130,8 +130,14 @@ impl TaskIterator for GetRequestIntroTask {
 
                     tracing::info!("Get intro from stream");
                     let intro = match reader.next()? {
-                        Ok(inner) => inner,
-                        Err(err) => return Some(TaskStatus::Ready(err.into())),
+                        Ok(inner) => {
+                            tracing::info!("Get intro from stream - got: {:?}", inner);
+                            inner
+                        },
+                        Err(err) => {
+                            tracing::error!("Get intro from stream - error: {:?}", err);
+                            return Some(TaskStatus::Ready(err.into()));
+                        }
                     };
 
                     let crate::wire::simple_http::IncomingResponseParts::Intro(status, proto, text) =

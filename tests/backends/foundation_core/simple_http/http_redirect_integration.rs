@@ -5,6 +5,7 @@
 use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_core::wire::simple_http::HttpClientError;
+use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
 use tracing_test::traced_test;
 
@@ -177,4 +178,64 @@ fn test_too_many_redirects_as_final_response() {
         matches!(result, Err(HttpClientError::TooManyRedirects)),
         "Should fail with TooManyRedirects after 3 redirects"
     );
+}
+
+/// WHY: Validate redirect handling when server sends 100 Continue FIRST, then 302 redirect
+///      as the final response for the SAME request.
+///
+/// WHAT: Tests that the client correctly receives 100 Continue (interim, no body), then reads
+///       the final 302 redirect response, follows it, and receives 201 Created with no content.
+///       This exercises the full flow: interim response -> final redirect -> redirected request.
+///
+/// IMPORTANCE: Ensures the client properly handles 100 Continue interim responses and still
+///       follows redirects that come as the final response after the interim.
+#[test]
+#[traced_test]
+fn test_redirect_after_100_continue() {
+    use std::sync::{Arc, Mutex};
+
+    // Initialize Valtron executor for HTTP client concurrency
+    let _pool_guard = valtron::initialize_pool(42, None);
+
+    // Track request count to return different responses
+    let request_count = Arc::new(Mutex::new(0usize));
+    let count_clone = Arc::clone(&request_count);
+
+    // Create server first to get its base URL
+    let server = TestHttpServer::with_interim_response(move |req| {
+        let mut count = count_clone.lock().unwrap();
+        *count += 1;
+
+        if *count == 1 {
+            // First request: send 100 Continue interim, then 302 redirect final
+            // Build absolute URL from request's Host header
+            let host = req.headers.get(&foundation_core::wire::simple_http::SimpleHeader::HOST);
+            let host_str = host
+                .and_then(|v| v.first())
+                .map(|s| s.as_str())
+                .unwrap_or("127.0.0.1");
+            let redirect_location = format!("http://{host_str}/final");
+            (
+                Some(HttpResponse::continue_response()),
+                HttpResponse::redirect(&redirect_location),
+            )
+        } else {
+            // Second request (redirect target): 201 Created with no content
+            (None, HttpResponse::status(201, "Created"))
+        }
+    });
+
+    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let url = server.url("/redirect");
+
+    let response = client
+        .get(url.as_str())
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .expect("Should follow redirect after 100 Continue");
+
+    assert!(response.is_success(), "Should receive 201 Created from final destination");
+    assert_eq!(response.get_status().into_usize(), 201, "Should be 201 status");
 }
