@@ -116,16 +116,16 @@ fn test_json_file_storage_persistence() {
 
 #[test]
 fn test_json_file_storage_complex_value() {
-    let temp_dir = TempDir::new().unwrap();
-    let file_path = temp_dir.path().join("test.json");
-
-    let storage = JsonFileStorage::new(&file_path).unwrap();
-
     #[derive(Serialize, Deserialize, Debug, PartialEq)]
     struct TestData {
         name: String,
         count: u32,
     }
+
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.json");
+
+    let storage = JsonFileStorage::new(&file_path).unwrap();
 
     let data = TestData {
         name: "test".to_string(),

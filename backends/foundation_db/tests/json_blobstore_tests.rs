@@ -1,4 +1,4 @@
-//! JSON file storage BlobStore tests.
+//! JSON file storage `BlobStore` tests.
 
 use foundation_core::valtron::collect_one;
 use foundation_db::{BlobStore, JsonFileStorage};

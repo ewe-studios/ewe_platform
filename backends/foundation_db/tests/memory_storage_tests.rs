@@ -81,13 +81,13 @@ fn test_memory_storage_list_keys() {
 
 #[test]
 fn test_memory_storage_complex_value() {
-    let storage = MemoryStorage::new();
-
     #[derive(Serialize, Deserialize, Debug, PartialEq)]
     struct TestData {
         name: String,
         count: u32,
     }
+
+    let storage = MemoryStorage::new();
 
     let data = TestData {
         name: "test".to_string(),

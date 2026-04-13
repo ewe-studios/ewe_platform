@@ -1,4 +1,4 @@
-//! Integration tests for StoreStateTask and StoreStateIdentifierTask.
+//! Integration tests for `StoreStateTask` and `StoreStateIdentifierTask`.
 
 use foundation_core::valtron::TaskIterator;
 use foundation_db::state::file::FileStateStore;
@@ -45,7 +45,7 @@ impl<T: Clone + Send + 'static> TaskIterator for MockSuccessTask<T> {
     }
 }
 
-/// Simple mock task that fails immediately with TestResource output.
+/// Simple mock task that fails immediately with `TestResource` output.
 #[derive(Debug, Clone)]
 struct MockFailResourceTask {
     error: String,
@@ -107,7 +107,7 @@ impl TaskIterator for MockFailTask {
     }
 }
 
-/// Test output type with ResourceIdentifier implementation.
+/// Test output type with `ResourceIdentifier` implementation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct TestResource {
     id: String,
@@ -176,7 +176,7 @@ fn test_store_state_task_success() {
                 found_success = true;
             }
             foundation_core::valtron::TaskStatus::Ready(Err(e)) => {
-                panic!("Task failed with error: {}", e);
+                panic!("Task failed with error: {e}");
             }
             _ => {}
         }
@@ -197,7 +197,7 @@ fn test_store_state_task_success() {
             assert_eq!(state.kind, "test::Resource");
             assert_eq!(state.provider, "test");
         }
-        _ => panic!("Expected stored state"),
+        foundation_core::valtron::ThreadedValue::Value(_) => panic!("Expected stored state"),
     }
 }
 
@@ -252,7 +252,9 @@ fn test_store_state_task_inner_failure() {
         foundation_core::valtron::ThreadedValue::Value(Ok(None)) => {
             // Expected - state should not exist
         }
-        _ => panic!("Expected no state to be stored"),
+        foundation_core::valtron::ThreadedValue::Value(_) => {
+            panic!("Expected no state to be stored")
+        }
     }
 }
 
@@ -295,7 +297,7 @@ fn test_store_state_identifier_task_success() {
                 found_success = true;
             }
             foundation_core::valtron::TaskStatus::Ready(Err(e)) => {
-                panic!("Task failed with error: {}", e);
+                panic!("Task failed with error: {e}");
             }
             _ => {}
         }
@@ -316,7 +318,7 @@ fn test_store_state_identifier_task_success() {
             assert_eq!(state.kind, "test::Resource");
             assert_eq!(state.provider, "test");
         }
-        _ => panic!("Expected stored state"),
+        foundation_core::valtron::ThreadedValue::Value(_) => panic!("Expected stored state"),
     }
 }
 
@@ -368,7 +370,9 @@ fn test_store_state_identifier_task_inner_failure() {
         foundation_core::valtron::ThreadedValue::Value(Ok(None)) => {
             // Expected - state should not exist
         }
-        _ => panic!("Expected no state to be stored"),
+        foundation_core::valtron::ThreadedValue::Value(_) => {
+            panic!("Expected no state to be stored")
+        }
     }
 }
 
@@ -421,7 +425,7 @@ fn test_provider_error_map() {
     use foundation_db::state::store_state_task::ProviderError;
 
     let api_err: ProviderError<&str> = ProviderError::Api("original");
-    let mapped: ProviderError<String> = api_err.map(|s| s.to_string());
+    let mapped: ProviderError<String> = api_err.map(std::string::ToString::to_string);
 
     match mapped {
         ProviderError::Api(s) => assert_eq!(s, "original"),

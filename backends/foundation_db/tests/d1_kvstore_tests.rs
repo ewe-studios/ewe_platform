@@ -1,4 +1,4 @@
-//! KeyValueStore integration tests for the D1 backend against a local
+//! `KeyValueStore` integration tests for the D1 backend against a local
 //! wrangler worker emulating the Cloudflare D1 REST API.
 //!
 //! Endpoint configuration lives in [`common`] — set `CF_INTEGRATION_TEST=1`
@@ -125,14 +125,14 @@ fn test_d1_kvstore_list_keys() {
     let _: () = collect_one(storage.set(&key3, "value_c").unwrap()).unwrap().unwrap();
 
     // List all keys with prefix
-    let keys: Vec<String> = collect_result(storage.list_keys(Some(&prefix)).unwrap())
+    let listed: Vec<String> = collect_result(storage.list_keys(Some(&prefix)).unwrap())
         .into_iter()
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
-    assert_eq!(keys.len(), 3);
-    assert!(keys.contains(&key1));
-    assert!(keys.contains(&key2));
-    assert!(keys.contains(&key3));
+    assert_eq!(listed.len(), 3);
+    assert!(listed.contains(&key1));
+    assert!(listed.contains(&key2));
+    assert!(listed.contains(&key3));
 
     // Cleanup
     let _: () = collect_one(storage.delete(&key1).unwrap()).unwrap().unwrap();
@@ -142,6 +142,13 @@ fn test_d1_kvstore_list_keys() {
 
 #[test]
 fn test_d1_kvstore_json_serialization() {
+    #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+    struct TestData {
+        name: String,
+        age: u32,
+        active: bool,
+    }
+
     init_valtron();
     let Some(storage) = create_local_d1_store() else {
         println!("Skipping D1 test - miniflare not available");
@@ -149,13 +156,6 @@ fn test_d1_kvstore_json_serialization() {
     };
 
     storage.init().unwrap();
-
-    #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-    struct TestData {
-        name: String,
-        age: u32,
-        active: bool,
-    }
 
     let key = format!("test_json_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
     let test_value = TestData {
@@ -190,8 +190,7 @@ fn test_d1_query_store() {
     // Create a test table
     let table_name = format!("test_query_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
     let create_sql = format!(
-        "CREATE TABLE {} (id INTEGER PRIMARY KEY, name TEXT NOT NULL, value INTEGER)",
-        table_name
+        "CREATE TABLE {table_name} (id INTEGER PRIMARY KEY, name TEXT NOT NULL, value INTEGER)"
     );
 
     let _: () = collect_one(storage.execute_batch(&create_sql).unwrap())
@@ -199,14 +198,14 @@ fn test_d1_query_store() {
         .unwrap();
 
     // Insert data
-    let insert_sql = format!("INSERT INTO {} (name, value) VALUES (?, ?)", table_name);
+    let insert_sql = format!("INSERT INTO {table_name} (name, value) VALUES (?, ?)");
     let _: u64 = collect_one(
         storage.execute(&insert_sql, &[DataValue::Text("test".to_string()), DataValue::Integer(42)])
             .unwrap()
     ).unwrap().unwrap();
 
     // Query data
-    let select_sql = format!("SELECT * FROM {} WHERE name = ?", table_name);
+    let select_sql = format!("SELECT * FROM {table_name} WHERE name = ?");
     let row: foundation_db::SqlRow = collect_one(storage.query(&select_sql, &[DataValue::Text("test".to_string())]).unwrap())
         .unwrap()
         .unwrap();
@@ -217,7 +216,7 @@ fn test_d1_query_store() {
     assert_eq!(value, 42);
 
     // Cleanup
-    let drop_sql = format!("DROP TABLE {}", table_name);
+    let drop_sql = format!("DROP TABLE {table_name}");
     let _: () = collect_one(storage.execute_batch(&drop_sql).unwrap()).unwrap().unwrap();
 }
 
