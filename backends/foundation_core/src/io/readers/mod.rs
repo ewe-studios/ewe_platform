@@ -543,7 +543,7 @@ mod tests {
         impl Read for RetryReader {
             fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
                 self.calls += 1;
-                if self.calls % 3 == 0 {
+                if self.calls.is_multiple_of(3) {
                     return Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"));
                 }
                 if self.pos >= self.data.len() {
@@ -717,7 +717,7 @@ mod tests {
         impl Read for RetryReader {
             fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
                 self.calls += 1;
-                if self.calls % 3 == 0 {
+                if self.calls.is_multiple_of(3) {
                     return Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"));
                 }
                 if self.pos >= self.data.len() {

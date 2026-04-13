@@ -2206,7 +2206,7 @@ mod byte_buffered_buffer_pointer {
         let mut read_data = Vec::new();
 
         let read_length = binding.read_all(&mut read_data, Some(2));
-        assert!(matches!(read_length, Err(_)))
+        assert!(read_length.is_err())
     }
 
     #[test]
@@ -2575,9 +2575,9 @@ mod byte_buffered_buffer_pointer {
             PeekState::Continue
         );
         assert_eq!(buffer.scan(), &data3[0..10]);
-        assert_eq!(buffer.greater_than_40_percent(), false);
+        assert!(!buffer.greater_than_40_percent());
         assert_eq!(buffer.consume().expect("capture 3"), data3.clone());
-        assert_eq!(buffer.greater_than_40_percent(), true);
+        assert!(buffer.greater_than_40_percent());
     }
 
     #[test]
@@ -2606,9 +2606,9 @@ mod byte_buffered_buffer_pointer {
             PeekState::Continue
         );
         assert_eq!(buffer.scan(), &data3[0..10]);
-        assert_eq!(buffer.greater_than_40_percent(), false);
+        assert!(!buffer.greater_than_40_percent());
         assert_eq!(buffer.consume().expect("capture 3"), data3.clone());
-        assert_eq!(buffer.greater_than_40_percent(), true);
+        assert!(buffer.greater_than_40_percent());
     }
 
     #[test]
