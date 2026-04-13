@@ -246,7 +246,7 @@ fn write_analysis(raw_bytes: &[u8], output_path: &str) -> std::io::Result<()> {
                 .join(" ");
             let ascii_str: String = chunk
                 .iter()
-                .map(|&b| if b >= 32 && b <= 126 { b as char } else { '.' })
+                .map(|&b| if (32..=126).contains(&b) { b as char } else { '.' })
                 .collect();
             writeln!(analysis, "{:08x} {:<48} {}", offset, hex_str, ascii_str)?;
         }

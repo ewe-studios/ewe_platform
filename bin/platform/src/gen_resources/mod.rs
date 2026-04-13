@@ -139,7 +139,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let provider = sub_matches.get_one::<String>("provider").map(|s| s.as_str());
             let output_dir = sub_matches
                 .get_one::<String>("output-dir")
-                .map(|s| PathBuf::from(s))
+                .map(PathBuf::from)
                 .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
 
             let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
@@ -159,7 +159,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let provider = sub_matches.get_one::<String>("provider").map(|s| s.as_str());
             let output_dir = sub_matches
                 .get_one::<String>("output-dir")
-                .map(|s| PathBuf::from(s))
+                .map(PathBuf::from)
                 .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
 
             let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
@@ -187,7 +187,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let provider = sub_matches.get_one::<String>("provider").map(|s| s.as_str());
             let output_dir = sub_matches
                 .get_one::<String>("output-dir")
-                .map(|s| PathBuf::from(s))
+                .map(PathBuf::from)
                 .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
 
             let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
