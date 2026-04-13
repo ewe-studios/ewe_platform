@@ -11,8 +11,8 @@ use super::*;
 // SimpleHttpClient Tests
 // ========================================================================
 
-/// WHY: Verify SimpleHttpClient::new creates client with system resolver
-/// WHAT: Tests that new() creates client with default config
+/// WHY: Verify `SimpleHttpClient::new` creates client with system resolver
+/// WHAT: Tests that `new()` creates client with default config
 #[test]
 fn test_simple_http_client_new() {
     let client = SimpleHttpClient::from_system();
@@ -22,8 +22,8 @@ fn test_simple_http_client_new() {
     assert_eq!(config.max_redirects, 5);
 }
 
-/// WHY: Verify SimpleHttpClient::with_resolver accepts custom resolver
-/// WHAT: Tests that with_resolver works with MockDnsResolver
+/// WHY: Verify `SimpleHttpClient::with_resolver` accepts custom resolver
+/// WHAT: Tests that `with_resolver` works with `MockDnsResolver`
 #[test]
 fn test_simple_http_client_with_resolver() {
     let client = SimpleHttpClient::from_system();
@@ -32,12 +32,14 @@ fn test_simple_http_client_with_resolver() {
     assert_eq!(config.max_redirects, 5);
 }
 
-/// WHY: Verify SimpleHttpClient::config sets configuration
-/// WHAT: Tests that config() replaces configuration
+/// WHY: Verify `SimpleHttpClient::config` sets configuration
+/// WHAT: Tests that `config()` replaces configuration
 #[test]
 fn test_simple_http_client_config() {
-    let mut custom_config = ClientConfig::default();
-    custom_config.max_redirects = 10;
+    let custom_config = ClientConfig {
+        max_redirects: 10,
+        ..Default::default()
+    };
 
     let client = SimpleHttpClient::from_system().config(custom_config);
     let config = client.client_config();
@@ -45,7 +47,7 @@ fn test_simple_http_client_config() {
     assert_eq!(config.max_redirects, 10);
 }
 
-/// WHY: Verify SimpleHttpClient::connect_timeout sets timeout
+/// WHY: Verify `SimpleHttpClient::connect_timeout` sets timeout
 /// WHAT: Tests that builder method sets connect timeout
 #[test]
 fn test_simple_http_client_connect_timeout() {
@@ -55,7 +57,7 @@ fn test_simple_http_client_connect_timeout() {
     assert_eq!(config.connect_timeout, Duration::from_secs(5));
 }
 
-/// WHY: Verify SimpleHttpClient::read_timeout sets timeout
+/// WHY: Verify `SimpleHttpClient::read_timeout` sets timeout
 /// WHAT: Tests that builder method sets read timeout
 #[test]
 fn test_simple_http_client_read_timeout() {
@@ -65,7 +67,7 @@ fn test_simple_http_client_read_timeout() {
     assert_eq!(config.read_timeout, Duration::from_secs(15));
 }
 
-/// WHY: Verify SimpleHttpClient::write_timeout sets timeout
+/// WHY: Verify `SimpleHttpClient::write_timeout` sets timeout
 /// WHAT: Tests that builder method sets write timeout
 #[test]
 fn test_simple_http_client_write_timeout() {
@@ -75,7 +77,7 @@ fn test_simple_http_client_write_timeout() {
     assert_eq!(config.write_timeout, Duration::from_secs(20));
 }
 
-/// WHY: Verify SimpleHttpClient::max_redirects sets redirect limit
+/// WHY: Verify `SimpleHttpClient::max_redirects` sets redirect limit
 /// WHAT: Tests that builder method sets max redirects
 #[test]
 fn test_simple_http_client_max_redirects() {
@@ -85,7 +87,7 @@ fn test_simple_http_client_max_redirects() {
     assert_eq!(config.max_redirects, 3);
 }
 
-/// WHY: Verify SimpleHttpClient::with_connection_pool enables connection pooling
+/// WHY: Verify `SimpleHttpClient::with_connection_pool` enables connection pooling
 /// WHAT: Tests that builder method creates a connection pool
 #[test]
 fn test_simple_http_client_with_connection_pool() {
@@ -95,7 +97,7 @@ fn test_simple_http_client_with_connection_pool() {
     assert!(pool.is_some());
 }
 
-/// WHY: Verify SimpleHttpClient builder methods are chainable
+/// WHY: Verify `SimpleHttpClient` builder methods are chainable
 /// WHAT: Tests that multiple builder methods can be chained
 #[test]
 fn test_simple_http_client_builder_chaining() {
@@ -110,8 +112,8 @@ fn test_simple_http_client_builder_chaining() {
     assert!(client.client_pool().is_some());
 }
 
-/// WHY: Verify SimpleHttpClient::get creates GET request builder
-/// WHAT: Tests that get() returns ClientRequestBuilder::<SystemDnsResolver> for GET
+/// WHY: Verify `SimpleHttpClient::get` creates GET request builder
+/// WHAT: Tests that `get()` returns `ClientRequestBuilder::`<SystemDnsResolver> for GET
 #[test]
 fn test_simple_http_client_get() {
     let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com").unwrap();
@@ -120,8 +122,8 @@ fn test_simple_http_client_get() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient::get validates URL
-/// WHAT: Tests that get() returns error for invalid URL
+/// WHY: Verify `SimpleHttpClient::get` validates URL
+/// WHAT: Tests that `get()` returns error for invalid URL
 #[test]
 fn test_simple_http_client_get_invalid_url() {
     let result = ClientRequestBuilder::<SystemDnsResolver>::get("not a url");
@@ -129,8 +131,8 @@ fn test_simple_http_client_get_invalid_url() {
     assert!(result.is_err());
 }
 
-/// WHY: Verify SimpleHttpClient::post creates POST request builder
-/// WHAT: Tests that post() returns ClientRequestBuilder::<SystemDnsResolver> for POST
+/// WHY: Verify `SimpleHttpClient::post` creates POST request builder
+/// WHAT: Tests that `post()` returns `ClientRequestBuilder::`<SystemDnsResolver> for POST
 #[test]
 fn test_simple_http_client_post() {
     let builder = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com").unwrap();
@@ -139,8 +141,8 @@ fn test_simple_http_client_post() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient::put creates PUT request builder
-/// WHAT: Tests that put() returns ClientRequestBuilder::<SystemDnsResolver> for PUT
+/// WHY: Verify `SimpleHttpClient::put` creates PUT request builder
+/// WHAT: Tests that `put()` returns `ClientRequestBuilder::`<SystemDnsResolver> for PUT
 #[test]
 fn test_simple_http_client_put() {
     let builder = ClientRequestBuilder::<SystemDnsResolver>::put("http://example.com").unwrap();
@@ -149,8 +151,8 @@ fn test_simple_http_client_put() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient::delete creates DELETE request builder
-/// WHAT: Tests that delete() returns ClientRequestBuilder::<SystemDnsResolver> for DELETE
+/// WHY: Verify `SimpleHttpClient::delete` creates DELETE request builder
+/// WHAT: Tests that `delete()` returns `ClientRequestBuilder::`<SystemDnsResolver> for DELETE
 #[test]
 fn test_simple_http_client_delete() {
     let builder = ClientRequestBuilder::<SystemDnsResolver>::delete("http://example.com").unwrap();
@@ -159,8 +161,8 @@ fn test_simple_http_client_delete() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient::patch creates PATCH request builder
-/// WHAT: Tests that patch() returns ClientRequestBuilder::<SystemDnsResolver> for PATCH
+/// WHY: Verify `SimpleHttpClient::patch` creates PATCH request builder
+/// WHAT: Tests that `patch()` returns `ClientRequestBuilder::`<SystemDnsResolver> for PATCH
 #[test]
 fn test_simple_http_client_patch() {
     let builder = ClientRequestBuilder::<SystemDnsResolver>::patch("http://example.com").unwrap();
@@ -169,8 +171,8 @@ fn test_simple_http_client_patch() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient::head creates HEAD request builder
-/// WHAT: Tests that head() returns ClientRequestBuilder::<SystemDnsResolver> for HEAD
+/// WHY: Verify `SimpleHttpClient::head` creates HEAD request builder
+/// WHAT: Tests that `head()` returns `ClientRequestBuilder::`<SystemDnsResolver> for HEAD
 #[test]
 fn test_simple_http_client_head() {
     let builder = ClientRequestBuilder::<SystemDnsResolver>::head("http://example.com").unwrap();
@@ -179,8 +181,8 @@ fn test_simple_http_client_head() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient::options creates OPTIONS request builder
-/// WHAT: Tests that options() returns ClientRequestBuilder::<SystemDnsResolver> for OPTIONS
+/// WHY: Verify `SimpleHttpClient::options` creates OPTIONS request builder
+/// WHAT: Tests that `options()` returns `ClientRequestBuilder::`<SystemDnsResolver> for OPTIONS
 #[test]
 fn test_simple_http_client_options() {
     let builder = ClientRequestBuilder::<SystemDnsResolver>::options("http://example.com").unwrap();
@@ -189,7 +191,7 @@ fn test_simple_http_client_options() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient implements Default
+/// WHY: Verify `SimpleHttpClient` implements Default
 /// WHAT: Tests that Default trait is implemented
 #[test]
 fn test_simple_http_client_default() {

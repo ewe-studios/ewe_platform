@@ -179,6 +179,6 @@ fn test_chunk_state_octet_string_parsing() {
     ));
     assert!(matches!(
         ChunkState::try_new("3086d".into(), None),
-        Ok(ChunkState::Chunk(198765, _, _))
+        Ok(ChunkState::Chunk(198_765, _, _))
     ));
 }

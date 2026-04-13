@@ -1,16 +1,16 @@
-//! Integration tests for flatten/flat_map combinators on TaskIterator and StreamIterator.
+//! Integration tests for `flatten/flat_map` combinators on `TaskIterator` and `StreamIterator`.
 //!
 //! These tests validate the behavior of:
-//! - TaskIterator: `flatten_ready()`, `flatten_pending()`, `flat_map_ready()`, `flat_map_pending()`
-//! - StreamIterator: `flatten_next()`, `flatten_pending()`, `flat_map_next()`, `flat_map_pending()`
+//! - `TaskIterator`: `flatten_ready()`, `flatten_pending()`, `flat_map_ready()`, `flat_map_pending()`
+//! - `StreamIterator`: `flatten_next()`, `flatten_pending()`, `flat_map_next()`, `flat_map_pending()`
 //!
 //! Key design principles tested:
 //! 1. Non-blocking semantics - returns Ignore when setting up inner iterators
-//! 2. Inner iterator draining over multiple next() calls
+//! 2. Inner iterator draining over multiple `next()` calls
 //! 3. Pass-through of non-target states unchanged
 
 use foundation_core::valtron::{
-    NoAction, Stream, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+    NoAction, Stream, StreamIteratorExt, TaskIteratorExt, TaskStatus,
 };
 use std::time::Duration;
 
@@ -18,7 +18,7 @@ use std::time::Duration;
 // Test Utilities
 // ============================================================================
 
-/// Simple TaskIterator for testing that yields predefined TaskStatus values
+/// Simple `TaskIterator` for testing that yields predefined `TaskStatus` values
 struct TestTaskIterator<R, P> {
     items: Vec<TaskStatus<R, P, NoAction>>,
     index: usize,
@@ -52,7 +52,7 @@ where
     }
 }
 
-/// Simple StreamIterator for testing that yields predefined Stream values
+/// Simple `StreamIterator` for testing that yields predefined Stream values
 struct TestStreamIterator<D, P> {
     items: Vec<Stream<D, P>>,
     index: usize,
@@ -90,7 +90,7 @@ where
 // TaskIterator - flatten_ready() Tests
 // ============================================================================
 
-/// Test: flatten_ready() flattens Vec<Ready> into individual Ready values
+/// Test: `flatten_ready()` flattens Vec<Ready> into individual Ready values
 #[test]
 fn test_task_flatten_ready_basic() {
     let items: Vec<TaskStatus<Vec<u32>, String, NoAction>> = vec![
@@ -144,7 +144,7 @@ fn test_task_flatten_ready_basic() {
     assert_eq!(Iterator::next(&mut flattened), None);
 }
 
-/// Test: flatten_ready() with empty inner vectors
+/// Test: `flatten_ready()` with empty inner vectors
 #[test]
 fn test_task_flatten_ready_empty_inner() {
     let items: Vec<TaskStatus<Vec<u32>, String, NoAction>> = vec![
@@ -184,7 +184,7 @@ fn test_task_flatten_ready_empty_inner() {
     assert_eq!(Iterator::next(&mut flattened), None);
 }
 
-/// Test: flatten_ready() preserves all non-Ready states
+/// Test: `flatten_ready()` preserves all non-Ready states
 #[test]
 fn test_task_flatten_ready_preserves_states() {
     let items: Vec<TaskStatus<Vec<u32>, String, NoAction>> = vec![
@@ -244,7 +244,7 @@ fn test_task_flatten_ready_preserves_states() {
 // TaskIterator - flatten_pending() Tests
 // ============================================================================
 
-/// Test: flatten_pending() flattens Vec<Pending> into individual Pending values
+/// Test: `flatten_pending()` flattens Vec<Pending> into individual Pending values
 #[test]
 fn test_task_flatten_pending_basic() {
     let items: Vec<TaskStatus<u32, Vec<String>, NoAction>> = vec![
@@ -293,7 +293,7 @@ fn test_task_flatten_pending_basic() {
 // TaskIterator - flat_map_ready() Tests
 // ============================================================================
 
-/// Test: flat_map_ready() transforms and flattens Ready values
+/// Test: `flat_map_ready()` transforms and flattens Ready values
 #[test]
 fn test_task_flat_map_ready_basic() {
     let items: Vec<TaskStatus<u32, String, NoAction>> = vec![
@@ -351,7 +351,7 @@ fn test_task_flat_map_ready_basic() {
 // TaskIterator - flat_map_pending() Tests
 // ============================================================================
 
-/// Test: flat_map_pending() transforms and flattens Pending values
+/// Test: `flat_map_pending()` transforms and flattens Pending values
 #[test]
 fn test_task_flat_map_pending_basic() {
     let items: Vec<TaskStatus<u32, u32, NoAction>> = vec![
@@ -409,7 +409,7 @@ fn test_task_flat_map_pending_basic() {
 // StreamIterator - flatten_next() Tests
 // ============================================================================
 
-/// Test: flatten_next() flattens Vec<Next> into individual Next values
+/// Test: `flatten_next()` flattens Vec<Next> into individual Next values
 #[test]
 fn test_stream_flatten_next_basic() {
     let items: Vec<Stream<Vec<u32>, String>> = vec![
@@ -463,7 +463,7 @@ fn test_stream_flatten_next_basic() {
     assert_eq!(Iterator::next(&mut flattened), None);
 }
 
-/// Test: flatten_next() with empty inner vectors
+/// Test: `flatten_next()` with empty inner vectors
 #[test]
 fn test_stream_flatten_next_empty_inner() {
     let items: Vec<Stream<Vec<u32>, String>> = vec![
@@ -503,7 +503,7 @@ fn test_stream_flatten_next_empty_inner() {
     assert_eq!(Iterator::next(&mut flattened), None);
 }
 
-/// Test: flatten_next() preserves all non-Next states
+/// Test: `flatten_next()` preserves all non-Next states
 #[test]
 fn test_stream_flatten_next_preserves_states() {
     let items: Vec<Stream<Vec<u32>, String>> = vec![
@@ -560,7 +560,7 @@ fn test_stream_flatten_next_preserves_states() {
 // StreamIterator - flatten_pending() Tests
 // ============================================================================
 
-/// Test: flatten_pending() flattens Vec<Pending> into individual Pending values
+/// Test: `flatten_pending()` flattens Vec<Pending> into individual Pending values
 #[test]
 fn test_stream_flatten_pending_basic() {
     let items: Vec<Stream<u32, Vec<String>>> = vec![
@@ -609,7 +609,7 @@ fn test_stream_flatten_pending_basic() {
 // StreamIterator - flat_map_next() Tests
 // ============================================================================
 
-/// Test: flat_map_next() transforms and flattens Next values
+/// Test: `flat_map_next()` transforms and flattens Next values
 #[test]
 fn test_stream_flat_map_next_basic() {
     let items: Vec<Stream<u32, String>> = vec![
@@ -667,7 +667,7 @@ fn test_stream_flat_map_next_basic() {
 // StreamIterator - flat_map_pending() Tests
 // ============================================================================
 
-/// Test: flat_map_pending() transforms and flattens Pending values
+/// Test: `flat_map_pending()` transforms and flattens Pending values
 #[test]
 fn test_stream_flat_map_pending_basic() {
     let items: Vec<Stream<u32, u32>> = vec![
@@ -725,7 +725,7 @@ fn test_stream_flat_map_pending_basic() {
 // Edge Cases and Comprehensive Tests
 // ============================================================================
 
-/// Test: All states exhausted correctly for TaskIterator
+/// Test: All states exhausted correctly for `TaskIterator`
 #[test]
 fn test_task_all_combinators_exhaust() {
     // flatten_ready
@@ -763,7 +763,7 @@ fn test_task_all_combinators_exhaust() {
     assert_eq!(iter.next(), None);
 }
 
-/// Test: All states exhausted correctly for StreamIterator
+/// Test: All states exhausted correctly for `StreamIterator`
 #[test]
 fn test_stream_all_combinators_exhaust() {
     // flatten_next

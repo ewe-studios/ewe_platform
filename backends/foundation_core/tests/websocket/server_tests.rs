@@ -13,7 +13,7 @@ fn build_request(
     headers: Vec<(SimpleHeader, Vec<String>)>,
 ) -> SimpleIncomingRequest {
     let mut builder = SimpleIncomingRequest::builder()
-        .with_plain_url(format!("http://localhost{}", path))
+        .with_plain_url(format!("http://localhost{path}"))
         .with_method(method);
 
     for (key, values) in headers {
@@ -403,6 +403,7 @@ fn test_server_connection_send_frame_no_mask() {
 // Test 16: Server connection message types
 #[test]
 #[traced_test]
+#[allow(clippy::similar_names)]
 fn test_server_message_types() {
     use foundation_core::wire::websocket::WebSocketMessage;
 
@@ -428,6 +429,7 @@ fn test_connection_state_tracking() {
     // Verify WebSocketServerConnection has is_open method
     // Actual stream setup requires more complex test infrastructure
     // This test verifies the API exists and compiles
+    #[allow(clippy::no_effect_underscore_binding)]
     let _new_fn: fn(
         foundation_core::io::ioutils::SharedByteBufferStream<foundation_core::netcap::RawStream>,
     ) -> WebSocketServerConnection = WebSocketServerConnection::new;
@@ -504,14 +506,14 @@ fn test_empty_subprotocol() {
                 vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
             ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_PROTOCOL, vec!["".to_string()]),
+            (SimpleHeader::SEC_WEBSOCKET_PROTOCOL, vec![String::new()]),
         ],
     );
 
     let protocols = WebSocketUpgrade::extract_subprotocols(&request);
     assert_eq!(
         protocols,
-        Some("".to_string()),
+        Some(String::new()),
         "should return empty string if header present but empty"
     );
 }

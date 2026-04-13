@@ -78,7 +78,7 @@ fn test_map_circuit_return_and_stop() {
 fn test_map_circuit_stop_silent() {
     let iter = CountingStreamIterator::new(5);
     let mut circuit_iter = iter.map_circuit(|item| match item {
-        Stream::Next(v) if v == 2 => ShortCircuit::Stop,
+        Stream::Next(2) => ShortCircuit::Stop,
         Stream::Next(v) => ShortCircuit::Continue(Stream::Next(v)),
         _ => ShortCircuit::Stop,
     });

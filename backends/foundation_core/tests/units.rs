@@ -1,17 +1,17 @@
-//! Integration tests for StreamIterator combinators.
+//! Integration tests for `StreamIterator` combinators.
 //!
 //! These tests validate the behavior of multi-source stream iterator combinators:
-//! - CollectAll: aggregates outputs from multiple StreamIterators
-//! - MapAllDone: applies mapper when all sources complete
-//! - MapAllPendingAndDone: applies mapper with state visibility
+//! - `CollectAll`: aggregates outputs from multiple `StreamIterators`
+//! - `MapAllDone`: applies mapper when all sources complete
+//! - `MapAllPendingAndDone`: applies mapper with state visibility
 //!
 //! Also tests unified executor helper functions:
-//! - execute_collect_all: executes multiple TaskIterators in parallel, collects results
-//! - execute_map_all: executes multiple TaskIterators, applies mapper when all complete
-//! - execute_map_all_pending_and_done: executes with state visibility
+//! - `execute_collect_all`: executes multiple `TaskIterators` in parallel, collects results
+//! - `execute_map_all`: executes multiple `TaskIterators`, applies mapper when all complete
+//! - `execute_map_all_pending_and_done`: executes with state visibility
 
 use foundation_core::valtron::{
-    CollectAll, MapAllDone, MapAllPendingAndDone, Stream, StreamIterator, TaskIterator, TaskStatus,
+    CollectAll, MapAllDone, MapAllPendingAndDone, Stream, TaskStatus,
 };
 
 // Simple test stream iterator
@@ -116,10 +116,8 @@ fn test_collect_all_propagates_pending() {
     let mut got_final = false;
 
     for item in &mut combined {
-        match item {
-            Stream::Pending(_) => {}
-            Stream::Next(_) => got_final = true,
-            _ => {}
+        if let Stream::Next(_) = item {
+            got_final = true;
         }
     }
 
@@ -138,11 +136,11 @@ fn test_map_all_done_applies_mapper() {
     let stream3 = TestStream::new(vec![Stream::Next(15)]);
 
     let mapper = |values: Vec<u32>| values.iter().sum::<u32>();
-    let mut mapped = MapAllDone::new(vec![stream1, stream2, stream3], mapper);
+    let mut mapper_iter = MapAllDone::new(vec![stream1, stream2, stream3], mapper);
 
     // Should produce single mapped result
     let mut got_result = false;
-    for item in &mut mapped {
+    for item in &mut mapper_iter {
         if let Stream::Next(sum) = item {
             assert_eq!(sum, 30, "Sum should be 5 + 10 + 15 = 30");
             got_result = true;
@@ -158,11 +156,11 @@ fn test_map_all_done_empty_streams() {
     let stream1 = TestStream::new(vec![]);
     let stream2 = TestStream::new(vec![]);
 
-    let mapper = |values: Vec<u32>| values.iter().sum::<u32>();
-    let mut mapped = MapAllDone::new(vec![stream1, stream2], mapper);
+    let mapper_fn = |values: Vec<u32>| values.iter().sum::<u32>();
+    let mut mapped_iter = MapAllDone::new(vec![stream1, stream2], mapper_fn);
 
     // Should produce no output for empty streams
-    let result = mapped.next();
+    let result = mapped_iter.next();
     assert!(result.is_none(), "Empty streams should produce no output");
 }
 
@@ -173,10 +171,10 @@ fn test_map_all_done_custom_transformation() {
     let stream2 = TestStream::new(vec![Stream::Next(3)]);
 
     // Custom mapper that multiplies
-    let mapper = |values: Vec<u32>| values.iter().product::<u32>();
-    let mut mapped = MapAllDone::new(vec![stream1, stream2], mapper);
+    let mapper_fn = |values: Vec<u32>| values.iter().product::<u32>();
+    let mut mapped_iter = MapAllDone::new(vec![stream1, stream2], mapper_fn);
 
-    for item in &mut mapped {
+    for item in &mut mapped_iter {
         if let Stream::Next(product) = item {
             assert_eq!(product, 6, "Product should be 2 * 3 = 6");
         }
@@ -193,12 +191,12 @@ fn test_map_all_pending_and_done_receives_states() {
     let stream1 = TestStream::new(vec![Stream::Next(1)]);
     let stream2 = TestStream::new(vec![Stream::Next(2)]);
 
-    let mapper = |states: Vec<Stream<u32, String>>| states.len();
+    let mapper_fn = |states: Vec<Stream<u32, String>>| states.len();
 
-    let mut mapped = MapAllPendingAndDone::new(vec![stream1, stream2], mapper);
+    let mut mapped_iter = MapAllPendingAndDone::new(vec![stream1, stream2], mapper_fn);
 
     let mut got_result = false;
-    for item in &mut mapped {
+    for item in &mut mapped_iter {
         if let Stream::Next(count) = item {
             assert_eq!(count, 2, "Should receive 2 states");
             got_result = true;
@@ -233,25 +231,28 @@ impl Iterator for CounterTask {
     type Item = TaskStatus<u32, u32, foundation_core::valtron::NoAction>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current < self.pending_count {
-            self.current += 1;
-            Some(TaskStatus::Pending(self.current))
-        } else if self.current == self.pending_count {
-            self.current += 1;
-            Some(TaskStatus::Ready(self.ready_value))
-        } else {
-            None
+        use std::cmp::Ordering;
+        match self.current.cmp(&self.pending_count) {
+            Ordering::Less => {
+                self.current += 1;
+                Some(TaskStatus::Pending(self.current))
+            }
+            Ordering::Equal => {
+                self.current += 1;
+                Some(TaskStatus::Ready(self.ready_value))
+            }
+            Ordering::Greater => None,
         }
     }
 }
 
-/// Test 1: execute_collect_all aggregates outputs from multiple tasks
+/// Test 1: `execute_collect_all` aggregates outputs from multiple tasks
 #[test]
 fn test_execute_collect_all_aggregates_outputs() {
     use foundation_core::valtron::{execute_collect_all, initialize_pool, DEFAULT_WAIT_CYCLE};
 
     // Initialize the valtron pool for this test
-    initialize_pool(42, None);
+    let _ = initialize_pool(42, None);
 
     // Create three tasks that each produce a single value after 1 pending state
     let tasks = vec![
@@ -278,18 +279,18 @@ fn test_execute_collect_all_aggregates_outputs() {
             assert!(got_result, "Should produce collected result");
         }
         Err(e) => {
-            panic!("execute_collect_all failed: {:?}", e);
+            panic!("execute_collect_all failed: {e:?}");
         }
     }
 }
 
-/// Test 2: execute_map_all applies mapper when all tasks complete
+/// Test 2: `execute_map_all` applies mapper when all tasks complete
 #[test]
 fn test_execute_map_all_applies_mapper() {
     use foundation_core::valtron::{execute_map_all, initialize_pool, DEFAULT_WAIT_CYCLE};
 
     // Initialize the valtron pool for this test
-    initialize_pool(42, None);
+    let _ = initialize_pool(42, None);
 
     // Create three tasks that produce values immediately (no pending states)
     let tasks = vec![
@@ -298,15 +299,15 @@ fn test_execute_map_all_applies_mapper() {
         CounterTask::new(0, 15),
     ];
 
-    let mapper = |values: Vec<u32>| values.iter().sum::<u32>();
+    let mapper_fn = |values: Vec<u32>| values.iter().sum::<u32>();
 
-    let result = execute_map_all(tasks, mapper, Some(DEFAULT_WAIT_CYCLE));
+    let result = execute_map_all(tasks, mapper_fn, Some(DEFAULT_WAIT_CYCLE));
 
     match result {
-        Ok(mut mapped) => {
+        Ok(mut mapped_stream) => {
             // Iterate through the mapped stream
             let mut got_result = false;
-            for item in &mut mapped {
+            for item in &mut mapped_stream {
                 if let Stream::Next(sum) = item {
                     assert_eq!(sum, 30, "Sum should be 5 + 10 + 15 = 30");
                     got_result = true;
@@ -315,12 +316,12 @@ fn test_execute_map_all_applies_mapper() {
             assert!(got_result, "Should produce mapped result");
         }
         Err(e) => {
-            panic!("execute_map_all failed: {:?}", e);
+            panic!("execute_map_all failed: {e:?}");
         }
     }
 }
 
-/// Test 3: execute_map_all_pending_and_done receives state info
+/// Test 3: `execute_map_all_pending_and_done` receives state info
 #[test]
 fn test_execute_map_all_pending_and_done() {
     use foundation_core::valtron::{
@@ -328,7 +329,7 @@ fn test_execute_map_all_pending_and_done() {
     };
 
     // Initialize the valtron pool for this test
-    initialize_pool(42, None);
+    let _ = initialize_pool(42, None);
 
     // Create two tasks that each go through 1 pending state before ready
     let tasks = vec![CounterTask::new(1, 42), CounterTask::new(1, 99)];
@@ -350,7 +351,7 @@ fn test_execute_map_all_pending_and_done() {
             assert!(got_result, "Should produce result");
         }
         Err(e) => {
-            panic!("execute_map_all_pending_and_done failed: {:?}", e);
+            panic!("execute_map_all_pending_and_done failed: {e:?}");
         }
     }
 }
@@ -361,10 +362,10 @@ fn test_map_all_pending_and_done_empty_streams() {
     let stream1 = TestStream::new(vec![]);
     let stream2 = TestStream::new(vec![]);
 
-    let mapper = |states: Vec<Stream<u32, String>>| states.len();
-    let mut mapped = MapAllPendingAndDone::new(vec![stream1, stream2], mapper);
+    let mapper_fn = |states: Vec<Stream<u32, String>>| states.len();
+    let mut mapped_iter = MapAllPendingAndDone::new(vec![stream1, stream2], mapper_fn);
 
-    let result = mapped.next();
+    let result = mapped_iter.next();
     assert!(result.is_none(), "Empty streams should produce no output");
 }
 
@@ -375,23 +376,20 @@ fn test_map_all_pending_and_done_pending_count() {
     let stream1 = TestStream::new(vec![Stream::Pending("wait1".to_string()), Stream::Next(1)]);
     let stream2 = TestStream::new(vec![Stream::Pending("wait2".to_string()), Stream::Next(2)]);
 
-    let mapper = |states: Vec<Stream<u32, String>>| {
+    let mapper_fn = |states: Vec<Stream<u32, String>>| {
         states
             .iter()
             .filter(|s| matches!(s, Stream::Pending(_)))
             .count()
     };
 
-    let mut mapped = MapAllPendingAndDone::new(vec![stream1, stream2], mapper);
+    let mut mapped_iter = MapAllPendingAndDone::new(vec![stream1, stream2], mapper_fn);
 
     // Should see pending counts before final result
     let mut got_final = false;
-    for item in &mut mapped {
-        match item {
-            Stream::Next(_) => {
-                got_final = true;
-            }
-            _ => {}
+    for item in &mut mapped_iter {
+        if let Stream::Next(_) = item {
+            got_final = true;
         }
     }
 
@@ -404,7 +402,7 @@ fn test_map_all_pending_and_done_state_inspection() {
     let stream1 = TestStream::new(vec![Stream::Next(42)]);
     let stream2 = TestStream::new(vec![Stream::Next(99)]);
 
-    let mapper = |states: Vec<Stream<u32, String>>| {
+    let mapper_fn = |states: Vec<Stream<u32, String>>| {
         let done_count = states
             .iter()
             .filter(|s| matches!(s, Stream::Next(_)))
@@ -416,9 +414,9 @@ fn test_map_all_pending_and_done_state_inspection() {
         (done_count, pending_count)
     };
 
-    let mut mapped = MapAllPendingAndDone::new(vec![stream1, stream2], mapper);
+    let mut mapped_iter = MapAllPendingAndDone::new(vec![stream1, stream2], mapper_fn);
 
-    for item in &mut mapped {
+    for item in &mut mapped_iter {
         if let Stream::Next((done, pending)) = item {
             assert_eq!(done, 2, "Both streams should be done");
             assert_eq!(pending, 0, "No streams should be pending");
@@ -430,7 +428,7 @@ fn test_map_all_pending_and_done_state_inspection() {
 // Split Collector Tests (Feature 07)
 // ============================================================================
 
-/// Test task for split_collector that produces known sequence
+/// Test task for `split_collector` that produces known sequence
 struct SplitTestTask {
     items: Vec<TaskStatus<u32, String, foundation_core::valtron::NoAction>>,
     index: usize,
@@ -456,7 +454,7 @@ impl Iterator for SplitTestTask {
     }
 }
 
-/// Test 1: split_collector sends matched items to observer
+/// Test 1: `split_collector` sends matched items to observer
 #[test]
 fn test_split_collector_observer_receives_matched_items() {
     use foundation_core::valtron::TaskIteratorExt;
@@ -493,7 +491,7 @@ fn test_split_collector_observer_receives_matched_items() {
     assert!(observer_values.contains(&15));
 }
 
-/// Test 2: split_collect_one convenience method
+/// Test 2: `split_collect_one` convenience method
 #[test]
 fn test_split_collect_one_first_match() {
     use foundation_core::valtron::TaskIteratorExt;
@@ -531,7 +529,7 @@ fn test_split_collect_one_first_match() {
     assert!(got_match, "Observer should receive first match");
 }
 
-/// Test 3: Observer receives Stream::Next for matched items
+/// Test 3: Observer receives `Stream::Next` for matched items
 #[test]
 fn test_split_collector_observer_stream_type() {
     use foundation_core::valtron::TaskIteratorExt;
@@ -557,13 +555,9 @@ fn test_split_collector_observer_stream_type() {
     // Observer should receive Stream::Next(42)
     let mut got_42 = false;
     for stream in &mut observer {
-        match stream {
-            Stream::Next(v) if v == 42 => {
-                got_42 = true;
-                break;
-            }
-            Stream::Ignore => continue, // Skip Ignore states while waiting
-            _ => {}
+        if let Stream::Next(42) = stream {
+            got_42 = true;
+            break;
         }
     }
     assert!(got_42, "Observer should receive matched value 42");
@@ -605,7 +599,7 @@ fn test_split_collector_continuation_forwards_all_states() {
 
 use foundation_core::valtron::StreamIteratorExt;
 
-/// Test 5: split_collector on StreamIterator
+/// Test 5: `split_collector` on `StreamIterator`
 #[test]
 fn test_stream_split_collector_observer_receives_matched_items() {
     // Create stream that produces: Next(5), Next(10), Next(15)
@@ -640,7 +634,7 @@ fn test_stream_split_collector_observer_receives_matched_items() {
     assert!(observer_values.contains(&15));
 }
 
-/// Test 6: split_collect_one on StreamIterator
+/// Test 6: `split_collect_one` on `StreamIterator`
 #[test]
 fn test_stream_split_collect_one_first_match() {
     // Create stream with multiple values

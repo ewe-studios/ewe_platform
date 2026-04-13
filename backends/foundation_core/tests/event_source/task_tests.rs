@@ -1,14 +1,14 @@
-//! Unit tests for event_source task module.
+//! Unit tests for `event_source` task module.
 //!
-//! Tests EventSourceTask TaskIterator implementation.
-//! These tests use MockDnsResolver and never make real network connections.
+//! Tests `EventSourceTask` `TaskIterator` implementation.
+//! These tests use `MockDnsResolver` and never make real network connections.
 
 use foundation_core::valtron::TaskIterator;
 use foundation_core::wire::event_source::EventSourceTask;
 use foundation_core::wire::simple_http::client::MockDnsResolver;
 use foundation_core::wire::simple_http::{DnsError, SimpleHeader};
 
-/// WHY: EventSourceTask::connect should create task in Init state.
+/// WHY: `EventSourceTask::connect` should create task in Init state.
 /// WHAT: Verify connect returns Ok and transitions through Connecting → None when connection fails.
 #[test]
 fn test_event_source_task_connect_creates_task() {
@@ -36,7 +36,7 @@ fn test_event_source_task_connect_creates_task() {
     );
 }
 
-/// WHY: EventSourceTask should handle connection failure gracefully.
+/// WHY: `EventSourceTask` should handle connection failure gracefully.
 /// WHAT: Verify task returns Pending(Connecting) then None on connection failure.
 #[test]
 fn test_event_source_task_dns_failure() {
@@ -70,7 +70,7 @@ fn test_event_source_task_dns_failure() {
     );
 }
 
-/// WHY: EventSourceTask should handle invalid URLs gracefully.
+/// WHY: `EventSourceTask` should handle invalid URLs gracefully.
 /// WHAT: Verify connect returns Err for invalid URL.
 #[test]
 fn test_event_source_task_invalid_url() {
@@ -80,8 +80,8 @@ fn test_event_source_task_invalid_url() {
 }
 
 /// WHY: Builder methods should not panic and should return Self for chaining.
-/// WHAT: Verify with_header and with_last_event_id can be chained without panic.
-/// NOTE: These are smoke tests only — actual header/last_event_id delivery
+/// WHAT: Verify `with_header` and `with_last_event_id` can be chained without panic.
+/// NOTE: These are smoke tests only — actual `header/last_event_id` delivery
 /// is verified in integration tests with a real server.
 #[test]
 fn test_event_source_task_builder_chaining() {
@@ -113,7 +113,7 @@ fn test_event_source_task_builder_chaining() {
     );
 }
 
-/// WHY: EventSourceTask should handle HTTPS URLs.
+/// WHY: `EventSourceTask` should handle HTTPS URLs.
 /// WHAT: Verify HTTPS URL is accepted at parse time.
 #[test]
 fn test_event_source_task_https_url() {

@@ -6,16 +6,20 @@ use foundation_core::{
 #[test]
 fn test_tls_handshake_state_variants() {
     // Verify all state variants exist
-    let _init = TlsHandshakeState::Init;
-    let _handshaking = TlsHandshakeState::Handshaking;
-    let _complete = TlsHandshakeState::Complete;
-    let _error = TlsHandshakeState::Error;
+    let init = TlsHandshakeState::Init;
+    let handshaking = TlsHandshakeState::Handshaking;
+    let complete = TlsHandshakeState::Complete;
+    let error = TlsHandshakeState::Error;
+
+    // Use the variants to avoid unused variable warnings
+    assert_ne!(init, complete);
+    assert_ne!(handshaking, error);
 }
 
 #[test]
 fn test_tls_handshake_state_debug() {
     let state = TlsHandshakeState::Init;
-    let debug_str = format!("{:?}", state);
+    let debug_str = format!("{state:?}");
     assert!(debug_str.contains("Init"));
 }
 

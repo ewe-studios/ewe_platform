@@ -1,14 +1,14 @@
-//! Unit tests for ReconnectingEventSourceTask.
+//! Unit tests for `ReconnectingEventSourceTask`.
 //!
 //! Tests reconnection logic, backoff, Last-Event-ID tracking, and max retries.
-//! Uses MockDnsResolver — no real network connections.
+//! Uses `MockDnsResolver` — no real network connections.
 
 use foundation_core::valtron::TaskIterator;
 use foundation_core::wire::event_source::ReconnectingEventSourceTask;
 use foundation_core::wire::simple_http::client::MockDnsResolver;
 use foundation_core::wire::simple_http::DnsError;
 
-/// WHY: ReconnectingEventSourceTask::connect should validate URLs.
+/// WHY: `ReconnectingEventSourceTask::connect` should validate URLs.
 /// WHAT: Verify connect returns Err for invalid URL.
 #[test]
 fn test_reconnecting_task_invalid_url() {
@@ -17,7 +17,7 @@ fn test_reconnecting_task_invalid_url() {
     assert!(result.is_err(), "Expected Err for invalid URL");
 }
 
-/// WHY: ReconnectingEventSourceTask should accept valid URLs.
+/// WHY: `ReconnectingEventSourceTask` should accept valid URLs.
 /// WHAT: Verify connect returns Ok for valid HTTP URL.
 #[test]
 fn test_reconnecting_task_valid_url() {
@@ -26,7 +26,7 @@ fn test_reconnecting_task_valid_url() {
     assert!(result.is_ok(), "Expected Ok for valid HTTP URL");
 }
 
-/// WHY: ReconnectingEventSourceTask should accept HTTPS URLs.
+/// WHY: `ReconnectingEventSourceTask` should accept HTTPS URLs.
 /// WHAT: Verify connect returns Ok for valid HTTPS URL.
 #[test]
 fn test_reconnecting_task_https_url() {
@@ -36,7 +36,7 @@ fn test_reconnecting_task_https_url() {
 }
 
 /// WHY: Builder methods should support chaining without panic.
-/// WHAT: Verify with_max_retries, with_header, with_last_event_id chain correctly.
+/// WHAT: Verify `with_max_retries`, `with_header`, `with_last_event_id` chain correctly.
 #[test]
 fn test_reconnecting_task_builder_chaining() {
     let resolver = MockDnsResolver::new();
@@ -54,7 +54,7 @@ fn test_reconnecting_task_builder_chaining() {
 }
 
 /// WHY: When DNS fails and retries exhaust, task should eventually return None.
-/// WHAT: Verify task exhausts after max_retries reconnection attempts.
+/// WHAT: Verify task exhausts after `max_retries` reconnection attempts.
 #[test]
 fn test_reconnecting_task_exhausts_after_max_retries() {
     let resolver = MockDnsResolver::new().with_error(
@@ -94,11 +94,8 @@ fn test_reconnecting_task_attempts_reconnection_on_failure() {
     let mut steps = 0;
 
     while let Some(status) = task.next_status() {
-        match status {
-            foundation_core::valtron::TaskStatus::Delayed(_) => {
-                saw_delayed = true;
-            }
-            _ => {}
+        if let foundation_core::valtron::TaskStatus::Delayed(_) = status {
+            saw_delayed = true;
         }
         steps += 1;
         assert!(steps < 50, "Task did not exhaust within 50 steps");

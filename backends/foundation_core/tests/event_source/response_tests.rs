@@ -1,11 +1,11 @@
-//! Unit tests for event_source response module.
+//! Unit tests for `event_source` response module.
 //!
-//! Tests SseResponse builder for SSE HTTP responses.
+//! Tests `SseResponse` builder for SSE HTTP responses.
 
 use foundation_core::wire::event_source::SseResponse;
 use foundation_core::wire::simple_http::{SimpleHeader, Status};
 
-/// WHY: SseResponse must have correct default headers for SSE.
+/// WHY: `SseResponse` must have correct default headers for SSE.
 /// WHAT: Verify Content-Type, Cache-Control, and Connection headers are set.
 #[test]
 fn test_sse_response_default_headers() {
@@ -16,15 +16,15 @@ fn test_sse_response_default_headers() {
     assert!(sse.headers().contains_key(&SimpleHeader::CONNECTION));
 }
 
-/// WHY: SseResponse must support custom headers.
-/// WHAT: Verify with_header() adds headers correctly.
+/// WHY: `SseResponse` must support custom headers.
+/// WHAT: Verify `with_header()` adds headers correctly.
 #[test]
 fn test_sse_response_custom_header() {
     let sse = SseResponse::new().with_header(SimpleHeader::custom("X-Custom"), "value");
     assert_eq!(sse.headers().len(), 4);
 }
 
-/// WHY: SseResponse build() must produce correct HTTP response.
+/// WHY: `SseResponse` `build()` must produce correct HTTP response.
 /// WHAT: Verify built response has all required headers.
 #[test]
 fn test_sse_response_build_headers() {
@@ -37,7 +37,7 @@ fn test_sse_response_build_headers() {
     assert!(content_type.contains(&"text/event-stream".to_string()));
 }
 
-/// WHY: SseResponse build() must include custom headers.
+/// WHY: `SseResponse` `build()` must include custom headers.
 /// WHAT: Verify custom headers are present in built response.
 #[test]
 fn test_sse_response_build_custom_header() {
@@ -50,8 +50,8 @@ fn test_sse_response_build_custom_header() {
     assert!(custom.contains(&"value".to_string()));
 }
 
-/// WHY: SseResponse must support custom status codes.
-/// WHAT: Verify with_status() sets the response status.
+/// WHY: `SseResponse` must support custom status codes.
+/// WHAT: Verify `with_status()` sets the response status.
 #[test]
 fn test_sse_response_build_status() {
     let response = SseResponse::new().with_status(Status::Created).build();

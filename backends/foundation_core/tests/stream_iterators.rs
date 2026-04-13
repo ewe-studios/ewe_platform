@@ -125,7 +125,7 @@ fn test_collect() {
             assert!(vec.contains(&2));
             assert!(vec.contains(&3));
         }
-        other => panic!("Expected Next(Vec), got {:?}", other),
+        other => panic!("Expected Next(Vec), got {other:?}"),
     }
 
     // Should be done after yielding the collected result
@@ -160,7 +160,7 @@ fn test_split_collector_map_sends_transformed_items() {
     // Observer gets string representations of Next items > 5
     let (observer, mut continuation) = stream.split_collector_map::<_, String, ()>(
         |item| match item {
-            Stream::Next(v) if *v > 5 => (true, Some(Stream::Next(format!("val:{}", v)))),
+            Stream::Next(v) if *v > 5 => (true, Some(Stream::Next(format!("val:{v}")))),
             _ => (false, None),
         },
         10,
@@ -189,7 +189,7 @@ fn test_split_collector_map_transform_returns_none_skips() {
     // Matched but transform returns None for odd numbers → skipped
     let (observer, mut continuation) = stream.split_collector_map::<_, u64, ()>(
         |item| match item {
-            Stream::Next(v) if v % 2 == 0 => (true, Some(Stream::Next(*v as u64))),
+            Stream::Next(v) if v % 2 == 0 => (true, Some(Stream::Next(u64::from(*v)))),
             Stream::Next(_) => (true, None),
             _ => (false, None),
         },
@@ -243,10 +243,8 @@ fn test_collect_all() {
     // Should collect all values and yield single Next with combined results
     let mut collected_values = Vec::new();
     for item in &mut combined {
-        match item {
-            Stream::Next(values) => collected_values.extend(values),
-            Stream::Pending(_) | Stream::Ignore => {}
-            _ => {}
+        if let Stream::Next(values) = item {
+            collected_values.extend(values);
         }
     }
 
@@ -270,13 +268,9 @@ fn test_map_all_done() {
     // Should apply mapper when all sources produce values
     let mut got_result = false;
     for item in &mut mapper {
-        match item {
-            Stream::Next(sum) => {
-                assert_eq!(sum, 11); // 1 + 10
-                got_result = true;
-            }
-            Stream::Pending(_) | Stream::Init => {}
-            _ => {}
+        if let Stream::Next(sum) = item {
+            assert_eq!(sum, 11); // 1 + 10
+            got_result = true;
         }
     }
 
@@ -297,12 +291,9 @@ fn test_map_all_pending_and_done() {
     // Should apply mapper to all states
     let mut got_result = false;
     for item in &mut mapper {
-        match item {
-            Stream::Next(count) => {
-                assert_eq!(count, 2); // Two states
-                got_result = true;
-            }
-            _ => {}
+        if let Stream::Next(count) = item {
+            assert_eq!(count, 2); // Two states
+            got_result = true;
         }
     }
 
@@ -781,10 +772,7 @@ fn test_concurrent_queue_stream_iterator_yields_ignore_after_max_turns() {
     // Should yield Ignore after max_turns (3) unsuccessful polls
     let mut ignore_count = 0;
     for _ in 0..5 {
-        match iter.next() {
-            Some(Stream::Ignore) => ignore_count += 1,
-            _ => {}
-        }
+        if let Some(Stream::Ignore) = iter.next() { ignore_count += 1 }
     }
 
     // Should have yielded Ignore multiple times

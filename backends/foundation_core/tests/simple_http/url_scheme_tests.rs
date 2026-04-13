@@ -2,7 +2,7 @@
 //!
 //! These tests were copied into the canonical `tests/.../units/simple_http` tree
 //! and exercise scheme-related behaviors of the URL/URI parsing utilities used
-//! by the simple_http client. They are fast, deterministic unit tests that
+//! by the `simple_http` client. They are fast, deterministic unit tests that
 //! avoid network IO.
 
 use foundation_core::wire::simple_http::{client::ParsedUrl, url::Scheme};

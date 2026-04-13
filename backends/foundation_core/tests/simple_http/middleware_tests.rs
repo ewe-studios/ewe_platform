@@ -13,7 +13,7 @@ fn test_extensions_insert_and_get() {
 }
 
 /// WHY: Middleware needs to modify stored state (e.g., increment retry count)
-/// WHAT: Test Extensions::get_mut allows mutating stored values
+/// WHAT: Test `Extensions::get_mut` allows mutating stored values
 #[test]
 fn test_extensions_get_mut() {
     use foundation_core::wire::simple_http::client::Extensions;
@@ -82,8 +82,8 @@ fn test_middleware_trait_basic() {
     );
 }
 
-/// WHY: LoggingMiddleware should log request/response without modifying them
-/// WHAT: Test that LoggingMiddleware doesn't change request
+/// WHY: `LoggingMiddleware` should log request/response without modifying them
+/// WHAT: Test that `LoggingMiddleware` doesn't change request
 #[test]
 fn test_logging_middleware_passthrough() {
     use foundation_core::wire::simple_http::client::{
@@ -109,8 +109,8 @@ fn test_logging_middleware_passthrough() {
     assert_eq!(request.method, SimpleMethod::GET);
 }
 
-/// WHY: TimingMiddleware should measure request duration
-/// WHAT: Test that TimingMiddleware records timing in extensions
+/// WHY: `TimingMiddleware` should measure request duration
+/// WHAT: Test that `TimingMiddleware` records timing in extensions
 #[test]
 fn test_timing_middleware_records_duration() {
     use foundation_core::wire::simple_http::client::{
@@ -146,8 +146,8 @@ fn test_timing_middleware_records_duration() {
     // TimingMiddleware should have recorded duration - test passes if no panic
 }
 
-/// WHY: HeaderMiddleware should add default headers to requests
-/// WHAT: Test that HeaderMiddleware adds headers only if not present
+/// WHY: `HeaderMiddleware` should add default headers to requests
+/// WHAT: Test that `HeaderMiddleware` adds headers only if not present
 #[test]
 fn test_header_middleware_adds_headers() {
     use foundation_core::wire::simple_http::client::{
@@ -176,8 +176,8 @@ fn test_header_middleware_adds_headers() {
     );
 }
 
-/// WHY: HeaderMiddleware should not overwrite existing headers
-/// WHAT: Test that HeaderMiddleware respects existing headers
+/// WHY: `HeaderMiddleware` should not overwrite existing headers
+/// WHAT: Test that `HeaderMiddleware` respects existing headers
 #[test]
 fn test_header_middleware_respects_existing_headers() {
     use foundation_core::wire::simple_http::client::{
@@ -210,7 +210,7 @@ fn test_header_middleware_respects_existing_headers() {
     );
 }
 
-/// WHY: MiddlewareChain must execute in onion model (forward for requests, reverse for responses)
+/// WHY: `MiddlewareChain` must execute in onion model (forward for requests, reverse for responses)
 /// WHAT: Test middleware execution order
 #[test]
 fn test_middleware_chain_execution_order() {
@@ -220,10 +220,6 @@ fn test_middleware_chain_execution_order() {
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::sync::{Arc, Mutex};
-
-    // Track execution order
-    let request_order = Arc::new(Mutex::new(Vec::new()));
-    let response_order = Arc::new(Mutex::new(Vec::new()));
 
     struct OrderMiddleware {
         id: u32,
@@ -251,6 +247,10 @@ fn test_middleware_chain_execution_order() {
             Ok(())
         }
     }
+
+    // Track execution order
+    let request_order = Arc::new(Mutex::new(Vec::new()));
+    let response_order = Arc::new(Mutex::new(Vec::new()));
 
     let mut chain = MiddlewareChain::new();
     chain.add(OrderMiddleware {
@@ -293,8 +293,8 @@ fn test_middleware_chain_execution_order() {
     assert_eq!(*response_order.lock().unwrap(), vec![3, 2, 1]);
 }
 
-/// WHY: RetryMiddleware needs constant backoff strategy (same delay for all retries)
-/// WHAT: Test BackoffStrategy::Constant returns same delay for all attempts
+/// WHY: `RetryMiddleware` needs constant backoff strategy (same delay for all retries)
+/// WHAT: Test `BackoffStrategy::Constant` returns same delay for all attempts
 #[test]
 fn test_backoff_strategy_constant() {
     use foundation_core::wire::simple_http::client::BackoffStrategy;
@@ -309,8 +309,8 @@ fn test_backoff_strategy_constant() {
     assert_eq!(strategy.next_delay(5), Duration::from_millis(100));
 }
 
-/// WHY: RetryMiddleware needs linear backoff (gradually increasing delays)
-/// WHAT: Test BackoffStrategy::Linear calculates base + (increment * attempt)
+/// WHY: `RetryMiddleware` needs linear backoff (gradually increasing delays)
+/// WHAT: Test `BackoffStrategy::Linear` calculates base + (increment * attempt)
 #[test]
 fn test_backoff_strategy_linear() {
     use foundation_core::wire::simple_http::client::BackoffStrategy;
@@ -326,8 +326,8 @@ fn test_backoff_strategy_linear() {
     assert_eq!(strategy.next_delay(3), Duration::from_millis(250)); // 100 + 50*3
 }
 
-/// WHY: RetryMiddleware needs exponential backoff (rapidly increasing delays to avoid overwhelming server)
-/// WHAT: Test BackoffStrategy::Exponential calculates base * multiplier^attempt
+/// WHY: `RetryMiddleware` needs exponential backoff (rapidly increasing delays to avoid overwhelming server)
+/// WHAT: Test `BackoffStrategy::Exponential` calculates base * multiplier^attempt
 #[test]
 fn test_backoff_strategy_exponential() {
     use foundation_core::wire::simple_http::client::BackoffStrategy;
@@ -343,8 +343,8 @@ fn test_backoff_strategy_exponential() {
     assert_eq!(strategy.next_delay(3), Duration::from_millis(800)); // 100 * 2^3
 }
 
-/// WHY: RetryMiddleware needs to track retry attempts to enforce max_retries limit
-/// WHAT: Test RetryState initializes with attempt=0 and stores max_retries
+/// WHY: `RetryMiddleware` needs to track retry attempts to enforce `max_retries` limit
+/// WHAT: Test `RetryState` initializes with attempt=0 and stores `max_retries`
 #[test]
 fn test_retry_state_creation() {
     use foundation_core::wire::simple_http::client::RetryState;
@@ -353,8 +353,8 @@ fn test_retry_state_creation() {
     assert_eq!(state.attempt, 0);
 }
 
-/// WHY: RetryMiddleware must be configurable with max retries and status codes
-/// WHAT: Test RetryMiddleware::new() creates middleware with exponential backoff default
+/// WHY: `RetryMiddleware` must be configurable with max retries and status codes
+/// WHAT: Test `RetryMiddleware::new()` creates middleware with exponential backoff default
 #[test]
 fn test_retry_middleware_creation() {
     use foundation_core::wire::simple_http::client::RetryMiddleware;
@@ -364,7 +364,7 @@ fn test_retry_middleware_creation() {
 }
 
 /// WHY: Different use cases need different backoff strategies
-/// WHAT: Test RetryMiddleware::with_backoff() allows custom backoff configuration
+/// WHAT: Test `RetryMiddleware::with_backoff()` allows custom backoff configuration
 #[test]
 fn test_retry_middleware_with_backoff() {
     use foundation_core::wire::simple_http::client::{BackoffStrategy, RetryMiddleware};
@@ -376,8 +376,8 @@ fn test_retry_middleware_with_backoff() {
     // Test passes if builder pattern works (no panic)
 }
 
-/// WHY: RetryMiddleware must store retry state in request extensions for tracking
-/// WHAT: Test RetryMiddleware::handle_request stores RetryState in extensions
+/// WHY: `RetryMiddleware` must store retry state in request extensions for tracking
+/// WHAT: Test `RetryMiddleware::handle_request` stores `RetryState` in extensions
 #[test]
 fn test_retry_middleware_stores_state_in_extensions() {
     use foundation_core::wire::simple_http::client::{
@@ -403,8 +403,8 @@ fn test_retry_middleware_stores_state_in_extensions() {
     assert_eq!(state.unwrap().attempt, 0);
 }
 
-/// WHY: RetryMiddleware should pass through responses with non-retryable status codes
-/// WHAT: Test RetryMiddleware::handle_response returns Ok for status 200
+/// WHY: `RetryMiddleware` should pass through responses with non-retryable status codes
+/// WHAT: Test `RetryMiddleware::handle_response` returns Ok for status 200
 #[test]
 fn test_retry_middleware_passes_through_success() {
     use foundation_core::wire::simple_http::client::{
@@ -434,8 +434,8 @@ fn test_retry_middleware_passes_through_success() {
     assert!(middleware.handle_response(&request, &mut response).is_ok());
 }
 
-/// WHY: Middleware name is used for debugging and skip_middleware functionality
-/// WHAT: Test RetryMiddleware::name() returns "RetryMiddleware"
+/// WHY: Middleware name is used for debugging and `skip_middleware` functionality
+/// WHAT: Test `RetryMiddleware::name()` returns "`RetryMiddleware`"
 #[test]
 fn test_retry_middleware_name() {
     use foundation_core::wire::simple_http::client::{Middleware, RetryMiddleware};
@@ -444,8 +444,8 @@ fn test_retry_middleware_name() {
     assert_eq!(middleware.name(), "RetryMiddleware");
 }
 
-/// WHY: RetryMiddleware must signal retry needed via error for matching status codes
-/// WHAT: Test RetryMiddleware::handle_response returns RetryNeeded error for status 429
+/// WHY: `RetryMiddleware` must signal retry needed via error for matching status codes
+/// WHAT: Test `RetryMiddleware::handle_response` returns `RetryNeeded` error for status 429
 #[test]
 fn test_retry_middleware_returns_retry_error_for_matching_status() {
     use foundation_core::wire::simple_http::client::{
