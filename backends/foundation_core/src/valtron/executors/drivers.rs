@@ -36,6 +36,7 @@ pub fn initialize_pool(
 ) -> super::threads::PoolGuard {
     #[cfg(target_arch = "wasm32")]
     {
+        tracing::debug!("Starting under wasm");
         single::initialize_pool(seed_for_rng);
         return super::threads::PoolGuard::dummy();
     }
@@ -44,6 +45,7 @@ pub fn initialize_pool(
     {
         #[cfg(feature = "multi")]
         {
+            tracing::debug!("Starting under feature=multi");
             use crate::valtron::multi;
             multi::initialize_pool(seed_for_rng, _user_thread_num)
         }
@@ -51,6 +53,7 @@ pub fn initialize_pool(
         #[cfg(not(feature = "multi"))]
         {
             use super::single;
+            tracing::debug!("Starting under not(feature=multi), so single threaded");
             single::initialize_pool(seed_for_rng);
             super::threads::PoolGuard::dummy()
         }
