@@ -763,6 +763,7 @@ pub enum ModelState {
     GeneratingEmbeddings,
     GeneratingTokens(Option<UsageReport>),
     Finished,
+    Error(String),
 }
 
 pub trait Model {

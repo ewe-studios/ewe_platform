@@ -400,6 +400,10 @@ impl LlamaCppStream {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<Self> {
+        // Initialize backend upfront - this is where we can properly report errors
+        let backend = LlamaBackend::init()
+            .map_err(|e| GenerationError::Generic(format!("Failed to initialize llama.cpp backend: {e}")))?;
+
         // Build sampler from params
         let params = specs.unwrap_or_default();
         let sampler = build_sampler_chain(&params);
@@ -418,7 +422,7 @@ impl LlamaCppStream {
         Ok(Self {
             inner: Rc::new(RefCell::new(LlamaCppStreamInner {
                 model,
-                backend: None,
+                backend: Some(backend),
                 ctx: None,
                 sampler: Some(sampler),
                 current_pos: 0,
@@ -438,11 +442,9 @@ impl Iterator for LlamaCppStream {
 
     #[allow(
         clippy::too_many_lines,
-        clippy::manual_let_else,
         clippy::single_match_else,
         clippy::cast_possible_truncation,
         clippy::cast_possible_wrap,
-        clippy::manual_unwrap_or_default,
         clippy::cast_precision_loss,
         clippy::cast_lossless,
         clippy::cast_sign_loss
@@ -463,12 +465,9 @@ impl Iterator for LlamaCppStream {
 
         // Create backend and context on second call if not exists
         if inner.backend.is_none() {
-            let backend = match LlamaBackend::init() {
-                Ok(b) => b,
-                Err(_) => {
-                    inner.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
-                }
+            let Ok(backend) = LlamaBackend::init() else {
+                inner.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
             };
 
             let (model, ctx_params) = {
@@ -476,24 +475,24 @@ impl Iterator for LlamaCppStream {
                 (Rc::clone(&model_inner.model), model_inner.context.clone())
             };
 
-            match model.new_context(&backend, ctx_params) {
+            let ctx = match model.new_context(&backend, ctx_params) {
                 Ok(ctx) => {
                     // Safety: We're transmuting the lifetime to 'static.
                     // This is safe because:
                     // 1. The context is stored in the same struct as the backend
                     // 2. Both are dropped together when the stream is dropped
                     // 3. The context only references the model which outlives the stream
-                    let ctx_static = unsafe {
+                    unsafe {
                         std::mem::transmute::<LlamaModelContext<'_>, LlamaModelContext<'static>>(ctx)
-                    };
-                    inner.backend = Some(backend);
-                    inner.ctx = Some(ctx_static);
+                    }
                 }
                 Err(_) => {
                     inner.finished = true;
                     return Some(Stream::Pending(ModelState::Finished));
                 }
-            }
+            };
+            inner.backend = Some(backend);
+            inner.ctx = Some(ctx);
             return Some(Stream::Pending(ModelState::GeneratingTokens(None)));
         }
 
@@ -504,12 +503,9 @@ impl Iterator for LlamaCppStream {
         }
 
         // Clone context at the beginning - Clone is cheap (pointer copy + Vec clone)
-        let mut ctx = match inner.ctx.as_ref() {
-            Some(ctx) => ctx.clone(),
-            None => {
-                inner.finished = true;
-                return None;
-            }
+        let Some(mut ctx) = inner.ctx.clone() else {
+            inner.finished = true;
+            return None;
         };
         let model = {
             let model_inner = inner.model.inner.borrow();
@@ -517,8 +513,7 @@ impl Iterator for LlamaCppStream {
         };
 
         // Check if sampler exists
-        let sampler_exists = inner.sampler.is_some();
-        if !sampler_exists {
+        if inner.sampler.is_none() {
             inner.finished = true;
             return None;
         }
@@ -526,15 +521,10 @@ impl Iterator for LlamaCppStream {
         // On first token generation, tokenize and evaluate the prompt
         if inner.tokens_generated == 0 {
             // Extract prompt early to avoid borrow conflicts
-            let prompt_opt = inner.prompt.take();
-
-            let prompt = prompt_opt.unwrap_or_default();
-            let tokens = match model.str_to_token(&prompt, AddBos::Always) {
-                Ok(t) => t,
-                Err(_) => {
-                    inner.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
-                }
+            let prompt = inner.prompt.take().unwrap_or_default();
+            let Ok(tokens) = model.str_to_token(&prompt, AddBos::Always) else {
+                inner.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
             };
             inner.input_tokens = tokens.len();
 
@@ -555,7 +545,10 @@ impl Iterator for LlamaCppStream {
         }
 
         // Sample next token
-        let sampler = inner.sampler.as_mut().unwrap();
+        let Some(sampler) = inner.sampler.as_mut() else {
+            inner.finished = true;
+            return None;
+        };
         let next_token = sampler.sample(&ctx, 0);
 
         // Check for end of sequence
@@ -565,6 +558,7 @@ impl Iterator for LlamaCppStream {
         }
 
         // Detokenize
+        #[allow(clippy::manual_unwrap_or_default)] // Explicit error handling is clearer here
         let token_str = match model.token_to_str(next_token, Special::Tokenize) {
             Ok(s) => s,
             Err(_) => String::new(),
