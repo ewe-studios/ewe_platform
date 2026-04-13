@@ -300,7 +300,7 @@ mod test_server_tests {
     use foundation_core::{
         extensions::result_ext::BoxedResult,
         wire::simple_http::{
-            FuncSimpleServer, RequestDescriptor, SendSafeBody, SimpleBody, Status,
+            FuncSimpleServer, RequestDescriptor, SendSafeBody, Status,
         },
     };
 
