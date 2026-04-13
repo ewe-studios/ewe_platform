@@ -101,7 +101,7 @@ mod tests {
         use core::time::Duration;
         use std::time::Instant;
 
-        /// Test that wait_duration waits for the correct duration
+        /// Test that `wait_duration` waits for the correct duration
         #[test]
         fn test_wait_duration_correct_duration() {
             // Test with a 100ms duration
@@ -257,7 +257,7 @@ mod tests {
         use super::*;
         use core::time::Duration;
 
-        /// Test that wait_duration waits for the correct duration
+        /// Test that `wait_duration` waits for the correct duration
         #[test]
         fn test_wait_duration_correct_duration() {
             // Test with a 100ms duration

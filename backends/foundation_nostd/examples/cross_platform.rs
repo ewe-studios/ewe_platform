@@ -124,8 +124,9 @@ fn main() {
     // Demonstrate multi-threaded access (native only)
     #[cfg(not(target_arch = "wasm32"))]
     {
-        println!("🧵 Testing multi-threaded access (native only):");
         use std::sync::Arc;
+
+        println!("🧵 Testing multi-threaded access (native only):");
 
         let shared_counter = Arc::new(SharedCounter::new(0));
         let mut handles = vec![];
