@@ -104,6 +104,7 @@ impl FetchPending {
     fn from_http(p: HttpRequestPending, source: &'static str) -> Self {
         match p {
             HttpRequestPending::WaitingForStream => Self::Connecting { source },
+            HttpRequestPending::CheckRedirectResponse => Self::Connecting { source },
             HttpRequestPending::WaitingIntroAndHeaders => Self::AwaitingResponse { source },
         }
     }
