@@ -113,12 +113,11 @@ mod tests {
             // Allow for some tolerance due to system scheduling
             assert!(
                 elapsed.as_millis() >= 100,
-                "Wait duration was too short: {:?}",
-                elapsed
+                "Wait duration was too short: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration handles zero duration correctly
+        /// Test that `wait_duration` handles zero duration correctly
         #[test]
         fn test_wait_duration_zero_duration() {
             let start = Instant::now();
@@ -128,12 +127,11 @@ mod tests {
             // Zero duration should result in immediate return
             assert!(
                 elapsed.as_nanos() < 1000,
-                "Zero duration wait took too long: {:?}",
-                elapsed
+                "Zero duration wait took too long: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration handles very short durations correctly
+        /// Test that `wait_duration` handles very short durations correctly
         #[test]
         fn test_wait_duration_short_duration() {
             // Test with a very short duration
@@ -145,12 +143,11 @@ mod tests {
             // Allow for some tolerance
             assert!(
                 elapsed.as_micros() >= 10,
-                "Short wait duration was too short: {:?}",
-                elapsed
+                "Short wait duration was too short: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration works with very long durations
+        /// Test that `wait_duration` works with very long durations
         #[test]
         fn test_wait_duration_long_duration() {
             // Test with a 1 second duration
@@ -162,12 +159,11 @@ mod tests {
             // Allow for some tolerance
             assert!(
                 elapsed.as_secs() >= 1,
-                "Long wait duration was too short: {:?}",
-                elapsed
+                "Long wait duration was too short: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration works with duration that is not a multiple of the system timer resolution
+        /// Test that `wait_duration` works with duration that is not a multiple of the system timer resolution
         #[test]
         fn test_wait_duration_non_multiple_duration() {
             // Test with a duration that is not a multiple of the system timer resolution
@@ -179,12 +175,11 @@ mod tests {
             // Allow for some tolerance
             assert!(
                 elapsed.as_millis() >= 123,
-                "Non-multiple wait duration was too short: {:?}",
-                elapsed
+                "Non-multiple wait duration was too short: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration works with duration that is very small
+        /// Test that `wait_duration` works with duration that is very small
         #[test]
         fn test_wait_duration_very_small_duration() {
             // Test with a very small duration
@@ -196,12 +191,11 @@ mod tests {
             // Allow for some tolerance
             assert!(
                 elapsed.as_nanos() >= 1,
-                "Very small wait duration was too short: {:?}",
-                elapsed
+                "Very small wait duration was too short: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration works with duration that is very large
+        /// Test that `wait_duration` works with duration that is very large
         #[test]
         fn test_wait_duration_very_large_duration() {
             // Test with a very large duration
@@ -213,12 +207,11 @@ mod tests {
             // Allow for some tolerance
             assert!(
                 elapsed.as_secs() >= 5,
-                "Very large wait duration was too short: {:?}",
-                elapsed
+                "Very large wait duration was too short: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration works with duration that is exactly the system timer resolution
+        /// Test that `wait_duration` works with duration that is exactly the system timer resolution
         #[test]
         fn test_wait_duration_exact_timer_resolution() {
             // Test with a duration that is exactly the system timer resolution
@@ -230,12 +223,11 @@ mod tests {
             // Allow for some tolerance
             assert!(
                 elapsed.as_millis() >= 1,
-                "Exact timer resolution wait duration was too short: {:?}",
-                elapsed
+                "Exact timer resolution wait duration was too short: {elapsed:?}"
             );
         }
 
-        /// Test that wait_duration works with duration that is a fraction of the system timer resolution
+        /// Test that `wait_duration` works with duration that is a fraction of the system timer resolution
         #[test]
         fn test_wait_duration_fraction_timer_resolution() {
             // Test with a duration that is a fraction of the system timer resolution
@@ -247,8 +239,7 @@ mod tests {
             // Allow for some tolerance
             assert!(
                 elapsed.as_micros() >= 500,
-                "Fraction timer resolution wait duration was too short: {:?}",
-                elapsed
+                "Fraction timer resolution wait duration was too short: {elapsed:?}"
             );
         }
     }
