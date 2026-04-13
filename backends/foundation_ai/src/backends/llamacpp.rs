@@ -365,7 +365,7 @@ pub struct LlamaCppStream {
 
 /// Internal stream state - uses Clone for context
 struct LlamaCppStreamInner {
-    /// Reference to the model (cloned from LlamaModels)
+    /// Reference to the model (cloned from `LlamaModels`)
     model: LlamaModels,
     /// Backend (owned)
     backend: Option<LlamaBackend>,
@@ -405,6 +405,11 @@ impl LlamaCppStream {
         let sampler = build_sampler_chain(&params);
 
         // Get max_tokens from params
+        #[allow(
+            clippy::cast_possible_truncation,
+            clippy::cast_possible_wrap,
+            clippy::cast_sign_loss
+        )] // FFI boundary: llama.cpp uses i32 for token counts
         let max_tokens = params.max_tokens as i32;
 
         // Extract prompt from interaction (simplified - just use system prompt for now)
@@ -431,6 +436,17 @@ impl LlamaCppStream {
 impl Iterator for LlamaCppStream {
     type Item = Stream<Messages, ModelState>;
 
+    #[allow(
+        clippy::too_many_lines,
+        clippy::manual_let_else,
+        clippy::single_match_else,
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::manual_unwrap_or_default,
+        clippy::cast_precision_loss,
+        clippy::cast_lossless,
+        clippy::cast_sign_loss
+    )] // FFI boundary: llama.cpp integration requires these patterns for C API interop
     fn next(&mut self) -> Option<Self::Item> {
         let mut inner = self.inner.borrow_mut();
 
