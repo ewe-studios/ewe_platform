@@ -225,6 +225,7 @@ impl WebSocketEchoServer {
             while running_clone.load(Ordering::Relaxed) {
                 match listener.accept() {
                     Ok((stream, _)) => {
+                        tracing::info!("New connection sreceived!");
                         let handler_clone = Arc::clone(&running_clone);
                         thread::spawn(move || {
                             if let Err(e) = Self::handle_connection(stream, &handler_clone) {
