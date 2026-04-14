@@ -4,6 +4,7 @@
 
 use std::time::Duration;
 
+use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::wire::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
@@ -13,7 +14,7 @@ use tracing_test::traced_test;
 #[test]
 #[traced_test]
 fn test_text_message_echo() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -48,7 +49,7 @@ fn test_text_message_echo() {
 #[test]
 #[traced_test]
 fn test_binary_message_echo() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -84,7 +85,7 @@ fn test_binary_message_echo() {
 #[test]
 #[traced_test]
 fn test_multiple_messages_sequence() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -132,7 +133,7 @@ fn test_multiple_messages_sequence() {
 #[test]
 #[traced_test]
 fn test_ping_pong_exchange() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -168,7 +169,7 @@ fn test_ping_pong_exchange() {
 #[test]
 #[traced_test]
 fn test_client_initiated_close() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -202,7 +203,7 @@ fn test_client_initiated_close() {
 #[test]
 #[traced_test]
 fn test_large_message_echo() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -239,7 +240,7 @@ fn test_large_message_echo() {
 #[test]
 #[traced_test]
 fn test_very_large_message_echo() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -276,7 +277,7 @@ fn test_very_large_message_echo() {
 #[test]
 #[traced_test]
 fn test_utf8_text_messages() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
@@ -319,7 +320,7 @@ fn test_utf8_text_messages() {
 #[test]
 #[traced_test]
 fn test_message_iterator() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");

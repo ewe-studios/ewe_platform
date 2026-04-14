@@ -5,6 +5,7 @@
 //!
 //! HOW: Uses TestHttpServer bound to localhost with SSE-formatted responses.
 
+use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::event_source::{Event, SseStream, SseStreamEvent};
 use foundation_core::wire::simple_http::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
@@ -40,7 +41,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 #[test]
 #[traced_test]
 fn test_sse_stream_connects_and_receives_event() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = TestHttpServer::with_response(|_req| sse_response(b"data: hello\n\n"));
 
@@ -90,7 +91,7 @@ fn test_sse_stream_connects_and_receives_event() {
 #[test]
 #[traced_test]
 fn test_sse_stream_multiple_events() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = TestHttpServer::with_response(|_req| {
         sse_response(b"data: first\n\ndata: second\n\ndata: third\n\n")
@@ -130,7 +131,7 @@ fn test_sse_stream_multiple_events() {
 #[test]
 #[traced_test]
 fn test_sse_stream_preserves_event_data() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let expected_data = "test-payload-123";
     let server = TestHttpServer::with_response(move |_req| {

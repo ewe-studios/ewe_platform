@@ -13,11 +13,15 @@ pub const DEFAULT_YIELD_WAIT_TIME: time::Duration = time::Duration::from_secs(6)
 /// `DEFAULT_MAX_TURNS` is the default number of poll attempts before yielding `Stream::Ignore`
 /// in `ConcurrentQueueStreamIterator`. This balances responsiveness (checking other tasks)
 /// against throughput (busy polling for items).
-pub const DEFAULT_MAX_TURNS: usize = 10;
+pub const DEFAULT_MAX_TURNS: usize = 15;
 
 /// `DEFAULT_PARK_DURATION` is the default duration to park thread when queue is empty
 /// in `ConcurrentQueueStreamIterator` (std mode only).
 pub const DEFAULT_PARK_DURATION: time::Duration = time::Duration::from_nanos(20);
+
+/// `DEFAULT_WAIT_CYCLE` is the default duration to wait for queue items to appear
+/// in `ConcurrentQueueStreamIterator` (std mode only).
+pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_nanos(100);
 
 pub const BACK_OFF_JITER: f32 = 0.75;
 pub const BACK_OFF_THREAD_FACTOR: u32 = 6;
