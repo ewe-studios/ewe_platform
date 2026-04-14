@@ -216,7 +216,7 @@ where
         }
     }
 
-    // This is not really necessary has the system already calls pack_timeout
+    // WHY: This is not really necessary has the system already calls pack_timeout
     // but if the pool guard is dropped then nothing is there to execute the
     // messages.
     //

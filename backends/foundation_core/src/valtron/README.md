@@ -7,13 +7,11 @@ An experimental async runtime built on iterators that do not specifically rely o
 
 **Symptom:** Integration tests using `WebSocketClient`, `DrivenStreamIterator`, or other multi-threaded valtron-based iterators hang indefinitely or return `Stream::Ignore` immediately without processing any values.
 
-**Cause:** The `run_until_stream_has_value` function in `drivers.rs` had conditional compilation that only implemented waiting logic for:
-- `not(feature = "multi")` (single-threaded mode)
-- `target_arch = "wasm32"` (WebAssembly mode)
+**Cause:** The `PoolGuard` returned by `initialize_pool()` must be kept alive for the duration of test execution. Dropping it (e.g., `let _ = initialize_pool(...)`) immediately shuts down all worker threads, preventing any task execution.
 
-When compiled with `feature = "multi"` (multi-threaded mode), the function was a no-op that returned immediately without waiting for items to appear in the concurrent queue. This meant that calls to `.messages()` or similar stream iterators would immediately report the queue as empty and yield `Stream::Ignore`, causing tests to skip all messages or loop infinitely.
+In multi-threaded mode (`feature = "multi"`), tasks run on worker threads managed by the pool. When `PoolGuard` is dropped, the pool shuts down and all worker threads exit. This means queued tasks never execute, so the concurrent queue never receives any values. The iterator then yields `Stream::Ignore` or loops waiting for values that will never arrive.
 
-**Additional Issue:** The `PoolGuard` returned by `initialize_pool()` must be kept alive for the duration of test execution. Dropping it (e.g., `let _ = initialize_pool(...)`) immediately shuts down all worker threads, preventing any task execution. Tests must bind the guard to a variable that lives until the test completes:
+**Fix:** Keep `PoolGuard` alive for the test duration:
 
 ```rust
 // WRONG - guard dropped immediately, worker threads shut down
@@ -23,35 +21,14 @@ let _ = foundation_core::valtron::initialize_pool(42, None);
 let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 ```
 
-**Fix:** Two changes were required:
-
-1. **drivers.rs (lines 219-231):** Added multi-threaded waiting logic:
-```rust
-#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-{
-    use std::time::Duration;
-
-    tracing::debug!("Executing as a multi-threaded stream - waiting for queue items");
-    // In multi-threaded mode, wait for items to appear in the concurrent queue.
-    // The task is running on a worker thread and will push items to the queue.
-    // We spin-wait with a small yield to avoid busy-spinning while remaining responsive.
-    while stream.is_empty() && !stream.is_closed() {
-        std::hint::spin_loop();
-        std::thread::sleep(Duration::from_micros(100));
-    }
-}
-```
-
-2. **Test files:** Update all integration tests to keep `PoolGuard` alive:
-   - Import: `use foundation_core::valtron::PoolGuard;`
-   - Bind guard: `let _pool_guard: PoolGuard = initialize_pool(42, None);`
+**Note:** An initial fix attempt added a `thread::sleep` wait loop in `run_until_stream_has_value` for multi-threaded mode, but this was unnecessary. The real issue was the dropped `PoolGuard` - once the guard is kept alive, worker threads remain active and tasks execute normally.
 
 **Files affected:**
-- `backends/foundation_core/src/valtron/executors/drivers.rs` - Core fix
 - `tests/backends/foundation_core/websocket/echo_tests.rs` - Test fix
 - `tests/backends/foundation_core/websocket/subprotocol_tests.rs` - Test fix
 - `tests/backends/foundation_core/websocket/reconnection_tests.rs` - Test fix
 - `tests/backends/foundation_core/event_source/consumer_integration_tests.rs` - Test fix
+- `backends/foundation_core/src/valtron/executors/drivers.rs` - Removed unnecessary multi-threaded wait code
 
 ---
 
