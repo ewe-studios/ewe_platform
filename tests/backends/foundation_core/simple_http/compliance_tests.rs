@@ -1693,8 +1693,9 @@ mod http_response_compliance {
         #[test]
         #[traced_test]
         fn space_after_chunk_header() {
-            let message =
-                "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\na \\r\\n0123456789\n0\n\n\n";
+            // Test chunked encoding with space after chunk size (strict mode should handle this)
+            // Format: chunk-size [space] CRLF chunk-data CRLF
+            let message = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\na \r\n0123456789\r\n0\r\n\r\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -1755,8 +1756,9 @@ mod http_response_compliance {
         #[test]
         #[traced_test]
         fn space_after_chunk_header_lenient() {
-            let message =
-                "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\na \\r\\n0123456789\n0\n\n\n";
+            // Test chunked encoding with space after chunk size (lenient mode)
+            // Format: chunk-size [space] CRLF chunk-data CRLF
+            let message = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\na \r\n0123456789\r\n0\r\n\r\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -5806,8 +5808,9 @@ Hello world!";
         #[test]
         #[traced_test]
         fn space_after_chunk_header() {
-            let message =
-                "PUT /url HTTP/1.1\nTransfer-Encoding: chunked\n\na \\r\\n0123456789\n0\n\n\n";
+            // Test chunked encoding with space after chunk size (strict mode)
+            // Format: chunk-size [space] CRLF chunk-data CRLF
+            let message = "PUT /url HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\na \r\n0123456789\r\n0\r\n\r\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -5878,8 +5881,9 @@ Hello world!";
         #[test]
         #[traced_test]
         fn space_after_chunk_header_lenient() {
-            let message =
-                "PUT /url HTTP/1.1\nTransfer-Encoding: chunked\n\na \\r\\n0123456789\n0\n\n\n";
+            // Test chunked encoding with space after chunk size (lenient mode)
+            // Format: chunk-size [space] CRLF chunk-data CRLF
+            let message = "PUT /url HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\na \r\n0123456789\r\n0\r\n\r\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
