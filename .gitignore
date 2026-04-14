@@ -12,6 +12,8 @@ lerna-debug.log*
 debug/
 target/
 build/
+tools/dawn/*
+!tools/dawn/.gitkeep
 tools/dawn/install
 tools/dawn/Install
 tools/dawn/third_party

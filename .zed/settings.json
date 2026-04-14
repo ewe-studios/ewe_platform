@@ -1,4 +1,8 @@
 {
+  "git": {
+    "ignored_submodules": "all",
+    "ignore_untracked_in_submodules": true
+  },
   "lsp": {
     "rust-analyzer": {
       "initialization_options": {
