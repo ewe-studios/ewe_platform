@@ -9,8 +9,11 @@ use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::event_source::{Event, SseStream, SseStreamEvent};
 use foundation_core::wire::simple_http::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
+use serial_test::serial;
 use std::net::SocketAddr;
 use tracing_test::traced_test;
+
+// All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 /// Parse the SocketAddr from a TestHttpServer's base_url.
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
@@ -40,6 +43,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
 /// WHAT: Verify SseStream wraps EventSourceTask correctly and yields Event variant.
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_sse_stream_connects_and_receives_event() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -90,6 +94,7 @@ fn test_sse_stream_connects_and_receives_event() {
 /// WHAT: Verify SseStream yields all events before exhaustion.
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_sse_stream_multiple_events() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -130,6 +135,7 @@ fn test_sse_stream_multiple_events() {
 /// WHAT: Verify event data matches what server sent.
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_sse_stream_preserves_event_data() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 

@@ -102,6 +102,9 @@ thiserror = { version = "2"}
 # specific for testing serially
 serial_test = "0.6.0"
 
+# testing with timeouts
+ntest = "0.9"
+
 # examples and benchmarks
 criterion = { version = "0.5.1" }
 pprof = { version = "0.13.0" }

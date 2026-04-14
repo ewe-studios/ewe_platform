@@ -9,11 +9,15 @@ use std::time::Duration;
 use foundation_core::valtron::{PoolGuard, TaskIterator, TaskStatus};
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::wire::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
+use serial_test::serial;
 use tracing_test::traced_test;
+
+// All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 // Test 1: ReconnectingWebSocketTask creates successfully
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_creation() {
     let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat");
@@ -24,6 +28,7 @@ fn test_reconnecting_task_creation() {
 // Test 2: ReconnectingWebSocketTask rejects invalid URL
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_invalid_url() {
     let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "not-a-valid-url");
@@ -34,6 +39,7 @@ fn test_reconnecting_task_invalid_url() {
 // Test 3: ReconnectingWebSocketTask rejects non-ws scheme
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_non_ws_scheme() {
     let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "http://localhost:8080/chat");
@@ -44,6 +50,7 @@ fn test_reconnecting_task_non_ws_scheme() {
 // Test 4: Builder configuration methods work
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_builder() {
     let resolver = SystemDnsResolver;
 
@@ -61,6 +68,7 @@ fn test_reconnecting_task_builder() {
 // Test 5: Task progresses through Connecting state
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_progress_states() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -87,6 +95,7 @@ fn test_reconnecting_task_progress_states() {
 // Test 6: ReconnectingWebSocketTask is Send
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_is_send() {
     fn assert_send<T: Send>() {}
     assert_send::<ReconnectingWebSocketTask<SystemDnsResolver>>();
@@ -95,6 +104,7 @@ fn test_reconnecting_task_is_send() {
 // Test 7: Task with subprotocols configuration
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_with_subprotocols() {
     let resolver = SystemDnsResolver;
 
@@ -108,6 +118,7 @@ fn test_reconnecting_task_with_subprotocols() {
 // Test 8: Task with custom header
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_with_header() {
     use foundation_core::wire::simple_http::SimpleHeader;
 
@@ -126,6 +137,7 @@ fn test_reconnecting_task_with_header() {
 // Test 9: Task with custom backoff
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_reconnecting_task_with_custom_backoff() {
     use foundation_core::retries::ExponentialBackoffDecider;
 
@@ -145,6 +157,7 @@ fn test_reconnecting_task_with_custom_backoff() {
 // Test 10: Connection failure triggers reconnection attempt
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_connection_failure_triggers_reconnect() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -200,6 +213,7 @@ fn test_connection_failure_triggers_reconnect() {
 // Test 11: Max retries eventually exhausts
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_max_retries_exhausts() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -227,6 +241,7 @@ fn test_max_retries_exhausts() {
 // Test 12: Max reconnect duration eventually exhausts
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_max_reconnect_duration_exhausts() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 

@@ -8,12 +8,16 @@ use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::wire::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
+use serial_test::serial;
 use std::time::Duration;
 use tracing_test::traced_test;
+
+// All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 // Test 1: Client can request subprotocol
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_client_requests_subprotocol() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -58,6 +62,7 @@ fn test_client_requests_subprotocol() {
 // Test 2: Client with_subprotocol builder method
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_client_with_subprotocol_builder() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -81,6 +86,7 @@ fn test_client_with_subprotocol_builder() {
 // Test 3: Server selects first matching subprotocol
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_server_selects_first_matching_protocol() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -108,6 +114,7 @@ fn test_server_selects_first_matching_protocol() {
 // Test 4: Client requests multiple subprotocols
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_client_requests_multiple_subprotocols() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -153,6 +160,7 @@ fn test_client_requests_multiple_subprotocols() {
 // Test 5: Connection succeeds without subprotocol
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_connection_without_subprotocol() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -177,6 +185,7 @@ fn test_connection_without_subprotocol() {
 // Test 6: Server without subprotocol support
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_server_without_subprotocol_support() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -201,6 +210,7 @@ fn test_server_without_subprotocol_support() {
 // Test 7: Subprotocol header extraction (unit test for server-side)
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_subprotocol_header_extraction() {
     use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
@@ -229,6 +239,7 @@ fn test_subprotocol_header_extraction() {
 // Test 8: Missing subprotocol header returns None
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_missing_subprotocol_returns_none() {
     use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
@@ -254,6 +265,7 @@ fn test_missing_subprotocol_returns_none() {
 // Test 9: Empty subprotocol string handling
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_empty_subprotocol_string() {
     use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
@@ -281,6 +293,7 @@ fn test_empty_subprotocol_string() {
 // Test 10: Server includes selected protocol in response
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_server_includes_selected_protocol() {
     use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
     use foundation_core::wire::websocket::WebSocketUpgrade;

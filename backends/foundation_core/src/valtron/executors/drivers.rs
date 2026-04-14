@@ -216,23 +216,40 @@ where
         }
     }
 
-    // WHY: This is not really necessary has the system already calls pack_timeout
-    // but if the pool guard is dropped then nothing is there to execute the
-    // messages.
-    //
-    // #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-    // {
-    //     use std::time::Duration;
-    //
-    //     tracing::debug!("Executing as a multi-threaded stream - waiting for queue items");
-    //     // In multi-threaded mode, wait for items to appear in the concurrent queue.
-    //     // The task is running on a worker thread and will push items to the queue.
-    //     // We spin-wait with a small yield to avoid busy-spinning while remaining responsive.
-    //     while stream.is_empty() && !stream.is_closed() {
-    //         std::hint::spin_loop();
-    //         std::thread::sleep(Duration::from_micros(100));
-    //     }
-    // }
+    #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+    {
+        use std::time::Duration;
+
+        let initial_empty_count = stream.len();
+        let is_closed = stream.is_closed();
+        tracing::debug!(
+            "multi-threaded wait - initial queue len={}, closed={}, starting wait loop",
+            initial_empty_count,
+            is_closed
+        );
+
+        let mut iterations = 0;
+        while stream.is_empty() && !stream.is_closed() {
+            iterations += 1;
+            if iterations % 100 == 1 {
+                tracing::warn!(
+                    "still waiting for queue items - iterations={}, queue_len={}, closed={}",
+                    iterations,
+                    stream.len(),
+                    stream.is_closed()
+                );
+            }
+            std::hint::spin_loop();
+            std::thread::sleep(Duration::from_micros(100));
+        }
+
+        tracing::debug!(
+            "multi-threaded wait finished - iterations={}, final queue_len={}, closed={}",
+            iterations,
+            stream.len(),
+            stream.is_closed()
+        );
+    }
 
     stream
 }

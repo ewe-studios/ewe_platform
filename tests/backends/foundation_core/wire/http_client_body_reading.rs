@@ -9,18 +9,23 @@
 //! then validates the send() consumption pattern works end-to-end.
 
 use foundation_core::valtron;
+use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SystemDnsResolver};
 use foundation_core::wire::simple_http::SendSafeBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
+use serial_test::serial;
 use tracing_test::traced_test;
+
+// All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 /// WHY: Verify send() method returns complete response with body
 /// WHAT: Tests one-shot send() convenience method
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_send_returns_complete_response_with_body() {
-    // Initialize valtron pool
-    let _ = valtron::initialize_pool(0, None);
+    // Initialize valtron pool - keep guard alive for test duration
+    let _pool_guard: PoolGuard = valtron::initialize_pool(0, None);
 
     // Create test server with larger body
     let test_body = "This is a complete response body from send()";

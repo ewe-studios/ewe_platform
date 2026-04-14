@@ -121,7 +121,8 @@ where
 /// splitting the available threads between them.
 ///
 /// Returns a `PoolGuard` — when dropped, signals all threads to die,
-/// waits for them to complete via `WaitGroup`, and joins all handles.
+/// waits for them to complete via `WaitGroup`, joins all handles,
+/// and clears the global registries to prevent test interference.
 ///
 /// The caller is responsible for signal handling via the `PoolGuard`.
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {

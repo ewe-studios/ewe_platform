@@ -3,13 +3,17 @@
 //! and checks that the client triggers TooManyRedirects when max_redirects is exceeded.
 
 use foundation_core::valtron;
+use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::simple_http::client::*;
 use foundation_core::wire::simple_http::HttpClientError;
+use serial_test::serial;
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::thread;
 use std::time::Duration;
 use tracing_test::traced_test;
+
+// All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 fn spawn_redirect_server() -> u16 {
     // Bind to an available port
@@ -33,9 +37,10 @@ fn spawn_redirect_server() -> u16 {
 
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn redirect_limit_triggers_too_many_redirects() {
     // Initialize Valtron executor for HTTP client concurrency
-    let _ = valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = valtron::initialize_pool(42, None);
 
     // Spin up local redirect server
     let port = spawn_redirect_server();
