@@ -54,6 +54,9 @@ use crate::compati::{Mutex, RwLock};
 // PoolGuard - Drop-based Lifecycle Handle
 // ============================================================================
 
+/// Cleanup function type for clearing global state on drop.
+type PoolCleanupFn = Option<Box<dyn FnOnce() + Send + 'static>>;
+
 /// Returned by `initialize_pool`. Provides deterministic cleanup.
 ///
 /// On drop (or explicit `shutdown()` call):
@@ -62,12 +65,14 @@ use crate::compati::{Mutex, RwLock};
 /// 3. `BackgroundJobRegistry::shutdown()` — wait for background workers
 /// 4. `WaitGroup::wait()` — block until all task threads report death
 /// 5. Join all `JoinHandle`s
+/// 6. Clear global registries (if set via `with_cleanup`)
 ///
 /// This replaces the old pattern of spawning a thread to call `get_pool().kill()`.
 pub struct PoolGuard {
     registry: Arc<ThreadRegistry>,
     bg_registry: Option<Arc<super::BackgroundJobRegistry>>,
     shut_down: AtomicBool,
+    cleanup_fn: PoolCleanupFn,
 }
 
 impl PoolGuard {
@@ -78,6 +83,7 @@ impl PoolGuard {
             registry,
             bg_registry: None,
             shut_down: AtomicBool::new(false),
+            cleanup_fn: None,
         }
     }
 
@@ -91,6 +97,22 @@ impl PoolGuard {
             registry,
             bg_registry: Some(bg_registry),
             shut_down: AtomicBool::new(false),
+            cleanup_fn: None,
+        }
+    }
+
+    /// Create a new `PoolGuard` with cleanup function.
+    #[must_use]
+    pub fn with_cleanup(
+        registry: Arc<ThreadRegistry>,
+        bg_registry: Arc<super::BackgroundJobRegistry>,
+        cleanup_fn: impl FnOnce() + Send + 'static,
+    ) -> Self {
+        Self {
+            registry,
+            bg_registry: Some(bg_registry),
+            shut_down: AtomicBool::new(false),
+            cleanup_fn: Some(Box::new(cleanup_fn)),
         }
     }
 
@@ -102,28 +124,37 @@ impl PoolGuard {
             registry: Arc::new(ThreadRegistry::with_seed_and_threads(0, 2)),
             bg_registry: None,
             shut_down: AtomicBool::new(true),
+            cleanup_fn: None,
         }
     }
 
     /// Explicit shutdown. Idempotent — safe to call multiple times.
     pub fn shutdown(&self) {
+        tracing::warn!("PoolGuard::shutdown() called - pool shutting down");
         if self
             .shut_down
             .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
             .is_ok()
         {
+            tracing::warn!("PoolGuard::shutdown() - signaling kill to all threads");
             // Signal kill to all threads (shared signal stops both registries)
             self.registry.kill_signal().turn_on();
             // Wake all blocked/parked task threads
             self.registry.latch().signal_all();
             // Shut down background workers first (they share the kill signal)
             if let Some(ref bg) = self.bg_registry {
+                tracing::warn!("PoolGuard::shutdown() - shutting down background workers");
                 bg.shutdown();
             }
+            tracing::warn!("PoolGuard::shutdown() - waiting for task threads");
             // Wait for all task threads to report done
             self.registry.waitgroup().wait();
+            tracing::warn!("PoolGuard::shutdown() - joining all task threads");
             // Join all task thread handles
             self.registry.join_all_threads();
+            tracing::warn!("PoolGuard::shutdown() - complete");
+        } else {
+            tracing::warn!("PoolGuard::shutdown() - already shut down, skipping");
         }
     }
 
@@ -137,6 +168,11 @@ impl PoolGuard {
 impl Drop for PoolGuard {
     fn drop(&mut self) {
         self.shutdown();
+        // Call cleanup function if set (e.g., to clear global registries)
+        if let Some(cleanup_fn) = self.cleanup_fn.take() {
+            tracing::warn!("PoolGuard::drop() - running cleanup function");
+            cleanup_fn();
+        }
     }
 }
 
@@ -1419,6 +1455,8 @@ impl ThreadRegistry {
             let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
             let _enter = span.enter();
 
+            tracing::warn!("Worker thread {} STARTED", seed_clone);
+
             // Hold guard for lifetime of thread - dropped on exit (including panic)
             let _wg = wg_guard;
 
@@ -1456,9 +1494,12 @@ impl ThreadRegistry {
                     .send(ThreadActivity::Stopped(sender_id.clone()))
                     .expect("should send event");
             }) {
-                Ok(()) => Ok(()),
+                Ok(()) => {
+                    tracing::warn!("Worker thread {} STOPPED (ok)", seed_clone);
+                    Ok(())
+                }
                 Err(err) => {
-                    tracing::debug!("Thread panicked: {:?}: {:?}", sender_id, err);
+                    tracing::warn!("Worker thread {} STOPPED (panic: {:?})", seed_clone, err);
                     sender
                         .send(ThreadActivity::Panicked(sender_id.clone(), err))
                         .expect("should send event");

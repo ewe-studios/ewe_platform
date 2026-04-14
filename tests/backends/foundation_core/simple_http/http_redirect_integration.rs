@@ -7,10 +7,14 @@ use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_core::wire::simple_http::HttpClientError;
 use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
+use serial_test::serial;
 use tracing_test::traced_test;
+
+// All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_redirect_chain_resolves_successfully() {
     // Initialize Valtron executor for HTTP client concurrency
     let _pool_guard = valtron::initialize_pool(42, None);
@@ -36,6 +40,7 @@ fn test_redirect_chain_resolves_successfully() {
 
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_redirect_chain_limit_enforced() {
     // Initialize Valtron executor for HTTP client concurrency
     let _pool_guard = valtron::initialize_pool(42, None);
@@ -64,6 +69,7 @@ fn test_redirect_chain_limit_enforced() {
 ///      does not panic even when no real server is present. Validates public API usage and
 ///      proper initialization of the Valtron executor.
 #[test]
+#[serial(valtron_pool)]
 fn test_post_without_redirect() {
     use foundation_core::valtron::single::initialize_pool;
     initialize_pool(42);
@@ -94,6 +100,7 @@ fn test_post_without_redirect() {
 ///       response to each request in the chain, exercising the CheckRedirect state.
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_redirect_as_final_response_chain() {
     // Initialize Valtron executor for HTTP client concurrency
     let _pool_guard = valtron::initialize_pool(42, None);
@@ -126,6 +133,7 @@ fn test_redirect_as_final_response_chain() {
 /// IMPORTANCE: 307 differs from 302 in that it preserves POST method and body.
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_redirect_307_as_final_response() {
     // Initialize Valtron executor for HTTP client concurrency
     let _pool_guard = valtron::initialize_pool(42, None);
@@ -157,6 +165,7 @@ fn test_redirect_307_as_final_response() {
 /// IMPORTANCE: Prevents infinite redirect loops from hanging the client.
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_too_many_redirects_as_final_response() {
     // Initialize Valtron executor for HTTP client concurrency
     let _pool_guard = valtron::initialize_pool(42, None);
@@ -191,6 +200,7 @@ fn test_too_many_redirects_as_final_response() {
 ///       follows redirects that come as the final response after the interim.
 #[test]
 #[traced_test]
+#[serial(valtron_pool)]
 fn test_redirect_after_100_continue() {
     use std::sync::{Arc, Mutex};
 

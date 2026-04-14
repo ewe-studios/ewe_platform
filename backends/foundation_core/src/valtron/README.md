@@ -32,6 +32,58 @@ let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None)
 
 ---
 
+### Multi-threaded Executor: Parallel Test Interference
+
+**Symptom:** Integration tests using `initialize_pool()` exhibit intermittent hangs or timeouts when running tests in parallel. Different tests fail on each run, with symptoms showing worker threads starting but never completing, or WebSocket connections established but messages never received.
+
+**Root Cause:** The valtron executor uses global static registries (`REGISTRY` and `BG_REGISTRY`) to store the `ThreadRegistry` and `BackgroundJobRegistry`. When tests run in parallel:
+
+1. Test A starts, calls `initialize_pool()` → sets `REGISTRY = Arc_A`
+2. Test B starts, calls `initialize_pool()` → **overwrites** `REGISTRY = Arc_B`
+3. Test A's worker threads now reference the wrong registry
+4. When Test A's `PoolGuard` drops, it shuts down workers that may be serving Test B
+
+This race condition causes intermittent failures that are non-deterministic and vary between test runs.
+
+**Fix:** Tests that use `initialize_pool()` must be serialized using the `#[serial]` attribute with a named lock group. All tests within the same file share the same lock name:
+
+```rust
+use serial_test::serial;
+
+// All tests in this file use the same serial lock to prevent PoolGuard interference
+#[test]
+#[traced_test]
+#[ntest::timeout(60000)]
+#[serial(websocket_pool)]  // Named lock groups tests by feature area
+fn test_text_message_echo() {
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
+    // ... test code
+}
+```
+
+**Named lock groups by test file:**
+- `echo_tests.rs` → `#[serial(websocket_pool)]`
+- `subprotocol_tests.rs` → `#[serial(subprotocol_tests)]`
+- `reconnection_tests.rs` → `#[serial(reconnection_tests)]`
+- `http_redirect_integration.rs` → `#[serial(http_redirect)]`
+- `consumer_integration_tests.rs` → `#[serial(sse_consumer_tests)]`
+
+**Why not fix the global state?** The global registry design allows for a simple single-instance executor model. Adding per-test isolation would require significant architectural changes. The `#[serial]` attribute provides a pragmatic solution that:
+- Keeps tests isolated with their own clean pool
+- Allows parallel execution across different test groups (websocket vs http vs event_source)
+- Maintains test independence without shared state
+
+**Additional safeguards:**
+- `ntest::timeout` attribute on all integration tests prevents indefinite hangs
+- `PoolGuard::drop()` now clears global registries to prevent state leakage between sequential tests
+
+**Files updated:**
+- `backends/foundation_core/src/valtron/executors/threads.rs` - Added cleanup callback to PoolGuard
+- `backends/foundation_core/src/valtron/executors/multi/mod.rs` - PoolGuard::with_cleanup() clears registries on drop
+- All integration test files in `tests/backends/foundation_core/` - Added `#[serial(...)]` attributes
+
+---
+
 ## Tasks
 Tasks in Valtron are a custom iterator and in another sense can also become regular interators, they specifically provide a way to represent a asynchronous task as a series of values that can be iterated over and also provide a clear distinction when they are busy or when they are ready to give you a value.
 

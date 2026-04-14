@@ -8,11 +8,16 @@ use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::wire::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
+use serial_test::serial;
 use tracing_test::traced_test;
+
+// All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 /// Test basic text message echo.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_text_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -48,6 +53,8 @@ fn test_text_message_echo() {
 /// Test binary message echo.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_binary_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -84,6 +91,8 @@ fn test_binary_message_echo() {
 /// Test multiple messages in sequence.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_multiple_messages_sequence() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -132,6 +141,8 @@ fn test_multiple_messages_sequence() {
 /// Test ping/pong exchange.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_ping_pong_exchange() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -168,6 +179,8 @@ fn test_ping_pong_exchange() {
 /// Test client-initiated close handshake.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_client_initiated_close() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -202,6 +215,8 @@ fn test_client_initiated_close() {
 /// Test large message handling.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_large_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -239,6 +254,8 @@ fn test_large_message_echo() {
 /// Test very large message (4-byte extended length).
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_very_large_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -276,6 +293,8 @@ fn test_very_large_message_echo() {
 /// Test UTF-8 validation.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_utf8_text_messages() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
@@ -319,6 +338,8 @@ fn test_utf8_text_messages() {
 /// Test message iterator.
 #[test]
 #[traced_test]
+#[ntest::timeout(60000)]
+#[serial(valtron_pool)]
 fn test_message_iterator() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
