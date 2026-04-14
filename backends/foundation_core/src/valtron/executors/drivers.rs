@@ -182,7 +182,8 @@ where
 /// [`run_until_stream_has_value`] with a stream object until the stream object has a value(s)
 /// to report or the.
 ///
-/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+/// In single-threaded mode, this drives the executor to make progress.
+/// In multi-threaded mode, this waits for the concurrent queue to receive items.
 #[tracing::instrument(skip(stream, checker))]
 pub fn run_until_stream_has_value<T, S>(
     stream: ConcurrentQueueStreamIterator<T::Ready, T::Pending>,
@@ -214,6 +215,24 @@ where
             single::run_until(&checker);
         }
     }
+
+    // This is not really necessary has the system already calls pack_timeout
+    // but if the pool guard is dropped then nothing is there to execute the
+    // messages.
+    //
+    // #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+    // {
+    //     use std::time::Duration;
+    //
+    //     tracing::debug!("Executing as a multi-threaded stream - waiting for queue items");
+    //     // In multi-threaded mode, wait for items to appear in the concurrent queue.
+    //     // The task is running on a worker thread and will push items to the queue.
+    //     // We spin-wait with a small yield to avoid busy-spinning while remaining responsive.
+    //     while stream.is_empty() && !stream.is_closed() {
+    //         std::hint::spin_loop();
+    //         std::thread::sleep(Duration::from_micros(100));
+    //     }
+    // }
 
     stream
 }

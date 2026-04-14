@@ -17,10 +17,9 @@ use crate::valtron::{
     StreamIterator, TaskIterator,
 };
 
+use crate::valtron::executors::DEFAULT_WAIT_CYCLE;
 use crate::valtron::streams::Stream;
 use crate::valtron::GenericResult;
-
-pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_nanos(10);
 
 /// Configuration for stream execution with fine-grained control over iterator behavior.
 ///
@@ -57,7 +56,7 @@ pub struct StreamConfig {
 impl Default for StreamConfig {
     fn default() -> Self {
         Self {
-            wait_cycle: DEFAULT_WAIT_CYCLE,
+            wait_cycle: crate::valtron::executors::DEFAULT_WAIT_CYCLE,
             max_turns: crate::valtron::executors::DEFAULT_MAX_TURNS,
             park_duration: crate::valtron::executors::DEFAULT_PARK_DURATION,
         }

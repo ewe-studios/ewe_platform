@@ -6,7 +6,7 @@
 
 use std::time::Duration;
 
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{PoolGuard, TaskIterator, TaskStatus};
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::wire::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use tracing_test::traced_test;
@@ -62,7 +62,7 @@ fn test_reconnecting_task_builder() {
 #[test]
 #[traced_test]
 fn test_reconnecting_task_progress_states() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let resolver = SystemDnsResolver;
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1").unwrap();
@@ -146,7 +146,7 @@ fn test_reconnecting_task_with_custom_backoff() {
 #[test]
 #[traced_test]
 fn test_connection_failure_triggers_reconnect() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     // Connect to invalid address - should trigger reconnection attempts
     let resolver = SystemDnsResolver;
@@ -201,7 +201,7 @@ fn test_connection_failure_triggers_reconnect() {
 #[test]
 #[traced_test]
 fn test_max_retries_exhausts() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let resolver = SystemDnsResolver;
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1")
@@ -228,7 +228,7 @@ fn test_max_retries_exhausts() {
 #[test]
 #[traced_test]
 fn test_max_reconnect_duration_exhausts() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let resolver = SystemDnsResolver;
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1")

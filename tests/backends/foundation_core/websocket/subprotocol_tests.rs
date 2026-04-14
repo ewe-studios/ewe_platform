@@ -4,6 +4,7 @@
 //!
 //! Tests Sec-WebSocket-Protocol header handling during handshake.
 
+use foundation_core::valtron::PoolGuard;
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::wire::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
@@ -14,7 +15,7 @@ use tracing_test::traced_test;
 #[test]
 #[traced_test]
 fn test_client_requests_subprotocol() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     // Start server with subprotocol support
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
@@ -58,7 +59,7 @@ fn test_client_requests_subprotocol() {
 #[test]
 #[traced_test]
 fn test_client_with_subprotocol_builder() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     let server = WebSocketEchoServer::with_subprotocols("chat");
     let base_url = server.base_url().split('|').next().unwrap();
@@ -81,7 +82,7 @@ fn test_client_with_subprotocol_builder() {
 #[test]
 #[traced_test]
 fn test_server_selects_first_matching_protocol() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     // Server supports "chat" and "superchat"
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
@@ -108,7 +109,7 @@ fn test_server_selects_first_matching_protocol() {
 #[test]
 #[traced_test]
 fn test_client_requests_multiple_subprotocols() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     // Server supports "superchat" (second in list)
     let server = WebSocketEchoServer::with_subprotocols("superchat,chat");
@@ -153,7 +154,7 @@ fn test_client_requests_multiple_subprotocols() {
 #[test]
 #[traced_test]
 fn test_connection_without_subprotocol() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     // Server supports protocols but client doesn't request any
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
@@ -177,7 +178,7 @@ fn test_connection_without_subprotocol() {
 #[test]
 #[traced_test]
 fn test_server_without_subprotocol_support() {
-    let _ = foundation_core::valtron::initialize_pool(42, None);
+    let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
 
     // Standard echo server without subprotocol configuration
     let server = WebSocketEchoServer::start();
