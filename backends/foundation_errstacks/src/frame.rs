@@ -310,3 +310,42 @@ impl ExactSizeIterator for FrameIter<'_> {
         self.inner.len()
     }
 }
+
+// --- Serde support (Task 3.1) -----------------------------------------------
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Frame {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use alloc::string::ToString;
+        use serde::ser::SerializeMap;
+
+        let mut map = serializer.serialize_map(Some(3))?;
+
+        match self.kind() {
+            FrameKind::Context(ctx) => {
+                map.serialize_entry("type", "context")?;
+                map.serialize_entry("message", &ctx.to_string())?;
+            }
+            FrameKind::Attachment(AttachmentKind::Printable(p)) => {
+                map.serialize_entry("type", "printable")?;
+                map.serialize_entry("message", &p.to_string())?;
+            }
+            FrameKind::Attachment(AttachmentKind::Opaque(_)) => {
+                map.serialize_entry("type", "opaque")?;
+                map.serialize_entry("message", "<opaque>")?;
+            }
+        }
+
+        if let Some(loc) = self.location() {
+            map.serialize_entry(
+                "location",
+                &alloc::format!("{}:{}:{}", loc.file(), loc.line(), loc.column()),
+            )?;
+        }
+
+        map.end()
+    }
+}

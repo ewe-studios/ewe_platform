@@ -27,8 +27,8 @@
 
 ### Phase 3: Serialization & Integration (4 tasks)
 
-- [ ] **Task 3.1**: Implement `Serialize` for `ErrorTrace` (serde feature)
-- [ ] **Task 3.2**: Implement `to_structured()` method for JSON output
+- [x] **Task 3.1**: Implement `Serialize` for `ErrorTrace` (serde feature)
+- [x] **Task 3.2**: Implement `to_structured()` method for JSON output
 - [ ] **Task 3.3**: Implement `to_slack_blocks()` helper (slack feature)
 - [ ] **Task 3.4**: Add `derive_more` integration examples in documentation
 
@@ -68,6 +68,7 @@
 | 2026-04-15 | Fixup: spec §4.1.1 updated to `Vec<Frame>` (clippy::box_collection); Decision Log entry 7 added; PROGRESS.md regenerated with Phase 6 tasks; workspace Cargo.toml dependency entry added. | implementation-agent |
 | 2026-04-15 | Phase 1 Tasks 1.4–1.5 complete: `PlainResultExt` (for `Result<T, E>`), `ErrorTraceResultExt` (for `Result<T, ErrorTrace<C>>`), `IntoErrorTrace`. 23 tests pass; clippy/fmt clean. | implementation-agent |
 | 2026-04-15 | Phase 2 Tasks 2.1–2.4 complete: Display (basic/alternate), Debug with tree viz, location capture, backtrace capture (feature-gated). 24 tests pass; clippy/fmt clean. | implementation-agent |
+| 2026-04-15 | Phase 3 Tasks 3.1–3.2 complete: Serialize impl (serde feature), to_structured() with JSON output (to_structured feature). 25 tests pass; clippy/fmt clean. | implementation-agent |
 
 ---
 
