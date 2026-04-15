@@ -598,12 +598,13 @@ impl<C> fmt::Display for ErrorTrace<C> { /* ... */ }
 // Alternate Display ({:#}) - always shows full tree regardless of feature
 
 // Debug - shows full trace with attachments (tree)
-// ErrorTrace {
-//   frames: [
-//     [0] Context(error message) @ file.rs:line:col,
-//     [1] Printable(attachment) @ file.rs:line:col,
-//   ]
-// }
+// Error: context message
+// ├╴ inner context
+// │   at file.rs:line:col
+// ├╴ attachment1
+// │
+// ╰─▶ caused by: inner context
+//     at inner.rs:line:col
 ```
 
 ### 5.3 Structured Output (JSON / Logging)
