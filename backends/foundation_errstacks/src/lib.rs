@@ -31,6 +31,7 @@
 //! | `to_structured` | no   | `serde`    | `to_structured()` method for JSON output.     |
 //! | `async`      | no      | `std`      | Future extension traits.                      |
 //! | `slack`      | no      | `to_structured` | Slack block JSON helpers.              |
+//! | `short_display` | no   | —          | Display shows only current context (not full tree). |
 //!
 //! # Quick Start
 //!

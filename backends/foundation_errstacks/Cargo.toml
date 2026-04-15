@@ -36,6 +36,10 @@ async = ["std", "dep:futures-core"]
 # Enable Slack formatting helpers
 slack = ["to_structured", "dep:serde_json"]
 
+# Enable short/compact Display format (current_context only).
+# Default behavior (without this feature) shows full tree visualization.
+short_display = []
+
 [dependencies]
 # `default-features = false` so `derive_more` itself is no_std-friendly;
 # we opt into only the sub-features we need.

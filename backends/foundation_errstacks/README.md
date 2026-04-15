@@ -119,6 +119,9 @@ fn outer2() -> Result<(), ErrorTrace<HigherError>> {
 | `to_structured` | no | `serde` | `to_structured()` method for structured output |
 | `slack` | no | `to_structured` | Slack Block Kit formatting |
 | `async` | no | `std` | Async extension traits (future) |
+| `short_display` | no | - | Display shows only current context (not full tree) |
+
+**Default Display behavior:** Full tree visualization showing all frames and attachments. Use `{:#}` for alternate format (same as default). Enable `short_display` feature to show only current context with `{}`.
 
 ### Minimal (no_std) Usage
 
