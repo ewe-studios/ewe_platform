@@ -364,9 +364,10 @@ where
     C: core::error::Error + Send + Sync + 'static,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Basic format: just show the current context.
-        // Alternate format (#): show full trace with all frames.
-        if f.alternate() {
+        // Default: show full tree with all frames and locations.
+        // With `short_display` feature: show only current context.
+        // Alternate format (#): always shows full trace regardless of feature.
+        if f.alternate() || !cfg!(feature = "short_display") {
             // Full trace format with all frames and locations.
             writeln!(f, "ErrorTrace:")?;
             for (i, frame) in self.frames().enumerate() {
@@ -401,7 +402,7 @@ where
             }
             Ok(())
         } else {
-            // Basic format: just the current context message.
+            // Short format (only with `short_display` feature): just the current context.
             write!(f, "{}", self.current_context())
         }
     }
