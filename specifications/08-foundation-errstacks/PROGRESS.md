@@ -20,10 +20,10 @@
 
 ### Phase 2: Formatting & Output (4 tasks)
 
-- [ ] **Task 2.1**: Implement `Display` for `ErrorTrace` (basic and alternate)
-- [ ] **Task 2.2**: Implement `Debug` for `ErrorTrace` with tree visualization
-- [ ] **Task 2.3**: Implement location capture using `core::panic::Location`
-- [ ] **Task 2.4**: Add optional backtrace capture (feature-gated)
+- [x] **Task 2.1**: Implement `Display` for `ErrorTrace` (basic and alternate)
+- [x] **Task 2.2**: Implement `Debug` for `ErrorTrace` with tree visualization
+- [x] **Task 2.3**: Implement location capture using `core::panic::Location`
+- [x] **Task 2.4**: Add optional backtrace capture (feature-gated)
 
 ### Phase 3: Serialization & Integration (4 tasks)
 
@@ -67,6 +67,7 @@
 | 2026-04-15 | Phase 1 Tasks 1.1–1.3 implemented (TDD). 6 integration tests pass; clippy/fmt/no_std-alloc all clean. Paused for review. | implementation-agent |
 | 2026-04-15 | Fixup: spec §4.1.1 updated to `Vec<Frame>` (clippy::box_collection); Decision Log entry 7 added; PROGRESS.md regenerated with Phase 6 tasks; workspace Cargo.toml dependency entry added. | implementation-agent |
 | 2026-04-15 | Phase 1 Tasks 1.4–1.5 complete: `PlainResultExt` (for `Result<T, E>`), `ErrorTraceResultExt` (for `Result<T, ErrorTrace<C>>`), `IntoErrorTrace`. 23 tests pass; clippy/fmt clean. | implementation-agent |
+| 2026-04-15 | Phase 2 Tasks 2.1–2.4 complete: Display (basic/alternate), Debug with tree viz, location capture, backtrace capture (feature-gated). 24 tests pass; clippy/fmt clean. | implementation-agent |
 
 ---
 
@@ -85,5 +86,5 @@
 |-------|--------|------|
 | `cargo fmt --check` | Pass | 2026-04-15 |
 | `cargo clippy -- -D warnings` | Pass | 2026-04-15 |
-| All tests passing | 23/23 pass | 2026-04-15 |
+| All tests passing | 24/24 pass | 2026-04-15 |
 | Documentation builds | Pending | - |

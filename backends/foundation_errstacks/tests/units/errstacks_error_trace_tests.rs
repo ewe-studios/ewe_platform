@@ -108,3 +108,16 @@ fn attach_opaque_adds_opaque_attachment_frame_and_downcasts() {
     // And false for a type that is not.
     assert!(!trace.contains::<u8>());
 }
+
+#[test]
+#[cfg(feature = "backtrace")]
+fn backtrace_is_captured_on_new() {
+    let trace: ErrorTrace<FileError> = ErrorTrace::new(FileError);
+
+    // The alternate Display format should include the backtrace.
+    let full_trace = format!("{trace:#}");
+    assert!(
+        full_trace.contains("Backtrace:"),
+        "alternate Display should show backtrace header"
+    );
+}

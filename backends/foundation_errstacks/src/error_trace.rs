@@ -48,12 +48,18 @@ use crate::frame::{
 /// heap-allocates its buffer). The `C` type parameter is phantom-typed
 /// to enforce context awareness at compile time.
 ///
+/// When the `backtrace` feature is enabled (requires `std`), each
+/// `ErrorTrace` also captures an `std::backtrace::Backtrace` at
+/// creation time for enhanced debugging.
+///
 /// [`new`]: Self::new
 /// [`change_context`]: Self::change_context
 /// [`attach`]: Self::attach
 pub struct ErrorTrace<C: ?Sized> {
     frames: Vec<Frame>,
     _context: PhantomData<fn() -> *const C>,
+    #[cfg(feature = "backtrace")]
+    backtrace: std::backtrace::Backtrace,
 }
 
 // SAFETY: every `FrameImpl` payload is `Send + Sync + 'static`, and
@@ -88,6 +94,8 @@ where
         Self {
             frames: vec![Frame::new(ContextFrame { context })],
             _context: PhantomData,
+            #[cfg(feature = "backtrace")]
+            backtrace: std::backtrace::Backtrace::capture(),
         }
     }
 }
@@ -125,6 +133,8 @@ where
         ErrorTrace {
             frames,
             _context: PhantomData,
+            #[cfg(feature = "backtrace")]
+            backtrace: std::backtrace::Backtrace::capture(),
         }
     }
 
@@ -383,6 +393,11 @@ where
                         writeln!(f)?;
                     }
                 }
+            }
+            #[cfg(feature = "backtrace")]
+            {
+                writeln!(f, "  Backtrace:")?;
+                writeln!(f, "{}", self.backtrace)?;
             }
             Ok(())
         } else {
