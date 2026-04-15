@@ -2072,6 +2072,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_errstacks"
+version = "0.0.1"
+dependencies = [
+ "derive_more",
+ "futures-core",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "tracing",
+ "tracing-test",
+]
+
+[[package]]
 name = "foundation_logging"
 version = "0.0.1"
 dependencies = [

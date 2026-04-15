@@ -1,0 +1,52 @@
+[package]
+name = "foundation_errstacks"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Minimal, ergonomic, derive_more-friendly context-aware error traces for the ewe_platform project (no_std + alloc capable)"
+keywords = ["foundation_errstacks", "error-handling", "no_std"]
+
+[features]
+# `std` is on by default for ergonomic downstream use, but downstream
+# crates may disable default-features and opt into `alloc` only.
+default = ["std"]
+
+# Baseline — required. Provides `alloc::{Box, String, Vec}`.
+alloc = []
+
+# Enables `std::backtrace::Backtrace` capture path, `std::error::Error`
+# bridging, and any other std-only niceties. Implies `alloc`.
+std = ["alloc"]
+
+# Enable serde serialization
+serde = ["alloc", "dep:serde"]
+
+# Enable backtrace capture — requires `std`.
+backtrace = ["std"]
+
+# Enable async Future extension methods
+async = ["std", "dep:futures-core"]
+
+# Enable Slack formatting helpers
+slack = ["serde", "dep:serde_json"]
+
+[dependencies]
+# `default-features = false` so `derive_more` itself is no_std-friendly;
+# we opt into only the sub-features we need.
+derive_more = { version = "2", default-features = false, features = ["display", "error", "from"] }
+tracing = { version = "0.1", default-features = false }
+
+# Optional dependencies wired to the feature flags above.
+serde = { version = "1", default-features = false, features = ["alloc", "derive"], optional = true }
+serde_json = { version = "1", default-features = false, features = ["alloc"], optional = true }
+futures-core = { version = "0.3", default-features = false, optional = true }
+
+[dev-dependencies]
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+serial_test = "0.6.0"
+
+[lints]
+workspace = true
