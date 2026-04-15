@@ -412,32 +412,37 @@ where
 
 impl<C> fmt::Debug for ErrorTrace<C>
 where
-    C: ?Sized,
+    C: core::error::Error + Send + Sync + 'static,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Tree visualization showing all frames with indentation.
-        writeln!(f, "ErrorTrace {{")?;
-        writeln!(f, "  frames: [")?;
-        for (i, frame) in self.frames().enumerate() {
-            write!(f, "    [{i}] ")?;
+        // Tree visualization showing all frames with connection lines.
+        writeln!(f, "Error: {}", self.current_context())?;
+        let frames: Vec<_> = self.frames().collect();
+        let last_idx = frames.len().saturating_sub(1);
+
+        for (i, frame) in frames.iter().enumerate() {
+            let is_last = i == last_idx;
+            let connector = if is_last { "╰─▶ " } else { "├╴ " };
+
             match frame.kind() {
                 FrameKind::Context(ctx) => {
-                    write!(f, "Context({ctx})")?;
+                    writeln!(f, "{connector}{ctx}")?;
                 }
                 FrameKind::Attachment(AttachmentKind::Printable(p)) => {
-                    write!(f, "Printable({p})")?;
+                    writeln!(f, "{connector}{p}")?;
                 }
                 FrameKind::Attachment(AttachmentKind::Opaque(_)) => {
-                    write!(f, "Opaque(<any>)")?;
+                    writeln!(f, "{connector}<opaque>")?;
                 }
             }
+
             if let Some(loc) = frame.location() {
-                write!(f, " @ {loc}")?;
+                let indent = if is_last { "    " } else { "│   " };
+                writeln!(f, "{indent}at {loc}")?;
             }
-            writeln!(f, ",")?;
         }
-        writeln!(f, "  ]")?;
-        write!(f, "}}")
+
+        Ok(())
     }
 }
 
