@@ -13,7 +13,7 @@
 [env]
 CARGO_TERM_COLOR = "always"
 PROJECT_ROOT = "{{config_root}}"
-_.path = ["./node_modules/.bin"]
+_.path = ["./node_modules/.bin", "./tools/depot_tools"]
 
 # =============================================================================
 # Tool versions - mise manages these automatically
@@ -57,6 +57,49 @@ echo "Installing WASM targets..."
 rustup target add wasm32-unknown-unknown
 rustup target add wasm32-wasip1
 echo "✓ WASM targets installed"
+"""
+
+[tasks."setup:depot-tools"]
+description = "Install Chromium depot_tools into tools/depot_tools (for Dawn/gclient)"
+run = """
+#!/usr/bin/env bash
+set -e
+DEPOT_DIR="$PROJECT_ROOT/tools/depot_tools"
+if [ -d "$DEPOT_DIR/.git" ]; then
+    echo "depot_tools already present, updating..."
+    git -C "$DEPOT_DIR" pull --ff-only
+else
+    echo "Cloning depot_tools into $DEPOT_DIR..."
+    mkdir -p "$PROJECT_ROOT/tools"
+    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$DEPOT_DIR"
+fi
+echo "✓ depot_tools installed. Ensure tools/depot_tools is on PATH (mise handles this)."
+"""
+
+[tasks."tools:dawn:clone"]
+description = "Clone Dawn into tools/dawn and run gclient sync (requires depot_tools)"
+depends = ["setup:depot-tools"]
+run = """
+#!/usr/bin/env bash
+set -e
+DAWN_DIR="$PROJECT_ROOT/tools/dawn"
+if [ -d "$DAWN_DIR/.git" ]; then
+    echo "Dawn already cloned at $DAWN_DIR"
+else
+    echo "Cloning Dawn into $DAWN_DIR..."
+    mkdir -p "$PROJECT_ROOT/tools"
+    git clone https://dawn.googlesource.com/dawn "$DAWN_DIR"
+fi
+
+cd "$DAWN_DIR"
+if [ ! -f .gclient ]; then
+    echo "Bootstrapping gclient config from scripts/standalone.gclient..."
+    cp scripts/standalone.gclient .gclient
+fi
+
+echo "Running gclient sync..."
+gclient sync
+echo "✓ Dawn cloned and synced at $DAWN_DIR"
 """
 
 [tasks."setup:cloudflare"]

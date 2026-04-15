@@ -16,6 +16,10 @@ jobs:
   check:
     name: "Ubuntu - Run rust checks"
     runs-on: ubuntu-latest
+    # Prebuilt image (Dawn, depot_tools, emsdk, Rust stable) — see ci-test.Dockerfile
+    # Override via repo variable CI_TEST_IMAGE if you publish under a different name.
+    container:
+      image: ${{ vars.CI_TEST_IMAGE || 'ewetumo/ewe-platform-ci:latest' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,19 +28,12 @@ jobs:
           fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          git submodule update --init --recursive tools/emsdk
-          git submodule update --init --depth=1 tools/dawn
           git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
-      - name: Install native dependencies
-        env:
-          DEBIAN_FRONTEND: noninteractive
+      - name: Link prebuilt Dawn and emsdk from image
         run: |
-          sudo apt-get update && sudo apt-get install -y build-essential curl \
-                  libssl-dev libclang-dev pkg-config cmake git \
-                  gcc clang mold
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
+          mkdir -p tools
+          ln -sfn /opt/dawn tools/dawn
+          ln -sfn /opt/emsdk tools/emsdk
       - name: Clippy
         run: cargo clippy
       - name: Fmt
@@ -99,8 +96,16 @@ jobs:
       - name: Pull the accompany tools
         run: |
           git submodule update --init --recursive tools/emsdk
-          git submodule update --init --depth=1 tools/dawn
           git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
+      - name: Install depot_tools
+        run: |
+          git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
+          echo "$GITHUB_WORKSPACE/tools/depot_tools" >> "$GITHUB_PATH"
+      - name: Clone and sync Dawn
+        run: |
+          git clone https://dawn.googlesource.com/dawn tools/dawn
+          cp tools/dawn/scripts/standalone.gclient tools/dawn/.gclient
+          (cd tools/dawn && gclient sync)
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
