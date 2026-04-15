@@ -239,15 +239,6 @@ where
     }
 }
 
-impl<C> core::fmt::Display for ErrorTrace<C>
-where
-    C: Error + Send + Sync + 'static,
-{
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "ErrorTrace: {}", self.current_context())
-    }
-}
-
 impl<C> Error for ErrorTrace<C>
 where
     C: Error + Send + Sync + 'static,
