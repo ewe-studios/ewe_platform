@@ -670,10 +670,10 @@ impl StructuredErrorTrace {
                 "*Frame {} ({}):*{}\n{}",
                 i,
                 frame.kind,
-                frame.location.as_ref().map_or_else(
-                    alloc::string::String::new,
-                    |loc| format!(" _at {loc}_")
-                ),
+                frame
+                    .location
+                    .as_ref()
+                    .map_or_else(alloc::string::String::new, |loc| format!(" _at {loc}_")),
                 frame.message
             );
             fields.push(SlackTextObject {

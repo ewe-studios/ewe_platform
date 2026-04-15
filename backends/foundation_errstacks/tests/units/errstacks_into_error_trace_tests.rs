@@ -174,8 +174,7 @@ fn to_structured_json_serialization() {
 #[cfg(feature = "slack")]
 #[test]
 fn to_slack_blocks_produces_correct_structure() {
-    let trace = ErrorTrace::new(SimpleError("connection failed"))
-        .attach("host=db.example.com");
+    let trace = ErrorTrace::new(SimpleError("connection failed")).attach("host=db.example.com");
 
     let structured = trace.to_structured();
     let slack_blocks = structured.to_slack_blocks();
@@ -198,7 +197,9 @@ fn to_slack_json_produces_valid_json() {
     let trace = ErrorTrace::new(SimpleError("test error"));
 
     let structured = trace.to_structured();
-    let json = structured.to_slack_json().expect("should serialize to JSON");
+    let json = structured
+        .to_slack_json()
+        .expect("should serialize to JSON");
 
     assert!(json.contains("\"blocks\""));
     assert!(json.contains("\"type\""));
