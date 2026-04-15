@@ -34,7 +34,7 @@ backtrace = ["std"]
 async = ["std", "dep:futures-core"]
 
 # Enable Slack formatting helpers
-slack = ["serde", "dep:serde_json"]
+slack = ["to_structured", "dep:serde_json"]
 
 [dependencies]
 # `default-features = false` so `derive_more` itself is no_std-friendly;

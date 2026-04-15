@@ -170,3 +170,37 @@ fn to_structured_json_serialization() {
     assert!(json.contains("current_context"));
     assert!(json.contains("frames"));
 }
+
+#[cfg(feature = "slack")]
+#[test]
+fn to_slack_blocks_produces_correct_structure() {
+    let trace = ErrorTrace::new(SimpleError("connection failed"))
+        .attach("host=db.example.com");
+
+    let structured = trace.to_structured();
+    let slack_blocks = structured.to_slack_blocks();
+
+    // Should have: header section, divider, fields section
+    assert!(slack_blocks.blocks.len() >= 3);
+
+    // First block is the header section
+    assert_eq!(slack_blocks.blocks[0].block_type, "section");
+    let header_text = slack_blocks.blocks[0].text.as_ref().unwrap();
+    assert!(header_text.text.contains("connection failed"));
+
+    // Second block is divider
+    assert_eq!(slack_blocks.blocks[1].block_type, "divider");
+}
+
+#[cfg(all(feature = "slack", feature = "serde"))]
+#[test]
+fn to_slack_json_produces_valid_json() {
+    let trace = ErrorTrace::new(SimpleError("test error"));
+
+    let structured = trace.to_structured();
+    let json = structured.to_slack_json().expect("should serialize to JSON");
+
+    assert!(json.contains("\"blocks\""));
+    assert!(json.contains("\"type\""));
+    assert!(json.contains("test error"));
+}

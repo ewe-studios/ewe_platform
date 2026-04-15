@@ -574,3 +574,146 @@ impl StructuredErrorTrace {
         serde_json::to_string(self)
     }
 }
+
+// --- Slack Block Kit formatting (Task 3.3) ----------------------------------
+
+/// A Slack Block Kit block representation.
+#[cfg(feature = "slack")]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct SlackBlocks {
+    /// The blocks array for Slack Block Kit.
+    pub blocks: alloc::vec::Vec<SlackBlock>,
+}
+
+/// A single Slack Block Kit block.
+#[cfg(feature = "slack")]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct SlackBlock {
+    /// The type of block (e.g., "section", "divider").
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    pub block_type: alloc::string::String,
+    /// Optional text content for the block.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub text: Option<SlackTextObject>,
+    /// Optional fields array for multi-column layouts.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub fields: Option<alloc::vec::Vec<SlackTextObject>>,
+}
+
+/// A Slack text object.
+#[cfg(feature = "slack")]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct SlackTextObject {
+    /// The type of text object ("mrkdwn" for markdown-style text).
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    pub text_type: alloc::string::String,
+    /// The text content.
+    pub text: alloc::string::String,
+}
+
+#[cfg(feature = "slack")]
+impl StructuredErrorTrace {
+    /// Convert this structured trace to Slack Block Kit format.
+    ///
+    /// # What it produces
+    ///
+    /// Creates a Slack message with:
+    /// - A header section showing the error type
+    /// - A divider
+    /// - Fields showing each frame in the trace
+    /// - An optional backtrace section (when `backtrace` feature is enabled)
+    ///
+    /// # Example output
+    ///
+    /// The resulting JSON can be sent to a Slack webhook URL:
+    ///
+    /// ```json
+    /// {
+    ///   "blocks": [
+    ///     {"type": "section", "text": {"type": "mrkdwn", "text": "*Error: Database connection failed*"}},
+    ///     {"type": "divider"},
+    ///     {"type": "section", "fields": [{"type": "mrkdwn", "text": "*Frame 0 (context):*\nDatabase connection failed"}]}
+    ///   ]
+    /// }
+    /// ```
+    #[must_use]
+    pub fn to_slack_blocks(&self) -> SlackBlocks {
+        use alloc::format;
+        use alloc::vec::Vec;
+
+        let mut blocks: Vec<SlackBlock> = Vec::new();
+
+        // Header section with error type
+        blocks.push(SlackBlock {
+            block_type: "section".into(),
+            text: Some(SlackTextObject {
+                text_type: "mrkdwn".into(),
+                text: format!("*Error:* {}", self.current_context),
+            }),
+            fields: None,
+        });
+
+        // Divider
+        blocks.push(SlackBlock {
+            block_type: "divider".into(),
+            text: None,
+            fields: None,
+        });
+
+        // Frame details as fields (grouped for readability)
+        let mut fields: Vec<SlackTextObject> = Vec::new();
+        for (i, frame) in self.frames.iter().enumerate() {
+            let field_text = format!(
+                "*Frame {} ({}):*{}\n{}",
+                i,
+                frame.kind,
+                frame.location.as_ref().map_or_else(
+                    alloc::string::String::new,
+                    |loc| format!(" _at {loc}_")
+                ),
+                frame.message
+            );
+            fields.push(SlackTextObject {
+                text_type: "mrkdwn".into(),
+                text: field_text,
+            });
+        }
+
+        if !fields.is_empty() {
+            blocks.push(SlackBlock {
+                block_type: "section".into(),
+                text: None,
+                fields: Some(fields),
+            });
+        }
+
+        // Backtrace section (if available)
+        #[cfg(feature = "backtrace")]
+        if !self.backtrace.is_empty() {
+            blocks.push(SlackBlock {
+                block_type: "section".into(),
+                text: Some(SlackTextObject {
+                    text_type: "mrkdwn".into(),
+                    text: format!("*Backtrace:*\n```\n{}\n```", self.backtrace),
+                }),
+                fields: None,
+            });
+        }
+
+        SlackBlocks { blocks }
+    }
+
+    /// Serialize the Slack blocks to a JSON string suitable for webhook POST.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if serialization fails.
+    #[cfg(feature = "serde")]
+    pub fn to_slack_json(&self) -> Result<alloc::string::String, serde_json::Error> {
+        let slack_blocks = self.to_slack_blocks();
+        serde_json::to_string(&slack_blocks)
+    }
+}
