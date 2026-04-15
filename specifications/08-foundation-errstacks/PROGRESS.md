@@ -87,5 +87,6 @@
 |-------|--------|------|
 | `cargo fmt --check` | Pass | 2026-04-15 |
 | `cargo clippy -- -D warnings` | Pass | 2026-04-15 |
-| All tests passing | 24/24 pass | 2026-04-15 |
+| All tests passing | 26/26 pass | 2026-04-15 |
+| `cargo build --no-default-features --features alloc` | Pass | 2026-04-15 |
 | Documentation builds | Pending | - |
