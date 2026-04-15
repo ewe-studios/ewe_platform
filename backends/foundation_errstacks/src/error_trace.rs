@@ -13,23 +13,23 @@
 //! siblings), and inspection methods (`frames`, `current_context`,
 //! `downcast_ref`, `contains`).
 //!
-//! **HOW:** The trace stores a heap-allocated `Box<Vec<Frame>>`. Each
-//! call to `new` pushes one [`ContextFrame`]; `change_context` pushes
-//! another `ContextFrame` and simply re-tags the type parameter via a
-//! private destructure-and-reconstruct helper. Attachment methods
-//! push [`PrintableFrame`] or [`OpaqueFrame`] frames. The type
-//! parameter is stored as `PhantomData<fn() -> *const C>` — a `fn`
-//! pointer makes the phantom invariant over `C` without affecting
-//! `Send`/`Sync`, and the raw pointer makes it crystal-clear that the
-//! trace does not *own* a `C` (the runtime value lives inside the
-//! top-most context frame).
+//! **HOW:** The trace stores frames in a `Vec<Frame>`; the newest
+//! frame is always at the end. Each call to `new` pushes one
+//! [`ContextFrame`]; `change_context` pushes another `ContextFrame`
+//! and re-tags the type parameter. Attachment methods push
+//! [`PrintableFrame`] or [`OpaqueFrame`] frames. The type parameter
+//! is stored as `PhantomData<fn() -> *const C>` — a `fn` pointer
+//! makes the phantom invariant over `C` without affecting `Send`/`Sync`.
 
 use alloc::vec;
 use alloc::vec::Vec;
 use core::any::Any;
+use core::fmt;
 use core::marker::PhantomData;
 
-use crate::frame::{ContextFrame, Frame, FrameIter, FrameKind, OpaqueFrame, PrintableFrame};
+use crate::frame::{
+    AttachmentKind, ContextFrame, Frame, FrameIter, FrameKind, OpaqueFrame, PrintableFrame,
+};
 
 /// A structured, context-aware error trace.
 ///
@@ -38,17 +38,15 @@ use crate::frame::{ContextFrame, Frame, FrameIter, FrameKind, OpaqueFrame, Print
 /// attachments describing a failure and lets callers change the
 /// interpretive "lens" `C` at module boundaries.
 ///
-/// **WHAT:** A thin handle around a boxed `Vec<Frame>` plus a phantom
+/// **WHAT:** A thin handle around a `Vec<Frame>` plus a phantom
 /// marker for the current-context type. Construction is via [`new`];
 /// see that method and [`change_context`], [`attach`], etc. for the
 /// rest of the API.
 ///
-/// **HOW:** Frames are stored in a plain `Vec<Frame>`; the newest
-/// frame is always at the end of the vector. (The requirements
-/// document suggested `Box<Vec<Frame>>` to keep `ErrorTrace<C>`
-/// pointer-sized, but clippy's `box_collection` lint, which is on
-/// in the workspace, forbids that shape; a plain `Vec` is three
-/// words instead of one and is the idiomatic choice.)
+/// **HOW:** Frames are stored in a plain `Vec<Frame>` (clippy's
+/// `box_collection` lint forbids `Box<Vec<_>>`; `Vec` already
+/// heap-allocates its buffer). The `C` type parameter is phantom-typed
+/// to enforce context awareness at compile time.
 ///
 /// [`new`]: Self::new
 /// [`change_context`]: Self::change_context
@@ -76,8 +74,7 @@ where
     /// frame wrapping `context`.
     ///
     /// HOW: Allocates a `Vec<Frame>` with one [`ContextFrame`] and
-    /// boxes it. `#[track_caller]` is applied so future task 2.3 can
-    /// capture the caller location without an API change.
+    /// captures the caller location via `#[track_caller]`.
     ///
     /// # Errors
     /// Never returns an error.
@@ -282,8 +279,6 @@ where
     where
         T: Send + Sync + 'static,
     {
-        // Walk frames oldest-first looking for a payload that downcasts
-        // to `T`. The iterator terminates via `None`, never via `loop`.
         self.frames
             .iter()
             .find_map(|frame| frame.as_any().downcast_ref::<T>())
@@ -343,7 +338,6 @@ where
             .rev()
             .find_map(|frame| match frame.kind() {
                 FrameKind::Context(_) => {
-                    // Use the payload `as_any` to try the concrete type.
                     let any: &dyn Any = frame.as_any();
                     any.downcast_ref::<C>()
                 }
@@ -353,15 +347,80 @@ where
     }
 }
 
-impl<C> core::fmt::Debug for ErrorTrace<C>
+// --- Display implementation (Task 2.1) --------------------------------------
+
+impl<C> fmt::Display for ErrorTrace<C>
+where
+    C: core::error::Error + Send + Sync + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Basic format: just show the current context.
+        // Alternate format (#): show full trace with all frames.
+        if f.alternate() {
+            // Full trace format with all frames and locations.
+            writeln!(f, "ErrorTrace:")?;
+            for (i, frame) in self.frames().enumerate() {
+                match frame.kind() {
+                    FrameKind::Context(ctx) => {
+                        write!(f, "  [{i}] Context: {ctx}")?;
+                        if let Some(loc) = frame.location() {
+                            write!(f, " (at {loc})")?;
+                        }
+                        writeln!(f)?;
+                    }
+                    FrameKind::Attachment(AttachmentKind::Printable(p)) => {
+                        write!(f, "  [{i}] Attachment: {p}")?;
+                        if let Some(loc) = frame.location() {
+                            write!(f, " (at {loc})")?;
+                        }
+                        writeln!(f)?;
+                    }
+                    FrameKind::Attachment(AttachmentKind::Opaque(_)) => {
+                        write!(f, "  [{i}] Attachment: <opaque>")?;
+                        if let Some(loc) = frame.location() {
+                            write!(f, " (at {loc})")?;
+                        }
+                        writeln!(f)?;
+                    }
+                }
+            }
+            Ok(())
+        } else {
+            // Basic format: just the current context message.
+            write!(f, "{}", self.current_context())
+        }
+    }
+}
+
+// --- Debug implementation with tree visualization (Task 2.2) ----------------
+
+impl<C> fmt::Debug for ErrorTrace<C>
 where
     C: ?Sized,
 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        // Minimal `Debug` for Phase 1; the rich tree format lands in
-        // Task 2.2.
-        f.debug_struct("ErrorTrace")
-            .field("frames", &self.frames)
-            .finish()
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Tree visualization showing all frames with indentation.
+        writeln!(f, "ErrorTrace {{")?;
+        writeln!(f, "  frames: [")?;
+        for (i, frame) in self.frames().enumerate() {
+            write!(f, "    [{i}] ")?;
+            match frame.kind() {
+                FrameKind::Context(ctx) => {
+                    write!(f, "Context({ctx})")?;
+                }
+                FrameKind::Attachment(AttachmentKind::Printable(p)) => {
+                    write!(f, "Printable({p})")?;
+                }
+                FrameKind::Attachment(AttachmentKind::Opaque(_)) => {
+                    write!(f, "Opaque(<any>)")?;
+                }
+            }
+            if let Some(loc) = frame.location() {
+                write!(f, " @ {loc}")?;
+            }
+            writeln!(f, ",")?;
+        }
+        writeln!(f, "  ]")?;
+        write!(f, "}}")
     }
 }

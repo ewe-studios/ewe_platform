@@ -15,15 +15,15 @@
 //! **HOW:** Each concrete frame payload (a context error, a printable
 //! attachment, or an opaque `Any` attachment) is wrapped in a small
 //! private struct implementing the crate-private [`FrameImpl`] trait.
-//! `Frame` stores that as `Box<dyn FrameImpl>`, plus a `Box<[Frame]>`
-//! of child sources reserved for future `caused_by` chains. The
-//! iterator walks a `core::slice::Iter`, which terminates cleanly via
-//! `None` — satisfying the workspace rule that `Iterator::next` must
-//! never use `loop {}`.
+//! `Frame` stores that as `Box<dyn FrameImpl>`, plus optional location
+//! metadata captured at construction time. The iterator walks a
+//! `core::slice::Iter`, which terminates cleanly via `None` — satisfying
+//! the workspace rule that `Iterator::next` must never use `loop {}`.
 
 use alloc::boxed::Box;
 use core::any::Any;
 use core::fmt;
+use core::panic::Location;
 
 /// A single entry in an [`crate::ErrorTrace`].
 ///
@@ -31,36 +31,34 @@ use core::fmt;
 /// every context and attachment in the trace uniformly.
 ///
 /// **WHAT:** A type-erased wrapper around some concrete frame payload,
-/// with a (currently empty) slot for child frames reserved for future
-/// "caused by" chains.
+/// with optional location metadata for debugging.
 ///
-/// **HOW:** Stores a boxed `dyn FrameImpl` trait object plus a boxed
-/// slice of source frames.
+/// **HOW:** Stores a boxed `dyn FrameImpl` trait object plus a `Location`
+/// captured at construction time via `#[track_caller]`.
 pub struct Frame {
     inner: Box<dyn FrameImpl>,
-    /// Reserved for future support of multi-source "caused by" chains.
-    /// Always empty in the current implementation.
-    #[allow(dead_code)]
-    sources: Box<[Frame]>,
+    /// Source location where this frame was created.
+    location: Option<Location<'static>>,
 }
 
 impl Frame {
     /// WHY: Internal constructor used by `ErrorTrace` to push a new
     /// frame onto the trace.
     ///
-    /// WHAT: Wraps a concrete [`FrameImpl`] in a `Frame`.
+    /// WHAT: Wraps a concrete [`FrameImpl`] in a `Frame` with location.
     ///
-    /// HOW: Boxes the payload and pairs it with an empty sources slice.
+    /// HOW: Boxes the payload and captures the caller location.
     ///
     /// # Errors
     /// Never returns an error.
     ///
     /// # Panics
     /// Never panics.
+    #[track_caller]
     pub(crate) fn new<F: FrameImpl>(frame: F) -> Self {
         Self {
             inner: Box::new(frame),
-            sources: Box::new([]),
+            location: Some(*Location::caller()),
         }
     }
 
@@ -99,20 +97,52 @@ impl Frame {
     pub fn as_any(&self) -> &dyn Any {
         self.inner.as_any()
     }
+
+    /// WHY: Debug output and diagnostic tooling need to show where
+    /// each frame was created in the source code.
+    ///
+    /// WHAT: Returns the source location where this frame was created,
+    /// or `None` if location capture was disabled.
+    ///
+    /// HOW: Returns the `Location` captured at construction time.
+    ///
+    /// # Errors
+    /// Never returns an error.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn location(&self) -> Option<&Location<'static>> {
+        self.location.as_ref()
+    }
 }
 
 impl fmt::Debug for Frame {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.kind() {
-            FrameKind::Context(ctx) => f
-                .debug_tuple("Context")
-                .field(&format_args!("{ctx}"))
-                .finish(),
-            FrameKind::Attachment(AttachmentKind::Printable(p)) => f
-                .debug_tuple("Printable")
-                .field(&format_args!("{p}"))
-                .finish(),
-            FrameKind::Attachment(AttachmentKind::Opaque(_)) => f.debug_tuple("Opaque").finish(),
+            FrameKind::Context(ctx) => {
+                let mut tup = f.debug_tuple("Context");
+                tup.field(&format_args!("{ctx}"));
+                if let Some(loc) = &self.location {
+                    tup.field(&format_args!("at {loc}"));
+                }
+                tup.finish()
+            }
+            FrameKind::Attachment(AttachmentKind::Printable(p)) => {
+                let mut tup = f.debug_tuple("Printable");
+                tup.field(&format_args!("{p}"));
+                if let Some(loc) = &self.location {
+                    tup.field(&format_args!("at {loc}"));
+                }
+                tup.finish()
+            }
+            FrameKind::Attachment(AttachmentKind::Opaque(_)) => {
+                let mut tup = f.debug_tuple("Opaque");
+                if let Some(loc) = &self.location {
+                    tup.field(&format_args!("at {loc}"));
+                }
+                tup.finish()
+            }
         }
     }
 }
