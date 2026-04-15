@@ -439,3 +439,138 @@ where
         write!(f, "}}")
     }
 }
+
+// --- Serde support (Task 3.1) -----------------------------------------------
+
+#[cfg(feature = "serde")]
+impl<C> serde::Serialize for ErrorTrace<C>
+where
+    C: core::error::Error + Send + Sync + 'static,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeMap;
+
+        let mut map = serializer.serialize_map(Some(2))?;
+        map.serialize_entry("current_context", &self.current_context().to_string())?;
+        map.serialize_entry("frames", &self.frames().collect::<Vec<_>>())?;
+        map.end()
+    }
+}
+
+// --- to_structured() method (Task 3.2) --------------------------------------
+
+/// A structured representation of an [`ErrorTrace`] suitable for JSON
+/// serialization and logging.
+///
+/// **WHY:** Downstream services (logging, telemetry, alerting) need a
+/// stable, machine-readable format for error traces.
+///
+/// **WHAT:** A plain struct containing the current context message and
+/// a vector of frame representations.
+///
+/// **HOW:** Built from an `ErrorTrace` by walking its frames and
+/// extracting type names, messages, and locations.
+#[cfg(feature = "to_structured")]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct StructuredErrorTrace {
+    /// The current context message (what the error "is" now).
+    pub current_context: alloc::string::String,
+    /// All frames in the trace, in order from oldest to newest.
+    pub frames: alloc::vec::Vec<StructuredFrame>,
+    /// Optional backtrace string (only present when `backtrace` feature is on).
+    #[cfg(feature = "backtrace")]
+    pub backtrace: alloc::string::String,
+}
+
+/// A single frame in a [`StructuredErrorTrace`].
+#[cfg(feature = "to_structured")]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct StructuredFrame {
+    /// The kind of frame: "context", "printable", or "opaque".
+    pub kind: alloc::string::String,
+    /// The message or description for this frame.
+    pub message: alloc::string::String,
+    /// Optional source location (<file:line:col>).
+    pub location: Option<alloc::string::String>,
+    /// Optional type name (for opaque frames, this is the concrete type).
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub type_name: Option<alloc::string::String>,
+}
+
+#[cfg(feature = "to_structured")]
+impl<C> ErrorTrace<C>
+where
+    C: core::error::Error + Send + Sync + 'static,
+{
+    /// WHY: Callers need a JSON-serializable representation for logging,
+    /// telemetry, or API responses.
+    ///
+    /// WHAT: Converts this `ErrorTrace` into a [`StructuredErrorTrace`]
+    /// with all frames expanded into plain data.
+    ///
+    /// HOW: Walks [`frames()`], extracting kind, message, and location
+    /// for each frame.
+    ///
+    /// [`frames()`]: Self::frames
+    #[must_use]
+    pub fn to_structured(&self) -> StructuredErrorTrace {
+        use alloc::string::ToString;
+        use alloc::vec::Vec;
+        use core::any::type_name;
+
+        let frames = self
+            .frames()
+            .map(|frame| {
+                let (kind, message, type_name) = match frame.kind() {
+                    FrameKind::Context(ctx) => (
+                        "context".into(),
+                        ctx.to_string(),
+                        Some(type_name::<C>().into()),
+                    ),
+                    FrameKind::Attachment(AttachmentKind::Printable(p)) => {
+                        ("printable".into(), p.to_string(), None)
+                    }
+                    FrameKind::Attachment(AttachmentKind::Opaque(_)) => {
+                        ("opaque".into(), "<opaque>".into(), None)
+                    }
+                };
+
+                let location = frame
+                    .location()
+                    .map(|loc| alloc::format!("{}:{}:{}", loc.file(), loc.line(), loc.column()));
+
+                StructuredFrame {
+                    kind,
+                    message,
+                    location,
+                    type_name,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        StructuredErrorTrace {
+            current_context: self.current_context().to_string(),
+            #[cfg(feature = "backtrace")]
+            backtrace: self.backtrace.to_string(),
+            frames,
+        }
+    }
+}
+
+#[cfg(all(feature = "to_structured", feature = "serde"))]
+impl StructuredErrorTrace {
+    /// Serialize this structured trace to a JSON string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if serialization fails (e.g., I/O error from
+    /// the serializer).
+    pub fn to_json(&self) -> Result<alloc::string::String, serde_json::Error> {
+        serde_json::to_string(self)
+    }
+}

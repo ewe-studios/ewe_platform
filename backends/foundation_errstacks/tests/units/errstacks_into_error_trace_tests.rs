@@ -9,6 +9,8 @@
 //! **HOW:** Create various error types, convert them, and assert the
 //! resulting `ErrorTrace` has the expected structure.
 
+#![cfg(feature = "to_structured")]
+
 use core::fmt;
 
 use foundation_errstacks::{ErrorTrace, IntoErrorTrace};
@@ -123,4 +125,48 @@ fn from_error_trace_for_box_error() {
     // The boxed error should display correctly.
     let display = format!("{}", boxed);
     assert!(display.contains("boxed"));
+}
+
+// --- to_structured() tests (Task 3.2) ----------------------------------------
+
+#[test]
+fn to_structured_produces_correct_frame_count() {
+    let trace = ErrorTrace::new(SimpleError("base"))
+        .attach("path=/test")
+        .change_context(ComplexError {
+            code: 500,
+            message: "server error",
+        });
+
+    let structured = trace.to_structured();
+
+    assert_eq!(structured.current_context, "Error 500: server error");
+    assert_eq!(structured.frames.len(), 3);
+
+    // First frame: original context
+    assert_eq!(structured.frames[0].kind, "context");
+    assert!(structured.frames[0].message.contains("base"));
+
+    // Second frame: attachment
+    assert_eq!(structured.frames[1].kind, "printable");
+    assert_eq!(structured.frames[1].message, "path=/test");
+
+    // Third frame: new context
+    assert_eq!(structured.frames[2].kind, "context");
+    assert!(structured.frames[2].message.contains("500"));
+    assert!(structured.frames[2].message.contains("server error"));
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn to_structured_json_serialization() {
+    let trace = ErrorTrace::new(SimpleError("test")).attach("key=value");
+
+    let structured = trace.to_structured();
+    let json = structured.to_json().expect("should serialize to JSON");
+
+    assert!(json.contains("test"));
+    assert!(json.contains("key=value"));
+    assert!(json.contains("current_context"));
+    assert!(json.contains("frames"));
 }

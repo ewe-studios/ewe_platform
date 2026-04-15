@@ -24,6 +24,9 @@ std = ["alloc"]
 # Enable serde serialization
 serde = ["alloc", "dep:serde"]
 
+# Enable to_structured() method returning JSON
+to_structured = ["serde", "dep:serde_json"]
+
 # Enable backtrace capture — requires `std`.
 backtrace = ["std"]
 
