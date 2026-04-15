@@ -264,12 +264,14 @@ slack = ["serde", "dep:serde_json"]
 | `serde` | no | `alloc` | `Serialize` impls for `ErrorTraceStruct` etc. |
 | `async` | no | `std` | `TryFutureExt`-style extension traits. |
 | `slack` | no | `serde` | Slack block JSON helpers. |
+| `short_display` | no | — | Display shows only current context; default is full tree. |
 
 Notes:
 
 - `core::error::Error` (stable since **Rust 1.81**) is the primary error bound throughout the crate, so the same code compiles with or without `std`.
 - `derive_more` is pulled in with `default-features = false` so it contributes no `std` dependency of its own.
 - In `no_std + alloc` mode, all backtrace-related API is compiled out via `#[cfg(feature = "std")]`.
+- **Display behavior:** Default shows full tree visualization. Enable `short_display` to show only current context.
 
 ### 3.6 Error Handling Strategy
 
@@ -584,21 +586,24 @@ impl<C> ErrorTrace<C> {
 
 ### 5.2 Display / Debug Implementations
 
+**Default behavior:** Display shows full tree visualization (all frames and attachments).
+
 ```rust
-// Basic Display - shows only top-level context
+// Default Display - shows full tree with all frames and locations
 impl<C> fmt::Display for ErrorTrace<C> { /* ... */ }
 
-// Alternate Display ({:#}) - shows all contexts
-// "context1: context2: context3: root_cause"
+// With `short_display` feature - shows only current context
+// Enable via: cargo build --features short_display
+
+// Alternate Display ({:#}) - always shows full tree regardless of feature
 
 // Debug - shows full trace with attachments (tree)
-// Error: context message
-// ├╴at file.rs:line:col
-// ├╴attachment1
-// │
-// ╰─▶ caused by: inner context
-//     ├╴at inner.rs:line:col
-//     ╰╴attachment
+// ErrorTrace {
+//   frames: [
+//     [0] Context(error message) @ file.rs:line:col,
+//     [1] Printable(attachment) @ file.rs:line:col,
+//   ]
+// }
 ```
 
 ### 5.3 Structured Output (JSON / Logging)
