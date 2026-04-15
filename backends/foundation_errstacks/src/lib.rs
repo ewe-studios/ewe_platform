@@ -189,9 +189,9 @@ pub mod frame;
 pub mod result_ext;
 
 pub use error_trace::ErrorTrace;
-#[cfg(feature = "to_structured")]
-pub use error_trace::{StructuredErrorTrace, StructuredFrame};
 #[cfg(feature = "slack")]
 pub use error_trace::{SlackBlock, SlackBlocks, SlackTextObject};
+#[cfg(feature = "to_structured")]
+pub use error_trace::{StructuredErrorTrace, StructuredFrame};
 pub use frame::{AttachmentKind, Frame, FrameIter, FrameKind};
 pub use result_ext::{ErrorTraceResultExt, IntoErrorTrace, PlainResultExt};
