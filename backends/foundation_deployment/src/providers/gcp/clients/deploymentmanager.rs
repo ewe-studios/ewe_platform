@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_cancel_preview_execute()` to send, or `deploymentmanager_deployments_cancel_preview` for simplest API.
 
-pub fn deploymentmanager_deployments_cancel_preview_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_cancel_preview_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/cancelPreview",
@@ -191,13 +195,16 @@ pub fn deploymentmanager_deployments_cancel_preview(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_delete_execute()` to send, or `deploymentmanager_deployments_delete` for simplest API.
 
-pub fn deploymentmanager_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     deletePolicy: &Option<Option<String>>,
     header_bypassBillingFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
@@ -378,12 +385,15 @@ pub fn deploymentmanager_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_get_execute()` to send, or `deploymentmanager_deployments_get` for simplest API.
 
-pub fn deploymentmanager_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     header_bypassBillingFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
@@ -558,13 +568,16 @@ pub fn deploymentmanager_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_get_iam_policy_execute()` to send, or `deploymentmanager_deployments_get_iam_policy` for simplest API.
 
-pub fn deploymentmanager_deployments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     header_bypassBillingFilter: &Option<Option<String>>,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/getIamPolicy",
@@ -745,13 +758,16 @@ pub fn deploymentmanager_deployments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_insert_execute()` to send, or `deploymentmanager_deployments_insert` for simplest API.
 
-pub fn deploymentmanager_deployments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     createPolicy: &Option<Option<String>>,
     header_bypassBillingFilter: &Option<Option<String>>,
     preview: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments",
@@ -934,14 +950,17 @@ pub fn deploymentmanager_deployments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_list_execute()` to send, or `deploymentmanager_deployments_list` for simplest API.
 
-pub fn deploymentmanager_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments",
@@ -1134,15 +1153,18 @@ pub fn deploymentmanager_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_patch_execute()` to send, or `deploymentmanager_deployments_patch` for simplest API.
 
-pub fn deploymentmanager_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     createPolicy: &Option<Option<String>>,
     deletePolicy: &Option<Option<String>>,
     header_bypassBillingFilter: &Option<Option<String>>,
     preview: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
@@ -1335,11 +1357,14 @@ pub fn deploymentmanager_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_set_iam_policy_execute()` to send, or `deploymentmanager_deployments_set_iam_policy` for simplest API.
 
-pub fn deploymentmanager_deployments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/setIamPolicy",
@@ -1500,11 +1525,14 @@ pub fn deploymentmanager_deployments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_stop_execute()` to send, or `deploymentmanager_deployments_stop` for simplest API.
 
-pub fn deploymentmanager_deployments_stop_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/stop",
@@ -1662,12 +1690,15 @@ pub fn deploymentmanager_deployments_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_test_iam_permissions_execute()` to send, or `deploymentmanager_deployments_test_iam_permissions` for simplest API.
 
-pub fn deploymentmanager_deployments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     header_bypassBillingFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/testIamPermissions",
@@ -1846,15 +1877,18 @@ pub fn deploymentmanager_deployments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_deployments_update_execute()` to send, or `deploymentmanager_deployments_update` for simplest API.
 
-pub fn deploymentmanager_deployments_update_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_deployments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     createPolicy: &Option<Option<String>>,
     deletePolicy: &Option<Option<String>>,
     header_bypassBillingFilter: &Option<Option<String>>,
     preview: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
@@ -2047,13 +2081,16 @@ pub fn deploymentmanager_deployments_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_manifests_get_execute()` to send, or `deploymentmanager_manifests_get` for simplest API.
 
-pub fn deploymentmanager_manifests_get_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_manifests_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     manifest: &String,
     header_bypassBillingFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/manifests/{}",
@@ -2232,15 +2269,18 @@ pub fn deploymentmanager_manifests_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_manifests_list_execute()` to send, or `deploymentmanager_manifests_list` for simplest API.
 
-pub fn deploymentmanager_manifests_list_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_manifests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/manifests",
@@ -2437,12 +2477,15 @@ pub fn deploymentmanager_manifests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_operations_get_execute()` to send, or `deploymentmanager_operations_get` for simplest API.
 
-pub fn deploymentmanager_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     operation: &String,
     header_bypassBillingFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/operations/{}",
@@ -2617,14 +2660,17 @@ pub fn deploymentmanager_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_operations_list_execute()` to send, or `deploymentmanager_operations_list` for simplest API.
 
-pub fn deploymentmanager_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/operations",
@@ -2817,13 +2863,16 @@ pub fn deploymentmanager_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_resources_get_execute()` to send, or `deploymentmanager_resources_get` for simplest API.
 
-pub fn deploymentmanager_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     resource: &String,
     header_bypassBillingFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/resources/{}",
@@ -3002,15 +3051,18 @@ pub fn deploymentmanager_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_resources_list_execute()` to send, or `deploymentmanager_resources_list` for simplest API.
 
-pub fn deploymentmanager_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/resources",
@@ -3207,14 +3259,17 @@ pub fn deploymentmanager_resources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `deploymentmanager_types_list_execute()` to send, or `deploymentmanager_types_list` for simplest API.
 
-pub fn deploymentmanager_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn deploymentmanager_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/types",

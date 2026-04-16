@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_bulk_delete_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_bulk_delete_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_bulk_delete_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_bulk_delete_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:bulkDeleteFeedbackLabels",
@@ -194,10 +198,13 @@ pub fn contactcenterinsights_projects_locations_bulk_delete_feedback_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_bulk_download_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_bulk_download_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_bulk_download_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_bulk_download_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:bulkDownloadFeedbackLabels",
@@ -363,10 +370,13 @@ pub fn contactcenterinsights_projects_locations_bulk_download_feedback_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_bulk_upload_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_bulk_upload_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_bulk_upload_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_bulk_upload_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:bulkUploadFeedbackLabels",
@@ -531,10 +541,13 @@ pub fn contactcenterinsights_projects_locations_bulk_upload_feedback_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_generative_insights_execute()` to send, or `contactcenterinsights_projects_locations_generative_insights` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_generative_insights_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_generative_insights_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:generativeInsights",
@@ -699,10 +712,13 @@ pub fn contactcenterinsights_projects_locations_generative_insights(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_get_correlation_config_execute()` to send, or `contactcenterinsights_projects_locations_get_correlation_config` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_get_correlation_config_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_get_correlation_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/correlationConfig",
@@ -870,10 +886,13 @@ pub fn contactcenterinsights_projects_locations_get_correlation_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_get_encryption_spec_execute()` to send, or `contactcenterinsights_projects_locations_get_encryption_spec` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_get_encryption_spec_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_get_encryption_spec_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/encryptionSpec",
@@ -1037,10 +1056,13 @@ pub fn contactcenterinsights_projects_locations_get_encryption_spec(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_get_settings_execute()` to send, or `contactcenterinsights_projects_locations_get_settings` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -1204,13 +1226,16 @@ pub fn contactcenterinsights_projects_locations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_list_all_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_list_all_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_list_all_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_list_all_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:listAllFeedbackLabels",
@@ -1411,10 +1436,13 @@ pub fn contactcenterinsights_projects_locations_list_all_feedback_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_query_metrics_execute()` to send, or `contactcenterinsights_projects_locations_query_metrics` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_query_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_query_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:queryMetrics",
@@ -1577,10 +1605,13 @@ pub fn contactcenterinsights_projects_locations_query_metrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_query_performance_overview_execute()` to send, or `contactcenterinsights_projects_locations_query_performance_overview` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_query_performance_overview_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_query_performance_overview_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:queryPerformanceOverview",
@@ -1745,10 +1776,13 @@ pub fn contactcenterinsights_projects_locations_query_performance_overview(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_test_correlation_config_execute()` to send, or `contactcenterinsights_projects_locations_test_correlation_config` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_test_correlation_config_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_test_correlation_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}:testCorrelationConfig",
@@ -1913,11 +1947,14 @@ pub fn contactcenterinsights_projects_locations_test_correlation_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_update_correlation_config_execute()` to send, or `contactcenterinsights_projects_locations_update_correlation_config` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_update_correlation_config_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_update_correlation_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/correlationConfig",
@@ -2100,11 +2137,14 @@ pub fn contactcenterinsights_projects_locations_update_correlation_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_update_settings_execute()` to send, or `contactcenterinsights_projects_locations_update_settings` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -2284,10 +2324,13 @@ pub fn contactcenterinsights_projects_locations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_analysis_rules_create_execute()` to send, or `contactcenterinsights_projects_locations_analysis_rules_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_analysis_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_analysis_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/analysisRules",
@@ -2453,10 +2496,13 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_analysis_rules_delete_execute()` to send, or `contactcenterinsights_projects_locations_analysis_rules_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_analysis_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_analysis_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/analysisRules/{analysisRulesId}",
@@ -2615,10 +2661,13 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_analysis_rules_get_execute()` to send, or `contactcenterinsights_projects_locations_analysis_rules_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_analysis_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_analysis_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/analysisRules/{analysisRulesId}",
@@ -2782,12 +2831,15 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_analysis_rules_list_execute()` to send, or `contactcenterinsights_projects_locations_analysis_rules_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_analysis_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_analysis_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/analysisRules",
@@ -2982,11 +3034,14 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_analysis_rules_patch_execute()` to send, or `contactcenterinsights_projects_locations_analysis_rules_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_analysis_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_analysis_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/analysisRules/{analysisRulesId}",
@@ -3166,11 +3221,14 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_assessment_rules_create_execute()` to send, or `contactcenterinsights_projects_locations_assessment_rules_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_assessment_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_assessment_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     assessmentRuleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/assessmentRules",
@@ -3350,10 +3408,13 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_assessment_rules_delete_execute()` to send, or `contactcenterinsights_projects_locations_assessment_rules_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_assessment_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_assessment_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/assessmentRules/{assessmentRulesId}",
@@ -3513,10 +3574,13 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_assessment_rules_get_execute()` to send, or `contactcenterinsights_projects_locations_assessment_rules_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_assessment_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_assessment_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/assessmentRules/{assessmentRulesId}",
@@ -3680,12 +3744,15 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_assessment_rules_list_execute()` to send, or `contactcenterinsights_projects_locations_assessment_rules_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_assessment_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_assessment_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/assessmentRules",
@@ -3880,11 +3947,14 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_assessment_rules_patch_execute()` to send, or `contactcenterinsights_projects_locations_assessment_rules_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_assessment_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_assessment_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/assessmentRules/{assessmentRulesId}",
@@ -4064,11 +4134,14 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_create_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authorizedViewSetId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets",
@@ -4251,11 +4324,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_delete_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}",
@@ -4430,10 +4506,13 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_get_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}",
@@ -4601,14 +4680,17 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets",
@@ -4815,11 +4897,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_patch_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}",
@@ -5002,11 +5087,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authorizedViewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews",
@@ -5187,10 +5277,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}",
@@ -5353,10 +5448,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:generativeInsights",
@@ -5519,10 +5619,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}",
@@ -5693,11 +5798,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:getIamPolicy",
@@ -5868,14 +5978,19 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews",
@@ -6080,11 +6195,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}",
@@ -6265,10 +6385,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:queryMetrics",
@@ -6430,10 +6555,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:queryPerformanceOverview",
@@ -6596,14 +6726,19 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews:search",
@@ -6808,10 +6943,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:setIamPolicy",
@@ -6969,10 +7109,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:testIamPermissions",
@@ -7135,11 +7280,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations:calculateStats",
@@ -7325,11 +7475,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}",
@@ -7501,10 +7656,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}:generateSignedAudio",
@@ -7677,11 +7837,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}",
@@ -7858,15 +8023,20 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations",
@@ -8072,10 +8242,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}:appeal",
@@ -8239,10 +8414,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments",
@@ -8406,11 +8586,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}",
@@ -8582,10 +8767,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}:finalize",
@@ -8749,10 +8939,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}",
@@ -8916,13 +9111,18 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments",
@@ -9118,10 +9318,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}:publish",
@@ -9285,10 +9490,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes",
@@ -9451,10 +9661,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}",
@@ -9613,12 +9828,17 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes",
@@ -9803,11 +10023,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}",
@@ -9983,11 +10208,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     feedbackLabelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels",
@@ -10164,10 +10394,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -10326,10 +10561,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -10493,13 +10733,18 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels",
@@ -10695,11 +10940,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -10876,10 +11126,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}:cancel",
@@ -11038,10 +11293,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}",
@@ -11204,14 +11464,19 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations",
@@ -11403,11 +11668,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_auto_labeling_rules_create_execute()` to send, or `contactcenterinsights_projects_locations_auto_labeling_rules_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     autoLabelingRuleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/autoLabelingRules",
@@ -11590,10 +11858,13 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_auto_labeling_rules_delete_execute()` to send, or `contactcenterinsights_projects_locations_auto_labeling_rules_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_auto_labeling_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_auto_labeling_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/autoLabelingRules/{autoLabelingRulesId}",
@@ -11753,10 +12024,13 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_auto_labeling_rules_get_execute()` to send, or `contactcenterinsights_projects_locations_auto_labeling_rules_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/autoLabelingRules/{autoLabelingRulesId}",
@@ -11924,12 +12198,15 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_auto_labeling_rules_list_execute()` to send, or `contactcenterinsights_projects_locations_auto_labeling_rules_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/autoLabelingRules",
@@ -12124,11 +12401,14 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_auto_labeling_rules_patch_execute()` to send, or `contactcenterinsights_projects_locations_auto_labeling_rules_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/autoLabelingRules/{autoLabelingRulesId}",
@@ -12311,10 +12591,13 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_auto_labeling_rules_test_execute()` to send, or `contactcenterinsights_projects_locations_auto_labeling_rules_test` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_auto_labeling_rules_test_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_auto_labeling_rules_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/autoLabelingRules:test",
@@ -12489,10 +12772,13 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_test(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_bulk_analyze_execute()` to send, or `contactcenterinsights_projects_locations_conversations_bulk_analyze` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_bulk_analyze_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_bulk_analyze_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations:bulkAnalyze",
@@ -12657,10 +12943,13 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_analyze(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_bulk_delete_execute()` to send, or `contactcenterinsights_projects_locations_conversations_bulk_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_bulk_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_bulk_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations:bulkDelete",
@@ -12825,11 +13114,14 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_calculate_stats_execute()` to send, or `contactcenterinsights_projects_locations_conversations_calculate_stats` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_calculate_stats_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_calculate_stats_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations:calculateStats",
@@ -13019,11 +13311,14 @@ pub fn contactcenterinsights_projects_locations_conversations_calculate_stats(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_create_execute()` to send, or `contactcenterinsights_projects_locations_conversations_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     conversationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations",
@@ -13203,11 +13498,14 @@ pub fn contactcenterinsights_projects_locations_conversations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_delete_execute()` to send, or `contactcenterinsights_projects_locations_conversations_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}",
@@ -13382,10 +13680,13 @@ pub fn contactcenterinsights_projects_locations_conversations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_generate_signed_audio_execute()` to send, or `contactcenterinsights_projects_locations_conversations_generate_signed_audio` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_generate_signed_audio_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_generate_signed_audio_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}:generateSignedAudio",
@@ -13561,11 +13862,14 @@ pub fn contactcenterinsights_projects_locations_conversations_generate_signed_au
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_get_execute()` to send, or `contactcenterinsights_projects_locations_conversations_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}",
@@ -13743,10 +14047,13 @@ pub fn contactcenterinsights_projects_locations_conversations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_ingest_execute()` to send, or `contactcenterinsights_projects_locations_conversations_ingest` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_ingest_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_ingest_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations:ingest",
@@ -13911,15 +14218,18 @@ pub fn contactcenterinsights_projects_locations_conversations_ingest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_list_execute()` to send, or `contactcenterinsights_projects_locations_conversations_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations",
@@ -14132,13 +14442,16 @@ pub fn contactcenterinsights_projects_locations_conversations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_patch_execute()` to send, or `contactcenterinsights_projects_locations_conversations_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}",
@@ -14333,10 +14646,13 @@ pub fn contactcenterinsights_projects_locations_conversations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_sample_execute()` to send, or `contactcenterinsights_projects_locations_conversations_sample` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_sample_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_sample_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations:sample",
@@ -14501,10 +14817,13 @@ pub fn contactcenterinsights_projects_locations_conversations_sample(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_upload_execute()` to send, or `contactcenterinsights_projects_locations_conversations_upload` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_upload_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations:upload",
@@ -14669,10 +14988,13 @@ pub fn contactcenterinsights_projects_locations_conversations_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_analyses_create_execute()` to send, or `contactcenterinsights_projects_locations_conversations_analyses_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_analyses_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_analyses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/analyses",
@@ -14838,10 +15160,13 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_analyses_delete_execute()` to send, or `contactcenterinsights_projects_locations_conversations_analyses_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_analyses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_analyses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/analyses/{analysesId}",
@@ -15002,10 +15327,13 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_analyses_get_execute()` to send, or `contactcenterinsights_projects_locations_conversations_analyses_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_analyses_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_analyses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/analyses/{analysesId}",
@@ -15170,13 +15498,16 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_analyses_list_execute()` to send, or `contactcenterinsights_projects_locations_conversations_analyses_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_analyses_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_analyses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/analyses",
@@ -15377,10 +15708,13 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_appeal_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_appeal` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_appeal_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_appeal_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}:appeal",
@@ -15547,10 +15881,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_appeal
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_create_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments",
@@ -15718,11 +16055,14 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_delete_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}",
@@ -15899,10 +16239,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_finalize_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_finalize` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_finalize_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_finalize_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}:finalize",
@@ -16069,10 +16412,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_finali
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_get_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}",
@@ -16238,13 +16584,16 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_list_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments",
@@ -16446,10 +16795,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_publish_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_publish` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_publish_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}:publish",
@@ -16616,10 +16968,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_publis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_notes_create_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_notes_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes",
@@ -16788,10 +17143,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_notes_delete_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_notes_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}",
@@ -16955,12 +17313,15 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_notes_list_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_notes_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes",
@@ -17152,11 +17513,14 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_assessments_notes_patch_execute()` to send, or `contactcenterinsights_projects_locations_conversations_assessments_notes_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}",
@@ -17338,11 +17702,14 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_feedback_labels_create_execute()` to send, or `contactcenterinsights_projects_locations_conversations_feedback_labels_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     feedbackLabelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels",
@@ -17525,10 +17892,13 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_cr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_feedback_labels_delete_execute()` to send, or `contactcenterinsights_projects_locations_conversations_feedback_labels_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -17691,10 +18061,13 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_de
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_feedback_labels_get_execute()` to send, or `contactcenterinsights_projects_locations_conversations_feedback_labels_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -17861,13 +18234,16 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_feedback_labels_list_execute()` to send, or `contactcenterinsights_projects_locations_conversations_feedback_labels_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels",
@@ -18070,11 +18446,14 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_feedback_labels_patch_execute()` to send, or `contactcenterinsights_projects_locations_conversations_feedback_labels_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -18256,10 +18635,13 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_pa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_segments_bulk_analyze_execute()` to send, or `contactcenterinsights_projects_locations_conversations_segments_bulk_analyze` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_analyze_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_analyze_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/conversations/{conversationsId}/segments:bulkAnalyze",
@@ -18426,11 +18808,14 @@ pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_anal
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_create_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dashboardId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards",
@@ -18610,10 +18995,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_delete_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}",
@@ -18772,10 +19160,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_get_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}",
@@ -18939,14 +19330,17 @@ pub fn contactcenterinsights_projects_locations_dashboards_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_list_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards",
@@ -19153,11 +19547,14 @@ pub fn contactcenterinsights_projects_locations_dashboards_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_patch_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}",
@@ -19337,11 +19734,14 @@ pub fn contactcenterinsights_projects_locations_dashboards_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_charts_create_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_charts_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_charts_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_charts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     chartId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}/charts",
@@ -19521,10 +19921,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_charts_delete_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_charts_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_charts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_charts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}/charts/{chartsId}",
@@ -19684,10 +20087,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_charts_get_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_charts_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_charts_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_charts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}/charts/{chartsId}",
@@ -19851,10 +20257,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_charts_list_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_charts_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_charts_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_charts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}/charts",
@@ -20023,11 +20432,14 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_dashboards_charts_patch_execute()` to send, or `contactcenterinsights_projects_locations_dashboards_charts_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_dashboards_charts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_dashboards_charts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/dashboards/{dashboardsId}/charts/{chartsId}",
@@ -20207,10 +20619,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:bulkDeleteFeedbackLabels",
@@ -20378,10 +20793,13 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_la
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:bulkDownloadFeedbackLabels",
@@ -20550,10 +20968,13 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_download_feedback_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:bulkUploadFeedbackLabels",
@@ -20721,11 +21142,14 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_la
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_create_execute()` to send, or `contactcenterinsights_projects_locations_datasets_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     datasetId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets",
@@ -20904,10 +21328,13 @@ pub fn contactcenterinsights_projects_locations_datasets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_delete_execute()` to send, or `contactcenterinsights_projects_locations_datasets_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -21070,10 +21497,13 @@ pub fn contactcenterinsights_projects_locations_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_get_execute()` to send, or `contactcenterinsights_projects_locations_datasets_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -21236,13 +21666,16 @@ pub fn contactcenterinsights_projects_locations_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_list_execute()` to send, or `contactcenterinsights_projects_locations_datasets_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets",
@@ -21443,13 +21876,16 @@ pub fn contactcenterinsights_projects_locations_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_list_all_feedback_labels_execute()` to send, or `contactcenterinsights_projects_locations_datasets_list_all_feedback_labels` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_labels_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:listAllFeedbackLabels",
@@ -21652,11 +22088,14 @@ pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_label
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_patch_execute()` to send, or `contactcenterinsights_projects_locations_datasets_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -21835,10 +22274,13 @@ pub fn contactcenterinsights_projects_locations_datasets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_bulk_delete_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_bulk_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_bulk_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_bulk_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations:bulkDelete",
@@ -22005,10 +22447,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_bulk_dele
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_calculate_stats_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_calculate_stats` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate_stats_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate_stats_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations:calculateStats",
@@ -22187,11 +22632,14 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_delete_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}",
@@ -22367,10 +22815,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}:generateSignedAudio",
@@ -22547,11 +23000,14 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_get_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}",
@@ -22729,10 +23185,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_ingest_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_ingest` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations:ingest",
@@ -22898,15 +23357,18 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_list_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations",
@@ -23119,10 +23581,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_sample_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_sample` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_sample_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_sample_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations:sample",
@@ -23288,11 +23753,16 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_sample(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     feedbackLabelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels",
@@ -23470,10 +23940,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -23633,10 +24108,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -23804,13 +24284,18 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels",
@@ -24010,11 +24495,16 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}",
@@ -24195,10 +24685,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_insightsdata_export_execute()` to send, or `contactcenterinsights_projects_locations_datasets_insightsdata_export` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_datasets_insightsdata_export_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_datasets_insightsdata_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/insightsdata:export",
@@ -24363,10 +24856,13 @@ pub fn contactcenterinsights_projects_locations_datasets_insightsdata_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_encryption_spec_initialize_execute()` to send, or `contactcenterinsights_projects_locations_encryption_spec_initialize` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_encryption_spec_initialize_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_encryption_spec_initialize_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/encryptionSpec:initialize",
@@ -24530,10 +25026,13 @@ pub fn contactcenterinsights_projects_locations_encryption_spec_initialize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_insightsdata_export_execute()` to send, or `contactcenterinsights_projects_locations_insightsdata_export` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_insightsdata_export_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_insightsdata_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsdata:export",
@@ -24696,10 +25195,15 @@ pub fn contactcenterinsights_projects_locations_insightsdata_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     issueModel: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}:calculateIssueModelStats",
@@ -24880,10 +25384,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_mod
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_create_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels",
@@ -25046,10 +25553,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_delete_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}",
@@ -25212,10 +25722,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_deploy_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_deploy` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_deploy_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_deploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}:deploy",
@@ -25378,10 +25891,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_deploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_export_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_export` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_export_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}:export",
@@ -25544,10 +26060,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_get_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}",
@@ -25711,10 +26230,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_import_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_import` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_import_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels:import",
@@ -25877,10 +26399,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_list_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels",
@@ -26053,11 +26578,14 @@ pub fn contactcenterinsights_projects_locations_issue_models_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_patch_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}",
@@ -26237,10 +26765,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_undeploy_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_undeploy` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_undeploy_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_undeploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}:undeploy",
@@ -26403,10 +26934,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_undeploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_issues_create_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_issues_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_issues_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_issues_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}/issues",
@@ -26571,10 +27105,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_issues_delete_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_issues_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_issues_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_issues_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}/issues/{issuesId}",
@@ -26734,10 +27271,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_issues_get_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_issues_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_issues_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_issues_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}/issues/{issuesId}",
@@ -26902,10 +27442,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_issues_list_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_issues_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_issues_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_issues_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}/issues",
@@ -27074,11 +27617,14 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_issues_patch_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_issues_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_issue_models_issues_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_issue_models_issues_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/issueModels/{issueModelsId}/issues/{issuesId}",
@@ -27258,10 +27804,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_operations_cancel_execute()` to send, or `contactcenterinsights_projects_locations_operations_cancel` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -27420,10 +27969,13 @@ pub fn contactcenterinsights_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_operations_get_execute()` to send, or `contactcenterinsights_projects_locations_operations_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -27586,14 +28138,17 @@ pub fn contactcenterinsights_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_operations_list_execute()` to send, or `contactcenterinsights_projects_locations_operations_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -27791,10 +28346,13 @@ pub fn contactcenterinsights_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_phrase_matchers_create_execute()` to send, or `contactcenterinsights_projects_locations_phrase_matchers_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_phrase_matchers_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_phrase_matchers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseMatchers",
@@ -27960,10 +28518,13 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_phrase_matchers_delete_execute()` to send, or `contactcenterinsights_projects_locations_phrase_matchers_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_phrase_matchers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_phrase_matchers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseMatchers/{phraseMatchersId}",
@@ -28123,10 +28684,13 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_phrase_matchers_get_execute()` to send, or `contactcenterinsights_projects_locations_phrase_matchers_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_phrase_matchers_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_phrase_matchers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseMatchers/{phraseMatchersId}",
@@ -28290,13 +28854,16 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_phrase_matchers_list_execute()` to send, or `contactcenterinsights_projects_locations_phrase_matchers_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_phrase_matchers_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_phrase_matchers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseMatchers",
@@ -28497,11 +29064,14 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_phrase_matchers_patch_execute()` to send, or `contactcenterinsights_projects_locations_phrase_matchers_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_phrase_matchers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_phrase_matchers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseMatchers/{phraseMatchersId}",
@@ -28681,11 +29251,14 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_question_tags_create_execute()` to send, or `contactcenterinsights_projects_locations_qa_question_tags_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_question_tags_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_question_tags_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     qaQuestionTagId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaQuestionTags",
@@ -28865,10 +29438,13 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_question_tags_delete_execute()` to send, or `contactcenterinsights_projects_locations_qa_question_tags_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_question_tags_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_question_tags_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaQuestionTags/{qaQuestionTagsId}",
@@ -29032,10 +29608,13 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_question_tags_get_execute()` to send, or `contactcenterinsights_projects_locations_qa_question_tags_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_question_tags_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_question_tags_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaQuestionTags/{qaQuestionTagsId}",
@@ -29199,11 +29778,14 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_question_tags_list_execute()` to send, or `contactcenterinsights_projects_locations_qa_question_tags_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_question_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_question_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaQuestionTags",
@@ -29392,11 +29974,14 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_question_tags_patch_execute()` to send, or `contactcenterinsights_projects_locations_qa_question_tags_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_question_tags_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_question_tags_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaQuestionTags/{qaQuestionTagsId}",
@@ -29575,11 +30160,14 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_create_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     qaScorecardId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards",
@@ -29759,11 +30347,14 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_delete_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}",
@@ -29938,10 +30529,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_get_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}",
@@ -30105,13 +30699,16 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_list_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     qaScorecardSources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards",
@@ -30312,11 +30909,14 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_patch_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}",
@@ -30496,11 +31096,14 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_create_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     qaScorecardRevisionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions",
@@ -30690,11 +31293,14 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}",
@@ -30870,10 +31476,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}:deploy",
@@ -31048,10 +31657,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_get_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}",
@@ -31225,14 +31837,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_list_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     qaScorecardSources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions",
@@ -31439,10 +32054,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}:tuneQaScorecardRevision",
@@ -31604,10 +32224,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}:undeploy",
@@ -31783,11 +32406,16 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     qaQuestionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions",
@@ -31968,10 +32596,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions/{qaQuestionsId}",
@@ -32134,10 +32767,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions/{qaQuestionsId}",
@@ -32308,12 +32946,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions",
@@ -32514,11 +33157,16 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch_execute()` to send, or `contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions/{qaQuestionsId}",
@@ -32699,10 +33347,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_views_create_execute()` to send, or `contactcenterinsights_projects_locations_views_create` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/views",
@@ -32865,10 +33516,13 @@ pub fn contactcenterinsights_projects_locations_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_views_delete_execute()` to send, or `contactcenterinsights_projects_locations_views_delete` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/views/{viewsId}",
@@ -33027,10 +33681,13 @@ pub fn contactcenterinsights_projects_locations_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_views_get_execute()` to send, or `contactcenterinsights_projects_locations_views_get` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/views/{viewsId}",
@@ -33192,12 +33849,15 @@ pub fn contactcenterinsights_projects_locations_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_views_list_execute()` to send, or `contactcenterinsights_projects_locations_views_list` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/views",
@@ -33386,11 +34046,14 @@ pub fn contactcenterinsights_projects_locations_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_views_patch_execute()` to send, or `contactcenterinsights_projects_locations_views_patch` for simplest API.
 
-pub fn contactcenterinsights_projects_locations_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenterinsights_projects_locations_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenterinsights.googleapis.com/v1/projects/{}/locations/{locationsId}/views/{viewsId}",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_info_types_list_execute()` to send, or `dlp_info_types_list` for simplest API.
 
-pub fn dlp_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://dlp.googleapis.com/v2/infoTypes",);
 
@@ -224,13 +228,16 @@ pub fn dlp_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_locations_info_types_list_execute()` to send, or `dlp_locations_info_types_list` for simplest API.
 
-pub fn dlp_locations_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_locations_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/locations/{}/infoTypes",
@@ -422,10 +429,13 @@ pub fn dlp_locations_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_deidentify_templates_create_execute()` to send, or `dlp_organizations_deidentify_templates_create` for simplest API.
 
-pub fn dlp_organizations_deidentify_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_deidentify_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/deidentifyTemplates",
@@ -587,10 +597,13 @@ pub fn dlp_organizations_deidentify_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_deidentify_templates_delete_execute()` to send, or `dlp_organizations_deidentify_templates_delete` for simplest API.
 
-pub fn dlp_organizations_deidentify_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_deidentify_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -748,10 +761,13 @@ pub fn dlp_organizations_deidentify_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_deidentify_templates_get_execute()` to send, or `dlp_organizations_deidentify_templates_get` for simplest API.
 
-pub fn dlp_organizations_deidentify_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_deidentify_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -913,14 +929,17 @@ pub fn dlp_organizations_deidentify_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_deidentify_templates_list_execute()` to send, or `dlp_organizations_deidentify_templates_list` for simplest API.
 
-pub fn dlp_organizations_deidentify_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_deidentify_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/deidentifyTemplates",
@@ -1121,10 +1140,13 @@ pub fn dlp_organizations_deidentify_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_deidentify_templates_patch_execute()` to send, or `dlp_organizations_deidentify_templates_patch` for simplest API.
 
-pub fn dlp_organizations_deidentify_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_deidentify_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -1286,10 +1308,13 @@ pub fn dlp_organizations_deidentify_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_inspect_templates_create_execute()` to send, or `dlp_organizations_inspect_templates_create` for simplest API.
 
-pub fn dlp_organizations_inspect_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_inspect_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/inspectTemplates",
@@ -1451,10 +1476,13 @@ pub fn dlp_organizations_inspect_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_inspect_templates_delete_execute()` to send, or `dlp_organizations_inspect_templates_delete` for simplest API.
 
-pub fn dlp_organizations_inspect_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_inspect_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/inspectTemplates/{inspectTemplatesId}",
@@ -1612,10 +1640,13 @@ pub fn dlp_organizations_inspect_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_inspect_templates_get_execute()` to send, or `dlp_organizations_inspect_templates_get` for simplest API.
 
-pub fn dlp_organizations_inspect_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_inspect_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/inspectTemplates/{inspectTemplatesId}",
@@ -1777,14 +1808,17 @@ pub fn dlp_organizations_inspect_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_inspect_templates_list_execute()` to send, or `dlp_organizations_inspect_templates_list` for simplest API.
 
-pub fn dlp_organizations_inspect_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_inspect_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/inspectTemplates",
@@ -1982,10 +2016,13 @@ pub fn dlp_organizations_inspect_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_inspect_templates_patch_execute()` to send, or `dlp_organizations_inspect_templates_patch` for simplest API.
 
-pub fn dlp_organizations_inspect_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_inspect_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/inspectTemplates/{inspectTemplatesId}",
@@ -2147,10 +2184,13 @@ pub fn dlp_organizations_inspect_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_column_data_profiles_get_execute()` to send, or `dlp_organizations_locations_column_data_profiles_get` for simplest API.
 
-pub fn dlp_organizations_locations_column_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_column_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/columnDataProfiles/{columnDataProfilesId}",
@@ -2312,14 +2352,17 @@ pub fn dlp_organizations_locations_column_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_column_data_profiles_list_execute()` to send, or `dlp_organizations_locations_column_data_profiles_list` for simplest API.
 
-pub fn dlp_organizations_locations_column_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_column_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/columnDataProfiles",
@@ -2517,10 +2560,13 @@ pub fn dlp_organizations_locations_column_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_connections_create_execute()` to send, or `dlp_organizations_locations_connections_create` for simplest API.
 
-pub fn dlp_organizations_locations_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/connections",
@@ -2682,10 +2728,13 @@ pub fn dlp_organizations_locations_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_connections_delete_execute()` to send, or `dlp_organizations_locations_connections_delete` for simplest API.
 
-pub fn dlp_organizations_locations_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -2843,10 +2892,13 @@ pub fn dlp_organizations_locations_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_connections_get_execute()` to send, or `dlp_organizations_locations_connections_get` for simplest API.
 
-pub fn dlp_organizations_locations_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -3008,13 +3060,16 @@ pub fn dlp_organizations_locations_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_connections_list_execute()` to send, or `dlp_organizations_locations_connections_list` for simplest API.
 
-pub fn dlp_organizations_locations_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/connections",
@@ -3205,10 +3260,13 @@ pub fn dlp_organizations_locations_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_connections_patch_execute()` to send, or `dlp_organizations_locations_connections_patch` for simplest API.
 
-pub fn dlp_organizations_locations_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -3370,13 +3428,16 @@ pub fn dlp_organizations_locations_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_connections_search_execute()` to send, or `dlp_organizations_locations_connections_search` for simplest API.
 
-pub fn dlp_organizations_locations_connections_search_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_connections_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/connections:search",
@@ -3568,10 +3629,13 @@ pub fn dlp_organizations_locations_connections_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_deidentify_templates_create_execute()` to send, or `dlp_organizations_locations_deidentify_templates_create` for simplest API.
 
-pub fn dlp_organizations_locations_deidentify_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_deidentify_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/deidentifyTemplates",
@@ -3734,10 +3798,13 @@ pub fn dlp_organizations_locations_deidentify_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_deidentify_templates_delete_execute()` to send, or `dlp_organizations_locations_deidentify_templates_delete` for simplest API.
 
-pub fn dlp_organizations_locations_deidentify_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_deidentify_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -3896,10 +3963,13 @@ pub fn dlp_organizations_locations_deidentify_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_deidentify_templates_get_execute()` to send, or `dlp_organizations_locations_deidentify_templates_get` for simplest API.
 
-pub fn dlp_organizations_locations_deidentify_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_deidentify_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -4061,14 +4131,17 @@ pub fn dlp_organizations_locations_deidentify_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_deidentify_templates_list_execute()` to send, or `dlp_organizations_locations_deidentify_templates_list` for simplest API.
 
-pub fn dlp_organizations_locations_deidentify_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_deidentify_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/deidentifyTemplates",
@@ -4269,10 +4342,13 @@ pub fn dlp_organizations_locations_deidentify_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_deidentify_templates_patch_execute()` to send, or `dlp_organizations_locations_deidentify_templates_patch` for simplest API.
 
-pub fn dlp_organizations_locations_deidentify_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_deidentify_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -4435,10 +4511,13 @@ pub fn dlp_organizations_locations_deidentify_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_discovery_configs_create_execute()` to send, or `dlp_organizations_locations_discovery_configs_create` for simplest API.
 
-pub fn dlp_organizations_locations_discovery_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_discovery_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/discoveryConfigs",
@@ -4601,10 +4680,13 @@ pub fn dlp_organizations_locations_discovery_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_discovery_configs_delete_execute()` to send, or `dlp_organizations_locations_discovery_configs_delete` for simplest API.
 
-pub fn dlp_organizations_locations_discovery_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_discovery_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}",
@@ -4762,10 +4844,13 @@ pub fn dlp_organizations_locations_discovery_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_discovery_configs_get_execute()` to send, or `dlp_organizations_locations_discovery_configs_get` for simplest API.
 
-pub fn dlp_organizations_locations_discovery_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_discovery_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}",
@@ -4927,13 +5012,16 @@ pub fn dlp_organizations_locations_discovery_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_discovery_configs_list_execute()` to send, or `dlp_organizations_locations_discovery_configs_list` for simplest API.
 
-pub fn dlp_organizations_locations_discovery_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_discovery_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/discoveryConfigs",
@@ -5125,10 +5213,13 @@ pub fn dlp_organizations_locations_discovery_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_discovery_configs_patch_execute()` to send, or `dlp_organizations_locations_discovery_configs_patch` for simplest API.
 
-pub fn dlp_organizations_locations_discovery_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_discovery_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}",
@@ -5290,8 +5381,8 @@ pub fn dlp_organizations_locations_discovery_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_dlp_jobs_list_execute()` to send, or `dlp_organizations_locations_dlp_jobs_list` for simplest API.
 
-pub fn dlp_organizations_locations_dlp_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_dlp_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
@@ -5299,7 +5390,10 @@ pub fn dlp_organizations_locations_dlp_jobs_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/dlpJobs",
@@ -5508,10 +5602,13 @@ pub fn dlp_organizations_locations_dlp_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_file_store_data_profiles_delete_execute()` to send, or `dlp_organizations_locations_file_store_data_profiles_delete` for simplest API.
 
-pub fn dlp_organizations_locations_file_store_data_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_file_store_data_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}",
@@ -5670,10 +5767,13 @@ pub fn dlp_organizations_locations_file_store_data_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_file_store_data_profiles_get_execute()` to send, or `dlp_organizations_locations_file_store_data_profiles_get` for simplest API.
 
-pub fn dlp_organizations_locations_file_store_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_file_store_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}",
@@ -5836,14 +5936,17 @@ pub fn dlp_organizations_locations_file_store_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_file_store_data_profiles_list_execute()` to send, or `dlp_organizations_locations_file_store_data_profiles_list` for simplest API.
 
-pub fn dlp_organizations_locations_file_store_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_file_store_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/fileStoreDataProfiles",
@@ -6044,13 +6147,16 @@ pub fn dlp_organizations_locations_file_store_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_info_types_list_execute()` to send, or `dlp_organizations_locations_info_types_list` for simplest API.
 
-pub fn dlp_organizations_locations_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/infoTypes",
@@ -6242,10 +6348,13 @@ pub fn dlp_organizations_locations_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_inspect_templates_create_execute()` to send, or `dlp_organizations_locations_inspect_templates_create` for simplest API.
 
-pub fn dlp_organizations_locations_inspect_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_inspect_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/inspectTemplates",
@@ -6408,10 +6517,13 @@ pub fn dlp_organizations_locations_inspect_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_inspect_templates_delete_execute()` to send, or `dlp_organizations_locations_inspect_templates_delete` for simplest API.
 
-pub fn dlp_organizations_locations_inspect_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_inspect_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}",
@@ -6569,10 +6681,13 @@ pub fn dlp_organizations_locations_inspect_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_inspect_templates_get_execute()` to send, or `dlp_organizations_locations_inspect_templates_get` for simplest API.
 
-pub fn dlp_organizations_locations_inspect_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_inspect_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}",
@@ -6734,14 +6849,17 @@ pub fn dlp_organizations_locations_inspect_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_inspect_templates_list_execute()` to send, or `dlp_organizations_locations_inspect_templates_list` for simplest API.
 
-pub fn dlp_organizations_locations_inspect_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_inspect_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/inspectTemplates",
@@ -6939,10 +7057,13 @@ pub fn dlp_organizations_locations_inspect_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_inspect_templates_patch_execute()` to send, or `dlp_organizations_locations_inspect_templates_patch` for simplest API.
 
-pub fn dlp_organizations_locations_inspect_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_inspect_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}",
@@ -7104,10 +7225,13 @@ pub fn dlp_organizations_locations_inspect_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_job_triggers_create_execute()` to send, or `dlp_organizations_locations_job_triggers_create` for simplest API.
 
-pub fn dlp_organizations_locations_job_triggers_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_job_triggers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/jobTriggers",
@@ -7269,10 +7393,13 @@ pub fn dlp_organizations_locations_job_triggers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_job_triggers_delete_execute()` to send, or `dlp_organizations_locations_job_triggers_delete` for simplest API.
 
-pub fn dlp_organizations_locations_job_triggers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_job_triggers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}",
@@ -7430,10 +7557,13 @@ pub fn dlp_organizations_locations_job_triggers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_job_triggers_get_execute()` to send, or `dlp_organizations_locations_job_triggers_get` for simplest API.
 
-pub fn dlp_organizations_locations_job_triggers_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_job_triggers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}",
@@ -7595,8 +7725,8 @@ pub fn dlp_organizations_locations_job_triggers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_job_triggers_list_execute()` to send, or `dlp_organizations_locations_job_triggers_list` for simplest API.
 
-pub fn dlp_organizations_locations_job_triggers_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_job_triggers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
@@ -7604,7 +7734,10 @@ pub fn dlp_organizations_locations_job_triggers_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/jobTriggers",
@@ -7813,10 +7946,13 @@ pub fn dlp_organizations_locations_job_triggers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_job_triggers_patch_execute()` to send, or `dlp_organizations_locations_job_triggers_patch` for simplest API.
 
-pub fn dlp_organizations_locations_job_triggers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_job_triggers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}",
@@ -7978,10 +8114,13 @@ pub fn dlp_organizations_locations_job_triggers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_project_data_profiles_get_execute()` to send, or `dlp_organizations_locations_project_data_profiles_get` for simplest API.
 
-pub fn dlp_organizations_locations_project_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_project_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/projectDataProfiles/{projectDataProfilesId}",
@@ -8144,14 +8283,17 @@ pub fn dlp_organizations_locations_project_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_project_data_profiles_list_execute()` to send, or `dlp_organizations_locations_project_data_profiles_list` for simplest API.
 
-pub fn dlp_organizations_locations_project_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_project_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/projectDataProfiles",
@@ -8352,10 +8494,13 @@ pub fn dlp_organizations_locations_project_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_stored_info_types_create_execute()` to send, or `dlp_organizations_locations_stored_info_types_create` for simplest API.
 
-pub fn dlp_organizations_locations_stored_info_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_stored_info_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/storedInfoTypes",
@@ -8518,10 +8663,13 @@ pub fn dlp_organizations_locations_stored_info_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_stored_info_types_delete_execute()` to send, or `dlp_organizations_locations_stored_info_types_delete` for simplest API.
 
-pub fn dlp_organizations_locations_stored_info_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_stored_info_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}",
@@ -8679,10 +8827,13 @@ pub fn dlp_organizations_locations_stored_info_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_stored_info_types_get_execute()` to send, or `dlp_organizations_locations_stored_info_types_get` for simplest API.
 
-pub fn dlp_organizations_locations_stored_info_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_stored_info_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}",
@@ -8844,14 +8995,17 @@ pub fn dlp_organizations_locations_stored_info_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_stored_info_types_list_execute()` to send, or `dlp_organizations_locations_stored_info_types_list` for simplest API.
 
-pub fn dlp_organizations_locations_stored_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_stored_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/storedInfoTypes",
@@ -9049,10 +9203,13 @@ pub fn dlp_organizations_locations_stored_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_stored_info_types_patch_execute()` to send, or `dlp_organizations_locations_stored_info_types_patch` for simplest API.
 
-pub fn dlp_organizations_locations_stored_info_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_stored_info_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}",
@@ -9214,10 +9371,13 @@ pub fn dlp_organizations_locations_stored_info_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_table_data_profiles_delete_execute()` to send, or `dlp_organizations_locations_table_data_profiles_delete` for simplest API.
 
-pub fn dlp_organizations_locations_table_data_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_table_data_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}",
@@ -9376,10 +9536,13 @@ pub fn dlp_organizations_locations_table_data_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_table_data_profiles_get_execute()` to send, or `dlp_organizations_locations_table_data_profiles_get` for simplest API.
 
-pub fn dlp_organizations_locations_table_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_table_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}",
@@ -9541,14 +9704,17 @@ pub fn dlp_organizations_locations_table_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_locations_table_data_profiles_list_execute()` to send, or `dlp_organizations_locations_table_data_profiles_list` for simplest API.
 
-pub fn dlp_organizations_locations_table_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_locations_table_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/locations/{locationsId}/tableDataProfiles",
@@ -9746,10 +9912,13 @@ pub fn dlp_organizations_locations_table_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_stored_info_types_create_execute()` to send, or `dlp_organizations_stored_info_types_create` for simplest API.
 
-pub fn dlp_organizations_stored_info_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_stored_info_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/storedInfoTypes",
@@ -9911,10 +10080,13 @@ pub fn dlp_organizations_stored_info_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_stored_info_types_delete_execute()` to send, or `dlp_organizations_stored_info_types_delete` for simplest API.
 
-pub fn dlp_organizations_stored_info_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_stored_info_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/storedInfoTypes/{storedInfoTypesId}",
@@ -10072,10 +10244,13 @@ pub fn dlp_organizations_stored_info_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_stored_info_types_get_execute()` to send, or `dlp_organizations_stored_info_types_get` for simplest API.
 
-pub fn dlp_organizations_stored_info_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_stored_info_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/storedInfoTypes/{storedInfoTypesId}",
@@ -10237,14 +10412,17 @@ pub fn dlp_organizations_stored_info_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_stored_info_types_list_execute()` to send, or `dlp_organizations_stored_info_types_list` for simplest API.
 
-pub fn dlp_organizations_stored_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_stored_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/storedInfoTypes",
@@ -10442,10 +10620,13 @@ pub fn dlp_organizations_stored_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_organizations_stored_info_types_patch_execute()` to send, or `dlp_organizations_stored_info_types_patch` for simplest API.
 
-pub fn dlp_organizations_stored_info_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_organizations_stored_info_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/organizations/{}/storedInfoTypes/{storedInfoTypesId}",
@@ -10607,10 +10788,13 @@ pub fn dlp_organizations_stored_info_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_content_deidentify_execute()` to send, or `dlp_projects_content_deidentify` for simplest API.
 
-pub fn dlp_projects_content_deidentify_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_content_deidentify_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/content:deidentify",
@@ -10773,10 +10957,13 @@ pub fn dlp_projects_content_deidentify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_content_inspect_execute()` to send, or `dlp_projects_content_inspect` for simplest API.
 
-pub fn dlp_projects_content_inspect_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_content_inspect_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/content:inspect",
@@ -10938,10 +11125,13 @@ pub fn dlp_projects_content_inspect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_content_reidentify_execute()` to send, or `dlp_projects_content_reidentify` for simplest API.
 
-pub fn dlp_projects_content_reidentify_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_content_reidentify_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/content:reidentify",
@@ -11104,10 +11294,13 @@ pub fn dlp_projects_content_reidentify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_deidentify_templates_create_execute()` to send, or `dlp_projects_deidentify_templates_create` for simplest API.
 
-pub fn dlp_projects_deidentify_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_deidentify_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/deidentifyTemplates",
@@ -11269,10 +11462,13 @@ pub fn dlp_projects_deidentify_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_deidentify_templates_delete_execute()` to send, or `dlp_projects_deidentify_templates_delete` for simplest API.
 
-pub fn dlp_projects_deidentify_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_deidentify_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -11430,10 +11626,13 @@ pub fn dlp_projects_deidentify_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_deidentify_templates_get_execute()` to send, or `dlp_projects_deidentify_templates_get` for simplest API.
 
-pub fn dlp_projects_deidentify_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_deidentify_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -11595,14 +11794,17 @@ pub fn dlp_projects_deidentify_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_deidentify_templates_list_execute()` to send, or `dlp_projects_deidentify_templates_list` for simplest API.
 
-pub fn dlp_projects_deidentify_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_deidentify_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/deidentifyTemplates",
@@ -11803,10 +12005,13 @@ pub fn dlp_projects_deidentify_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_deidentify_templates_patch_execute()` to send, or `dlp_projects_deidentify_templates_patch` for simplest API.
 
-pub fn dlp_projects_deidentify_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_deidentify_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -11968,10 +12173,13 @@ pub fn dlp_projects_deidentify_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_dlp_jobs_cancel_execute()` to send, or `dlp_projects_dlp_jobs_cancel` for simplest API.
 
-pub fn dlp_projects_dlp_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_dlp_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/dlpJobs/{dlpJobsId}:cancel",
@@ -12129,10 +12337,13 @@ pub fn dlp_projects_dlp_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_dlp_jobs_create_execute()` to send, or `dlp_projects_dlp_jobs_create` for simplest API.
 
-pub fn dlp_projects_dlp_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_dlp_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://dlp.googleapis.com/v2/projects/{}/dlpJobs", parent,);
 
@@ -12287,10 +12498,13 @@ pub fn dlp_projects_dlp_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_dlp_jobs_delete_execute()` to send, or `dlp_projects_dlp_jobs_delete` for simplest API.
 
-pub fn dlp_projects_dlp_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_dlp_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/dlpJobs/{dlpJobsId}",
@@ -12448,10 +12662,13 @@ pub fn dlp_projects_dlp_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_dlp_jobs_get_execute()` to send, or `dlp_projects_dlp_jobs_get` for simplest API.
 
-pub fn dlp_projects_dlp_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_dlp_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/dlpJobs/{dlpJobsId}",
@@ -12609,8 +12826,8 @@ pub fn dlp_projects_dlp_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_dlp_jobs_list_execute()` to send, or `dlp_projects_dlp_jobs_list` for simplest API.
 
-pub fn dlp_projects_dlp_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_dlp_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
@@ -12618,7 +12835,10 @@ pub fn dlp_projects_dlp_jobs_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://dlp.googleapis.com/v2/projects/{}/dlpJobs", parent,);
 
@@ -12824,10 +13044,13 @@ pub fn dlp_projects_dlp_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_image_redact_execute()` to send, or `dlp_projects_image_redact` for simplest API.
 
-pub fn dlp_projects_image_redact_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_image_redact_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/image:redact",
@@ -12989,10 +13212,13 @@ pub fn dlp_projects_image_redact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_inspect_templates_create_execute()` to send, or `dlp_projects_inspect_templates_create` for simplest API.
 
-pub fn dlp_projects_inspect_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_inspect_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/inspectTemplates",
@@ -13154,10 +13380,13 @@ pub fn dlp_projects_inspect_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_inspect_templates_delete_execute()` to send, or `dlp_projects_inspect_templates_delete` for simplest API.
 
-pub fn dlp_projects_inspect_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_inspect_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/inspectTemplates/{inspectTemplatesId}",
@@ -13315,10 +13544,13 @@ pub fn dlp_projects_inspect_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_inspect_templates_get_execute()` to send, or `dlp_projects_inspect_templates_get` for simplest API.
 
-pub fn dlp_projects_inspect_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_inspect_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/inspectTemplates/{inspectTemplatesId}",
@@ -13480,14 +13712,17 @@ pub fn dlp_projects_inspect_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_inspect_templates_list_execute()` to send, or `dlp_projects_inspect_templates_list` for simplest API.
 
-pub fn dlp_projects_inspect_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_inspect_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/inspectTemplates",
@@ -13685,10 +13920,13 @@ pub fn dlp_projects_inspect_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_inspect_templates_patch_execute()` to send, or `dlp_projects_inspect_templates_patch` for simplest API.
 
-pub fn dlp_projects_inspect_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_inspect_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/inspectTemplates/{inspectTemplatesId}",
@@ -13850,10 +14088,13 @@ pub fn dlp_projects_inspect_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_job_triggers_activate_execute()` to send, or `dlp_projects_job_triggers_activate` for simplest API.
 
-pub fn dlp_projects_job_triggers_activate_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_job_triggers_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/jobTriggers/{jobTriggersId}:activate",
@@ -14011,10 +14252,13 @@ pub fn dlp_projects_job_triggers_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_job_triggers_create_execute()` to send, or `dlp_projects_job_triggers_create` for simplest API.
 
-pub fn dlp_projects_job_triggers_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_job_triggers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/jobTriggers",
@@ -14176,10 +14420,13 @@ pub fn dlp_projects_job_triggers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_job_triggers_delete_execute()` to send, or `dlp_projects_job_triggers_delete` for simplest API.
 
-pub fn dlp_projects_job_triggers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_job_triggers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/jobTriggers/{jobTriggersId}",
@@ -14337,10 +14584,13 @@ pub fn dlp_projects_job_triggers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_job_triggers_get_execute()` to send, or `dlp_projects_job_triggers_get` for simplest API.
 
-pub fn dlp_projects_job_triggers_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_job_triggers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/jobTriggers/{jobTriggersId}",
@@ -14502,8 +14752,8 @@ pub fn dlp_projects_job_triggers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_job_triggers_list_execute()` to send, or `dlp_projects_job_triggers_list` for simplest API.
 
-pub fn dlp_projects_job_triggers_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_job_triggers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
@@ -14511,7 +14761,10 @@ pub fn dlp_projects_job_triggers_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/jobTriggers",
@@ -14720,10 +14973,13 @@ pub fn dlp_projects_job_triggers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_job_triggers_patch_execute()` to send, or `dlp_projects_job_triggers_patch` for simplest API.
 
-pub fn dlp_projects_job_triggers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_job_triggers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/jobTriggers/{jobTriggersId}",
@@ -14885,10 +15141,13 @@ pub fn dlp_projects_job_triggers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_column_data_profiles_get_execute()` to send, or `dlp_projects_locations_column_data_profiles_get` for simplest API.
 
-pub fn dlp_projects_locations_column_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_column_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/columnDataProfiles/{columnDataProfilesId}",
@@ -15050,14 +15309,17 @@ pub fn dlp_projects_locations_column_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_column_data_profiles_list_execute()` to send, or `dlp_projects_locations_column_data_profiles_list` for simplest API.
 
-pub fn dlp_projects_locations_column_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_column_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/columnDataProfiles",
@@ -15255,10 +15517,13 @@ pub fn dlp_projects_locations_column_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_connections_create_execute()` to send, or `dlp_projects_locations_connections_create` for simplest API.
 
-pub fn dlp_projects_locations_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/connections",
@@ -15420,10 +15685,13 @@ pub fn dlp_projects_locations_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_connections_delete_execute()` to send, or `dlp_projects_locations_connections_delete` for simplest API.
 
-pub fn dlp_projects_locations_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -15581,10 +15849,13 @@ pub fn dlp_projects_locations_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_connections_get_execute()` to send, or `dlp_projects_locations_connections_get` for simplest API.
 
-pub fn dlp_projects_locations_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -15746,13 +16017,16 @@ pub fn dlp_projects_locations_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_connections_list_execute()` to send, or `dlp_projects_locations_connections_list` for simplest API.
 
-pub fn dlp_projects_locations_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/connections",
@@ -15943,10 +16217,13 @@ pub fn dlp_projects_locations_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_connections_patch_execute()` to send, or `dlp_projects_locations_connections_patch` for simplest API.
 
-pub fn dlp_projects_locations_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -16108,13 +16385,16 @@ pub fn dlp_projects_locations_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_connections_search_execute()` to send, or `dlp_projects_locations_connections_search` for simplest API.
 
-pub fn dlp_projects_locations_connections_search_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_connections_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/connections:search",
@@ -16306,10 +16586,13 @@ pub fn dlp_projects_locations_connections_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_content_deidentify_execute()` to send, or `dlp_projects_locations_content_deidentify` for simplest API.
 
-pub fn dlp_projects_locations_content_deidentify_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_content_deidentify_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/content:deidentify",
@@ -16472,10 +16755,13 @@ pub fn dlp_projects_locations_content_deidentify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_content_inspect_execute()` to send, or `dlp_projects_locations_content_inspect` for simplest API.
 
-pub fn dlp_projects_locations_content_inspect_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_content_inspect_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/content:inspect",
@@ -16637,10 +16923,13 @@ pub fn dlp_projects_locations_content_inspect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_content_reidentify_execute()` to send, or `dlp_projects_locations_content_reidentify` for simplest API.
 
-pub fn dlp_projects_locations_content_reidentify_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_content_reidentify_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/content:reidentify",
@@ -16803,10 +17092,13 @@ pub fn dlp_projects_locations_content_reidentify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_deidentify_templates_create_execute()` to send, or `dlp_projects_locations_deidentify_templates_create` for simplest API.
 
-pub fn dlp_projects_locations_deidentify_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_deidentify_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/deidentifyTemplates",
@@ -16968,10 +17260,13 @@ pub fn dlp_projects_locations_deidentify_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_deidentify_templates_delete_execute()` to send, or `dlp_projects_locations_deidentify_templates_delete` for simplest API.
 
-pub fn dlp_projects_locations_deidentify_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_deidentify_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -17129,10 +17424,13 @@ pub fn dlp_projects_locations_deidentify_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_deidentify_templates_get_execute()` to send, or `dlp_projects_locations_deidentify_templates_get` for simplest API.
 
-pub fn dlp_projects_locations_deidentify_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_deidentify_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -17294,14 +17592,17 @@ pub fn dlp_projects_locations_deidentify_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_deidentify_templates_list_execute()` to send, or `dlp_projects_locations_deidentify_templates_list` for simplest API.
 
-pub fn dlp_projects_locations_deidentify_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_deidentify_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/deidentifyTemplates",
@@ -17502,10 +17803,13 @@ pub fn dlp_projects_locations_deidentify_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_deidentify_templates_patch_execute()` to send, or `dlp_projects_locations_deidentify_templates_patch` for simplest API.
 
-pub fn dlp_projects_locations_deidentify_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_deidentify_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}",
@@ -17667,10 +17971,13 @@ pub fn dlp_projects_locations_deidentify_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_discovery_configs_create_execute()` to send, or `dlp_projects_locations_discovery_configs_create` for simplest API.
 
-pub fn dlp_projects_locations_discovery_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_discovery_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/discoveryConfigs",
@@ -17832,10 +18139,13 @@ pub fn dlp_projects_locations_discovery_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_discovery_configs_delete_execute()` to send, or `dlp_projects_locations_discovery_configs_delete` for simplest API.
 
-pub fn dlp_projects_locations_discovery_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_discovery_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}",
@@ -17993,10 +18303,13 @@ pub fn dlp_projects_locations_discovery_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_discovery_configs_get_execute()` to send, or `dlp_projects_locations_discovery_configs_get` for simplest API.
 
-pub fn dlp_projects_locations_discovery_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_discovery_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}",
@@ -18158,13 +18471,16 @@ pub fn dlp_projects_locations_discovery_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_discovery_configs_list_execute()` to send, or `dlp_projects_locations_discovery_configs_list` for simplest API.
 
-pub fn dlp_projects_locations_discovery_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_discovery_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/discoveryConfigs",
@@ -18356,10 +18672,13 @@ pub fn dlp_projects_locations_discovery_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_discovery_configs_patch_execute()` to send, or `dlp_projects_locations_discovery_configs_patch` for simplest API.
 
-pub fn dlp_projects_locations_discovery_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_discovery_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}",
@@ -18521,10 +18840,13 @@ pub fn dlp_projects_locations_discovery_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_dlp_jobs_cancel_execute()` to send, or `dlp_projects_locations_dlp_jobs_cancel` for simplest API.
 
-pub fn dlp_projects_locations_dlp_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_dlp_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/dlpJobs/{dlpJobsId}:cancel",
@@ -18682,10 +19004,13 @@ pub fn dlp_projects_locations_dlp_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_dlp_jobs_create_execute()` to send, or `dlp_projects_locations_dlp_jobs_create` for simplest API.
 
-pub fn dlp_projects_locations_dlp_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_dlp_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/dlpJobs",
@@ -18843,10 +19168,13 @@ pub fn dlp_projects_locations_dlp_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_dlp_jobs_delete_execute()` to send, or `dlp_projects_locations_dlp_jobs_delete` for simplest API.
 
-pub fn dlp_projects_locations_dlp_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_dlp_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/dlpJobs/{dlpJobsId}",
@@ -19004,10 +19332,13 @@ pub fn dlp_projects_locations_dlp_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_dlp_jobs_finish_execute()` to send, or `dlp_projects_locations_dlp_jobs_finish` for simplest API.
 
-pub fn dlp_projects_locations_dlp_jobs_finish_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_dlp_jobs_finish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/dlpJobs/{dlpJobsId}:finish",
@@ -19165,10 +19496,13 @@ pub fn dlp_projects_locations_dlp_jobs_finish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_dlp_jobs_get_execute()` to send, or `dlp_projects_locations_dlp_jobs_get` for simplest API.
 
-pub fn dlp_projects_locations_dlp_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_dlp_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/dlpJobs/{dlpJobsId}",
@@ -19326,10 +19660,13 @@ pub fn dlp_projects_locations_dlp_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_dlp_jobs_hybrid_inspect_execute()` to send, or `dlp_projects_locations_dlp_jobs_hybrid_inspect` for simplest API.
 
-pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/dlpJobs/{dlpJobsId}:hybridInspect",
@@ -19492,8 +19829,8 @@ pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_dlp_jobs_list_execute()` to send, or `dlp_projects_locations_dlp_jobs_list` for simplest API.
 
-pub fn dlp_projects_locations_dlp_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_dlp_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
@@ -19501,7 +19838,10 @@ pub fn dlp_projects_locations_dlp_jobs_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/dlpJobs",
@@ -19710,10 +20050,13 @@ pub fn dlp_projects_locations_dlp_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_file_store_data_profiles_delete_execute()` to send, or `dlp_projects_locations_file_store_data_profiles_delete` for simplest API.
 
-pub fn dlp_projects_locations_file_store_data_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_file_store_data_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}",
@@ -19872,10 +20215,13 @@ pub fn dlp_projects_locations_file_store_data_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_file_store_data_profiles_get_execute()` to send, or `dlp_projects_locations_file_store_data_profiles_get` for simplest API.
 
-pub fn dlp_projects_locations_file_store_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_file_store_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}",
@@ -20037,14 +20383,17 @@ pub fn dlp_projects_locations_file_store_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_file_store_data_profiles_list_execute()` to send, or `dlp_projects_locations_file_store_data_profiles_list` for simplest API.
 
-pub fn dlp_projects_locations_file_store_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_file_store_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/fileStoreDataProfiles",
@@ -20245,10 +20594,13 @@ pub fn dlp_projects_locations_file_store_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_image_redact_execute()` to send, or `dlp_projects_locations_image_redact` for simplest API.
 
-pub fn dlp_projects_locations_image_redact_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_image_redact_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/image:redact",
@@ -20410,13 +20762,16 @@ pub fn dlp_projects_locations_image_redact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_info_types_list_execute()` to send, or `dlp_projects_locations_info_types_list` for simplest API.
 
-pub fn dlp_projects_locations_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/infoTypes",
@@ -20608,10 +20963,13 @@ pub fn dlp_projects_locations_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_inspect_templates_create_execute()` to send, or `dlp_projects_locations_inspect_templates_create` for simplest API.
 
-pub fn dlp_projects_locations_inspect_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_inspect_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/inspectTemplates",
@@ -20773,10 +21131,13 @@ pub fn dlp_projects_locations_inspect_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_inspect_templates_delete_execute()` to send, or `dlp_projects_locations_inspect_templates_delete` for simplest API.
 
-pub fn dlp_projects_locations_inspect_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_inspect_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}",
@@ -20934,10 +21295,13 @@ pub fn dlp_projects_locations_inspect_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_inspect_templates_get_execute()` to send, or `dlp_projects_locations_inspect_templates_get` for simplest API.
 
-pub fn dlp_projects_locations_inspect_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_inspect_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}",
@@ -21099,14 +21463,17 @@ pub fn dlp_projects_locations_inspect_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_inspect_templates_list_execute()` to send, or `dlp_projects_locations_inspect_templates_list` for simplest API.
 
-pub fn dlp_projects_locations_inspect_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_inspect_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/inspectTemplates",
@@ -21304,10 +21671,13 @@ pub fn dlp_projects_locations_inspect_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_inspect_templates_patch_execute()` to send, or `dlp_projects_locations_inspect_templates_patch` for simplest API.
 
-pub fn dlp_projects_locations_inspect_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_inspect_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}",
@@ -21469,10 +21839,13 @@ pub fn dlp_projects_locations_inspect_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_job_triggers_activate_execute()` to send, or `dlp_projects_locations_job_triggers_activate` for simplest API.
 
-pub fn dlp_projects_locations_job_triggers_activate_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_job_triggers_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}:activate",
@@ -21630,10 +22003,13 @@ pub fn dlp_projects_locations_job_triggers_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_job_triggers_create_execute()` to send, or `dlp_projects_locations_job_triggers_create` for simplest API.
 
-pub fn dlp_projects_locations_job_triggers_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_job_triggers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/jobTriggers",
@@ -21795,10 +22171,13 @@ pub fn dlp_projects_locations_job_triggers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_job_triggers_delete_execute()` to send, or `dlp_projects_locations_job_triggers_delete` for simplest API.
 
-pub fn dlp_projects_locations_job_triggers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_job_triggers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}",
@@ -21956,10 +22335,13 @@ pub fn dlp_projects_locations_job_triggers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_job_triggers_get_execute()` to send, or `dlp_projects_locations_job_triggers_get` for simplest API.
 
-pub fn dlp_projects_locations_job_triggers_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_job_triggers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}",
@@ -22121,10 +22503,13 @@ pub fn dlp_projects_locations_job_triggers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_job_triggers_hybrid_inspect_execute()` to send, or `dlp_projects_locations_job_triggers_hybrid_inspect` for simplest API.
 
-pub fn dlp_projects_locations_job_triggers_hybrid_inspect_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_job_triggers_hybrid_inspect_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}:hybridInspect",
@@ -22287,8 +22672,8 @@ pub fn dlp_projects_locations_job_triggers_hybrid_inspect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_job_triggers_list_execute()` to send, or `dlp_projects_locations_job_triggers_list` for simplest API.
 
-pub fn dlp_projects_locations_job_triggers_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_job_triggers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     locationId: &Option<Option<String>>,
@@ -22296,7 +22681,10 @@ pub fn dlp_projects_locations_job_triggers_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/jobTriggers",
@@ -22505,10 +22893,13 @@ pub fn dlp_projects_locations_job_triggers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_job_triggers_patch_execute()` to send, or `dlp_projects_locations_job_triggers_patch` for simplest API.
 
-pub fn dlp_projects_locations_job_triggers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_job_triggers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/jobTriggers/{jobTriggersId}",
@@ -22670,10 +23061,13 @@ pub fn dlp_projects_locations_job_triggers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_project_data_profiles_get_execute()` to send, or `dlp_projects_locations_project_data_profiles_get` for simplest API.
 
-pub fn dlp_projects_locations_project_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_project_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/projectDataProfiles/{projectDataProfilesId}",
@@ -22835,14 +23229,17 @@ pub fn dlp_projects_locations_project_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_project_data_profiles_list_execute()` to send, or `dlp_projects_locations_project_data_profiles_list` for simplest API.
 
-pub fn dlp_projects_locations_project_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_project_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/projectDataProfiles",
@@ -23043,10 +23440,13 @@ pub fn dlp_projects_locations_project_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_stored_info_types_create_execute()` to send, or `dlp_projects_locations_stored_info_types_create` for simplest API.
 
-pub fn dlp_projects_locations_stored_info_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_stored_info_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/storedInfoTypes",
@@ -23208,10 +23608,13 @@ pub fn dlp_projects_locations_stored_info_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_stored_info_types_delete_execute()` to send, or `dlp_projects_locations_stored_info_types_delete` for simplest API.
 
-pub fn dlp_projects_locations_stored_info_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_stored_info_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}",
@@ -23369,10 +23772,13 @@ pub fn dlp_projects_locations_stored_info_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_stored_info_types_get_execute()` to send, or `dlp_projects_locations_stored_info_types_get` for simplest API.
 
-pub fn dlp_projects_locations_stored_info_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_stored_info_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}",
@@ -23534,14 +23940,17 @@ pub fn dlp_projects_locations_stored_info_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_stored_info_types_list_execute()` to send, or `dlp_projects_locations_stored_info_types_list` for simplest API.
 
-pub fn dlp_projects_locations_stored_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_stored_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/storedInfoTypes",
@@ -23739,10 +24148,13 @@ pub fn dlp_projects_locations_stored_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_stored_info_types_patch_execute()` to send, or `dlp_projects_locations_stored_info_types_patch` for simplest API.
 
-pub fn dlp_projects_locations_stored_info_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_stored_info_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}",
@@ -23904,10 +24316,13 @@ pub fn dlp_projects_locations_stored_info_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_table_data_profiles_delete_execute()` to send, or `dlp_projects_locations_table_data_profiles_delete` for simplest API.
 
-pub fn dlp_projects_locations_table_data_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_table_data_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}",
@@ -24065,10 +24480,13 @@ pub fn dlp_projects_locations_table_data_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_table_data_profiles_get_execute()` to send, or `dlp_projects_locations_table_data_profiles_get` for simplest API.
 
-pub fn dlp_projects_locations_table_data_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_table_data_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}",
@@ -24230,14 +24648,17 @@ pub fn dlp_projects_locations_table_data_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_locations_table_data_profiles_list_execute()` to send, or `dlp_projects_locations_table_data_profiles_list` for simplest API.
 
-pub fn dlp_projects_locations_table_data_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_locations_table_data_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/locations/{locationsId}/tableDataProfiles",
@@ -24435,10 +24856,13 @@ pub fn dlp_projects_locations_table_data_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_stored_info_types_create_execute()` to send, or `dlp_projects_stored_info_types_create` for simplest API.
 
-pub fn dlp_projects_stored_info_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_stored_info_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/storedInfoTypes",
@@ -24600,10 +25024,13 @@ pub fn dlp_projects_stored_info_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_stored_info_types_delete_execute()` to send, or `dlp_projects_stored_info_types_delete` for simplest API.
 
-pub fn dlp_projects_stored_info_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_stored_info_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/storedInfoTypes/{storedInfoTypesId}",
@@ -24761,10 +25188,13 @@ pub fn dlp_projects_stored_info_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_stored_info_types_get_execute()` to send, or `dlp_projects_stored_info_types_get` for simplest API.
 
-pub fn dlp_projects_stored_info_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_stored_info_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/storedInfoTypes/{storedInfoTypesId}",
@@ -24926,14 +25356,17 @@ pub fn dlp_projects_stored_info_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_stored_info_types_list_execute()` to send, or `dlp_projects_stored_info_types_list` for simplest API.
 
-pub fn dlp_projects_stored_info_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_stored_info_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     locationId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/storedInfoTypes",
@@ -25131,10 +25564,13 @@ pub fn dlp_projects_stored_info_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dlp_projects_stored_info_types_patch_execute()` to send, or `dlp_projects_stored_info_types_patch` for simplest API.
 
-pub fn dlp_projects_stored_info_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dlp_projects_stored_info_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dlp.googleapis.com/v2/projects/{}/storedInfoTypes/{storedInfoTypesId}",

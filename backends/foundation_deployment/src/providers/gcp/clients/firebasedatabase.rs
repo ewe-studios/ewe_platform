@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedatabase_projects_locations_instances_create_execute()` to send, or `firebasedatabase_projects_locations_instances_create` for simplest API.
 
-pub fn firebasedatabase_projects_locations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedatabase_projects_locations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     databaseId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedatabase.googleapis.com/v1beta/projects/{}/locations/{locationsId}/instances",
@@ -212,10 +216,13 @@ pub fn firebasedatabase_projects_locations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedatabase_projects_locations_instances_delete_execute()` to send, or `firebasedatabase_projects_locations_instances_delete` for simplest API.
 
-pub fn firebasedatabase_projects_locations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedatabase_projects_locations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedatabase.googleapis.com/v1beta/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -373,10 +380,13 @@ pub fn firebasedatabase_projects_locations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedatabase_projects_locations_instances_disable_execute()` to send, or `firebasedatabase_projects_locations_instances_disable` for simplest API.
 
-pub fn firebasedatabase_projects_locations_instances_disable_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedatabase_projects_locations_instances_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedatabase.googleapis.com/v1beta/projects/{}/locations/{locationsId}/instances/{instancesId}:disable",
@@ -535,10 +545,13 @@ pub fn firebasedatabase_projects_locations_instances_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedatabase_projects_locations_instances_get_execute()` to send, or `firebasedatabase_projects_locations_instances_get` for simplest API.
 
-pub fn firebasedatabase_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedatabase_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedatabase.googleapis.com/v1beta/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -696,13 +709,16 @@ pub fn firebasedatabase_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedatabase_projects_locations_instances_list_execute()` to send, or `firebasedatabase_projects_locations_instances_list` for simplest API.
 
-pub fn firebasedatabase_projects_locations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedatabase_projects_locations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedatabase.googleapis.com/v1beta/projects/{}/locations/{locationsId}/instances",
@@ -893,10 +909,13 @@ pub fn firebasedatabase_projects_locations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedatabase_projects_locations_instances_reenable_execute()` to send, or `firebasedatabase_projects_locations_instances_reenable` for simplest API.
 
-pub fn firebasedatabase_projects_locations_instances_reenable_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedatabase_projects_locations_instances_reenable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedatabase.googleapis.com/v1beta/projects/{}/locations/{locationsId}/instances/{instancesId}:reenable",
@@ -1055,10 +1074,13 @@ pub fn firebasedatabase_projects_locations_instances_reenable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedatabase_projects_locations_instances_undelete_execute()` to send, or `firebasedatabase_projects_locations_instances_undelete` for simplest API.
 
-pub fn firebasedatabase_projects_locations_instances_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedatabase_projects_locations_instances_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedatabase.googleapis.com/v1beta/projects/{}/locations/{locationsId}/instances/{instancesId}:undelete",

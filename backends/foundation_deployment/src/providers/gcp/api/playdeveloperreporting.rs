@@ -79,7 +79,7 @@ use crate::providers::gcp::clients::playdeveloperreporting::Playdeveloperreporti
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -88,34 +88,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = PlaydeveloperreportingProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = PlaydeveloperreportingProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct PlaydeveloperreportingProvider<S>
+pub struct PlaydeveloperreportingProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> PlaydeveloperreportingProvider<S>
+impl<S, R> PlaydeveloperreportingProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new PlaydeveloperreportingProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new PlaydeveloperreportingProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Playdeveloperreporting anomalies list.
@@ -494,26 +504,26 @@ where
             &self.http_client,
             &args.parent,
             &args.filter,
-            &args.interval.endTime.day,
-            &args.interval.endTime.hours,
-            &args.interval.endTime.minutes,
-            &args.interval.endTime.month,
-            &args.interval.endTime.nanos,
-            &args.interval.endTime.seconds,
-            &args.interval.endTime.timeZone.id,
-            &args.interval.endTime.timeZone.version,
-            &args.interval.endTime.utcOffset,
-            &args.interval.endTime.year,
-            &args.interval.startTime.day,
-            &args.interval.startTime.hours,
-            &args.interval.startTime.minutes,
-            &args.interval.startTime.month,
-            &args.interval.startTime.nanos,
-            &args.interval.startTime.seconds,
-            &args.interval.startTime.timeZone.id,
-            &args.interval.startTime.timeZone.version,
-            &args.interval.startTime.utcOffset,
-            &args.interval.startTime.year,
+            &args.interval_endTime_day,
+            &args.interval_endTime_hours,
+            &args.interval_endTime_minutes,
+            &args.interval_endTime_month,
+            &args.interval_endTime_nanos,
+            &args.interval_endTime_seconds,
+            &args.interval_endTime_timeZone_id,
+            &args.interval_endTime_timeZone_version,
+            &args.interval_endTime_utcOffset,
+            &args.interval_endTime_year,
+            &args.interval_startTime_day,
+            &args.interval_startTime_hours,
+            &args.interval_startTime_minutes,
+            &args.interval_startTime_month,
+            &args.interval_startTime_nanos,
+            &args.interval_startTime_seconds,
+            &args.interval_startTime_timeZone_id,
+            &args.interval_startTime_timeZone_version,
+            &args.interval_startTime_utcOffset,
+            &args.interval_startTime_year,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
@@ -557,26 +567,26 @@ where
             &self.http_client,
             &args.parent,
             &args.filter,
-            &args.interval.endTime.day,
-            &args.interval.endTime.hours,
-            &args.interval.endTime.minutes,
-            &args.interval.endTime.month,
-            &args.interval.endTime.nanos,
-            &args.interval.endTime.seconds,
-            &args.interval.endTime.timeZone.id,
-            &args.interval.endTime.timeZone.version,
-            &args.interval.endTime.utcOffset,
-            &args.interval.endTime.year,
-            &args.interval.startTime.day,
-            &args.interval.startTime.hours,
-            &args.interval.startTime.minutes,
-            &args.interval.startTime.month,
-            &args.interval.startTime.nanos,
-            &args.interval.startTime.seconds,
-            &args.interval.startTime.timeZone.id,
-            &args.interval.startTime.timeZone.version,
-            &args.interval.startTime.utcOffset,
-            &args.interval.startTime.year,
+            &args.interval_endTime_day,
+            &args.interval_endTime_hours,
+            &args.interval_endTime_minutes,
+            &args.interval_endTime_month,
+            &args.interval_endTime_nanos,
+            &args.interval_endTime_seconds,
+            &args.interval_endTime_timeZone_id,
+            &args.interval_endTime_timeZone_version,
+            &args.interval_endTime_utcOffset,
+            &args.interval_endTime_year,
+            &args.interval_startTime_day,
+            &args.interval_startTime_hours,
+            &args.interval_startTime_minutes,
+            &args.interval_startTime_month,
+            &args.interval_startTime_nanos,
+            &args.interval_startTime_seconds,
+            &args.interval_startTime_timeZone_id,
+            &args.interval_startTime_timeZone_version,
+            &args.interval_startTime_utcOffset,
+            &args.interval_startTime_year,
             &args.pageSize,
             &args.pageToken,
         )

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_hashes_search_execute()` to send, or `webrisk_hashes_search` for simplest API.
 
-pub fn webrisk_hashes_search_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_hashes_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     hashPrefix: &Option<Option<String>>,
     threatTypes: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/hashes:search",);
 
@@ -205,10 +209,13 @@ pub fn webrisk_hashes_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_projects_operations_cancel_execute()` to send, or `webrisk_projects_operations_cancel` for simplest API.
 
-pub fn webrisk_projects_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_projects_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://webrisk.googleapis.com/v1/projects/{}/operations/{operationsId}:cancel",
@@ -366,10 +373,13 @@ pub fn webrisk_projects_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_projects_operations_delete_execute()` to send, or `webrisk_projects_operations_delete` for simplest API.
 
-pub fn webrisk_projects_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_projects_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://webrisk.googleapis.com/v1/projects/{}/operations/{operationsId}",
@@ -527,10 +537,13 @@ pub fn webrisk_projects_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_projects_operations_get_execute()` to send, or `webrisk_projects_operations_get` for simplest API.
 
-pub fn webrisk_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://webrisk.googleapis.com/v1/projects/{}/operations/{operationsId}",
@@ -692,14 +705,17 @@ pub fn webrisk_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_projects_operations_list_execute()` to send, or `webrisk_projects_operations_list` for simplest API.
 
-pub fn webrisk_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://webrisk.googleapis.com/v1/projects/{}/operations",
@@ -897,10 +913,13 @@ pub fn webrisk_projects_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_projects_submissions_create_execute()` to send, or `webrisk_projects_submissions_create` for simplest API.
 
-pub fn webrisk_projects_submissions_create_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_projects_submissions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://webrisk.googleapis.com/v1/projects/{}/submissions",
@@ -1062,14 +1081,17 @@ pub fn webrisk_projects_submissions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_threat_lists_compute_diff_execute()` to send, or `webrisk_threat_lists_compute_diff` for simplest API.
 
-pub fn webrisk_threat_lists_compute_diff_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_threat_lists_compute_diff_builder<R>(
+    client: &SimpleHttpClient<R>,
     constraints_maxDatabaseEntries: &Option<Option<String>>,
     constraints_maxDiffEntries: &Option<Option<String>>,
     constraints_supportedCompressions: &Option<Option<String>>,
     threatType: &Option<Option<String>>,
     versionToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/threatLists:computeDiff",);
 
@@ -1270,11 +1292,14 @@ pub fn webrisk_threat_lists_compute_diff(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webrisk_uris_search_execute()` to send, or `webrisk_uris_search` for simplest API.
 
-pub fn webrisk_uris_search_builder(
-    client: &SimpleHttpClient,
+pub fn webrisk_uris_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     threatTypes: &Option<Option<String>>,
     uri: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/uris:search",);
 

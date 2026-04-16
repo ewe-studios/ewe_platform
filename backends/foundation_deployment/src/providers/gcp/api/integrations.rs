@@ -201,7 +201,6 @@ use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alpha
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaUseTemplateResponse;
 use crate::providers::gcp::clients::integrations::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::integrations::IntegrationsCallbackGenerateTokenArgs;
-use crate::providers::gcp::clients::integrations::IntegrationsConnectorPlatformRegionsEnumerateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsGetClientmetadataArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs;
@@ -331,7 +330,7 @@ use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsT
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesUseArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -340,34 +339,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = IntegrationsProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = IntegrationsProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct IntegrationsProvider<S>
+pub struct IntegrationsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> IntegrationsProvider<S>
+impl<S, R> IntegrationsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new IntegrationsProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new IntegrationsProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Integrations callback generate token.
@@ -683,9 +692,9 @@ where
         let builder = integrations_projects_locations_auth_configs_create_builder(
             &self.http_client,
             &args.parent,
-            &args.clientCertificate.encryptedPrivateKey,
-            &args.clientCertificate.passphrase,
-            &args.clientCertificate.sslCertificate,
+            &args.clientCertificate_encryptedPrivateKey,
+            &args.clientCertificate_passphrase,
+            &args.clientCertificate_sslCertificate,
         )
         .map_err(ProviderError::Api)?;
 
@@ -852,9 +861,9 @@ where
         let builder = integrations_projects_locations_auth_configs_patch_builder(
             &self.http_client,
             &args.name,
-            &args.clientCertificate.encryptedPrivateKey,
-            &args.clientCertificate.passphrase,
-            &args.clientCertificate.sslCertificate,
+            &args.clientCertificate_encryptedPrivateKey,
+            &args.clientCertificate_passphrase,
+            &args.clientCertificate_sslCertificate,
             &args.updateMask,
         )
         .map_err(ProviderError::Api)?;
@@ -2074,18 +2083,18 @@ where
             &self.http_client,
             &args.parent,
             &args.filter,
-            &args.filterParams.customFilter,
-            &args.filterParams.endTime,
-            &args.filterParams.eventStatuses,
-            &args.filterParams.executionId,
-            &args.filterParams.parameterKey,
-            &args.filterParams.parameterPairKey,
-            &args.filterParams.parameterPairValue,
-            &args.filterParams.parameterType,
-            &args.filterParams.parameterValue,
-            &args.filterParams.startTime,
-            &args.filterParams.taskStatuses,
-            &args.filterParams.workflowName,
+            &args.filterParams_customFilter,
+            &args.filterParams_endTime,
+            &args.filterParams_eventStatuses,
+            &args.filterParams_executionId,
+            &args.filterParams_parameterKey,
+            &args.filterParams_parameterPairKey,
+            &args.filterParams_parameterPairValue,
+            &args.filterParams_parameterType,
+            &args.filterParams_parameterValue,
+            &args.filterParams_startTime,
+            &args.filterParams_taskStatuses,
+            &args.filterParams_workflowName,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
@@ -3174,9 +3183,9 @@ where
         let builder = integrations_projects_locations_products_auth_configs_create_builder(
             &self.http_client,
             &args.parent,
-            &args.clientCertificate.encryptedPrivateKey,
-            &args.clientCertificate.passphrase,
-            &args.clientCertificate.sslCertificate,
+            &args.clientCertificate_encryptedPrivateKey,
+            &args.clientCertificate_passphrase,
+            &args.clientCertificate_sslCertificate,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3343,9 +3352,9 @@ where
         let builder = integrations_projects_locations_products_auth_configs_patch_builder(
             &self.http_client,
             &args.name,
-            &args.clientCertificate.encryptedPrivateKey,
-            &args.clientCertificate.passphrase,
-            &args.clientCertificate.sslCertificate,
+            &args.clientCertificate_encryptedPrivateKey,
+            &args.clientCertificate_passphrase,
+            &args.clientCertificate_sslCertificate,
             &args.updateMask,
         )
         .map_err(ProviderError::Api)?;
@@ -3886,18 +3895,18 @@ where
             &self.http_client,
             &args.parent,
             &args.filter,
-            &args.filterParams.customFilter,
-            &args.filterParams.endTime,
-            &args.filterParams.eventStatuses,
-            &args.filterParams.executionId,
-            &args.filterParams.parameterKey,
-            &args.filterParams.parameterPairKey,
-            &args.filterParams.parameterPairValue,
-            &args.filterParams.parameterType,
-            &args.filterParams.parameterValue,
-            &args.filterParams.startTime,
-            &args.filterParams.taskStatuses,
-            &args.filterParams.workflowName,
+            &args.filterParams_customFilter,
+            &args.filterParams_endTime,
+            &args.filterParams_eventStatuses,
+            &args.filterParams_executionId,
+            &args.filterParams_parameterKey,
+            &args.filterParams_parameterPairKey,
+            &args.filterParams_parameterPairValue,
+            &args.filterParams_parameterType,
+            &args.filterParams_parameterValue,
+            &args.filterParams_startTime,
+            &args.filterParams_taskStatuses,
+            &args.filterParams_workflowName,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_keys_lookup_key_execute()` to send, or `apikeys_keys_lookup_key` for simplest API.
 
-pub fn apikeys_keys_lookup_key_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_keys_lookup_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     keyString: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apikeys.googleapis.com/v2/keys:lookupKey",);
 
@@ -195,10 +199,13 @@ pub fn apikeys_keys_lookup_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_operations_get_execute()` to send, or `apikeys_operations_get` for simplest API.
 
-pub fn apikeys_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apikeys.googleapis.com/v2/operations/{}", name,);
 
@@ -349,11 +356,14 @@ pub fn apikeys_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_create_execute()` to send, or `apikeys_projects_locations_keys_create` for simplest API.
 
-pub fn apikeys_projects_locations_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_projects_locations_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     keyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apikeys.googleapis.com/v2/projects/{}/locations/{locationsId}/keys",
@@ -521,11 +531,14 @@ pub fn apikeys_projects_locations_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_delete_execute()` to send, or `apikeys_projects_locations_keys_delete` for simplest API.
 
-pub fn apikeys_projects_locations_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_projects_locations_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apikeys.googleapis.com/v2/projects/{}/locations/{locationsId}/keys/{keysId}",
@@ -692,10 +705,13 @@ pub fn apikeys_projects_locations_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_get_execute()` to send, or `apikeys_projects_locations_keys_get` for simplest API.
 
-pub fn apikeys_projects_locations_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_projects_locations_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apikeys.googleapis.com/v2/projects/{}/locations/{locationsId}/keys/{keysId}",
@@ -849,10 +865,13 @@ pub fn apikeys_projects_locations_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_get_key_string_execute()` to send, or `apikeys_projects_locations_keys_get_key_string` for simplest API.
 
-pub fn apikeys_projects_locations_keys_get_key_string_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_projects_locations_keys_get_key_string_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apikeys.googleapis.com/v2/projects/{}/locations/{locationsId}/keys/{keysId}/keyString",
@@ -1010,13 +1029,16 @@ pub fn apikeys_projects_locations_keys_get_key_string(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_list_execute()` to send, or `apikeys_projects_locations_keys_list` for simplest API.
 
-pub fn apikeys_projects_locations_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_projects_locations_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apikeys.googleapis.com/v2/projects/{}/locations/{locationsId}/keys",
@@ -1203,11 +1225,14 @@ pub fn apikeys_projects_locations_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_patch_execute()` to send, or `apikeys_projects_locations_keys_patch` for simplest API.
 
-pub fn apikeys_projects_locations_keys_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_projects_locations_keys_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apikeys.googleapis.com/v2/projects/{}/locations/{locationsId}/keys/{keysId}",
@@ -1375,10 +1400,13 @@ pub fn apikeys_projects_locations_keys_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_undelete_execute()` to send, or `apikeys_projects_locations_keys_undelete` for simplest API.
 
-pub fn apikeys_projects_locations_keys_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn apikeys_projects_locations_keys_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apikeys.googleapis.com/v2/projects/{}/locations/{locationsId}/keys/{keysId}:undelete",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_operations_get_execute()` to send, or `bigtableadmin_operations_get` for simplest API.
 
-pub fn bigtableadmin_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/operations/{}",
@@ -183,14 +187,17 @@ pub fn bigtableadmin_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_operations_projects_operations_list_execute()` to send, or `bigtableadmin_operations_projects_operations_list` for simplest API.
 
-pub fn bigtableadmin_operations_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_operations_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/operations/projects/{}/operations",
@@ -383,10 +390,13 @@ pub fn bigtableadmin_operations_projects_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_create_execute()` to send, or `bigtableadmin_projects_instances_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances",
@@ -540,10 +550,13 @@ pub fn bigtableadmin_projects_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_delete_execute()` to send, or `bigtableadmin_projects_instances_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
@@ -697,10 +710,13 @@ pub fn bigtableadmin_projects_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_get_execute()` to send, or `bigtableadmin_projects_instances_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
@@ -854,10 +870,13 @@ pub fn bigtableadmin_projects_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_get_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}:getIamPolicy",
@@ -1011,11 +1030,14 @@ pub fn bigtableadmin_projects_instances_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_list_execute()` to send, or `bigtableadmin_projects_instances_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances",
@@ -1187,11 +1209,14 @@ pub fn bigtableadmin_projects_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_partial_update_instance_execute()` to send, or `bigtableadmin_projects_instances_partial_update_instance` for simplest API.
 
-pub fn bigtableadmin_projects_instances_partial_update_instance_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_partial_update_instance_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
@@ -1362,10 +1387,13 @@ pub fn bigtableadmin_projects_instances_partial_update_instance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_set_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}:setIamPolicy",
@@ -1519,10 +1547,13 @@ pub fn bigtableadmin_projects_instances_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_test_iam_permissions` for simplest API.
 
-pub fn bigtableadmin_projects_instances_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}:testIamPermissions",
@@ -1685,10 +1716,13 @@ pub fn bigtableadmin_projects_instances_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_update_execute()` to send, or `bigtableadmin_projects_instances_update` for simplest API.
 
-pub fn bigtableadmin_projects_instances_update_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
@@ -1842,12 +1876,15 @@ pub fn bigtableadmin_projects_instances_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_app_profiles_create_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_app_profiles_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_app_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     appProfileId: &Option<Option<String>>,
     ignoreWarnings: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles",
@@ -2024,11 +2061,14 @@ pub fn bigtableadmin_projects_instances_app_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_app_profiles_delete_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_app_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_app_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreWarnings: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles/{appProfilesId}",
@@ -2199,10 +2239,13 @@ pub fn bigtableadmin_projects_instances_app_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_app_profiles_get_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_app_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_app_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles/{appProfilesId}",
@@ -2356,12 +2399,15 @@ pub fn bigtableadmin_projects_instances_app_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_app_profiles_list_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_app_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_app_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles",
@@ -2542,12 +2588,15 @@ pub fn bigtableadmin_projects_instances_app_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_app_profiles_patch_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_patch` for simplest API.
 
-pub fn bigtableadmin_projects_instances_app_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_app_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreWarnings: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles/{appProfilesId}",
@@ -2724,11 +2773,14 @@ pub fn bigtableadmin_projects_instances_app_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_create_execute()` to send, or `bigtableadmin_projects_instances_clusters_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clusterId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters",
@@ -2899,10 +2951,13 @@ pub fn bigtableadmin_projects_instances_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_delete_execute()` to send, or `bigtableadmin_projects_instances_clusters_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
@@ -3056,10 +3111,13 @@ pub fn bigtableadmin_projects_instances_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_get_execute()` to send, or `bigtableadmin_projects_instances_clusters_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
@@ -3213,10 +3271,13 @@ pub fn bigtableadmin_projects_instances_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_get_memory_layer_execute()` to send, or `bigtableadmin_projects_instances_clusters_get_memory_layer` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_get_memory_layer_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_get_memory_layer_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/memoryLayer",
@@ -3371,11 +3432,14 @@ pub fn bigtableadmin_projects_instances_clusters_get_memory_layer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters",
@@ -3550,11 +3614,14 @@ pub fn bigtableadmin_projects_instances_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_partial_update_cluster_execute()` to send, or `bigtableadmin_projects_instances_clusters_partial_update_cluster` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
@@ -3725,10 +3792,13 @@ pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_update_execute()` to send, or `bigtableadmin_projects_instances_clusters_update` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_update_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
@@ -3882,11 +3952,14 @@ pub fn bigtableadmin_projects_instances_clusters_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_update_memory_layer_execute()` to send, or `bigtableadmin_projects_instances_clusters_update_memory_layer` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_update_memory_layer_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_update_memory_layer_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/memoryLayer",
@@ -4057,10 +4130,13 @@ pub fn bigtableadmin_projects_instances_clusters_update_memory_layer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_copy_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_copy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_copy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_copy_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups:copy",
@@ -4215,11 +4291,14 @@ pub fn bigtableadmin_projects_instances_clusters_backups_copy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_create_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups",
@@ -4390,10 +4469,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_delete_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}",
@@ -4548,10 +4630,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_get_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}",
@@ -4706,10 +4791,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_get_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:getIamPolicy",
@@ -4866,14 +4954,17 @@ pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups",
@@ -5066,11 +5157,14 @@ pub fn bigtableadmin_projects_instances_clusters_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_patch_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_patch` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}",
@@ -5241,10 +5335,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_set_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:setIamPolicy",
@@ -5401,10 +5498,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:testIamPermissions",
@@ -5570,14 +5670,17 @@ pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_hot_tablets_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_hot_tablets_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     endTime: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/hotTablets",
@@ -5770,12 +5873,15 @@ pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_clusters_memory_layers_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_memory_layers_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_clusters_memory_layers_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_clusters_memory_layers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/memoryLayers",
@@ -5956,11 +6062,14 @@ pub fn bigtableadmin_projects_instances_clusters_memory_layers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_create_execute()` to send, or `bigtableadmin_projects_instances_logical_views_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     logicalViewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews",
@@ -6131,11 +6240,14 @@ pub fn bigtableadmin_projects_instances_logical_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_delete_execute()` to send, or `bigtableadmin_projects_instances_logical_views_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}",
@@ -6304,10 +6416,13 @@ pub fn bigtableadmin_projects_instances_logical_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_get_execute()` to send, or `bigtableadmin_projects_instances_logical_views_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}",
@@ -6461,10 +6576,13 @@ pub fn bigtableadmin_projects_instances_logical_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_logical_views_get_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}:getIamPolicy",
@@ -6621,12 +6739,15 @@ pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_list_execute()` to send, or `bigtableadmin_projects_instances_logical_views_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews",
@@ -6807,11 +6928,14 @@ pub fn bigtableadmin_projects_instances_logical_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_patch_execute()` to send, or `bigtableadmin_projects_instances_logical_views_patch` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}",
@@ -6982,10 +7106,13 @@ pub fn bigtableadmin_projects_instances_logical_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_logical_views_set_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}:setIamPolicy",
@@ -7142,10 +7269,13 @@ pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_logical_views_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_logical_views_test_iam_permissions` for simplest API.
 
-pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}:testIamPermissions",
@@ -7310,11 +7440,14 @@ pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_create_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     materializedViewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews",
@@ -7485,11 +7618,14 @@ pub fn bigtableadmin_projects_instances_materialized_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_delete_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}",
@@ -7658,11 +7794,14 @@ pub fn bigtableadmin_projects_instances_materialized_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_get_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}",
@@ -7835,10 +7974,13 @@ pub fn bigtableadmin_projects_instances_materialized_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_get_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}:getIamPolicy",
@@ -7995,13 +8137,16 @@ pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_list_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews",
@@ -8192,11 +8337,14 @@ pub fn bigtableadmin_projects_instances_materialized_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_patch_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_patch` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}",
@@ -8367,10 +8515,13 @@ pub fn bigtableadmin_projects_instances_materialized_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_set_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}:setIamPolicy",
@@ -8527,10 +8678,13 @@ pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_test_iam_permissions` for simplest API.
 
-pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}:testIamPermissions",
@@ -8696,10 +8850,13 @@ pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_check_consistency_execute()` to send, or `bigtableadmin_projects_instances_tables_check_consistency` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_check_consistency_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_check_consistency_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:checkConsistency",
@@ -8858,10 +9015,13 @@ pub fn bigtableadmin_projects_instances_tables_check_consistency(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_create_execute()` to send, or `bigtableadmin_projects_instances_tables_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables",
@@ -9015,10 +9175,13 @@ pub fn bigtableadmin_projects_instances_tables_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_delete_execute()` to send, or `bigtableadmin_projects_instances_tables_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}",
@@ -9172,10 +9335,13 @@ pub fn bigtableadmin_projects_instances_tables_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_drop_row_range_execute()` to send, or `bigtableadmin_projects_instances_tables_drop_row_range` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_drop_row_range_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_drop_row_range_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:dropRowRange",
@@ -9330,10 +9496,13 @@ pub fn bigtableadmin_projects_instances_tables_drop_row_range(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_generate_consistency_token_execute()` to send, or `bigtableadmin_projects_instances_tables_generate_consistency_token` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_generate_consistency_token_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_generate_consistency_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:generateConsistencyToken",
@@ -9497,11 +9666,14 @@ pub fn bigtableadmin_projects_instances_tables_generate_consistency_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_get_execute()` to send, or `bigtableadmin_projects_instances_tables_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}",
@@ -9669,10 +9841,13 @@ pub fn bigtableadmin_projects_instances_tables_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_get_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:getIamPolicy",
@@ -9827,13 +10002,16 @@ pub fn bigtableadmin_projects_instances_tables_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_list_execute()` to send, or `bigtableadmin_projects_instances_tables_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables",
@@ -10020,10 +10198,13 @@ pub fn bigtableadmin_projects_instances_tables_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_modify_column_families_execute()` to send, or `bigtableadmin_projects_instances_tables_modify_column_families` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_modify_column_families_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_modify_column_families_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:modifyColumnFamilies",
@@ -10178,12 +10359,15 @@ pub fn bigtableadmin_projects_instances_tables_modify_column_families(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_patch_execute()` to send, or `bigtableadmin_projects_instances_tables_patch` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreWarnings: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}",
@@ -10360,10 +10544,13 @@ pub fn bigtableadmin_projects_instances_tables_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_restore_execute()` to send, or `bigtableadmin_projects_instances_tables_restore` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_restore_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables:restore",
@@ -10517,10 +10704,13 @@ pub fn bigtableadmin_projects_instances_tables_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_set_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:setIamPolicy",
@@ -10675,10 +10865,13 @@ pub fn bigtableadmin_projects_instances_tables_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_tables_test_iam_permissions` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:testIamPermissions",
@@ -10843,10 +11036,13 @@ pub fn bigtableadmin_projects_instances_tables_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_undelete_execute()` to send, or `bigtableadmin_projects_instances_tables_undelete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:undelete",
@@ -11000,11 +11196,14 @@ pub fn bigtableadmin_projects_instances_tables_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_create_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authorizedViewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews",
@@ -11175,11 +11374,14 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_delete_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}",
@@ -11348,11 +11550,14 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_get_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}",
@@ -11525,10 +11730,13 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:getIamPolicy",
@@ -11686,13 +11894,16 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_list_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews",
@@ -11883,12 +12094,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_patch_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_patch` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreWarnings: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}",
@@ -12065,10 +12279,13 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:setIamPolicy",
@@ -12226,10 +12443,13 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:testIamPermissions",
@@ -12397,11 +12617,14 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permiss
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_create_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_create` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     schemaBundleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles",
@@ -12572,11 +12795,14 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_delete_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_delete` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}",
@@ -12745,10 +12971,13 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_get_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_get` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}",
@@ -12907,10 +13136,13 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:getIamPolicy",
@@ -13067,13 +13299,16 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_list_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_list` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles",
@@ -13260,12 +13495,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_patch_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_patch` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreWarnings: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}",
@@ -13442,10 +13680,13 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:setIamPolicy",
@@ -13602,10 +13843,13 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions` for simplest API.
 
-pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:testIamPermissions",
@@ -13772,14 +14016,17 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_locations_list_execute()` to send, or `bigtableadmin_projects_locations_list` for simplest API.
 
-pub fn bigtableadmin_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigtableadmin_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigtableadmin.googleapis.com/v2/projects/{}/locations",

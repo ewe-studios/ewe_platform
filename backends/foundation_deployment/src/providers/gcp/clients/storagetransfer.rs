@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_google_service_accounts_get_execute()` to send, or `storagetransfer_google_service_accounts_get` for simplest API.
 
-pub fn storagetransfer_google_service_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_google_service_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/googleServiceAccounts/{}",
@@ -187,11 +191,14 @@ pub fn storagetransfer_google_service_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_projects_agent_pools_create_execute()` to send, or `storagetransfer_projects_agent_pools_create` for simplest API.
 
-pub fn storagetransfer_projects_agent_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_projects_agent_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     agentPoolId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",
@@ -362,10 +369,13 @@ pub fn storagetransfer_projects_agent_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_projects_agent_pools_delete_execute()` to send, or `storagetransfer_projects_agent_pools_delete` for simplest API.
 
-pub fn storagetransfer_projects_agent_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_projects_agent_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{agentPoolsId}",
@@ -519,10 +529,13 @@ pub fn storagetransfer_projects_agent_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_projects_agent_pools_get_execute()` to send, or `storagetransfer_projects_agent_pools_get` for simplest API.
 
-pub fn storagetransfer_projects_agent_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_projects_agent_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{agentPoolsId}",
@@ -676,13 +689,16 @@ pub fn storagetransfer_projects_agent_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_projects_agent_pools_list_execute()` to send, or `storagetransfer_projects_agent_pools_list` for simplest API.
 
-pub fn storagetransfer_projects_agent_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_projects_agent_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",
@@ -869,11 +885,14 @@ pub fn storagetransfer_projects_agent_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_projects_agent_pools_patch_execute()` to send, or `storagetransfer_projects_agent_pools_patch` for simplest API.
 
-pub fn storagetransfer_projects_agent_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_projects_agent_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{agentPoolsId}",
@@ -1041,9 +1060,12 @@ pub fn storagetransfer_projects_agent_pools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_jobs_create_execute()` to send, or `storagetransfer_transfer_jobs_create` for simplest API.
 
-pub fn storagetransfer_transfer_jobs_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn storagetransfer_transfer_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs",);
 
@@ -1186,11 +1208,14 @@ pub fn storagetransfer_transfer_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_jobs_delete_execute()` to send, or `storagetransfer_transfer_jobs_delete` for simplest API.
 
-pub fn storagetransfer_transfer_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobName: &String,
     projectId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
@@ -1358,11 +1383,14 @@ pub fn storagetransfer_transfer_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_jobs_get_execute()` to send, or `storagetransfer_transfer_jobs_get` for simplest API.
 
-pub fn storagetransfer_transfer_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobName: &String,
     projectId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
@@ -1530,12 +1558,15 @@ pub fn storagetransfer_transfer_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_jobs_list_execute()` to send, or `storagetransfer_transfer_jobs_list` for simplest API.
 
-pub fn storagetransfer_transfer_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs",);
 
@@ -1716,10 +1747,13 @@ pub fn storagetransfer_transfer_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_jobs_patch_execute()` to send, or `storagetransfer_transfer_jobs_patch` for simplest API.
 
-pub fn storagetransfer_transfer_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
@@ -1873,10 +1907,13 @@ pub fn storagetransfer_transfer_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_jobs_run_execute()` to send, or `storagetransfer_transfer_jobs_run` for simplest API.
 
-pub fn storagetransfer_transfer_jobs_run_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_jobs_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferJobs/{}:run",
@@ -2030,10 +2067,13 @@ pub fn storagetransfer_transfer_jobs_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_operations_cancel_execute()` to send, or `storagetransfer_transfer_operations_cancel` for simplest API.
 
-pub fn storagetransfer_transfer_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferOperations/{}:cancel",
@@ -2187,10 +2227,13 @@ pub fn storagetransfer_transfer_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_operations_get_execute()` to send, or `storagetransfer_transfer_operations_get` for simplest API.
 
-pub fn storagetransfer_transfer_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferOperations/{}",
@@ -2344,13 +2387,16 @@ pub fn storagetransfer_transfer_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_operations_list_execute()` to send, or `storagetransfer_transfer_operations_list` for simplest API.
 
-pub fn storagetransfer_transfer_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferOperations",);
 
@@ -2537,10 +2583,13 @@ pub fn storagetransfer_transfer_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_operations_pause_execute()` to send, or `storagetransfer_transfer_operations_pause` for simplest API.
 
-pub fn storagetransfer_transfer_operations_pause_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_operations_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferOperations/{}:pause",
@@ -2694,10 +2743,13 @@ pub fn storagetransfer_transfer_operations_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storagetransfer_transfer_operations_resume_execute()` to send, or `storagetransfer_transfer_operations_resume` for simplest API.
 
-pub fn storagetransfer_transfer_operations_resume_builder(
-    client: &SimpleHttpClient,
+pub fn storagetransfer_transfer_operations_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/transferOperations/{}:resume",

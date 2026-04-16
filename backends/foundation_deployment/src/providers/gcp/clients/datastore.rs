@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_allocate_ids_execute()` to send, or `datastore_projects_allocate_ids` for simplest API.
 
-pub fn datastore_projects_allocate_ids_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_allocate_ids_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:allocateIds",
@@ -187,10 +191,13 @@ pub fn datastore_projects_allocate_ids(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_begin_transaction_execute()` to send, or `datastore_projects_begin_transaction` for simplest API.
 
-pub fn datastore_projects_begin_transaction_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_begin_transaction_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:beginTransaction",
@@ -348,10 +355,13 @@ pub fn datastore_projects_begin_transaction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_commit_execute()` to send, or `datastore_projects_commit` for simplest API.
 
-pub fn datastore_projects_commit_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:commit",
@@ -509,10 +519,13 @@ pub fn datastore_projects_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_export_execute()` to send, or `datastore_projects_export` for simplest API.
 
-pub fn datastore_projects_export_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:export",
@@ -674,10 +687,13 @@ pub fn datastore_projects_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_import_execute()` to send, or `datastore_projects_import` for simplest API.
 
-pub fn datastore_projects_import_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:import",
@@ -839,10 +855,13 @@ pub fn datastore_projects_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_lookup_execute()` to send, or `datastore_projects_lookup` for simplest API.
 
-pub fn datastore_projects_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:lookup",
@@ -1000,10 +1019,13 @@ pub fn datastore_projects_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_reserve_ids_execute()` to send, or `datastore_projects_reserve_ids` for simplest API.
 
-pub fn datastore_projects_reserve_ids_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_reserve_ids_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:reserveIds",
@@ -1161,10 +1183,13 @@ pub fn datastore_projects_reserve_ids(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_rollback_execute()` to send, or `datastore_projects_rollback` for simplest API.
 
-pub fn datastore_projects_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:rollback",
@@ -1322,10 +1347,13 @@ pub fn datastore_projects_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_run_aggregation_query_execute()` to send, or `datastore_projects_run_aggregation_query` for simplest API.
 
-pub fn datastore_projects_run_aggregation_query_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_run_aggregation_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:runAggregationQuery",
@@ -1487,10 +1515,13 @@ pub fn datastore_projects_run_aggregation_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_run_query_execute()` to send, or `datastore_projects_run_query` for simplest API.
 
-pub fn datastore_projects_run_query_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_run_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:runQuery",
@@ -1648,10 +1679,13 @@ pub fn datastore_projects_run_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_indexes_create_execute()` to send, or `datastore_projects_indexes_create` for simplest API.
 
-pub fn datastore_projects_indexes_create_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_indexes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/indexes",
@@ -1813,11 +1847,14 @@ pub fn datastore_projects_indexes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_indexes_delete_execute()` to send, or `datastore_projects_indexes_delete` for simplest API.
 
-pub fn datastore_projects_indexes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_indexes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     indexId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/indexes/{}",
@@ -1982,11 +2019,14 @@ pub fn datastore_projects_indexes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_indexes_get_execute()` to send, or `datastore_projects_indexes_get` for simplest API.
 
-pub fn datastore_projects_indexes_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_indexes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     indexId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/indexes/{}",
@@ -2150,13 +2190,16 @@ pub fn datastore_projects_indexes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_indexes_list_execute()` to send, or `datastore_projects_indexes_list` for simplest API.
 
-pub fn datastore_projects_indexes_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_indexes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/indexes",
@@ -2347,10 +2390,13 @@ pub fn datastore_projects_indexes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_operations_cancel_execute()` to send, or `datastore_projects_operations_cancel` for simplest API.
 
-pub fn datastore_projects_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/operations/{operationsId}:cancel",
@@ -2504,10 +2550,13 @@ pub fn datastore_projects_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_operations_delete_execute()` to send, or `datastore_projects_operations_delete` for simplest API.
 
-pub fn datastore_projects_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/operations/{operationsId}",
@@ -2661,10 +2710,13 @@ pub fn datastore_projects_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_operations_get_execute()` to send, or `datastore_projects_operations_get` for simplest API.
 
-pub fn datastore_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/operations/{operationsId}",
@@ -2826,14 +2878,17 @@ pub fn datastore_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_operations_list_execute()` to send, or `datastore_projects_operations_list` for simplest API.
 
-pub fn datastore_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastore_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/operations",

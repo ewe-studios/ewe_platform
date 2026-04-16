@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_organizations_locations_data_exchanges_list_execute()` to send, or `analyticshub_organizations_locations_data_exchanges_list` for simplest API.
 
-pub fn analyticshub_organizations_locations_data_exchanges_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_organizations_locations_data_exchanges_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     organization: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/organizations/{}/locations/{locationsId}/dataExchanges",
@@ -216,11 +220,14 @@ pub fn analyticshub_organizations_locations_data_exchanges_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_create_execute()` to send, or `analyticshub_projects_locations_data_exchanges_create` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataExchangeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges",
@@ -395,10 +402,13 @@ pub fn analyticshub_projects_locations_data_exchanges_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_delete_execute()` to send, or `analyticshub_projects_locations_data_exchanges_delete` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}",
@@ -553,10 +563,13 @@ pub fn analyticshub_projects_locations_data_exchanges_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_get_execute()` to send, or `analyticshub_projects_locations_data_exchanges_get` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}",
@@ -714,10 +727,13 @@ pub fn analyticshub_projects_locations_data_exchanges_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_get_iam_policy_execute()` to send, or `analyticshub_projects_locations_data_exchanges_get_iam_policy` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}:getIamPolicy",
@@ -874,12 +890,15 @@ pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_list_execute()` to send, or `analyticshub_projects_locations_data_exchanges_list` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges",
@@ -1060,13 +1079,16 @@ pub fn analyticshub_projects_locations_data_exchanges_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_list_subscriptions_execute()` to send, or `analyticshub_projects_locations_data_exchanges_list_subscriptions` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     includeDeletedSubscriptions: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}:listSubscriptions",
@@ -1258,11 +1280,14 @@ pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_patch_execute()` to send, or `analyticshub_projects_locations_data_exchanges_patch` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}",
@@ -1437,10 +1462,13 @@ pub fn analyticshub_projects_locations_data_exchanges_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_set_iam_policy_execute()` to send, or `analyticshub_projects_locations_data_exchanges_set_iam_policy` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}:setIamPolicy",
@@ -1597,10 +1625,13 @@ pub fn analyticshub_projects_locations_data_exchanges_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_subscribe_execute()` to send, or `analyticshub_projects_locations_data_exchanges_subscribe` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_subscribe_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_subscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}:subscribe",
@@ -1755,10 +1786,13 @@ pub fn analyticshub_projects_locations_data_exchanges_subscribe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_test_iam_permissions_execute()` to send, or `analyticshub_projects_locations_data_exchanges_test_iam_permissions` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}:testIamPermissions",
@@ -1923,11 +1957,14 @@ pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_create_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_create` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     listingId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings",
@@ -2098,11 +2135,14 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_delete_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_delete` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deleteCommercial: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}",
@@ -2273,10 +2313,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_get_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_get` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}",
@@ -2431,10 +2474,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_get_iam_policy` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:getIamPolicy",
@@ -2592,12 +2638,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_list_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_list` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings",
@@ -2778,13 +2827,16 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_list_subscriptions` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     includeDeletedSubscriptions: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:listSubscriptions",
@@ -2978,11 +3030,14 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscription
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_patch_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_patch` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}",
@@ -3153,10 +3208,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_set_iam_policy` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:setIamPolicy",
@@ -3314,10 +3372,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_subscribe_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_subscribe` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:subscribe",
@@ -3477,10 +3538,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:testIamPermissions",
@@ -3647,10 +3711,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_query_templates_approve_execute()` to send, or `analyticshub_projects_locations_data_exchanges_query_templates_approve` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}:approve",
@@ -3811,11 +3878,14 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_query_templates_create_execute()` to send, or `analyticshub_projects_locations_data_exchanges_query_templates_create` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_query_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_query_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     queryTemplateId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates",
@@ -3990,10 +4060,13 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_query_templates_delete_execute()` to send, or `analyticshub_projects_locations_data_exchanges_query_templates_delete` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_query_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_query_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}",
@@ -4149,10 +4222,13 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_query_templates_get_execute()` to send, or `analyticshub_projects_locations_data_exchanges_query_templates_get` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_query_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_query_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}",
@@ -4312,12 +4388,15 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_query_templates_list_execute()` to send, or `analyticshub_projects_locations_data_exchanges_query_templates_list` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_query_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_query_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates",
@@ -4502,11 +4581,14 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_query_templates_patch_execute()` to send, or `analyticshub_projects_locations_data_exchanges_query_templates_patch` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}",
@@ -4681,10 +4763,13 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_query_templates_submit_execute()` to send, or `analyticshub_projects_locations_data_exchanges_query_templates_submit` for simplest API.
 
-pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}:submit",
@@ -4844,10 +4929,13 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_subscriptions_delete_execute()` to send, or `analyticshub_projects_locations_subscriptions_delete` for simplest API.
 
-pub fn analyticshub_projects_locations_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_subscriptions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}",
@@ -5001,10 +5089,13 @@ pub fn analyticshub_projects_locations_subscriptions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_subscriptions_get_execute()` to send, or `analyticshub_projects_locations_subscriptions_get` for simplest API.
 
-pub fn analyticshub_projects_locations_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}",
@@ -5162,10 +5253,13 @@ pub fn analyticshub_projects_locations_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_subscriptions_get_iam_policy_execute()` to send, or `analyticshub_projects_locations_subscriptions_get_iam_policy` for simplest API.
 
-pub fn analyticshub_projects_locations_subscriptions_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_subscriptions_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}:getIamPolicy",
@@ -5322,13 +5416,16 @@ pub fn analyticshub_projects_locations_subscriptions_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_subscriptions_list_execute()` to send, or `analyticshub_projects_locations_subscriptions_list` for simplest API.
 
-pub fn analyticshub_projects_locations_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/subscriptions",
@@ -5515,10 +5612,13 @@ pub fn analyticshub_projects_locations_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_subscriptions_refresh_execute()` to send, or `analyticshub_projects_locations_subscriptions_refresh` for simplest API.
 
-pub fn analyticshub_projects_locations_subscriptions_refresh_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_subscriptions_refresh_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}:refresh",
@@ -5673,10 +5773,13 @@ pub fn analyticshub_projects_locations_subscriptions_refresh(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_subscriptions_revoke_execute()` to send, or `analyticshub_projects_locations_subscriptions_revoke` for simplest API.
 
-pub fn analyticshub_projects_locations_subscriptions_revoke_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_subscriptions_revoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}:revoke",
@@ -5838,10 +5941,13 @@ pub fn analyticshub_projects_locations_subscriptions_revoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_subscriptions_set_iam_policy_execute()` to send, or `analyticshub_projects_locations_subscriptions_set_iam_policy` for simplest API.
 
-pub fn analyticshub_projects_locations_subscriptions_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn analyticshub_projects_locations_subscriptions_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticshub.googleapis.com/v1/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}:setIamPolicy",

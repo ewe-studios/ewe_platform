@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_get_execute()` to send, or `checks_accounts_apps_get` for simplest API.
 
-pub fn checks_accounts_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}",
@@ -191,12 +195,15 @@ pub fn checks_accounts_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_list_execute()` to send, or `checks_accounts_apps_list` for simplest API.
 
-pub fn checks_accounts_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps",
@@ -378,10 +385,13 @@ pub fn checks_accounts_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_operations_cancel_execute()` to send, or `checks_accounts_apps_operations_cancel` for simplest API.
 
-pub fn checks_accounts_apps_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/operations/{operationsId}:cancel",
@@ -535,10 +545,13 @@ pub fn checks_accounts_apps_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_operations_delete_execute()` to send, or `checks_accounts_apps_operations_delete` for simplest API.
 
-pub fn checks_accounts_apps_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/operations/{operationsId}",
@@ -692,10 +705,13 @@ pub fn checks_accounts_apps_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_operations_get_execute()` to send, or `checks_accounts_apps_operations_get` for simplest API.
 
-pub fn checks_accounts_apps_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/operations/{operationsId}",
@@ -849,14 +865,17 @@ pub fn checks_accounts_apps_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_operations_list_execute()` to send, or `checks_accounts_apps_operations_list` for simplest API.
 
-pub fn checks_accounts_apps_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/operations",
@@ -1049,10 +1068,13 @@ pub fn checks_accounts_apps_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_operations_wait_execute()` to send, or `checks_accounts_apps_operations_wait` for simplest API.
 
-pub fn checks_accounts_apps_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/operations/{operationsId}:wait",
@@ -1206,11 +1228,14 @@ pub fn checks_accounts_apps_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_reports_get_execute()` to send, or `checks_accounts_apps_reports_get` for simplest API.
 
-pub fn checks_accounts_apps_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     checksFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/reports/{reportsId}",
@@ -1385,14 +1410,17 @@ pub fn checks_accounts_apps_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_apps_reports_list_execute()` to send, or `checks_accounts_apps_reports_list` for simplest API.
 
-pub fn checks_accounts_apps_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_apps_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     checksFilter: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/reports",
@@ -1590,10 +1618,13 @@ pub fn checks_accounts_apps_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_repos_operations_get_execute()` to send, or `checks_accounts_repos_operations_get` for simplest API.
 
-pub fn checks_accounts_repos_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_repos_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/repos/{reposId}/operations/{operationsId}",
@@ -1747,10 +1778,13 @@ pub fn checks_accounts_repos_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_repos_scans_generate_execute()` to send, or `checks_accounts_repos_scans_generate` for simplest API.
 
-pub fn checks_accounts_repos_scans_generate_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_repos_scans_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/repos/{reposId}/scans:generate",
@@ -1904,10 +1938,13 @@ pub fn checks_accounts_repos_scans_generate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_repos_scans_get_execute()` to send, or `checks_accounts_repos_scans_get` for simplest API.
 
-pub fn checks_accounts_repos_scans_get_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_repos_scans_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/repos/{reposId}/scans/{scansId}",
@@ -2069,13 +2106,16 @@ pub fn checks_accounts_repos_scans_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_accounts_repos_scans_list_execute()` to send, or `checks_accounts_repos_scans_list` for simplest API.
 
-pub fn checks_accounts_repos_scans_list_builder(
-    client: &SimpleHttpClient,
+pub fn checks_accounts_repos_scans_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/repos/{reposId}/scans",
@@ -2267,9 +2307,12 @@ pub fn checks_accounts_repos_scans_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_aisafety_classify_content_execute()` to send, or `checks_aisafety_classify_content` for simplest API.
 
-pub fn checks_aisafety_classify_content_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn checks_aisafety_classify_content_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://checks.googleapis.com/v1alpha/aisafety:classifyContent",);
 
@@ -2424,10 +2467,13 @@ pub fn checks_aisafety_classify_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `checks_media_upload_execute()` to send, or `checks_media_upload` for simplest API.
 
-pub fn checks_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn checks_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://checks.googleapis.com/v1alpha/accounts/{}/apps/{appsId}/reports:analyzeUpload",

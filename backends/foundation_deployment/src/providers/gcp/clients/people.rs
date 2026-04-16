@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_contact_groups_batch_get_execute()` to send, or `people_contact_groups_batch_get` for simplest API.
 
-pub fn people_contact_groups_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn people_contact_groups_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupFields: &Option<Option<String>>,
     maxMembers: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups:batchGet",);
 
@@ -216,9 +220,12 @@ pub fn people_contact_groups_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_contact_groups_create_execute()` to send, or `people_contact_groups_create` for simplest API.
 
-pub fn people_contact_groups_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn people_contact_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups",);
 
@@ -365,11 +372,14 @@ pub fn people_contact_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_contact_groups_delete_execute()` to send, or `people_contact_groups_delete` for simplest API.
 
-pub fn people_contact_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn people_contact_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
     deleteContacts: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/contactGroups/{}",
@@ -537,12 +547,15 @@ pub fn people_contact_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_contact_groups_get_execute()` to send, or `people_contact_groups_get` for simplest API.
 
-pub fn people_contact_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn people_contact_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
     groupFields: &Option<Option<String>>,
     maxMembers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/contactGroups/{}",
@@ -723,13 +736,16 @@ pub fn people_contact_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_contact_groups_list_execute()` to send, or `people_contact_groups_list` for simplest API.
 
-pub fn people_contact_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn people_contact_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupFields: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups",);
 
@@ -916,10 +932,13 @@ pub fn people_contact_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_contact_groups_update_execute()` to send, or `people_contact_groups_update` for simplest API.
 
-pub fn people_contact_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn people_contact_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/contactGroups/{}",
@@ -1077,10 +1096,13 @@ pub fn people_contact_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_contact_groups_members_modify_execute()` to send, or `people_contact_groups_members_modify` for simplest API.
 
-pub fn people_contact_groups_members_modify_builder(
-    client: &SimpleHttpClient,
+pub fn people_contact_groups_members_modify_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/contactGroups/{}/members:modify",
@@ -1242,10 +1264,13 @@ pub fn people_contact_groups_members_modify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_other_contacts_copy_other_contact_to_my_contacts_group_execute()` to send, or `people_other_contacts_copy_other_contact_to_my_contacts_group` for simplest API.
 
-pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
-    client: &SimpleHttpClient,
+pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/otherContacts/{}:copyOtherContactToMyContactsGroup",
@@ -1402,15 +1427,18 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_other_contacts_list_execute()` to send, or `people_other_contacts_list` for simplest API.
 
-pub fn people_other_contacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn people_other_contacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
     requestSyncToken: &Option<Option<String>>,
     sources: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts",);
 
@@ -1609,12 +1637,15 @@ pub fn people_other_contacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_other_contacts_search_execute()` to send, or `people_other_contacts_search` for simplest API.
 
-pub fn people_other_contacts_search_builder(
-    client: &SimpleHttpClient,
+pub fn people_other_contacts_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     query: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts:search",);
 
@@ -1791,9 +1822,12 @@ pub fn people_other_contacts_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_batch_create_contacts_execute()` to send, or `people_people_batch_create_contacts` for simplest API.
 
-pub fn people_people_batch_create_contacts_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn people_people_batch_create_contacts_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchCreateContacts",);
 
@@ -1944,9 +1978,12 @@ pub fn people_people_batch_create_contacts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_batch_delete_contacts_execute()` to send, or `people_people_batch_delete_contacts` for simplest API.
 
-pub fn people_people_batch_delete_contacts_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn people_people_batch_delete_contacts_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchDeleteContacts",);
 
@@ -2089,9 +2126,12 @@ pub fn people_people_batch_delete_contacts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_batch_update_contacts_execute()` to send, or `people_people_batch_update_contacts` for simplest API.
 
-pub fn people_people_batch_update_contacts_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn people_people_batch_update_contacts_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchUpdateContacts",);
 
@@ -2242,11 +2282,14 @@ pub fn people_people_batch_update_contacts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_create_contact_execute()` to send, or `people_people_create_contact` for simplest API.
 
-pub fn people_people_create_contact_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_create_contact_builder<R>(
+    client: &SimpleHttpClient<R>,
     personFields: &Option<Option<String>>,
     sources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:createContact",);
 
@@ -2413,10 +2456,13 @@ pub fn people_people_create_contact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_delete_contact_execute()` to send, or `people_people_delete_contact` for simplest API.
 
-pub fn people_people_delete_contact_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_delete_contact_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/people/{}:deleteContact",
@@ -2570,12 +2616,15 @@ pub fn people_people_delete_contact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_delete_contact_photo_execute()` to send, or `people_people_delete_contact_photo` for simplest API.
 
-pub fn people_people_delete_contact_photo_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_delete_contact_photo_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
     personFields: &Option<Option<String>>,
     sources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/people/{}:deleteContactPhoto",
@@ -2760,13 +2809,16 @@ pub fn people_people_delete_contact_photo(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_get_execute()` to send, or `people_people_get` for simplest API.
 
-pub fn people_people_get_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
     personFields: &Option<Option<String>>,
     requestMask_includeField: &Option<Option<String>>,
     sources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people/{}", resourceName,);
 
@@ -2946,13 +2998,16 @@ pub fn people_people_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_get_batch_get_execute()` to send, or `people_people_get_batch_get` for simplest API.
 
-pub fn people_people_get_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_get_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     personFields: &Option<Option<String>>,
     requestMask_includeField: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
     sources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchGet",);
 
@@ -3139,8 +3194,8 @@ pub fn people_people_get_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_list_directory_people_execute()` to send, or `people_people_list_directory_people` for simplest API.
 
-pub fn people_people_list_directory_people_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_list_directory_people_builder<R>(
+    client: &SimpleHttpClient<R>,
     mergeSources: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
@@ -3148,7 +3203,10 @@ pub fn people_people_list_directory_people_builder(
     requestSyncToken: &Option<Option<String>>,
     sources: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:listDirectoryPeople",);
 
@@ -3357,13 +3415,16 @@ pub fn people_people_list_directory_people(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_search_contacts_execute()` to send, or `people_people_search_contacts` for simplest API.
 
-pub fn people_people_search_contacts_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_search_contacts_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     query: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
     sources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:searchContacts",);
 
@@ -3550,15 +3611,18 @@ pub fn people_people_search_contacts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_search_directory_people_execute()` to send, or `people_people_search_directory_people` for simplest API.
 
-pub fn people_people_search_directory_people_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_search_directory_people_builder<R>(
+    client: &SimpleHttpClient<R>,
     mergeSources: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
     sources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:searchDirectoryPeople",);
 
@@ -3761,13 +3825,16 @@ pub fn people_people_search_directory_people(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_update_contact_execute()` to send, or `people_people_update_contact` for simplest API.
 
-pub fn people_people_update_contact_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_update_contact_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
     personFields: &Option<Option<String>>,
     sources: &Option<Option<String>>,
     updatePersonFields: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/people/{}:updateContact",
@@ -3950,10 +4017,13 @@ pub fn people_people_update_contact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_update_contact_photo_execute()` to send, or `people_people_update_contact_photo` for simplest API.
 
-pub fn people_people_update_contact_photo_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_update_contact_photo_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/people/{}:updateContactPhoto",
@@ -4115,8 +4185,8 @@ pub fn people_people_update_contact_photo(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `people_people_connections_list_execute()` to send, or `people_people_connections_list` for simplest API.
 
-pub fn people_people_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn people_people_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
@@ -4126,7 +4196,10 @@ pub fn people_people_connections_list_builder(
     sortOrder: &Option<Option<String>>,
     sources: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/people/{}/connections",

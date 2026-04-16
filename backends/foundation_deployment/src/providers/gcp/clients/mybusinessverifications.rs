@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessverifications_locations_fetch_verification_options_execute()` to send, or `mybusinessverifications_locations_fetch_verification_options` for simplest API.
 
-pub fn mybusinessverifications_locations_fetch_verification_options_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessverifications_locations_fetch_verification_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}:fetchVerificationOptions",
@@ -194,10 +198,13 @@ pub fn mybusinessverifications_locations_fetch_verification_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessverifications_locations_get_voice_of_merchant_state_execute()` to send, or `mybusinessverifications_locations_get_voice_of_merchant_state` for simplest API.
 
-pub fn mybusinessverifications_locations_get_voice_of_merchant_state_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessverifications_locations_get_voice_of_merchant_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}/VoiceOfMerchantState",
@@ -356,10 +363,13 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessverifications_locations_verify_execute()` to send, or `mybusinessverifications_locations_verify` for simplest API.
 
-pub fn mybusinessverifications_locations_verify_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessverifications_locations_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}:verify",
@@ -517,10 +527,13 @@ pub fn mybusinessverifications_locations_verify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessverifications_locations_verifications_complete_execute()` to send, or `mybusinessverifications_locations_verifications_complete` for simplest API.
 
-pub fn mybusinessverifications_locations_verifications_complete_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessverifications_locations_verifications_complete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications/{verificationsId}:complete",
@@ -683,12 +696,15 @@ pub fn mybusinessverifications_locations_verifications_complete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessverifications_locations_verifications_list_execute()` to send, or `mybusinessverifications_locations_verifications_list` for simplest API.
 
-pub fn mybusinessverifications_locations_verifications_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessverifications_locations_verifications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications",
@@ -869,9 +885,12 @@ pub fn mybusinessverifications_locations_verifications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessverifications_verification_tokens_generate_execute()` to send, or `mybusinessverifications_verification_tokens_generate` for simplest API.
 
-pub fn mybusinessverifications_verification_tokens_generate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn mybusinessverifications_verification_tokens_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://mybusinessverifications.googleapis.com/v1/verificationTokens:generate",);

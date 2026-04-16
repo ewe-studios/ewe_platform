@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_get_execute()` to send, or `developerconnect_projects_locations_get` for simplest API.
 
-pub fn developerconnect_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn developerconnect_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_list_execute()` to send, or `developerconnect_projects_locations_list` for simplest API.
 
-pub fn developerconnect_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations",
@@ -383,13 +390,16 @@ pub fn developerconnect_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_create_execute()` to send, or `developerconnect_projects_locations_account_connectors_create` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     accountConnectorId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors",
@@ -572,14 +582,17 @@ pub fn developerconnect_projects_locations_account_connectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_delete_execute()` to send, or `developerconnect_projects_locations_account_connectors_delete` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}",
@@ -768,13 +781,16 @@ pub fn developerconnect_projects_locations_account_connectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_fetch_user_repositories_execute()` to send, or `developerconnect_projects_locations_account_connectors_fetch_user_repositories` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_fetch_user_repositories_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_fetch_user_repositories_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountConnector: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     repository: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}:fetchUserRepositories",
@@ -968,10 +984,13 @@ pub fn developerconnect_projects_locations_account_connectors_fetch_user_reposit
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_get_execute()` to send, or `developerconnect_projects_locations_account_connectors_get` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}",
@@ -1130,14 +1149,17 @@ pub fn developerconnect_projects_locations_account_connectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_list_execute()` to send, or `developerconnect_projects_locations_account_connectors_list` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors",
@@ -1334,14 +1356,17 @@ pub fn developerconnect_projects_locations_account_connectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_patch_execute()` to send, or `developerconnect_projects_locations_account_connectors_patch` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_patch_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}",
@@ -1530,13 +1555,16 @@ pub fn developerconnect_projects_locations_account_connectors_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_users_delete_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_delete` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users/{usersId}",
@@ -1719,10 +1747,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_users_delete_self_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_delete_self` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_delete_self_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_users_delete_self_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:deleteSelf",
@@ -1879,10 +1910,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_delete_self(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_users_fetch_access_token_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_fetch_access_token` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_fetch_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_users_fetch_access_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountConnector: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:fetchAccessToken",
@@ -2047,10 +2081,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_access
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_users_fetch_self_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_fetch_self` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_fetch_self_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_users_fetch_self_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:fetchSelf",
@@ -2207,15 +2244,18 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_self(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountConnector: &String,
     googleOauthParams_scopes: &Option<Option<String>>,
     googleOauthParams_ticket: &Option<Option<String>>,
     googleOauthParams_versionInfo: &Option<Option<String>>,
     oauthParams_code: &Option<Option<String>>,
     oauthParams_ticket: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:finishOAuthFlow",
@@ -2417,14 +2457,17 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_users_list_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_list` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users",
@@ -2617,10 +2660,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_start_oauth_flow` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountConnector: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:startOAuthFlow",
@@ -2784,13 +2830,16 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_create_execute()` to send, or `developerconnect_projects_locations_connections_create` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections",
@@ -2973,13 +3022,16 @@ pub fn developerconnect_projects_locations_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_delete_execute()` to send, or `developerconnect_projects_locations_connections_delete` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -3162,10 +3214,13 @@ pub fn developerconnect_projects_locations_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_fetch_git_hub_installations_execute()` to send, or `developerconnect_projects_locations_connections_fetch_git_hub_installations` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_fetch_git_hub_installations_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_fetch_git_hub_installations_builder<R>(
+    client: &SimpleHttpClient<R>,
     connection: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}:fetchGitHubInstallations",
@@ -3332,12 +3387,15 @@ pub fn developerconnect_projects_locations_connections_fetch_git_hub_installatio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_fetch_linkable_git_repositories_execute()` to send, or `developerconnect_projects_locations_connections_fetch_linkable_git_repositories` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_fetch_linkable_git_repositories_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_fetch_linkable_git_repositories_builder<R>(
+    client: &SimpleHttpClient<R>,
     connection: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}:fetchLinkableGitRepositories",
@@ -3526,10 +3584,13 @@ pub fn developerconnect_projects_locations_connections_fetch_linkable_git_reposi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_get_execute()` to send, or `developerconnect_projects_locations_connections_get` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -3683,14 +3744,17 @@ pub fn developerconnect_projects_locations_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_list_execute()` to send, or `developerconnect_projects_locations_connections_list` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections",
@@ -3883,14 +3947,17 @@ pub fn developerconnect_projects_locations_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_patch_execute()` to send, or `developerconnect_projects_locations_connections_patch` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -4079,10 +4146,15 @@ pub fn developerconnect_projects_locations_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook_execute()` to send, or `developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections:processGitHubEnterpriseWebhook",
@@ -4245,13 +4317,16 @@ pub fn developerconnect_projects_locations_connections_process_git_hub_enterpris
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_create_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_create` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     gitRepositoryLinkId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks",
@@ -4436,13 +4511,16 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_crea
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_delete_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_delete` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}",
@@ -4627,13 +4705,18 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_dele
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     gitRepositoryLink: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     refType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:fetchGitRefs",
@@ -4819,10 +4902,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_fetch_read_token` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     gitRepositoryLink: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:fetchReadToken",
@@ -4985,10 +5073,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     gitRepositoryLink: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:fetchReadWriteToken",
@@ -5150,10 +5243,13 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_get_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_get` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}",
@@ -5314,14 +5410,17 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_list_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_list` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks",
@@ -5520,10 +5619,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_list
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processBitbucketCloudWebhook",
@@ -5678,10 +5782,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processBitbucketDataCenterWebhook",
@@ -5836,10 +5945,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processGitLabEnterpriseWebhook",
@@ -5994,10 +6108,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_execute()` to send, or `developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook` for simplest API.
 
-pub fn developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processGitLabWebhook",
@@ -6151,12 +6270,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_insights_configs_create_execute()` to send, or `developerconnect_projects_locations_insights_configs_create` for simplest API.
 
-pub fn developerconnect_projects_locations_insights_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_insights_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     insightsConfigId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsConfigs",
@@ -6333,13 +6455,16 @@ pub fn developerconnect_projects_locations_insights_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_insights_configs_delete_execute()` to send, or `developerconnect_projects_locations_insights_configs_delete` for simplest API.
 
-pub fn developerconnect_projects_locations_insights_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_insights_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}",
@@ -6522,10 +6647,13 @@ pub fn developerconnect_projects_locations_insights_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_insights_configs_get_execute()` to send, or `developerconnect_projects_locations_insights_configs_get` for simplest API.
 
-pub fn developerconnect_projects_locations_insights_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_insights_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}",
@@ -6684,14 +6812,17 @@ pub fn developerconnect_projects_locations_insights_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_insights_configs_list_execute()` to send, or `developerconnect_projects_locations_insights_configs_list` for simplest API.
 
-pub fn developerconnect_projects_locations_insights_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_insights_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsConfigs",
@@ -6888,13 +7019,16 @@ pub fn developerconnect_projects_locations_insights_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_insights_configs_patch_execute()` to send, or `developerconnect_projects_locations_insights_configs_patch` for simplest API.
 
-pub fn developerconnect_projects_locations_insights_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_insights_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}",
@@ -7077,10 +7211,13 @@ pub fn developerconnect_projects_locations_insights_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_insights_configs_deployment_events_get_execute()` to send, or `developerconnect_projects_locations_insights_configs_deployment_events_get` for simplest API.
 
-pub fn developerconnect_projects_locations_insights_configs_deployment_events_get_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_insights_configs_deployment_events_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}/deploymentEvents/{deploymentEventsId}",
@@ -7242,13 +7379,16 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_insights_configs_deployment_events_list_execute()` to send, or `developerconnect_projects_locations_insights_configs_deployment_events_list` for simplest API.
 
-pub fn developerconnect_projects_locations_insights_configs_deployment_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_insights_configs_deployment_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}/deploymentEvents",
@@ -7441,10 +7581,13 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_operations_cancel_execute()` to send, or `developerconnect_projects_locations_operations_cancel` for simplest API.
 
-pub fn developerconnect_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -7599,10 +7742,13 @@ pub fn developerconnect_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_operations_delete_execute()` to send, or `developerconnect_projects_locations_operations_delete` for simplest API.
 
-pub fn developerconnect_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7757,10 +7903,13 @@ pub fn developerconnect_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_operations_get_execute()` to send, or `developerconnect_projects_locations_operations_get` for simplest API.
 
-pub fn developerconnect_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7914,14 +8063,17 @@ pub fn developerconnect_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_operations_list_execute()` to send, or `developerconnect_projects_locations_operations_list` for simplest API.
 
-pub fn developerconnect_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn developerconnect_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://developerconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

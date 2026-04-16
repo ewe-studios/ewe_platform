@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_get_execute()` to send, or `privateca_projects_locations_get` for simplest API.
 
-pub fn privateca_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn privateca_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_list_execute()` to send, or `privateca_projects_locations_list` for simplest API.
 
-pub fn privateca_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations",
@@ -383,12 +390,15 @@ pub fn privateca_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_create_execute()` to send, or `privateca_projects_locations_ca_pools_create` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     caPoolId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools",
@@ -565,12 +575,15 @@ pub fn privateca_projects_locations_ca_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_delete_execute()` to send, or `privateca_projects_locations_ca_pools_delete` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreDependentResources: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}",
@@ -747,10 +760,13 @@ pub fn privateca_projects_locations_ca_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_fetch_ca_certs_execute()` to send, or `privateca_projects_locations_ca_pools_fetch_ca_certs` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_fetch_ca_certs_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_fetch_ca_certs_builder<R>(
+    client: &SimpleHttpClient<R>,
     caPool: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}:fetchCaCerts",
@@ -909,10 +925,13 @@ pub fn privateca_projects_locations_ca_pools_fetch_ca_certs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_get_execute()` to send, or `privateca_projects_locations_ca_pools_get` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}",
@@ -1066,11 +1085,14 @@ pub fn privateca_projects_locations_ca_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_get_iam_policy_execute()` to send, or `privateca_projects_locations_ca_pools_get_iam_policy` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}:getIamPolicy",
@@ -1241,14 +1263,17 @@ pub fn privateca_projects_locations_ca_pools_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_list_execute()` to send, or `privateca_projects_locations_ca_pools_list` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools",
@@ -1441,12 +1466,15 @@ pub fn privateca_projects_locations_ca_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_patch_execute()` to send, or `privateca_projects_locations_ca_pools_patch` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}",
@@ -1623,10 +1651,13 @@ pub fn privateca_projects_locations_ca_pools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_set_iam_policy_execute()` to send, or `privateca_projects_locations_ca_pools_set_iam_policy` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}:setIamPolicy",
@@ -1781,10 +1812,13 @@ pub fn privateca_projects_locations_ca_pools_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_test_iam_permissions_execute()` to send, or `privateca_projects_locations_ca_pools_test_iam_permissions` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}:testIamPermissions",
@@ -1947,10 +1981,13 @@ pub fn privateca_projects_locations_ca_pools_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_activate_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_activate` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_activate_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:activate",
@@ -2107,12 +2144,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_create_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_create` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_create_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     certificateAuthorityId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities",
@@ -2289,14 +2329,17 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_delete_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_delete` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_delete_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreActiveCertificates: &Option<Option<String>>,
     ignoreDependentResources: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     skipGracePeriod: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}",
@@ -2485,10 +2528,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_disable_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_disable` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_disable_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:disable",
@@ -2644,10 +2690,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_enable_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_enable` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_enable_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:enable",
@@ -2803,10 +2852,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_fetch_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_fetch` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:fetch",
@@ -2970,10 +3022,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_get_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_get` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_get_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}",
@@ -3133,14 +3188,17 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_list_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_list` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_list_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities",
@@ -3337,12 +3395,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_patch_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_patch` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_patch_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}",
@@ -3519,10 +3580,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_undelete_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_undelete` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:undelete",
@@ -3679,10 +3743,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}",
@@ -3841,11 +3910,16 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}:getIamPolicy",
@@ -4013,14 +4087,19 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists",
@@ -4211,12 +4290,17 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}",
@@ -4389,10 +4473,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}:setIamPolicy",
@@ -4547,10 +4636,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_execute()` to send, or `privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}:testIamPermissions",
@@ -4713,14 +4807,17 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificates_create_execute()` to send, or `privateca_projects_locations_ca_pools_certificates_create` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificates_create_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     certificateId: &Option<Option<String>>,
     issuingCertificateAuthorityId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificates",
@@ -4909,10 +5006,13 @@ pub fn privateca_projects_locations_ca_pools_certificates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificates_get_execute()` to send, or `privateca_projects_locations_ca_pools_certificates_get` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificates/{certificatesId}",
@@ -5067,14 +5167,17 @@ pub fn privateca_projects_locations_ca_pools_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificates_list_execute()` to send, or `privateca_projects_locations_ca_pools_certificates_list` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificates",
@@ -5267,12 +5370,15 @@ pub fn privateca_projects_locations_ca_pools_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificates_patch_execute()` to send, or `privateca_projects_locations_ca_pools_certificates_patch` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificates/{certificatesId}",
@@ -5449,10 +5555,13 @@ pub fn privateca_projects_locations_ca_pools_certificates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_ca_pools_certificates_revoke_execute()` to send, or `privateca_projects_locations_ca_pools_certificates_revoke` for simplest API.
 
-pub fn privateca_projects_locations_ca_pools_certificates_revoke_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_ca_pools_certificates_revoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/caPools/{caPoolsId}/certificates/{certificatesId}:revoke",
@@ -5607,12 +5716,15 @@ pub fn privateca_projects_locations_ca_pools_certificates_revoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_create_execute()` to send, or `privateca_projects_locations_certificate_templates_create` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     certificateTemplateId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates",
@@ -5789,11 +5901,14 @@ pub fn privateca_projects_locations_certificate_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_delete_execute()` to send, or `privateca_projects_locations_certificate_templates_delete` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}",
@@ -5964,10 +6079,13 @@ pub fn privateca_projects_locations_certificate_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_get_execute()` to send, or `privateca_projects_locations_certificate_templates_get` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}",
@@ -6126,11 +6244,14 @@ pub fn privateca_projects_locations_certificate_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_get_iam_policy_execute()` to send, or `privateca_projects_locations_certificate_templates_get_iam_policy` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}:getIamPolicy",
@@ -6301,14 +6422,17 @@ pub fn privateca_projects_locations_certificate_templates_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_list_execute()` to send, or `privateca_projects_locations_certificate_templates_list` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates",
@@ -6505,12 +6629,15 @@ pub fn privateca_projects_locations_certificate_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_patch_execute()` to send, or `privateca_projects_locations_certificate_templates_patch` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}",
@@ -6687,10 +6814,13 @@ pub fn privateca_projects_locations_certificate_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_set_iam_policy_execute()` to send, or `privateca_projects_locations_certificate_templates_set_iam_policy` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}:setIamPolicy",
@@ -6847,10 +6977,13 @@ pub fn privateca_projects_locations_certificate_templates_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_certificate_templates_test_iam_permissions_execute()` to send, or `privateca_projects_locations_certificate_templates_test_iam_permissions` for simplest API.
 
-pub fn privateca_projects_locations_certificate_templates_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_certificate_templates_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}:testIamPermissions",
@@ -7016,10 +7149,13 @@ pub fn privateca_projects_locations_certificate_templates_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_operations_cancel_execute()` to send, or `privateca_projects_locations_operations_cancel` for simplest API.
 
-pub fn privateca_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -7173,10 +7309,13 @@ pub fn privateca_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_operations_delete_execute()` to send, or `privateca_projects_locations_operations_delete` for simplest API.
 
-pub fn privateca_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7330,10 +7469,13 @@ pub fn privateca_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_operations_get_execute()` to send, or `privateca_projects_locations_operations_get` for simplest API.
 
-pub fn privateca_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7487,14 +7629,17 @@ pub fn privateca_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `privateca_projects_locations_operations_list_execute()` to send, or `privateca_projects_locations_operations_list` for simplest API.
 
-pub fn privateca_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn privateca_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://privateca.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

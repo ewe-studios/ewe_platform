@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_active_ad_summaries_get_execute()` to send, or `dfareporting_account_active_ad_summaries_get` for simplest API.
 
-pub fn dfareporting_account_active_ad_summaries_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_active_ad_summaries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     summaryAccountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountActiveAdSummaries/{}",
@@ -195,11 +199,14 @@ pub fn dfareporting_account_active_ad_summaries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_permission_groups_get_execute()` to send, or `dfareporting_account_permission_groups_get` for simplest API.
 
-pub fn dfareporting_account_permission_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_permission_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissionGroups/{}",
@@ -361,10 +368,13 @@ pub fn dfareporting_account_permission_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_permission_groups_list_execute()` to send, or `dfareporting_account_permission_groups_list` for simplest API.
 
-pub fn dfareporting_account_permission_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_permission_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissionGroups",
@@ -526,11 +536,14 @@ pub fn dfareporting_account_permission_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_permissions_get_execute()` to send, or `dfareporting_account_permissions_get` for simplest API.
 
-pub fn dfareporting_account_permissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_permissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissions/{}",
@@ -690,10 +703,13 @@ pub fn dfareporting_account_permissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_permissions_list_execute()` to send, or `dfareporting_account_permissions_list` for simplest API.
 
-pub fn dfareporting_account_permissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_permissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissions",
@@ -855,11 +871,14 @@ pub fn dfareporting_account_permissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_user_profiles_get_execute()` to send, or `dfareporting_account_user_profiles_get` for simplest API.
 
-pub fn dfareporting_account_user_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_user_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles/{}",
@@ -1021,10 +1040,13 @@ pub fn dfareporting_account_user_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_user_profiles_insert_execute()` to send, or `dfareporting_account_user_profiles_insert` for simplest API.
 
-pub fn dfareporting_account_user_profiles_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_user_profiles_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
@@ -1182,8 +1204,8 @@ pub fn dfareporting_account_user_profiles_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_user_profiles_list_execute()` to send, or `dfareporting_account_user_profiles_list` for simplest API.
 
-pub fn dfareporting_account_user_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_user_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     active: &Option<Option<String>>,
     ids: &Option<Option<String>>,
@@ -1194,7 +1216,10 @@ pub fn dfareporting_account_user_profiles_list_builder(
     sortOrder: &Option<Option<String>>,
     subaccountId: &Option<Option<String>>,
     userRoleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
@@ -1421,11 +1446,14 @@ pub fn dfareporting_account_user_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_user_profiles_patch_execute()` to send, or `dfareporting_account_user_profiles_patch` for simplest API.
 
-pub fn dfareporting_account_user_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_user_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
@@ -1597,10 +1625,13 @@ pub fn dfareporting_account_user_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_user_profiles_update_execute()` to send, or `dfareporting_account_user_profiles_update` for simplest API.
 
-pub fn dfareporting_account_user_profiles_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_account_user_profiles_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
@@ -1758,11 +1789,14 @@ pub fn dfareporting_account_user_profiles_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_accounts_get_execute()` to send, or `dfareporting_accounts_get` for simplest API.
 
-pub fn dfareporting_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts/{}",
@@ -1918,8 +1952,8 @@ pub fn dfareporting_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_accounts_list_execute()` to send, or `dfareporting_accounts_list` for simplest API.
 
-pub fn dfareporting_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     active: &Option<Option<String>>,
     ids: &Option<Option<String>>,
@@ -1928,7 +1962,10 @@ pub fn dfareporting_accounts_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts",
@@ -2139,11 +2176,14 @@ pub fn dfareporting_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_accounts_patch_execute()` to send, or `dfareporting_accounts_patch` for simplest API.
 
-pub fn dfareporting_accounts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_accounts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts",
@@ -2310,10 +2350,13 @@ pub fn dfareporting_accounts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_accounts_update_execute()` to send, or `dfareporting_accounts_update` for simplest API.
 
-pub fn dfareporting_accounts_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_accounts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts",
@@ -2467,11 +2510,14 @@ pub fn dfareporting_accounts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_ads_get_execute()` to send, or `dfareporting_ads_get` for simplest API.
 
-pub fn dfareporting_ads_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_ads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads/{}",
@@ -2627,10 +2673,13 @@ pub fn dfareporting_ads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_ads_insert_execute()` to send, or `dfareporting_ads_insert` for simplest API.
 
-pub fn dfareporting_ads_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_ads_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
@@ -2784,8 +2833,8 @@ pub fn dfareporting_ads_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_ads_list_execute()` to send, or `dfareporting_ads_list` for simplest API.
 
-pub fn dfareporting_ads_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_ads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     active: &Option<Option<String>>,
     advertiserId: &Option<Option<String>>,
@@ -2810,7 +2859,10 @@ pub fn dfareporting_ads_list_builder(
     sslCompliant: &Option<Option<String>>,
     sslRequired: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
@@ -3117,11 +3169,14 @@ pub fn dfareporting_ads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_ads_patch_execute()` to send, or `dfareporting_ads_patch` for simplest API.
 
-pub fn dfareporting_ads_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_ads_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
@@ -3288,10 +3343,13 @@ pub fn dfareporting_ads_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_ads_update_execute()` to send, or `dfareporting_ads_update` for simplest API.
 
-pub fn dfareporting_ads_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_ads_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
@@ -3445,11 +3503,14 @@ pub fn dfareporting_ads_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_groups_delete_execute()` to send, or `dfareporting_advertiser_groups_delete` for simplest API.
 
-pub fn dfareporting_advertiser_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups/{}",
@@ -3602,11 +3663,14 @@ pub fn dfareporting_advertiser_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_groups_get_execute()` to send, or `dfareporting_advertiser_groups_get` for simplest API.
 
-pub fn dfareporting_advertiser_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups/{}",
@@ -3766,10 +3830,13 @@ pub fn dfareporting_advertiser_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_groups_insert_execute()` to send, or `dfareporting_advertiser_groups_insert` for simplest API.
 
-pub fn dfareporting_advertiser_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
@@ -3927,8 +3994,8 @@ pub fn dfareporting_advertiser_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_groups_list_execute()` to send, or `dfareporting_advertiser_groups_list` for simplest API.
 
-pub fn dfareporting_advertiser_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     ids: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
@@ -3936,7 +4003,10 @@ pub fn dfareporting_advertiser_groups_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
@@ -4145,11 +4215,14 @@ pub fn dfareporting_advertiser_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_groups_patch_execute()` to send, or `dfareporting_advertiser_groups_patch` for simplest API.
 
-pub fn dfareporting_advertiser_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
@@ -4320,10 +4393,13 @@ pub fn dfareporting_advertiser_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_groups_update_execute()` to send, or `dfareporting_advertiser_groups_update` for simplest API.
 
-pub fn dfareporting_advertiser_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
@@ -4481,14 +4557,17 @@ pub fn dfareporting_advertiser_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_invoices_list_execute()` to send, or `dfareporting_advertiser_invoices_list` for simplest API.
 
-pub fn dfareporting_advertiser_invoices_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_invoices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserId: &String,
     issueMonth: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers/{}/invoices",
@@ -4683,11 +4762,14 @@ pub fn dfareporting_advertiser_invoices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_landing_pages_get_execute()` to send, or `dfareporting_advertiser_landing_pages_get` for simplest API.
 
-pub fn dfareporting_advertiser_landing_pages_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_landing_pages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages/{}",
@@ -4845,10 +4927,13 @@ pub fn dfareporting_advertiser_landing_pages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_landing_pages_insert_execute()` to send, or `dfareporting_advertiser_landing_pages_insert` for simplest API.
 
-pub fn dfareporting_advertiser_landing_pages_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_landing_pages_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
@@ -5002,8 +5087,8 @@ pub fn dfareporting_advertiser_landing_pages_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_landing_pages_list_execute()` to send, or `dfareporting_advertiser_landing_pages_list` for simplest API.
 
-pub fn dfareporting_advertiser_landing_pages_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_landing_pages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserIds: &Option<Option<String>>,
     archived: &Option<Option<String>>,
@@ -5015,7 +5100,10 @@ pub fn dfareporting_advertiser_landing_pages_list_builder(
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
     subaccountId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
@@ -5248,11 +5336,14 @@ pub fn dfareporting_advertiser_landing_pages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_landing_pages_patch_execute()` to send, or `dfareporting_advertiser_landing_pages_patch` for simplest API.
 
-pub fn dfareporting_advertiser_landing_pages_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_landing_pages_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
@@ -5420,10 +5511,13 @@ pub fn dfareporting_advertiser_landing_pages_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertiser_landing_pages_update_execute()` to send, or `dfareporting_advertiser_landing_pages_update` for simplest API.
 
-pub fn dfareporting_advertiser_landing_pages_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertiser_landing_pages_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
@@ -5577,11 +5671,14 @@ pub fn dfareporting_advertiser_landing_pages_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertisers_get_execute()` to send, or `dfareporting_advertisers_get` for simplest API.
 
-pub fn dfareporting_advertisers_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertisers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers/{}",
@@ -5737,10 +5834,13 @@ pub fn dfareporting_advertisers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertisers_insert_execute()` to send, or `dfareporting_advertisers_insert` for simplest API.
 
-pub fn dfareporting_advertisers_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertisers_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
@@ -5894,8 +5994,8 @@ pub fn dfareporting_advertisers_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertisers_list_execute()` to send, or `dfareporting_advertisers_list` for simplest API.
 
-pub fn dfareporting_advertisers_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertisers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserGroupIds: &Option<Option<String>>,
     floodlightConfigurationIds: &Option<Option<String>>,
@@ -5909,7 +6009,10 @@ pub fn dfareporting_advertisers_list_builder(
     sortOrder: &Option<Option<String>>,
     status: &Option<Option<String>>,
     subaccountId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
@@ -6150,11 +6253,14 @@ pub fn dfareporting_advertisers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertisers_patch_execute()` to send, or `dfareporting_advertisers_patch` for simplest API.
 
-pub fn dfareporting_advertisers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertisers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
@@ -6321,10 +6427,13 @@ pub fn dfareporting_advertisers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_advertisers_update_execute()` to send, or `dfareporting_advertisers_update` for simplest API.
 
-pub fn dfareporting_advertisers_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_advertisers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
@@ -6478,11 +6587,14 @@ pub fn dfareporting_advertisers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_billing_assignments_insert_execute()` to send, or `dfareporting_billing_assignments_insert` for simplest API.
 
-pub fn dfareporting_billing_assignments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_billing_assignments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     billingProfileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}/billingAssignments",
@@ -6647,11 +6759,14 @@ pub fn dfareporting_billing_assignments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_billing_assignments_list_execute()` to send, or `dfareporting_billing_assignments_list` for simplest API.
 
-pub fn dfareporting_billing_assignments_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_billing_assignments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     billingProfileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}/billingAssignments",
@@ -6820,11 +6935,14 @@ pub fn dfareporting_billing_assignments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_billing_profiles_get_execute()` to send, or `dfareporting_billing_profiles_get` for simplest API.
 
-pub fn dfareporting_billing_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_billing_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}",
@@ -6984,8 +7102,8 @@ pub fn dfareporting_billing_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_billing_profiles_list_execute()` to send, or `dfareporting_billing_profiles_list` for simplest API.
 
-pub fn dfareporting_billing_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_billing_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     currency_code: &Option<Option<String>>,
     ids: &Option<Option<String>>,
@@ -6997,7 +7115,10 @@ pub fn dfareporting_billing_profiles_list_builder(
     sortOrder: &Option<Option<String>>,
     status: &Option<Option<String>>,
     subaccountIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles",
@@ -7230,10 +7351,13 @@ pub fn dfareporting_billing_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_billing_profiles_update_execute()` to send, or `dfareporting_billing_profiles_update` for simplest API.
 
-pub fn dfareporting_billing_profiles_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_billing_profiles_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles",
@@ -7391,11 +7515,14 @@ pub fn dfareporting_billing_profiles_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_billing_rates_list_execute()` to send, or `dfareporting_billing_rates_list` for simplest API.
 
-pub fn dfareporting_billing_rates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_billing_rates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     billingProfileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}/billingRates",
@@ -7557,10 +7684,13 @@ pub fn dfareporting_billing_rates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_browsers_list_execute()` to send, or `dfareporting_browsers_list` for simplest API.
 
-pub fn dfareporting_browsers_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_browsers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/browsers",
@@ -7718,11 +7848,14 @@ pub fn dfareporting_browsers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_campaign_creative_associations_insert_execute()` to send, or `dfareporting_campaign_creative_associations_insert` for simplest API.
 
-pub fn dfareporting_campaign_creative_associations_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_campaign_creative_associations_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     campaignId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns/{}/campaignCreativeAssociations",
@@ -7891,14 +8024,17 @@ pub fn dfareporting_campaign_creative_associations_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_campaign_creative_associations_list_execute()` to send, or `dfareporting_campaign_creative_associations_list` for simplest API.
 
-pub fn dfareporting_campaign_creative_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_campaign_creative_associations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     campaignId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns/{}/campaignCreativeAssociations",
@@ -8093,11 +8229,14 @@ pub fn dfareporting_campaign_creative_associations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_campaigns_get_execute()` to send, or `dfareporting_campaigns_get` for simplest API.
 
-pub fn dfareporting_campaigns_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_campaigns_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns/{}",
@@ -8253,10 +8392,13 @@ pub fn dfareporting_campaigns_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_campaigns_insert_execute()` to send, or `dfareporting_campaigns_insert` for simplest API.
 
-pub fn dfareporting_campaigns_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_campaigns_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
@@ -8410,8 +8552,8 @@ pub fn dfareporting_campaigns_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_campaigns_list_execute()` to send, or `dfareporting_campaigns_list` for simplest API.
 
-pub fn dfareporting_campaigns_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_campaigns_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserGroupIds: &Option<Option<String>>,
     advertiserIds: &Option<Option<String>>,
@@ -8426,7 +8568,10 @@ pub fn dfareporting_campaigns_list_builder(
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
     subaccountId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
@@ -8673,11 +8818,14 @@ pub fn dfareporting_campaigns_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_campaigns_patch_execute()` to send, or `dfareporting_campaigns_patch` for simplest API.
 
-pub fn dfareporting_campaigns_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_campaigns_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
@@ -8844,10 +8992,13 @@ pub fn dfareporting_campaigns_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_campaigns_update_execute()` to send, or `dfareporting_campaigns_update` for simplest API.
 
-pub fn dfareporting_campaigns_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_campaigns_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
@@ -9001,11 +9152,14 @@ pub fn dfareporting_campaigns_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_change_logs_get_execute()` to send, or `dfareporting_change_logs_get` for simplest API.
 
-pub fn dfareporting_change_logs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_change_logs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/changeLogs/{}",
@@ -9161,8 +9315,8 @@ pub fn dfareporting_change_logs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_change_logs_list_execute()` to send, or `dfareporting_change_logs_list` for simplest API.
 
-pub fn dfareporting_change_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_change_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     action: &Option<Option<String>>,
     ids: &Option<Option<String>>,
@@ -9174,7 +9328,10 @@ pub fn dfareporting_change_logs_list_builder(
     pageToken: &Option<Option<String>>,
     searchString: &Option<Option<String>>,
     userProfileIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/changeLogs",
@@ -9403,14 +9560,17 @@ pub fn dfareporting_change_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_cities_list_execute()` to send, or `dfareporting_cities_list` for simplest API.
 
-pub fn dfareporting_cities_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_cities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     countryDartIds: &Option<Option<String>>,
     dartIds: &Option<Option<String>>,
     namePrefix: &Option<Option<String>>,
     regionDartIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/cities",
@@ -9603,11 +9763,14 @@ pub fn dfareporting_cities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_connection_types_get_execute()` to send, or `dfareporting_connection_types_get` for simplest API.
 
-pub fn dfareporting_connection_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_connection_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/connectionTypes/{}",
@@ -9767,10 +9930,13 @@ pub fn dfareporting_connection_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_connection_types_list_execute()` to send, or `dfareporting_connection_types_list` for simplest API.
 
-pub fn dfareporting_connection_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_connection_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/connectionTypes",
@@ -9932,11 +10098,14 @@ pub fn dfareporting_connection_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_content_categories_delete_execute()` to send, or `dfareporting_content_categories_delete` for simplest API.
 
-pub fn dfareporting_content_categories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_content_categories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories/{}",
@@ -10090,11 +10259,14 @@ pub fn dfareporting_content_categories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_content_categories_get_execute()` to send, or `dfareporting_content_categories_get` for simplest API.
 
-pub fn dfareporting_content_categories_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_content_categories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories/{}",
@@ -10254,10 +10426,13 @@ pub fn dfareporting_content_categories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_content_categories_insert_execute()` to send, or `dfareporting_content_categories_insert` for simplest API.
 
-pub fn dfareporting_content_categories_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_content_categories_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
@@ -10415,8 +10590,8 @@ pub fn dfareporting_content_categories_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_content_categories_list_execute()` to send, or `dfareporting_content_categories_list` for simplest API.
 
-pub fn dfareporting_content_categories_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_content_categories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     ids: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
@@ -10424,7 +10599,10 @@ pub fn dfareporting_content_categories_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
@@ -10633,11 +10811,14 @@ pub fn dfareporting_content_categories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_content_categories_patch_execute()` to send, or `dfareporting_content_categories_patch` for simplest API.
 
-pub fn dfareporting_content_categories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_content_categories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
@@ -10808,10 +10989,13 @@ pub fn dfareporting_content_categories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_content_categories_update_execute()` to send, or `dfareporting_content_categories_update` for simplest API.
 
-pub fn dfareporting_content_categories_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_content_categories_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
@@ -10969,10 +11153,13 @@ pub fn dfareporting_content_categories_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_conversions_batchinsert_execute()` to send, or `dfareporting_conversions_batchinsert` for simplest API.
 
-pub fn dfareporting_conversions_batchinsert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_conversions_batchinsert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/conversions/batchinsert",
@@ -11134,10 +11321,13 @@ pub fn dfareporting_conversions_batchinsert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_conversions_batchupdate_execute()` to send, or `dfareporting_conversions_batchupdate` for simplest API.
 
-pub fn dfareporting_conversions_batchupdate_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_conversions_batchupdate_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/conversions/batchupdate",
@@ -11299,11 +11489,14 @@ pub fn dfareporting_conversions_batchupdate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_countries_get_execute()` to send, or `dfareporting_countries_get` for simplest API.
 
-pub fn dfareporting_countries_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_countries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     dartId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/countries/{}",
@@ -11459,10 +11652,13 @@ pub fn dfareporting_countries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_countries_list_execute()` to send, or `dfareporting_countries_list` for simplest API.
 
-pub fn dfareporting_countries_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_countries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/countries",
@@ -11620,11 +11816,14 @@ pub fn dfareporting_countries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_assets_insert_execute()` to send, or `dfareporting_creative_assets_insert` for simplest API.
 
-pub fn dfareporting_creative_assets_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_assets_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeAssets/{}/creativeAssets",
@@ -11786,12 +11985,15 @@ pub fn dfareporting_creative_assets_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_field_values_delete_execute()` to send, or `dfareporting_creative_field_values_delete` for simplest API.
 
-pub fn dfareporting_creative_field_values_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_field_values_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues/{}",
@@ -11953,12 +12155,15 @@ pub fn dfareporting_creative_field_values_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_field_values_get_execute()` to send, or `dfareporting_creative_field_values_get` for simplest API.
 
-pub fn dfareporting_creative_field_values_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_field_values_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues/{}",
@@ -12127,11 +12332,14 @@ pub fn dfareporting_creative_field_values_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_field_values_insert_execute()` to send, or `dfareporting_creative_field_values_insert` for simplest API.
 
-pub fn dfareporting_creative_field_values_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_field_values_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
@@ -12296,8 +12504,8 @@ pub fn dfareporting_creative_field_values_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_field_values_list_execute()` to send, or `dfareporting_creative_field_values_list` for simplest API.
 
-pub fn dfareporting_creative_field_values_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_field_values_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
     ids: &Option<Option<String>>,
@@ -12306,7 +12514,10 @@ pub fn dfareporting_creative_field_values_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
@@ -12519,12 +12730,15 @@ pub fn dfareporting_creative_field_values_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_field_values_patch_execute()` to send, or `dfareporting_creative_field_values_patch` for simplest API.
 
-pub fn dfareporting_creative_field_values_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_field_values_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
@@ -12703,11 +12917,14 @@ pub fn dfareporting_creative_field_values_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_field_values_update_execute()` to send, or `dfareporting_creative_field_values_update` for simplest API.
 
-pub fn dfareporting_creative_field_values_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_field_values_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
@@ -12872,11 +13089,14 @@ pub fn dfareporting_creative_field_values_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_fields_delete_execute()` to send, or `dfareporting_creative_fields_delete` for simplest API.
 
-pub fn dfareporting_creative_fields_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_fields_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}",
@@ -13029,11 +13249,14 @@ pub fn dfareporting_creative_fields_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_fields_get_execute()` to send, or `dfareporting_creative_fields_get` for simplest API.
 
-pub fn dfareporting_creative_fields_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_fields_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}",
@@ -13193,10 +13416,13 @@ pub fn dfareporting_creative_fields_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_fields_insert_execute()` to send, or `dfareporting_creative_fields_insert` for simplest API.
 
-pub fn dfareporting_creative_fields_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_fields_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
@@ -13354,8 +13580,8 @@ pub fn dfareporting_creative_fields_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_fields_list_execute()` to send, or `dfareporting_creative_fields_list` for simplest API.
 
-pub fn dfareporting_creative_fields_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_fields_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserIds: &Option<Option<String>>,
     ids: &Option<Option<String>>,
@@ -13364,7 +13590,10 @@ pub fn dfareporting_creative_fields_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
@@ -13579,11 +13808,14 @@ pub fn dfareporting_creative_fields_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_fields_patch_execute()` to send, or `dfareporting_creative_fields_patch` for simplest API.
 
-pub fn dfareporting_creative_fields_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_fields_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
@@ -13754,10 +13986,13 @@ pub fn dfareporting_creative_fields_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_fields_update_execute()` to send, or `dfareporting_creative_fields_update` for simplest API.
 
-pub fn dfareporting_creative_fields_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_fields_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
@@ -13915,11 +14150,14 @@ pub fn dfareporting_creative_fields_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_groups_get_execute()` to send, or `dfareporting_creative_groups_get` for simplest API.
 
-pub fn dfareporting_creative_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups/{}",
@@ -14079,10 +14317,13 @@ pub fn dfareporting_creative_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_groups_insert_execute()` to send, or `dfareporting_creative_groups_insert` for simplest API.
 
-pub fn dfareporting_creative_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
@@ -14240,8 +14481,8 @@ pub fn dfareporting_creative_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_groups_list_execute()` to send, or `dfareporting_creative_groups_list` for simplest API.
 
-pub fn dfareporting_creative_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserIds: &Option<Option<String>>,
     groupNumber: &Option<Option<String>>,
@@ -14251,7 +14492,10 @@ pub fn dfareporting_creative_groups_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
@@ -14472,11 +14716,14 @@ pub fn dfareporting_creative_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_groups_patch_execute()` to send, or `dfareporting_creative_groups_patch` for simplest API.
 
-pub fn dfareporting_creative_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
@@ -14647,10 +14894,13 @@ pub fn dfareporting_creative_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creative_groups_update_execute()` to send, or `dfareporting_creative_groups_update` for simplest API.
 
-pub fn dfareporting_creative_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creative_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
@@ -14808,11 +15058,14 @@ pub fn dfareporting_creative_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creatives_get_execute()` to send, or `dfareporting_creatives_get` for simplest API.
 
-pub fn dfareporting_creatives_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creatives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives/{}",
@@ -14968,10 +15221,13 @@ pub fn dfareporting_creatives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creatives_insert_execute()` to send, or `dfareporting_creatives_insert` for simplest API.
 
-pub fn dfareporting_creatives_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creatives_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
@@ -15125,8 +15381,8 @@ pub fn dfareporting_creatives_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creatives_list_execute()` to send, or `dfareporting_creatives_list` for simplest API.
 
-pub fn dfareporting_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     active: &Option<Option<String>>,
     advertiserId: &Option<Option<String>>,
@@ -15144,7 +15400,10 @@ pub fn dfareporting_creatives_list_builder(
     sortOrder: &Option<Option<String>>,
     studioCreativeId: &Option<Option<String>>,
     types: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
@@ -15409,11 +15668,14 @@ pub fn dfareporting_creatives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creatives_patch_execute()` to send, or `dfareporting_creatives_patch` for simplest API.
 
-pub fn dfareporting_creatives_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creatives_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
@@ -15580,10 +15842,13 @@ pub fn dfareporting_creatives_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_creatives_update_execute()` to send, or `dfareporting_creatives_update` for simplest API.
 
-pub fn dfareporting_creatives_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_creatives_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
@@ -15737,12 +16002,15 @@ pub fn dfareporting_creatives_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dimension_values_query_execute()` to send, or `dfareporting_dimension_values_query` for simplest API.
 
-pub fn dfareporting_dimension_values_query_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dimension_values_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dimensionvalues/query",
@@ -15923,11 +16191,14 @@ pub fn dfareporting_dimension_values_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_directory_sites_get_execute()` to send, or `dfareporting_directory_sites_get` for simplest API.
 
-pub fn dfareporting_directory_sites_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_directory_sites_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/directorySites/{}",
@@ -16087,10 +16358,13 @@ pub fn dfareporting_directory_sites_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_directory_sites_insert_execute()` to send, or `dfareporting_directory_sites_insert` for simplest API.
 
-pub fn dfareporting_directory_sites_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_directory_sites_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/directorySites",
@@ -16248,8 +16522,8 @@ pub fn dfareporting_directory_sites_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_directory_sites_list_execute()` to send, or `dfareporting_directory_sites_list` for simplest API.
 
-pub fn dfareporting_directory_sites_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_directory_sites_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     acceptsInStreamVideoPlacements: &Option<Option<String>>,
     acceptsInterstitialPlacements: &Option<Option<String>>,
@@ -16262,7 +16536,10 @@ pub fn dfareporting_directory_sites_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/directorySites",
@@ -16501,10 +16778,13 @@ pub fn dfareporting_directory_sites_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_feeds_get_execute()` to send, or `dfareporting_dynamic_feeds_get` for simplest API.
 
-pub fn dfareporting_dynamic_feeds_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_feeds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     dynamicFeedId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds/{}",
@@ -16658,9 +16938,12 @@ pub fn dfareporting_dynamic_feeds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_feeds_insert_execute()` to send, or `dfareporting_dynamic_feeds_insert` for simplest API.
 
-pub fn dfareporting_dynamic_feeds_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dfareporting_dynamic_feeds_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds",);
@@ -16804,10 +17087,13 @@ pub fn dfareporting_dynamic_feeds_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_feeds_retransform_execute()` to send, or `dfareporting_dynamic_feeds_retransform` for simplest API.
 
-pub fn dfareporting_dynamic_feeds_retransform_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_feeds_retransform_builder<R>(
+    client: &SimpleHttpClient<R>,
     dynamicFeedId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds/{}/retransform",
@@ -16961,9 +17247,12 @@ pub fn dfareporting_dynamic_feeds_retransform(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_feeds_update_execute()` to send, or `dfareporting_dynamic_feeds_update` for simplest API.
 
-pub fn dfareporting_dynamic_feeds_update_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dfareporting_dynamic_feeds_update_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds",);
@@ -17107,10 +17396,13 @@ pub fn dfareporting_dynamic_feeds_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_profiles_generate_code_execute()` to send, or `dfareporting_dynamic_profiles_generate_code` for simplest API.
 
-pub fn dfareporting_dynamic_profiles_generate_code_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_profiles_generate_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     dynamicProfileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles/{}/generateCode",
@@ -17273,10 +17565,13 @@ pub fn dfareporting_dynamic_profiles_generate_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_profiles_get_execute()` to send, or `dfareporting_dynamic_profiles_get` for simplest API.
 
-pub fn dfareporting_dynamic_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     dynamicProfileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles/{}",
@@ -17434,9 +17729,12 @@ pub fn dfareporting_dynamic_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_profiles_insert_execute()` to send, or `dfareporting_dynamic_profiles_insert` for simplest API.
 
-pub fn dfareporting_dynamic_profiles_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dfareporting_dynamic_profiles_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles",);
@@ -17584,10 +17882,13 @@ pub fn dfareporting_dynamic_profiles_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_profiles_publish_execute()` to send, or `dfareporting_dynamic_profiles_publish` for simplest API.
 
-pub fn dfareporting_dynamic_profiles_publish_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_profiles_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     dynamicProfileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles/{}/publish",
@@ -17738,9 +18039,12 @@ pub fn dfareporting_dynamic_profiles_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_profiles_update_execute()` to send, or `dfareporting_dynamic_profiles_update` for simplest API.
 
-pub fn dfareporting_dynamic_profiles_update_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dfareporting_dynamic_profiles_update_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles",);
@@ -17888,13 +18192,16 @@ pub fn dfareporting_dynamic_profiles_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_targeting_keys_delete_execute()` to send, or `dfareporting_dynamic_targeting_keys_delete` for simplest API.
 
-pub fn dfareporting_dynamic_targeting_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_targeting_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     objectId: &String,
     name: &Option<Option<String>>,
     objectType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dynamicTargetingKeys/{}",
@@ -18072,10 +18379,13 @@ pub fn dfareporting_dynamic_targeting_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_targeting_keys_insert_execute()` to send, or `dfareporting_dynamic_targeting_keys_insert` for simplest API.
 
-pub fn dfareporting_dynamic_targeting_keys_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_targeting_keys_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dynamicTargetingKeys",
@@ -18233,14 +18543,17 @@ pub fn dfareporting_dynamic_targeting_keys_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_targeting_keys_list_execute()` to send, or `dfareporting_dynamic_targeting_keys_list` for simplest API.
 
-pub fn dfareporting_dynamic_targeting_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_dynamic_targeting_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserId: &Option<Option<String>>,
     names: &Option<Option<String>>,
     objectId: &Option<Option<String>>,
     objectType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dynamicTargetingKeys",
@@ -18437,11 +18750,14 @@ pub fn dfareporting_dynamic_targeting_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_event_tags_delete_execute()` to send, or `dfareporting_event_tags_delete` for simplest API.
 
-pub fn dfareporting_event_tags_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_event_tags_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags/{}",
@@ -18594,11 +18910,14 @@ pub fn dfareporting_event_tags_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_event_tags_get_execute()` to send, or `dfareporting_event_tags_get` for simplest API.
 
-pub fn dfareporting_event_tags_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_event_tags_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags/{}",
@@ -18754,10 +19073,13 @@ pub fn dfareporting_event_tags_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_event_tags_insert_execute()` to send, or `dfareporting_event_tags_insert` for simplest API.
 
-pub fn dfareporting_event_tags_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_event_tags_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
@@ -18911,8 +19233,8 @@ pub fn dfareporting_event_tags_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_event_tags_list_execute()` to send, or `dfareporting_event_tags_list` for simplest API.
 
-pub fn dfareporting_event_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_event_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     adId: &Option<Option<String>>,
     advertiserId: &Option<Option<String>>,
@@ -18924,7 +19246,10 @@ pub fn dfareporting_event_tags_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
@@ -19153,11 +19478,14 @@ pub fn dfareporting_event_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_event_tags_patch_execute()` to send, or `dfareporting_event_tags_patch` for simplest API.
 
-pub fn dfareporting_event_tags_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_event_tags_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
@@ -19324,10 +19652,13 @@ pub fn dfareporting_event_tags_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_event_tags_update_execute()` to send, or `dfareporting_event_tags_update` for simplest API.
 
-pub fn dfareporting_event_tags_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_event_tags_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
@@ -19481,11 +19812,14 @@ pub fn dfareporting_event_tags_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_files_get_execute()` to send, or `dfareporting_files_get` for simplest API.
 
-pub fn dfareporting_files_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_files_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     reportId: &String,
     fileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/reports/{}/files/{}",
@@ -19641,15 +19975,18 @@ pub fn dfareporting_files_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_files_list_execute()` to send, or `dfareporting_files_list` for simplest API.
 
-pub fn dfareporting_files_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_files_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     scope: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/files",
@@ -19844,11 +20181,14 @@ pub fn dfareporting_files_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activities_delete_execute()` to send, or `dfareporting_floodlight_activities_delete` for simplest API.
 
-pub fn dfareporting_floodlight_activities_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activities_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities/{}",
@@ -20003,11 +20343,14 @@ pub fn dfareporting_floodlight_activities_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activities_generatetag_execute()` to send, or `dfareporting_floodlight_activities_generatetag` for simplest API.
 
-pub fn dfareporting_floodlight_activities_generatetag_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activities_generatetag_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     floodlightActivityId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities/generatetag",
@@ -20187,11 +20530,14 @@ pub fn dfareporting_floodlight_activities_generatetag(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activities_get_execute()` to send, or `dfareporting_floodlight_activities_get` for simplest API.
 
-pub fn dfareporting_floodlight_activities_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activities_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities/{}",
@@ -20353,10 +20699,13 @@ pub fn dfareporting_floodlight_activities_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activities_insert_execute()` to send, or `dfareporting_floodlight_activities_insert` for simplest API.
 
-pub fn dfareporting_floodlight_activities_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activities_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
@@ -20514,8 +20863,8 @@ pub fn dfareporting_floodlight_activities_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activities_list_execute()` to send, or `dfareporting_floodlight_activities_list` for simplest API.
 
-pub fn dfareporting_floodlight_activities_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserId: &Option<Option<String>>,
     floodlightActivityGroupIds: &Option<Option<String>>,
@@ -20530,7 +20879,10 @@ pub fn dfareporting_floodlight_activities_list_builder(
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
     tagString: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
@@ -20781,11 +21133,14 @@ pub fn dfareporting_floodlight_activities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activities_patch_execute()` to send, or `dfareporting_floodlight_activities_patch` for simplest API.
 
-pub fn dfareporting_floodlight_activities_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activities_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
@@ -20957,10 +21312,13 @@ pub fn dfareporting_floodlight_activities_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activities_update_execute()` to send, or `dfareporting_floodlight_activities_update` for simplest API.
 
-pub fn dfareporting_floodlight_activities_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activities_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
@@ -21118,11 +21476,14 @@ pub fn dfareporting_floodlight_activities_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activity_groups_get_execute()` to send, or `dfareporting_floodlight_activity_groups_get` for simplest API.
 
-pub fn dfareporting_floodlight_activity_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activity_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups/{}",
@@ -21284,10 +21645,13 @@ pub fn dfareporting_floodlight_activity_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activity_groups_insert_execute()` to send, or `dfareporting_floodlight_activity_groups_insert` for simplest API.
 
-pub fn dfareporting_floodlight_activity_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activity_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
@@ -21445,8 +21809,8 @@ pub fn dfareporting_floodlight_activity_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activity_groups_list_execute()` to send, or `dfareporting_floodlight_activity_groups_list` for simplest API.
 
-pub fn dfareporting_floodlight_activity_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activity_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserId: &Option<Option<String>>,
     floodlightConfigurationId: &Option<Option<String>>,
@@ -21457,7 +21821,10 @@ pub fn dfareporting_floodlight_activity_groups_list_builder(
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
@@ -21684,11 +22051,14 @@ pub fn dfareporting_floodlight_activity_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activity_groups_patch_execute()` to send, or `dfareporting_floodlight_activity_groups_patch` for simplest API.
 
-pub fn dfareporting_floodlight_activity_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activity_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
@@ -21860,10 +22230,13 @@ pub fn dfareporting_floodlight_activity_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_activity_groups_update_execute()` to send, or `dfareporting_floodlight_activity_groups_update` for simplest API.
 
-pub fn dfareporting_floodlight_activity_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_activity_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
@@ -22021,11 +22394,14 @@ pub fn dfareporting_floodlight_activity_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_configurations_get_execute()` to send, or `dfareporting_floodlight_configurations_get` for simplest API.
 
-pub fn dfareporting_floodlight_configurations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_configurations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations/{}",
@@ -22187,11 +22563,14 @@ pub fn dfareporting_floodlight_configurations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_configurations_list_execute()` to send, or `dfareporting_floodlight_configurations_list` for simplest API.
 
-pub fn dfareporting_floodlight_configurations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_configurations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     ids: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations",
@@ -22367,11 +22746,14 @@ pub fn dfareporting_floodlight_configurations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_configurations_patch_execute()` to send, or `dfareporting_floodlight_configurations_patch` for simplest API.
 
-pub fn dfareporting_floodlight_configurations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_configurations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations",
@@ -22543,10 +22925,13 @@ pub fn dfareporting_floodlight_configurations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_floodlight_configurations_update_execute()` to send, or `dfareporting_floodlight_configurations_update` for simplest API.
 
-pub fn dfareporting_floodlight_configurations_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_floodlight_configurations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations",
@@ -22704,10 +23089,13 @@ pub fn dfareporting_floodlight_configurations_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_languages_list_execute()` to send, or `dfareporting_languages_list` for simplest API.
 
-pub fn dfareporting_languages_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_languages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/languages",
@@ -22865,10 +23253,13 @@ pub fn dfareporting_languages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_metros_list_execute()` to send, or `dfareporting_metros_list` for simplest API.
 
-pub fn dfareporting_metros_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_metros_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/metros",
@@ -23026,11 +23417,14 @@ pub fn dfareporting_metros_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_mobile_apps_get_execute()` to send, or `dfareporting_mobile_apps_get` for simplest API.
 
-pub fn dfareporting_mobile_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_mobile_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileApps/{}",
@@ -23186,15 +23580,18 @@ pub fn dfareporting_mobile_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_mobile_apps_list_execute()` to send, or `dfareporting_mobile_apps_list` for simplest API.
 
-pub fn dfareporting_mobile_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_mobile_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     directories: &Option<Option<String>>,
     ids: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     searchString: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileApps",
@@ -23393,11 +23790,14 @@ pub fn dfareporting_mobile_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_mobile_carriers_get_execute()` to send, or `dfareporting_mobile_carriers_get` for simplest API.
 
-pub fn dfareporting_mobile_carriers_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_mobile_carriers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileCarriers/{}",
@@ -23557,10 +23957,13 @@ pub fn dfareporting_mobile_carriers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_mobile_carriers_list_execute()` to send, or `dfareporting_mobile_carriers_list` for simplest API.
 
-pub fn dfareporting_mobile_carriers_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_mobile_carriers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileCarriers",
@@ -23722,11 +24125,14 @@ pub fn dfareporting_mobile_carriers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_operating_system_versions_get_execute()` to send, or `dfareporting_operating_system_versions_get` for simplest API.
 
-pub fn dfareporting_operating_system_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_operating_system_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystemVersions/{}",
@@ -23888,10 +24294,13 @@ pub fn dfareporting_operating_system_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_operating_system_versions_list_execute()` to send, or `dfareporting_operating_system_versions_list` for simplest API.
 
-pub fn dfareporting_operating_system_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_operating_system_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystemVersions",
@@ -24053,11 +24462,14 @@ pub fn dfareporting_operating_system_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_operating_systems_get_execute()` to send, or `dfareporting_operating_systems_get` for simplest API.
 
-pub fn dfareporting_operating_systems_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_operating_systems_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     dartId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystems/{}",
@@ -24218,10 +24630,13 @@ pub fn dfareporting_operating_systems_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_operating_systems_list_execute()` to send, or `dfareporting_operating_systems_list` for simplest API.
 
-pub fn dfareporting_operating_systems_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_operating_systems_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystems",
@@ -24383,11 +24798,14 @@ pub fn dfareporting_operating_systems_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_groups_get_execute()` to send, or `dfareporting_placement_groups_get` for simplest API.
 
-pub fn dfareporting_placement_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups/{}",
@@ -24547,10 +24965,13 @@ pub fn dfareporting_placement_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_groups_insert_execute()` to send, or `dfareporting_placement_groups_insert` for simplest API.
 
-pub fn dfareporting_placement_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
@@ -24708,8 +25129,8 @@ pub fn dfareporting_placement_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_groups_list_execute()` to send, or `dfareporting_placement_groups_list` for simplest API.
 
-pub fn dfareporting_placement_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     activeStatus: &Option<Option<String>>,
     advertiserIds: &Option<Option<String>>,
@@ -24730,7 +25151,10 @@ pub fn dfareporting_placement_groups_list_builder(
     siteIds: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
@@ -25017,11 +25441,14 @@ pub fn dfareporting_placement_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_groups_patch_execute()` to send, or `dfareporting_placement_groups_patch` for simplest API.
 
-pub fn dfareporting_placement_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
@@ -25192,10 +25619,13 @@ pub fn dfareporting_placement_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_groups_update_execute()` to send, or `dfareporting_placement_groups_update` for simplest API.
 
-pub fn dfareporting_placement_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
@@ -25353,11 +25783,14 @@ pub fn dfareporting_placement_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_strategies_delete_execute()` to send, or `dfareporting_placement_strategies_delete` for simplest API.
 
-pub fn dfareporting_placement_strategies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_strategies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies/{}",
@@ -25512,11 +25945,14 @@ pub fn dfareporting_placement_strategies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_strategies_get_execute()` to send, or `dfareporting_placement_strategies_get` for simplest API.
 
-pub fn dfareporting_placement_strategies_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_strategies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies/{}",
@@ -25677,10 +26113,13 @@ pub fn dfareporting_placement_strategies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_strategies_insert_execute()` to send, or `dfareporting_placement_strategies_insert` for simplest API.
 
-pub fn dfareporting_placement_strategies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_strategies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
@@ -25838,8 +26277,8 @@ pub fn dfareporting_placement_strategies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_strategies_list_execute()` to send, or `dfareporting_placement_strategies_list` for simplest API.
 
-pub fn dfareporting_placement_strategies_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_strategies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     ids: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
@@ -25847,7 +26286,10 @@ pub fn dfareporting_placement_strategies_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
@@ -26056,11 +26498,14 @@ pub fn dfareporting_placement_strategies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_strategies_patch_execute()` to send, or `dfareporting_placement_strategies_patch` for simplest API.
 
-pub fn dfareporting_placement_strategies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_strategies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
@@ -26232,10 +26677,13 @@ pub fn dfareporting_placement_strategies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placement_strategies_update_execute()` to send, or `dfareporting_placement_strategies_update` for simplest API.
 
-pub fn dfareporting_placement_strategies_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placement_strategies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
@@ -26393,8 +26841,8 @@ pub fn dfareporting_placement_strategies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placements_generatetags_execute()` to send, or `dfareporting_placements_generatetags` for simplest API.
 
-pub fn dfareporting_placements_generatetags_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placements_generatetags_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     campaignId: &Option<Option<String>>,
     placementIds: &Option<Option<String>>,
@@ -26402,7 +26850,10 @@ pub fn dfareporting_placements_generatetags_builder(
     tagProperties_dcDbmMacroIncluded: &Option<Option<String>>,
     tagProperties_gppMacrosIncluded: &Option<Option<String>>,
     tagProperties_tcfGdprMacrosIncluded: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements/generatetags",
@@ -26611,11 +27062,14 @@ pub fn dfareporting_placements_generatetags(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placements_get_execute()` to send, or `dfareporting_placements_get` for simplest API.
 
-pub fn dfareporting_placements_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placements_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements/{}",
@@ -26771,10 +27225,13 @@ pub fn dfareporting_placements_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placements_insert_execute()` to send, or `dfareporting_placements_insert` for simplest API.
 
-pub fn dfareporting_placements_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placements_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
@@ -26928,8 +27385,8 @@ pub fn dfareporting_placements_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placements_list_execute()` to send, or `dfareporting_placements_list` for simplest API.
 
-pub fn dfareporting_placements_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     activeStatus: &Option<Option<String>>,
     advertiserIds: &Option<Option<String>>,
@@ -26953,7 +27410,10 @@ pub fn dfareporting_placements_list_builder(
     sizeIds: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
@@ -27254,11 +27714,14 @@ pub fn dfareporting_placements_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placements_patch_execute()` to send, or `dfareporting_placements_patch` for simplest API.
 
-pub fn dfareporting_placements_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placements_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
@@ -27425,10 +27888,13 @@ pub fn dfareporting_placements_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_placements_update_execute()` to send, or `dfareporting_placements_update` for simplest API.
 
-pub fn dfareporting_placements_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_placements_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
@@ -27582,11 +28048,14 @@ pub fn dfareporting_placements_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_platform_types_get_execute()` to send, or `dfareporting_platform_types_get` for simplest API.
 
-pub fn dfareporting_platform_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_platform_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/platformTypes/{}",
@@ -27746,10 +28215,13 @@ pub fn dfareporting_platform_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_platform_types_list_execute()` to send, or `dfareporting_platform_types_list` for simplest API.
 
-pub fn dfareporting_platform_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_platform_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/platformTypes",
@@ -27907,11 +28379,14 @@ pub fn dfareporting_platform_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_postal_codes_get_execute()` to send, or `dfareporting_postal_codes_get` for simplest API.
 
-pub fn dfareporting_postal_codes_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_postal_codes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     code: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/postalCodes/{}",
@@ -28067,10 +28542,13 @@ pub fn dfareporting_postal_codes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_postal_codes_list_execute()` to send, or `dfareporting_postal_codes_list` for simplest API.
 
-pub fn dfareporting_postal_codes_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_postal_codes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/postalCodes",
@@ -28228,10 +28706,13 @@ pub fn dfareporting_postal_codes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_regions_list_execute()` to send, or `dfareporting_regions_list` for simplest API.
 
-pub fn dfareporting_regions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_regions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/regions",
@@ -28389,11 +28870,14 @@ pub fn dfareporting_regions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_list_shares_get_execute()` to send, or `dfareporting_remarketing_list_shares_get` for simplest API.
 
-pub fn dfareporting_remarketing_list_shares_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_list_shares_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     remarketingListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingListShares/{}",
@@ -28558,11 +29042,14 @@ pub fn dfareporting_remarketing_list_shares_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_list_shares_patch_execute()` to send, or `dfareporting_remarketing_list_shares_patch` for simplest API.
 
-pub fn dfareporting_remarketing_list_shares_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_list_shares_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingListShares",
@@ -28734,10 +29221,13 @@ pub fn dfareporting_remarketing_list_shares_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_list_shares_update_execute()` to send, or `dfareporting_remarketing_list_shares_update` for simplest API.
 
-pub fn dfareporting_remarketing_list_shares_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_list_shares_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingListShares",
@@ -28895,11 +29385,14 @@ pub fn dfareporting_remarketing_list_shares_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_lists_get_execute()` to send, or `dfareporting_remarketing_lists_get` for simplest API.
 
-pub fn dfareporting_remarketing_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists/{}",
@@ -29059,10 +29552,13 @@ pub fn dfareporting_remarketing_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_lists_insert_execute()` to send, or `dfareporting_remarketing_lists_insert` for simplest API.
 
-pub fn dfareporting_remarketing_lists_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_lists_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
@@ -29220,8 +29716,8 @@ pub fn dfareporting_remarketing_lists_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_lists_list_execute()` to send, or `dfareporting_remarketing_lists_list` for simplest API.
 
-pub fn dfareporting_remarketing_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     active: &Option<Option<String>>,
     advertiserId: &Option<Option<String>>,
@@ -29231,7 +29727,10 @@ pub fn dfareporting_remarketing_lists_list_builder(
     pageToken: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
@@ -29452,11 +29951,14 @@ pub fn dfareporting_remarketing_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_lists_patch_execute()` to send, or `dfareporting_remarketing_lists_patch` for simplest API.
 
-pub fn dfareporting_remarketing_lists_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_lists_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
@@ -29627,10 +30129,13 @@ pub fn dfareporting_remarketing_lists_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_remarketing_lists_update_execute()` to send, or `dfareporting_remarketing_lists_update` for simplest API.
 
-pub fn dfareporting_remarketing_lists_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_remarketing_lists_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
@@ -29788,11 +30293,14 @@ pub fn dfareporting_remarketing_lists_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_delete_execute()` to send, or `dfareporting_reports_delete` for simplest API.
 
-pub fn dfareporting_reports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}",
@@ -29945,11 +30453,14 @@ pub fn dfareporting_reports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_get_execute()` to send, or `dfareporting_reports_get` for simplest API.
 
-pub fn dfareporting_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}",
@@ -30105,10 +30616,13 @@ pub fn dfareporting_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_insert_execute()` to send, or `dfareporting_reports_insert` for simplest API.
 
-pub fn dfareporting_reports_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports",
@@ -30262,15 +30776,18 @@ pub fn dfareporting_reports_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_list_execute()` to send, or `dfareporting_reports_list` for simplest API.
 
-pub fn dfareporting_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     scope: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports",
@@ -30465,12 +30982,15 @@ pub fn dfareporting_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_run_execute()` to send, or `dfareporting_reports_run` for simplest API.
 
-pub fn dfareporting_reports_run_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
     synchronous: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/run",
@@ -30644,11 +31164,14 @@ pub fn dfareporting_reports_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_update_execute()` to send, or `dfareporting_reports_update` for simplest API.
 
-pub fn dfareporting_reports_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}",
@@ -30804,10 +31327,13 @@ pub fn dfareporting_reports_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_compatible_fields_query_execute()` to send, or `dfareporting_reports_compatible_fields_query` for simplest API.
 
-pub fn dfareporting_reports_compatible_fields_query_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_compatible_fields_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/compatiblefields/query",
@@ -30965,12 +31491,15 @@ pub fn dfareporting_reports_compatible_fields_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_files_get_execute()` to send, or `dfareporting_reports_files_get` for simplest API.
 
-pub fn dfareporting_reports_files_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_files_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
     fileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/files/{}",
@@ -31133,15 +31662,18 @@ pub fn dfareporting_reports_files_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_reports_files_list_execute()` to send, or `dfareporting_reports_files_list` for simplest API.
 
-pub fn dfareporting_reports_files_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_reports_files_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/files",
@@ -31333,11 +31865,14 @@ pub fn dfareporting_reports_files_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sites_get_execute()` to send, or `dfareporting_sites_get` for simplest API.
 
-pub fn dfareporting_sites_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sites_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites/{}",
@@ -31493,10 +32028,13 @@ pub fn dfareporting_sites_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sites_insert_execute()` to send, or `dfareporting_sites_insert` for simplest API.
 
-pub fn dfareporting_sites_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sites_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
@@ -31650,8 +32188,8 @@ pub fn dfareporting_sites_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sites_list_execute()` to send, or `dfareporting_sites_list` for simplest API.
 
-pub fn dfareporting_sites_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sites_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     acceptsInStreamVideoPlacements: &Option<Option<String>>,
     acceptsInterstitialPlacements: &Option<Option<String>>,
@@ -31668,7 +32206,10 @@ pub fn dfareporting_sites_list_builder(
     sortOrder: &Option<Option<String>>,
     subaccountId: &Option<Option<String>>,
     unmappedSite: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
@@ -31927,11 +32468,14 @@ pub fn dfareporting_sites_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sites_patch_execute()` to send, or `dfareporting_sites_patch` for simplest API.
 
-pub fn dfareporting_sites_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sites_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
@@ -32098,10 +32642,13 @@ pub fn dfareporting_sites_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sites_update_execute()` to send, or `dfareporting_sites_update` for simplest API.
 
-pub fn dfareporting_sites_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sites_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
@@ -32255,11 +32802,14 @@ pub fn dfareporting_sites_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sizes_get_execute()` to send, or `dfareporting_sizes_get` for simplest API.
 
-pub fn dfareporting_sizes_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sizes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes/{}",
@@ -32415,10 +32965,13 @@ pub fn dfareporting_sizes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sizes_insert_execute()` to send, or `dfareporting_sizes_insert` for simplest API.
 
-pub fn dfareporting_sizes_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sizes_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes",
@@ -32572,14 +33125,17 @@ pub fn dfareporting_sizes_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_sizes_list_execute()` to send, or `dfareporting_sizes_list` for simplest API.
 
-pub fn dfareporting_sizes_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_sizes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     height: &Option<Option<String>>,
     iabStandard: &Option<Option<String>>,
     ids: &Option<Option<String>>,
     width: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes",
@@ -32772,9 +33328,12 @@ pub fn dfareporting_sizes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_studio_creative_assets_insert_execute()` to send, or `dfareporting_studio_creative_assets_insert` for simplest API.
 
-pub fn dfareporting_studio_creative_assets_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dfareporting_studio_creative_assets_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creativeAssets",);
@@ -32926,10 +33485,13 @@ pub fn dfareporting_studio_creative_assets_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_studio_creatives_get_execute()` to send, or `dfareporting_studio_creatives_get` for simplest API.
 
-pub fn dfareporting_studio_creatives_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_studio_creatives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     studioCreativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives/{}",
@@ -33087,9 +33649,12 @@ pub fn dfareporting_studio_creatives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_studio_creatives_insert_execute()` to send, or `dfareporting_studio_creatives_insert` for simplest API.
 
-pub fn dfareporting_studio_creatives_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dfareporting_studio_creatives_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives",);
@@ -33237,10 +33802,13 @@ pub fn dfareporting_studio_creatives_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_studio_creatives_publish_execute()` to send, or `dfareporting_studio_creatives_publish` for simplest API.
 
-pub fn dfareporting_studio_creatives_publish_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_studio_creatives_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     studioCreativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives/{}/publish",
@@ -33391,11 +33959,14 @@ pub fn dfareporting_studio_creatives_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_subaccounts_get_execute()` to send, or `dfareporting_subaccounts_get` for simplest API.
 
-pub fn dfareporting_subaccounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_subaccounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts/{}",
@@ -33551,10 +34122,13 @@ pub fn dfareporting_subaccounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_subaccounts_insert_execute()` to send, or `dfareporting_subaccounts_insert` for simplest API.
 
-pub fn dfareporting_subaccounts_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_subaccounts_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
@@ -33708,8 +34282,8 @@ pub fn dfareporting_subaccounts_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_subaccounts_list_execute()` to send, or `dfareporting_subaccounts_list` for simplest API.
 
-pub fn dfareporting_subaccounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_subaccounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     ids: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
@@ -33717,7 +34291,10 @@ pub fn dfareporting_subaccounts_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
@@ -33922,11 +34499,14 @@ pub fn dfareporting_subaccounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_subaccounts_patch_execute()` to send, or `dfareporting_subaccounts_patch` for simplest API.
 
-pub fn dfareporting_subaccounts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_subaccounts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
@@ -34093,10 +34673,13 @@ pub fn dfareporting_subaccounts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_subaccounts_update_execute()` to send, or `dfareporting_subaccounts_update` for simplest API.
 
-pub fn dfareporting_subaccounts_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_subaccounts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
@@ -34250,11 +34833,14 @@ pub fn dfareporting_subaccounts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_targetable_remarketing_lists_get_execute()` to send, or `dfareporting_targetable_remarketing_lists_get` for simplest API.
 
-pub fn dfareporting_targetable_remarketing_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_targetable_remarketing_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetableRemarketingLists/{}",
@@ -34416,8 +35002,8 @@ pub fn dfareporting_targetable_remarketing_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_targetable_remarketing_lists_list_execute()` to send, or `dfareporting_targetable_remarketing_lists_list` for simplest API.
 
-pub fn dfareporting_targetable_remarketing_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_targetable_remarketing_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     active: &Option<Option<String>>,
     advertiserId: &Option<Option<String>>,
@@ -34426,7 +35012,10 @@ pub fn dfareporting_targetable_remarketing_lists_list_builder(
     pageToken: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetableRemarketingLists",
@@ -34641,11 +35230,14 @@ pub fn dfareporting_targetable_remarketing_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_targeting_templates_get_execute()` to send, or `dfareporting_targeting_templates_get` for simplest API.
 
-pub fn dfareporting_targeting_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_targeting_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates/{}",
@@ -34805,10 +35397,13 @@ pub fn dfareporting_targeting_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_targeting_templates_insert_execute()` to send, or `dfareporting_targeting_templates_insert` for simplest API.
 
-pub fn dfareporting_targeting_templates_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_targeting_templates_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
@@ -34966,8 +35561,8 @@ pub fn dfareporting_targeting_templates_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_targeting_templates_list_execute()` to send, or `dfareporting_targeting_templates_list` for simplest API.
 
-pub fn dfareporting_targeting_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_targeting_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserId: &Option<Option<String>>,
     ids: &Option<Option<String>>,
@@ -34976,7 +35571,10 @@ pub fn dfareporting_targeting_templates_list_builder(
     searchString: &Option<Option<String>>,
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
@@ -35191,11 +35789,14 @@ pub fn dfareporting_targeting_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_targeting_templates_patch_execute()` to send, or `dfareporting_targeting_templates_patch` for simplest API.
 
-pub fn dfareporting_targeting_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_targeting_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
@@ -35367,10 +35968,13 @@ pub fn dfareporting_targeting_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_targeting_templates_update_execute()` to send, or `dfareporting_targeting_templates_update` for simplest API.
 
-pub fn dfareporting_targeting_templates_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_targeting_templates_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
@@ -35528,14 +36132,17 @@ pub fn dfareporting_targeting_templates_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_tv_campaign_details_get_execute()` to send, or `dfareporting_tv_campaign_details_get` for simplest API.
 
-pub fn dfareporting_tv_campaign_details_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_tv_campaign_details_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
     accountId: &Option<Option<String>>,
     countryDartId: &Option<Option<String>>,
     tvDataProvider: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/tvCampaignDetails/{}",
@@ -35725,14 +36332,17 @@ pub fn dfareporting_tv_campaign_details_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_tv_campaign_summaries_list_execute()` to send, or `dfareporting_tv_campaign_summaries_list` for simplest API.
 
-pub fn dfareporting_tv_campaign_summaries_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_tv_campaign_summaries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     accountId: &Option<Option<String>>,
     countryDartId: &Option<Option<String>>,
     name: &Option<Option<String>>,
     tvDataProvider: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/tvCampaignSummaries",
@@ -35929,10 +36539,13 @@ pub fn dfareporting_tv_campaign_summaries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_profiles_get_execute()` to send, or `dfareporting_user_profiles_get` for simplest API.
 
-pub fn dfareporting_user_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}",
@@ -36086,9 +36699,12 @@ pub fn dfareporting_user_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_profiles_list_execute()` to send, or `dfareporting_user_profiles_list` for simplest API.
 
-pub fn dfareporting_user_profiles_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dfareporting_user_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles",);
 
@@ -36235,11 +36851,14 @@ pub fn dfareporting_user_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_role_permission_groups_get_execute()` to send, or `dfareporting_user_role_permission_groups_get` for simplest API.
 
-pub fn dfareporting_user_role_permission_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_role_permission_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissionGroups/{}",
@@ -36401,10 +37020,13 @@ pub fn dfareporting_user_role_permission_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_role_permission_groups_list_execute()` to send, or `dfareporting_user_role_permission_groups_list` for simplest API.
 
-pub fn dfareporting_user_role_permission_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_role_permission_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissionGroups",
@@ -36566,11 +37188,14 @@ pub fn dfareporting_user_role_permission_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_role_permissions_get_execute()` to send, or `dfareporting_user_role_permissions_get` for simplest API.
 
-pub fn dfareporting_user_role_permissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_role_permissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissions/{}",
@@ -36732,11 +37357,14 @@ pub fn dfareporting_user_role_permissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_role_permissions_list_execute()` to send, or `dfareporting_user_role_permissions_list` for simplest API.
 
-pub fn dfareporting_user_role_permissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_role_permissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     ids: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissions",
@@ -36912,11 +37540,14 @@ pub fn dfareporting_user_role_permissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_roles_delete_execute()` to send, or `dfareporting_user_roles_delete` for simplest API.
 
-pub fn dfareporting_user_roles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_roles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles/{}",
@@ -37069,11 +37700,14 @@ pub fn dfareporting_user_roles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_roles_get_execute()` to send, or `dfareporting_user_roles_get` for simplest API.
 
-pub fn dfareporting_user_roles_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_roles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles/{}",
@@ -37229,10 +37863,13 @@ pub fn dfareporting_user_roles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_roles_insert_execute()` to send, or `dfareporting_user_roles_insert` for simplest API.
 
-pub fn dfareporting_user_roles_insert_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_roles_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
@@ -37386,8 +38023,8 @@ pub fn dfareporting_user_roles_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_roles_list_execute()` to send, or `dfareporting_user_roles_list` for simplest API.
 
-pub fn dfareporting_user_roles_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_roles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     accountUserRoleOnly: &Option<Option<String>>,
     ids: &Option<Option<String>>,
@@ -37397,7 +38034,10 @@ pub fn dfareporting_user_roles_list_builder(
     sortField: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
     subaccountId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
@@ -37614,11 +38254,14 @@ pub fn dfareporting_user_roles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_roles_patch_execute()` to send, or `dfareporting_user_roles_patch` for simplest API.
 
-pub fn dfareporting_user_roles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_roles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
@@ -37785,10 +38428,13 @@ pub fn dfareporting_user_roles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_user_roles_update_execute()` to send, or `dfareporting_user_roles_update` for simplest API.
 
-pub fn dfareporting_user_roles_update_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_user_roles_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
@@ -37942,11 +38588,14 @@ pub fn dfareporting_user_roles_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_video_formats_get_execute()` to send, or `dfareporting_video_formats_get` for simplest API.
 
-pub fn dfareporting_video_formats_get_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_video_formats_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/videoFormats/{}",
@@ -38102,10 +38751,13 @@ pub fn dfareporting_video_formats_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_video_formats_list_execute()` to send, or `dfareporting_video_formats_list` for simplest API.
 
-pub fn dfareporting_video_formats_list_builder(
-    client: &SimpleHttpClient,
+pub fn dfareporting_video_formats_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/videoFormats",

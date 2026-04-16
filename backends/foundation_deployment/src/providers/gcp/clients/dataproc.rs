@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_create_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_create` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies",
@@ -188,10 +192,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_delete_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_delete` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}",
@@ -346,10 +353,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_get_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_get` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}",
@@ -507,10 +517,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_get_iam_policy_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_get_iam_policy` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}:getIamPolicy",
@@ -667,12 +680,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_list_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_list` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies",
@@ -857,10 +873,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_set_iam_policy_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_set_iam_policy` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}:setIamPolicy",
@@ -1017,10 +1036,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_test_iam_permissions_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_test_iam_permissions` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}:testIamPermissions",
@@ -1185,10 +1207,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_autoscaling_policies_update_execute()` to send, or `dataproc_projects_locations_autoscaling_policies_update` for simplest API.
 
-pub fn dataproc_projects_locations_autoscaling_policies_update_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_autoscaling_policies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}",
@@ -1347,10 +1372,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_analyze_execute()` to send, or `dataproc_projects_locations_batches_analyze` for simplest API.
 
-pub fn dataproc_projects_locations_batches_analyze_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_analyze_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}:analyze",
@@ -1504,12 +1532,15 @@ pub fn dataproc_projects_locations_batches_analyze(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_create_execute()` to send, or `dataproc_projects_locations_batches_create` for simplest API.
 
-pub fn dataproc_projects_locations_batches_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     batchId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches",
@@ -1686,10 +1717,13 @@ pub fn dataproc_projects_locations_batches_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_delete_execute()` to send, or `dataproc_projects_locations_batches_delete` for simplest API.
 
-pub fn dataproc_projects_locations_batches_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}",
@@ -1843,10 +1877,13 @@ pub fn dataproc_projects_locations_batches_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_get_execute()` to send, or `dataproc_projects_locations_batches_get` for simplest API.
 
-pub fn dataproc_projects_locations_batches_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}",
@@ -2000,14 +2037,17 @@ pub fn dataproc_projects_locations_batches_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_list_execute()` to send, or `dataproc_projects_locations_batches_list` for simplest API.
 
-pub fn dataproc_projects_locations_batches_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches",
@@ -2200,11 +2240,14 @@ pub fn dataproc_projects_locations_batches_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_access_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_access` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_access_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:access",
@@ -2383,11 +2426,14 @@ pub fn dataproc_projects_locations_batches_spark_applications_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_access_environment_info_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_access_environment_info` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_access_environment_info_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_access_environment_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessEnvironmentInfo",
@@ -2570,12 +2616,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_environment
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_access_job_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_access_job` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_access_job_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_access_job_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     jobId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessJob",
@@ -2760,12 +2809,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_job(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_access_sql_plan_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_access_sql_plan` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessSqlPlan",
@@ -2952,14 +3004,17 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_access_sql_query_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_access_sql_query` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     details: &Option<Option<String>>,
     executionId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     planDescription: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessSqlQuery",
@@ -3157,14 +3212,17 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_access_stage_attempt_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_access_stage_attempt` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attempt_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attempt_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
     summaryMetricsMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessStageAttempt",
@@ -3364,12 +3422,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attem
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessStageRddGraph",
@@ -3561,8 +3622,8 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     applicationStatus: &Option<Option<String>>,
     maxEndTime: &Option<Option<String>>,
@@ -3571,7 +3632,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_builder(
     minTime: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications:search",
@@ -3786,15 +3850,20 @@ pub fn dataproc_projects_locations_batches_spark_applications_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchExecutorStageSummary",
@@ -3998,14 +4067,17 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executor_st
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_executors_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search_executors` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_executors_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_executors_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executorStatus: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchExecutors",
@@ -4204,14 +4276,17 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executors(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_jobs_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search_jobs` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_jobs_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_jobs_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     jobStatus: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchJobs",
@@ -4408,15 +4483,18 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_jobs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_sql_queries_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search_sql_queries` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     details: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     planDescription: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchSqlQueries",
@@ -4621,8 +4699,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
@@ -4631,7 +4711,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
     taskStatus: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStageAttemptTasks",
@@ -4853,15 +4936,18 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_stage_attempts_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search_stage_attempts` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attempts_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attempts_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
     summaryMetricsMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStageAttempts",
@@ -5067,15 +5153,18 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_search_stages_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_search_stages` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_search_stages_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_search_stages_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     stageStatus: &Option<Option<String>>,
     summaryMetricsMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStages",
@@ -5278,11 +5367,14 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_summarize_executors_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_summarize_executors` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_summarize_executors_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_summarize_executors_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeExecutors",
@@ -5464,11 +5556,14 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_executor
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_summarize_jobs_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_summarize_jobs` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeJobs",
@@ -5647,13 +5742,18 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeStageAttemptTasks",
@@ -5847,11 +5947,14 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_at
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_summarize_stages_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_summarize_stages` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeStages",
@@ -6032,10 +6135,13 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_batches_spark_applications_write_execute()` to send, or `dataproc_projects_locations_batches_spark_applications_write` for simplest API.
 
-pub fn dataproc_projects_locations_batches_spark_applications_write_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_batches_spark_applications_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:write",
@@ -6198,10 +6304,13 @@ pub fn dataproc_projects_locations_batches_spark_applications_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_operations_cancel_execute()` to send, or `dataproc_projects_locations_operations_cancel` for simplest API.
 
-pub fn dataproc_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -6355,10 +6464,13 @@ pub fn dataproc_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_operations_delete_execute()` to send, or `dataproc_projects_locations_operations_delete` for simplest API.
 
-pub fn dataproc_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6512,10 +6624,13 @@ pub fn dataproc_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_operations_get_execute()` to send, or `dataproc_projects_locations_operations_get` for simplest API.
 
-pub fn dataproc_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6669,14 +6784,17 @@ pub fn dataproc_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_operations_list_execute()` to send, or `dataproc_projects_locations_operations_list` for simplest API.
 
-pub fn dataproc_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6869,10 +6987,13 @@ pub fn dataproc_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_session_templates_create_execute()` to send, or `dataproc_projects_locations_session_templates_create` for simplest API.
 
-pub fn dataproc_projects_locations_session_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_session_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessionTemplates",
@@ -7031,10 +7152,13 @@ pub fn dataproc_projects_locations_session_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_session_templates_delete_execute()` to send, or `dataproc_projects_locations_session_templates_delete` for simplest API.
 
-pub fn dataproc_projects_locations_session_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_session_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessionTemplates/{sessionTemplatesId}",
@@ -7188,10 +7312,13 @@ pub fn dataproc_projects_locations_session_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_session_templates_get_execute()` to send, or `dataproc_projects_locations_session_templates_get` for simplest API.
 
-pub fn dataproc_projects_locations_session_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_session_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessionTemplates/{sessionTemplatesId}",
@@ -7349,13 +7476,16 @@ pub fn dataproc_projects_locations_session_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_session_templates_list_execute()` to send, or `dataproc_projects_locations_session_templates_list` for simplest API.
 
-pub fn dataproc_projects_locations_session_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_session_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessionTemplates",
@@ -7546,10 +7676,13 @@ pub fn dataproc_projects_locations_session_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_session_templates_patch_execute()` to send, or `dataproc_projects_locations_session_templates_patch` for simplest API.
 
-pub fn dataproc_projects_locations_session_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_session_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessionTemplates/{sessionTemplatesId}",
@@ -7707,12 +7840,15 @@ pub fn dataproc_projects_locations_session_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_create_execute()` to send, or `dataproc_projects_locations_sessions_create` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     sessionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions",
@@ -7889,11 +8025,14 @@ pub fn dataproc_projects_locations_sessions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_delete_execute()` to send, or `dataproc_projects_locations_sessions_delete` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}",
@@ -8061,10 +8200,13 @@ pub fn dataproc_projects_locations_sessions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_get_execute()` to send, or `dataproc_projects_locations_sessions_get` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}",
@@ -8218,13 +8360,16 @@ pub fn dataproc_projects_locations_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_list_execute()` to send, or `dataproc_projects_locations_sessions_list` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions",
@@ -8411,10 +8556,13 @@ pub fn dataproc_projects_locations_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_terminate_execute()` to send, or `dataproc_projects_locations_sessions_terminate` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_terminate_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_terminate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}:terminate",
@@ -8568,11 +8716,14 @@ pub fn dataproc_projects_locations_sessions_terminate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_access_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_access` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_access_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:access",
@@ -8751,11 +8902,14 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_access_environment_info_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_access_environment_info` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_access_environment_info_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_access_environment_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessEnvironmentInfo",
@@ -8942,12 +9096,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_environmen
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_access_job_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_access_job` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_access_job_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_access_job_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     jobId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessJob",
@@ -9132,12 +9289,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_job(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_access_sql_plan_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_access_sql_plan` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessSqlPlan",
@@ -9333,14 +9493,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_access_sql_query_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_access_sql_query` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     details: &Option<Option<String>>,
     executionId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     planDescription: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessSqlQuery",
@@ -9539,14 +9702,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_access_stage_attempt_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_access_stage_attempt` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_attempt_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_attempt_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
     summaryMetricsMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessStageAttempt",
@@ -9749,12 +9915,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_atte
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessStageRddGraph",
@@ -9952,8 +10121,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     applicationStatus: &Option<Option<String>>,
     maxEndTime: &Option<Option<String>>,
@@ -9962,7 +10131,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_builder(
     minTime: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications:search",
@@ -10177,15 +10349,20 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchExecutorStageSummary",
@@ -10395,14 +10572,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_s
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_executors_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search_executors` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_executors_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_executors_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executorStatus: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchExecutors",
@@ -10601,15 +10781,18 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executors(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_jobs_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search_jobs` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     jobIds: &Option<Option<String>>,
     jobStatus: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchJobs",
@@ -10812,8 +10995,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_sql_queries_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search_sql_queries` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_queries_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_queries_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     details: &Option<Option<String>>,
     operationIds: &Option<Option<String>>,
@@ -10821,7 +11004,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_querie
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     planDescription: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchSqlQueries",
@@ -11033,8 +11219,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_querie
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
@@ -11043,7 +11231,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
     taskStatus: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStageAttemptTasks",
@@ -11274,15 +11465,18 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_stage_attempts_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search_stage_attempts` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_attempts_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_attempts_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
     summaryMetricsMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStageAttempts",
@@ -11492,8 +11686,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_search_stages_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_search_stages` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_search_stages_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_search_stages_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
@@ -11501,7 +11695,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stages_bui
     stageIds: &Option<Option<String>>,
     stageStatus: &Option<Option<String>>,
     summaryMetricsMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStages",
@@ -11711,11 +11908,14 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_summarize_executors_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_summarize_executors` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executors_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executors_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeExecutors",
@@ -11900,12 +12100,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_summarize_jobs_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_summarize_jobs` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     jobIds: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeJobs",
@@ -12092,13 +12295,18 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
     stageAttemptId: &Option<Option<String>>,
     stageId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeStageAttemptTasks",
@@ -12298,12 +12506,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_a
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_summarize_stages_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_summarize_stages` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
     stageIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeStages",
@@ -12490,10 +12701,13 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_sessions_spark_applications_write_execute()` to send, or `dataproc_projects_locations_sessions_spark_applications_write` for simplest API.
 
-pub fn dataproc_projects_locations_sessions_spark_applications_write_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_sessions_spark_applications_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:write",
@@ -12657,10 +12871,13 @@ pub fn dataproc_projects_locations_sessions_spark_applications_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_create_execute()` to send, or `dataproc_projects_locations_workflow_templates_create` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates",
@@ -12819,11 +13036,14 @@ pub fn dataproc_projects_locations_workflow_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_delete_execute()` to send, or `dataproc_projects_locations_workflow_templates_delete` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}",
@@ -12994,11 +13214,14 @@ pub fn dataproc_projects_locations_workflow_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_get_execute()` to send, or `dataproc_projects_locations_workflow_templates_get` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}",
@@ -13173,10 +13396,13 @@ pub fn dataproc_projects_locations_workflow_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_get_iam_policy_execute()` to send, or `dataproc_projects_locations_workflow_templates_get_iam_policy` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:getIamPolicy",
@@ -13333,10 +13559,13 @@ pub fn dataproc_projects_locations_workflow_templates_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_instantiate_execute()` to send, or `dataproc_projects_locations_workflow_templates_instantiate` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_instantiate_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_instantiate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:instantiate",
@@ -13491,11 +13720,14 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_instantiate_inline_execute()` to send, or `dataproc_projects_locations_workflow_templates_instantiate_inline` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_instantiate_inline_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_instantiate_inline_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates:instantiateInline",
@@ -13666,12 +13898,15 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate_inline(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_list_execute()` to send, or `dataproc_projects_locations_workflow_templates_list` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates",
@@ -13856,10 +14091,13 @@ pub fn dataproc_projects_locations_workflow_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_set_iam_policy_execute()` to send, or `dataproc_projects_locations_workflow_templates_set_iam_policy` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:setIamPolicy",
@@ -14016,10 +14254,13 @@ pub fn dataproc_projects_locations_workflow_templates_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_test_iam_permissions_execute()` to send, or `dataproc_projects_locations_workflow_templates_test_iam_permissions` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:testIamPermissions",
@@ -14184,10 +14425,13 @@ pub fn dataproc_projects_locations_workflow_templates_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_locations_workflow_templates_update_execute()` to send, or `dataproc_projects_locations_workflow_templates_update` for simplest API.
 
-pub fn dataproc_projects_locations_workflow_templates_update_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_locations_workflow_templates_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}",
@@ -14346,10 +14590,13 @@ pub fn dataproc_projects_locations_workflow_templates_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_create_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_create` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies",
@@ -14508,10 +14755,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_delete_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_delete` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}",
@@ -14666,10 +14916,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_get_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_get` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}",
@@ -14827,10 +15080,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_get_iam_policy_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_get_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}:getIamPolicy",
@@ -14987,12 +15243,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_list_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_list` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies",
@@ -15177,10 +15436,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_set_iam_policy_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_set_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}:setIamPolicy",
@@ -15337,10 +15599,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_test_iam_permissions_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_test_iam_permissions` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}:testIamPermissions",
@@ -15505,10 +15770,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_autoscaling_policies_update_execute()` to send, or `dataproc_projects_regions_autoscaling_policies_update` for simplest API.
 
-pub fn dataproc_projects_regions_autoscaling_policies_update_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_autoscaling_policies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}",
@@ -15667,13 +15935,16 @@ pub fn dataproc_projects_regions_autoscaling_policies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_create_execute()` to send, or `dataproc_projects_regions_clusters_create` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     actionOnFailedPrimaryWorkers: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters",
@@ -15853,15 +16124,18 @@ pub fn dataproc_projects_regions_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_delete_execute()` to send, or `dataproc_projects_regions_clusters_delete` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &String,
     clusterUuid: &Option<Option<String>>,
     gracefulTerminationTimeout: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}",
@@ -16050,12 +16324,15 @@ pub fn dataproc_projects_regions_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_diagnose_execute()` to send, or `dataproc_projects_regions_clusters_diagnose` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_diagnose_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_diagnose_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:diagnose",
@@ -16218,12 +16495,15 @@ pub fn dataproc_projects_regions_clusters_diagnose(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_get_execute()` to send, or `dataproc_projects_regions_clusters_get` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}",
@@ -16386,10 +16666,13 @@ pub fn dataproc_projects_regions_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_get_iam_policy_execute()` to send, or `dataproc_projects_regions_clusters_get_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/clusters/{clustersId}:getIamPolicy",
@@ -16544,12 +16827,15 @@ pub fn dataproc_projects_regions_clusters_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_inject_credentials_execute()` to send, or `dataproc_projects_regions_clusters_inject_credentials` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_inject_credentials_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_inject_credentials_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     cluster: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:injectCredentials",
@@ -16712,14 +16998,17 @@ pub fn dataproc_projects_regions_clusters_inject_credentials(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_list_execute()` to send, or `dataproc_projects_regions_clusters_list` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters",
@@ -16909,15 +17198,18 @@ pub fn dataproc_projects_regions_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_patch_execute()` to send, or `dataproc_projects_regions_clusters_patch` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &String,
     gracefulDecommissionTimeout: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}",
@@ -17106,12 +17398,15 @@ pub fn dataproc_projects_regions_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_repair_execute()` to send, or `dataproc_projects_regions_clusters_repair` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_repair_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_repair_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:repair",
@@ -17274,10 +17569,13 @@ pub fn dataproc_projects_regions_clusters_repair(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_set_iam_policy_execute()` to send, or `dataproc_projects_regions_clusters_set_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/clusters/{clustersId}:setIamPolicy",
@@ -17432,12 +17730,15 @@ pub fn dataproc_projects_regions_clusters_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_start_execute()` to send, or `dataproc_projects_regions_clusters_start` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_start_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:start",
@@ -17600,12 +17901,15 @@ pub fn dataproc_projects_regions_clusters_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_stop_execute()` to send, or `dataproc_projects_regions_clusters_stop` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_stop_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:stop",
@@ -17768,10 +18072,13 @@ pub fn dataproc_projects_regions_clusters_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_test_iam_permissions_execute()` to send, or `dataproc_projects_regions_clusters_test_iam_permissions` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/clusters/{clustersId}:testIamPermissions",
@@ -17934,13 +18241,16 @@ pub fn dataproc_projects_regions_clusters_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_node_groups_create_execute()` to send, or `dataproc_projects_regions_clusters_node_groups_create` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_node_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_node_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     nodeGroupId: &Option<Option<String>>,
     parentOperationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/clusters/{clustersId}/nodeGroups",
@@ -18123,10 +18433,13 @@ pub fn dataproc_projects_regions_clusters_node_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_node_groups_get_execute()` to send, or `dataproc_projects_regions_clusters_node_groups_get` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_node_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_node_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/clusters/{clustersId}/nodeGroups/{nodeGroupsId}",
@@ -18280,10 +18593,13 @@ pub fn dataproc_projects_regions_clusters_node_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_node_groups_repair_execute()` to send, or `dataproc_projects_regions_clusters_node_groups_repair` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_node_groups_repair_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_node_groups_repair_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/clusters/{clustersId}/nodeGroups/{nodeGroupsId}:repair",
@@ -18438,10 +18754,13 @@ pub fn dataproc_projects_regions_clusters_node_groups_repair(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_clusters_node_groups_resize_execute()` to send, or `dataproc_projects_regions_clusters_node_groups_resize` for simplest API.
 
-pub fn dataproc_projects_regions_clusters_node_groups_resize_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_clusters_node_groups_resize_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/clusters/{clustersId}/nodeGroups/{nodeGroupsId}:resize",
@@ -18596,12 +18915,15 @@ pub fn dataproc_projects_regions_clusters_node_groups_resize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_cancel_execute()` to send, or `dataproc_projects_regions_jobs_cancel` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs/{}:cancel",
@@ -18764,12 +19086,15 @@ pub fn dataproc_projects_regions_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_delete_execute()` to send, or `dataproc_projects_regions_jobs_delete` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs/{}",
@@ -18932,12 +19257,15 @@ pub fn dataproc_projects_regions_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_get_execute()` to send, or `dataproc_projects_regions_jobs_get` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs/{}",
@@ -19100,10 +19428,13 @@ pub fn dataproc_projects_regions_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_get_iam_policy_execute()` to send, or `dataproc_projects_regions_jobs_get_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/jobs/{jobsId}:getIamPolicy",
@@ -19257,8 +19588,8 @@ pub fn dataproc_projects_regions_jobs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_list_execute()` to send, or `dataproc_projects_regions_jobs_list` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     clusterName: &Option<Option<String>>,
@@ -19266,7 +19597,10 @@ pub fn dataproc_projects_regions_jobs_list_builder(
     jobStateMatcher: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs",
@@ -19468,13 +19802,16 @@ pub fn dataproc_projects_regions_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_patch_execute()` to send, or `dataproc_projects_regions_jobs_patch` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
     jobId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs/{}",
@@ -19651,10 +19988,13 @@ pub fn dataproc_projects_regions_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_set_iam_policy_execute()` to send, or `dataproc_projects_regions_jobs_set_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/jobs/{jobsId}:setIamPolicy",
@@ -19808,11 +20148,14 @@ pub fn dataproc_projects_regions_jobs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_submit_execute()` to send, or `dataproc_projects_regions_jobs_submit` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_submit_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_submit_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs:submit",
@@ -19969,11 +20312,14 @@ pub fn dataproc_projects_regions_jobs_submit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_submit_as_operation_execute()` to send, or `dataproc_projects_regions_jobs_submit_as_operation` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_submit_as_operation_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_submit_as_operation_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs:submitAsOperation",
@@ -20133,10 +20479,13 @@ pub fn dataproc_projects_regions_jobs_submit_as_operation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_jobs_test_iam_permissions_execute()` to send, or `dataproc_projects_regions_jobs_test_iam_permissions` for simplest API.
 
-pub fn dataproc_projects_regions_jobs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_jobs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/jobs/{jobsId}:testIamPermissions",
@@ -20299,10 +20648,13 @@ pub fn dataproc_projects_regions_jobs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_operations_cancel_execute()` to send, or `dataproc_projects_regions_operations_cancel` for simplest API.
 
-pub fn dataproc_projects_regions_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/operations/{operationsId}:cancel",
@@ -20456,10 +20808,13 @@ pub fn dataproc_projects_regions_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_operations_delete_execute()` to send, or `dataproc_projects_regions_operations_delete` for simplest API.
 
-pub fn dataproc_projects_regions_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/operations/{operationsId}",
@@ -20613,10 +20968,13 @@ pub fn dataproc_projects_regions_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_operations_get_execute()` to send, or `dataproc_projects_regions_operations_get` for simplest API.
 
-pub fn dataproc_projects_regions_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/operations/{operationsId}",
@@ -20770,10 +21128,13 @@ pub fn dataproc_projects_regions_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_operations_get_iam_policy_execute()` to send, or `dataproc_projects_regions_operations_get_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_operations_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_operations_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/operations/{operationsId}:getIamPolicy",
@@ -20928,14 +21289,17 @@ pub fn dataproc_projects_regions_operations_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_operations_list_execute()` to send, or `dataproc_projects_regions_operations_list` for simplest API.
 
-pub fn dataproc_projects_regions_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/operations",
@@ -21128,10 +21492,13 @@ pub fn dataproc_projects_regions_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_operations_set_iam_policy_execute()` to send, or `dataproc_projects_regions_operations_set_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_operations_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_operations_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/operations/{operationsId}:setIamPolicy",
@@ -21286,10 +21653,13 @@ pub fn dataproc_projects_regions_operations_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_operations_test_iam_permissions_execute()` to send, or `dataproc_projects_regions_operations_test_iam_permissions` for simplest API.
 
-pub fn dataproc_projects_regions_operations_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_operations_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/operations/{operationsId}:testIamPermissions",
@@ -21452,10 +21822,13 @@ pub fn dataproc_projects_regions_operations_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_create_execute()` to send, or `dataproc_projects_regions_workflow_templates_create` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates",
@@ -21614,11 +21987,14 @@ pub fn dataproc_projects_regions_workflow_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_delete_execute()` to send, or `dataproc_projects_regions_workflow_templates_delete` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}",
@@ -21789,11 +22165,14 @@ pub fn dataproc_projects_regions_workflow_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_get_execute()` to send, or `dataproc_projects_regions_workflow_templates_get` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}",
@@ -21968,10 +22347,13 @@ pub fn dataproc_projects_regions_workflow_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_get_iam_policy_execute()` to send, or `dataproc_projects_regions_workflow_templates_get_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:getIamPolicy",
@@ -22128,10 +22510,13 @@ pub fn dataproc_projects_regions_workflow_templates_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_instantiate_execute()` to send, or `dataproc_projects_regions_workflow_templates_instantiate` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_instantiate_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_instantiate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:instantiate",
@@ -22286,11 +22671,14 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_instantiate_inline_execute()` to send, or `dataproc_projects_regions_workflow_templates_instantiate_inline` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_instantiate_inline_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_instantiate_inline_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates:instantiateInline",
@@ -22461,12 +22849,15 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate_inline(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_list_execute()` to send, or `dataproc_projects_regions_workflow_templates_list` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates",
@@ -22651,10 +23042,13 @@ pub fn dataproc_projects_regions_workflow_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_set_iam_policy_execute()` to send, or `dataproc_projects_regions_workflow_templates_set_iam_policy` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:setIamPolicy",
@@ -22811,10 +23205,13 @@ pub fn dataproc_projects_regions_workflow_templates_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_test_iam_permissions_execute()` to send, or `dataproc_projects_regions_workflow_templates_test_iam_permissions` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:testIamPermissions",
@@ -22979,10 +23376,13 @@ pub fn dataproc_projects_regions_workflow_templates_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataproc_projects_regions_workflow_templates_update_execute()` to send, or `dataproc_projects_regions_workflow_templates_update` for simplest API.
 
-pub fn dataproc_projects_regions_workflow_templates_update_builder(
-    client: &SimpleHttpClient,
+pub fn dataproc_projects_regions_workflow_templates_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}",

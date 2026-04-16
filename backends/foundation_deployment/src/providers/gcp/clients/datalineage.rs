@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_folders_locations_config_get_execute()` to send, or `datalineage_folders_locations_config_get` for simplest API.
 
-pub fn datalineage_folders_locations_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_folders_locations_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/folders/{}/locations/{locationsId}/config",
@@ -201,10 +205,13 @@ pub fn datalineage_folders_locations_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_folders_locations_config_patch_execute()` to send, or `datalineage_folders_locations_config_patch` for simplest API.
 
-pub fn datalineage_folders_locations_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_folders_locations_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/folders/{}/locations/{locationsId}/config",
@@ -376,10 +383,13 @@ pub fn datalineage_folders_locations_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_organizations_locations_config_get_execute()` to send, or `datalineage_organizations_locations_config_get` for simplest API.
 
-pub fn datalineage_organizations_locations_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_organizations_locations_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/organizations/{}/locations/{locationsId}/config",
@@ -551,10 +561,13 @@ pub fn datalineage_organizations_locations_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_organizations_locations_config_patch_execute()` to send, or `datalineage_organizations_locations_config_patch` for simplest API.
 
-pub fn datalineage_organizations_locations_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_organizations_locations_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/organizations/{}/locations/{locationsId}/config",
@@ -726,10 +739,13 @@ pub fn datalineage_organizations_locations_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_batch_search_link_processes_execute()` to send, or `datalineage_projects_locations_batch_search_link_processes` for simplest API.
 
-pub fn datalineage_projects_locations_batch_search_link_processes_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_batch_search_link_processes_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}:batchSearchLinkProcesses",
@@ -902,11 +918,14 @@ pub fn datalineage_projects_locations_batch_search_link_processes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_process_open_lineage_run_event_execute()` to send, or `datalineage_projects_locations_process_open_lineage_run_event` for simplest API.
 
-pub fn datalineage_projects_locations_process_open_lineage_run_event_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_process_open_lineage_run_event_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}:processOpenLineageRunEvent",
@@ -1095,10 +1114,13 @@ pub fn datalineage_projects_locations_process_open_lineage_run_event(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_search_links_execute()` to send, or `datalineage_projects_locations_search_links` for simplest API.
 
-pub fn datalineage_projects_locations_search_links_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_search_links_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}:searchLinks",
@@ -1264,10 +1286,13 @@ pub fn datalineage_projects_locations_search_links(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_config_get_execute()` to send, or `datalineage_projects_locations_config_get` for simplest API.
 
-pub fn datalineage_projects_locations_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/config",
@@ -1439,10 +1464,13 @@ pub fn datalineage_projects_locations_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_config_patch_execute()` to send, or `datalineage_projects_locations_config_patch` for simplest API.
 
-pub fn datalineage_projects_locations_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/config",
@@ -1614,10 +1642,13 @@ pub fn datalineage_projects_locations_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_operations_cancel_execute()` to send, or `datalineage_projects_locations_operations_cancel` for simplest API.
 
-pub fn datalineage_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1775,10 +1806,13 @@ pub fn datalineage_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_operations_delete_execute()` to send, or `datalineage_projects_locations_operations_delete` for simplest API.
 
-pub fn datalineage_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1936,10 +1970,13 @@ pub fn datalineage_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_operations_get_execute()` to send, or `datalineage_projects_locations_operations_get` for simplest API.
 
-pub fn datalineage_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2101,14 +2138,17 @@ pub fn datalineage_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_operations_list_execute()` to send, or `datalineage_projects_locations_operations_list` for simplest API.
 
-pub fn datalineage_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -2306,11 +2346,14 @@ pub fn datalineage_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_create_execute()` to send, or `datalineage_projects_locations_processes_create` for simplest API.
 
-pub fn datalineage_projects_locations_processes_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes",
@@ -2489,11 +2532,14 @@ pub fn datalineage_projects_locations_processes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_delete_execute()` to send, or `datalineage_projects_locations_processes_delete` for simplest API.
 
-pub fn datalineage_projects_locations_processes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}",
@@ -2672,10 +2718,13 @@ pub fn datalineage_projects_locations_processes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_get_execute()` to send, or `datalineage_projects_locations_processes_get` for simplest API.
 
-pub fn datalineage_projects_locations_processes_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}",
@@ -2837,12 +2886,15 @@ pub fn datalineage_projects_locations_processes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_list_execute()` to send, or `datalineage_projects_locations_processes_list` for simplest API.
 
-pub fn datalineage_projects_locations_processes_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes",
@@ -3031,13 +3083,16 @@ pub fn datalineage_projects_locations_processes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_patch_execute()` to send, or `datalineage_projects_locations_processes_patch` for simplest API.
 
-pub fn datalineage_projects_locations_processes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}",
@@ -3228,11 +3283,14 @@ pub fn datalineage_projects_locations_processes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_create_execute()` to send, or `datalineage_projects_locations_processes_runs_create` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs",
@@ -3411,11 +3469,14 @@ pub fn datalineage_projects_locations_processes_runs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_delete_execute()` to send, or `datalineage_projects_locations_processes_runs_delete` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs/{runsId}",
@@ -3594,10 +3655,13 @@ pub fn datalineage_projects_locations_processes_runs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_get_execute()` to send, or `datalineage_projects_locations_processes_runs_get` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs/{runsId}",
@@ -3759,12 +3823,15 @@ pub fn datalineage_projects_locations_processes_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_list_execute()` to send, or `datalineage_projects_locations_processes_runs_list` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs",
@@ -3950,12 +4017,15 @@ pub fn datalineage_projects_locations_processes_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_patch_execute()` to send, or `datalineage_projects_locations_processes_runs_patch` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs/{runsId}",
@@ -4140,11 +4210,14 @@ pub fn datalineage_projects_locations_processes_runs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_lineage_events_create_execute()` to send, or `datalineage_projects_locations_processes_runs_lineage_events_create` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_lineage_events_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_lineage_events_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents",
@@ -4324,11 +4397,14 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_lineage_events_delete_execute()` to send, or `datalineage_projects_locations_processes_runs_lineage_events_delete` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_lineage_events_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_lineage_events_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents/{lineageEventsId}",
@@ -4503,10 +4579,13 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_lineage_events_get_execute()` to send, or `datalineage_projects_locations_processes_runs_lineage_events_get` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_lineage_events_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_lineage_events_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents/{lineageEventsId}",
@@ -4671,12 +4750,15 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalineage_projects_locations_processes_runs_lineage_events_list_execute()` to send, or `datalineage_projects_locations_processes_runs_lineage_events_list` for simplest API.
 
-pub fn datalineage_projects_locations_processes_runs_lineage_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalineage_projects_locations_processes_runs_lineage_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalineage.googleapis.com/v1/projects/{}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents",

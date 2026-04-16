@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_get_execute()` to send, or `observability_folders_locations_get` for simplest API.
 
-pub fn observability_folders_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn observability_folders_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_get_settings_execute()` to send, or `observability_folders_locations_get_settings` for simplest API.
 
-pub fn observability_folders_locations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations/{locationsId}/settings",
@@ -340,14 +347,17 @@ pub fn observability_folders_locations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_list_execute()` to send, or `observability_folders_locations_list` for simplest API.
 
-pub fn observability_folders_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations",
@@ -540,11 +550,14 @@ pub fn observability_folders_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_update_settings_execute()` to send, or `observability_folders_locations_update_settings` for simplest API.
 
-pub fn observability_folders_locations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations/{locationsId}/settings",
@@ -715,10 +728,13 @@ pub fn observability_folders_locations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_operations_cancel_execute()` to send, or `observability_folders_locations_operations_cancel` for simplest API.
 
-pub fn observability_folders_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -872,10 +888,13 @@ pub fn observability_folders_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_operations_delete_execute()` to send, or `observability_folders_locations_operations_delete` for simplest API.
 
-pub fn observability_folders_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1029,10 +1048,13 @@ pub fn observability_folders_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_operations_get_execute()` to send, or `observability_folders_locations_operations_get` for simplest API.
 
-pub fn observability_folders_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1186,14 +1208,17 @@ pub fn observability_folders_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_folders_locations_operations_list_execute()` to send, or `observability_folders_locations_operations_list` for simplest API.
 
-pub fn observability_folders_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_folders_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/folders/{}/locations/{locationsId}/operations",
@@ -1386,10 +1411,13 @@ pub fn observability_folders_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_get_execute()` to send, or `observability_organizations_locations_get` for simplest API.
 
-pub fn observability_organizations_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations/{locationsId}",
@@ -1543,10 +1571,13 @@ pub fn observability_organizations_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_get_settings_execute()` to send, or `observability_organizations_locations_get_settings` for simplest API.
 
-pub fn observability_organizations_locations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations/{locationsId}/settings",
@@ -1700,14 +1731,17 @@ pub fn observability_organizations_locations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_list_execute()` to send, or `observability_organizations_locations_list` for simplest API.
 
-pub fn observability_organizations_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations",
@@ -1900,11 +1934,14 @@ pub fn observability_organizations_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_update_settings_execute()` to send, or `observability_organizations_locations_update_settings` for simplest API.
 
-pub fn observability_organizations_locations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations/{locationsId}/settings",
@@ -2075,10 +2112,13 @@ pub fn observability_organizations_locations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_operations_cancel_execute()` to send, or `observability_organizations_locations_operations_cancel` for simplest API.
 
-pub fn observability_organizations_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2233,10 +2273,13 @@ pub fn observability_organizations_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_operations_delete_execute()` to send, or `observability_organizations_locations_operations_delete` for simplest API.
 
-pub fn observability_organizations_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2391,10 +2434,13 @@ pub fn observability_organizations_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_operations_get_execute()` to send, or `observability_organizations_locations_operations_get` for simplest API.
 
-pub fn observability_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2548,14 +2594,17 @@ pub fn observability_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_organizations_locations_operations_list_execute()` to send, or `observability_organizations_locations_operations_list` for simplest API.
 
-pub fn observability_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations",
@@ -2748,10 +2797,13 @@ pub fn observability_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_get_execute()` to send, or `observability_projects_locations_get` for simplest API.
 
-pub fn observability_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -2905,10 +2957,13 @@ pub fn observability_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_get_settings_execute()` to send, or `observability_projects_locations_get_settings` for simplest API.
 
-pub fn observability_projects_locations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -3062,14 +3117,17 @@ pub fn observability_projects_locations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_list_execute()` to send, or `observability_projects_locations_list` for simplest API.
 
-pub fn observability_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations",
@@ -3262,11 +3320,14 @@ pub fn observability_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_update_settings_execute()` to send, or `observability_projects_locations_update_settings` for simplest API.
 
-pub fn observability_projects_locations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -3437,10 +3498,13 @@ pub fn observability_projects_locations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_get_execute()` to send, or `observability_projects_locations_buckets_get` for simplest API.
 
-pub fn observability_projects_locations_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -3594,13 +3658,16 @@ pub fn observability_projects_locations_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_list_execute()` to send, or `observability_projects_locations_buckets_list` for simplest API.
 
-pub fn observability_projects_locations_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets",
@@ -3787,10 +3854,13 @@ pub fn observability_projects_locations_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_get_execute()` to send, or `observability_projects_locations_buckets_datasets_get` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}",
@@ -3945,13 +4015,16 @@ pub fn observability_projects_locations_buckets_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_list_execute()` to send, or `observability_projects_locations_buckets_datasets_list` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets",
@@ -4138,11 +4211,14 @@ pub fn observability_projects_locations_buckets_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_links_create_execute()` to send, or `observability_projects_locations_buckets_datasets_links_create` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     linkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links",
@@ -4313,10 +4389,13 @@ pub fn observability_projects_locations_buckets_datasets_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_links_delete_execute()` to send, or `observability_projects_locations_buckets_datasets_links_delete` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links/{linksId}",
@@ -4471,10 +4550,13 @@ pub fn observability_projects_locations_buckets_datasets_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_links_get_execute()` to send, or `observability_projects_locations_buckets_datasets_links_get` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links/{linksId}",
@@ -4629,12 +4711,15 @@ pub fn observability_projects_locations_buckets_datasets_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_links_list_execute()` to send, or `observability_projects_locations_buckets_datasets_links_list` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links",
@@ -4815,11 +4900,14 @@ pub fn observability_projects_locations_buckets_datasets_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_links_patch_execute()` to send, or `observability_projects_locations_buckets_datasets_links_patch` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_links_patch_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_links_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links/{linksId}",
@@ -4990,10 +5078,13 @@ pub fn observability_projects_locations_buckets_datasets_links_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_views_get_execute()` to send, or `observability_projects_locations_buckets_datasets_views_get` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/views/{viewsId}",
@@ -5148,12 +5239,15 @@ pub fn observability_projects_locations_buckets_datasets_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_buckets_datasets_views_list_execute()` to send, or `observability_projects_locations_buckets_datasets_views_list` for simplest API.
 
-pub fn observability_projects_locations_buckets_datasets_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_buckets_datasets_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/views",
@@ -5334,10 +5428,13 @@ pub fn observability_projects_locations_buckets_datasets_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_operations_cancel_execute()` to send, or `observability_projects_locations_operations_cancel` for simplest API.
 
-pub fn observability_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -5491,10 +5588,13 @@ pub fn observability_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_operations_delete_execute()` to send, or `observability_projects_locations_operations_delete` for simplest API.
 
-pub fn observability_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5648,10 +5748,13 @@ pub fn observability_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_operations_get_execute()` to send, or `observability_projects_locations_operations_get` for simplest API.
 
-pub fn observability_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5805,14 +5908,17 @@ pub fn observability_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_operations_list_execute()` to send, or `observability_projects_locations_operations_list` for simplest API.
 
-pub fn observability_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6005,10 +6111,13 @@ pub fn observability_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_scopes_get_execute()` to send, or `observability_projects_locations_scopes_get` for simplest API.
 
-pub fn observability_projects_locations_scopes_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_scopes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/scopes/{scopesId}",
@@ -6162,11 +6271,14 @@ pub fn observability_projects_locations_scopes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_scopes_patch_execute()` to send, or `observability_projects_locations_scopes_patch` for simplest API.
 
-pub fn observability_projects_locations_scopes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_scopes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/scopes/{scopesId}",
@@ -6337,11 +6449,14 @@ pub fn observability_projects_locations_scopes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_trace_scopes_create_execute()` to send, or `observability_projects_locations_trace_scopes_create` for simplest API.
 
-pub fn observability_projects_locations_trace_scopes_create_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_trace_scopes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     traceScopeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/traceScopes",
@@ -6512,10 +6627,13 @@ pub fn observability_projects_locations_trace_scopes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_trace_scopes_delete_execute()` to send, or `observability_projects_locations_trace_scopes_delete` for simplest API.
 
-pub fn observability_projects_locations_trace_scopes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_trace_scopes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/traceScopes/{traceScopesId}",
@@ -6669,10 +6787,13 @@ pub fn observability_projects_locations_trace_scopes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_trace_scopes_get_execute()` to send, or `observability_projects_locations_trace_scopes_get` for simplest API.
 
-pub fn observability_projects_locations_trace_scopes_get_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_trace_scopes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/traceScopes/{traceScopesId}",
@@ -6826,12 +6947,15 @@ pub fn observability_projects_locations_trace_scopes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_trace_scopes_list_execute()` to send, or `observability_projects_locations_trace_scopes_list` for simplest API.
 
-pub fn observability_projects_locations_trace_scopes_list_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_trace_scopes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/traceScopes",
@@ -7012,11 +7136,14 @@ pub fn observability_projects_locations_trace_scopes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `observability_projects_locations_trace_scopes_patch_execute()` to send, or `observability_projects_locations_trace_scopes_patch` for simplest API.
 
-pub fn observability_projects_locations_trace_scopes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn observability_projects_locations_trace_scopes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://observability.googleapis.com/v1/projects/{}/locations/{locationsId}/traceScopes/{traceScopesId}",

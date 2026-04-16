@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_create_execute()` to send, or `appengine_apps_create` for simplest API.
 
-pub fn appengine_apps_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn appengine_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://appengine.googleapis.com/v1/apps",);
 
@@ -171,11 +175,14 @@ pub fn appengine_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_get_execute()` to send, or `appengine_apps_get` for simplest API.
 
-pub fn appengine_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     includeExtraData: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://appengine.googleapis.com/v1/apps/{}", appsId,);
 
@@ -339,11 +346,14 @@ pub fn appengine_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_list_runtimes_execute()` to send, or `appengine_apps_list_runtimes` for simplest API.
 
-pub fn appengine_apps_list_runtimes_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_list_runtimes_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     environment: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}:listRuntimes",
@@ -514,11 +524,14 @@ pub fn appengine_apps_list_runtimes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_patch_execute()` to send, or `appengine_apps_patch` for simplest API.
 
-pub fn appengine_apps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://appengine.googleapis.com/v1/apps/{}", appsId,);
 
@@ -682,10 +695,13 @@ pub fn appengine_apps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_repair_execute()` to send, or `appengine_apps_repair` for simplest API.
 
-pub fn appengine_apps_repair_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_repair_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://appengine.googleapis.com/v1/apps/{}:repair", appsId,);
 
@@ -836,10 +852,13 @@ pub fn appengine_apps_repair(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_authorized_certificates_create_execute()` to send, or `appengine_apps_authorized_certificates_create` for simplest API.
 
-pub fn appengine_apps_authorized_certificates_create_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_authorized_certificates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates",
@@ -997,11 +1016,14 @@ pub fn appengine_apps_authorized_certificates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_authorized_certificates_delete_execute()` to send, or `appengine_apps_authorized_certificates_delete` for simplest API.
 
-pub fn appengine_apps_authorized_certificates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_authorized_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     authorizedCertificatesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates/{}",
@@ -1161,12 +1183,15 @@ pub fn appengine_apps_authorized_certificates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_authorized_certificates_get_execute()` to send, or `appengine_apps_authorized_certificates_get` for simplest API.
 
-pub fn appengine_apps_authorized_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_authorized_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     authorizedCertificatesId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates/{}",
@@ -1344,13 +1369,16 @@ pub fn appengine_apps_authorized_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_authorized_certificates_list_execute()` to send, or `appengine_apps_authorized_certificates_list` for simplest API.
 
-pub fn appengine_apps_authorized_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_authorized_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates",
@@ -1541,12 +1569,15 @@ pub fn appengine_apps_authorized_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_authorized_certificates_patch_execute()` to send, or `appengine_apps_authorized_certificates_patch` for simplest API.
 
-pub fn appengine_apps_authorized_certificates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_authorized_certificates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     authorizedCertificatesId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates/{}",
@@ -1724,12 +1755,15 @@ pub fn appengine_apps_authorized_certificates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_authorized_domains_list_execute()` to send, or `appengine_apps_authorized_domains_list` for simplest API.
 
-pub fn appengine_apps_authorized_domains_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_authorized_domains_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedDomains",
@@ -1914,11 +1948,14 @@ pub fn appengine_apps_authorized_domains_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_domain_mappings_create_execute()` to send, or `appengine_apps_domain_mappings_create` for simplest API.
 
-pub fn appengine_apps_domain_mappings_create_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_domain_mappings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     overrideStrategy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings",
@@ -2089,11 +2126,14 @@ pub fn appengine_apps_domain_mappings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_domain_mappings_delete_execute()` to send, or `appengine_apps_domain_mappings_delete` for simplest API.
 
-pub fn appengine_apps_domain_mappings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_domain_mappings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     domainMappingsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings/{}",
@@ -2253,11 +2293,14 @@ pub fn appengine_apps_domain_mappings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_domain_mappings_get_execute()` to send, or `appengine_apps_domain_mappings_get` for simplest API.
 
-pub fn appengine_apps_domain_mappings_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_domain_mappings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     domainMappingsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings/{}",
@@ -2418,12 +2461,15 @@ pub fn appengine_apps_domain_mappings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_domain_mappings_list_execute()` to send, or `appengine_apps_domain_mappings_list` for simplest API.
 
-pub fn appengine_apps_domain_mappings_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_domain_mappings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings",
@@ -2608,12 +2654,15 @@ pub fn appengine_apps_domain_mappings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_domain_mappings_patch_execute()` to send, or `appengine_apps_domain_mappings_patch` for simplest API.
 
-pub fn appengine_apps_domain_mappings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_domain_mappings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     domainMappingsId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings/{}",
@@ -2787,10 +2836,13 @@ pub fn appengine_apps_domain_mappings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_firewall_ingress_rules_batch_update_execute()` to send, or `appengine_apps_firewall_ingress_rules_batch_update` for simplest API.
 
-pub fn appengine_apps_firewall_ingress_rules_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_firewall_ingress_rules_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules:batchUpdate",
@@ -2952,10 +3004,13 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_firewall_ingress_rules_create_execute()` to send, or `appengine_apps_firewall_ingress_rules_create` for simplest API.
 
-pub fn appengine_apps_firewall_ingress_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_firewall_ingress_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules",
@@ -3113,11 +3168,14 @@ pub fn appengine_apps_firewall_ingress_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_firewall_ingress_rules_delete_execute()` to send, or `appengine_apps_firewall_ingress_rules_delete` for simplest API.
 
-pub fn appengine_apps_firewall_ingress_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_firewall_ingress_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     ingressRulesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules/{}",
@@ -3277,11 +3335,14 @@ pub fn appengine_apps_firewall_ingress_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_firewall_ingress_rules_get_execute()` to send, or `appengine_apps_firewall_ingress_rules_get` for simplest API.
 
-pub fn appengine_apps_firewall_ingress_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_firewall_ingress_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     ingressRulesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules/{}",
@@ -3445,13 +3506,16 @@ pub fn appengine_apps_firewall_ingress_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_firewall_ingress_rules_list_execute()` to send, or `appengine_apps_firewall_ingress_rules_list` for simplest API.
 
-pub fn appengine_apps_firewall_ingress_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_firewall_ingress_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     matchingAddress: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules",
@@ -3638,12 +3702,15 @@ pub fn appengine_apps_firewall_ingress_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_firewall_ingress_rules_patch_execute()` to send, or `appengine_apps_firewall_ingress_rules_patch` for simplest API.
 
-pub fn appengine_apps_firewall_ingress_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_firewall_ingress_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     ingressRulesId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules/{}",
@@ -3821,11 +3888,14 @@ pub fn appengine_apps_firewall_ingress_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_locations_get_execute()` to send, or `appengine_apps_locations_get` for simplest API.
 
-pub fn appengine_apps_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     locationsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/locations/{}",
@@ -3981,14 +4051,17 @@ pub fn appengine_apps_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_locations_list_execute()` to send, or `appengine_apps_locations_list` for simplest API.
 
-pub fn appengine_apps_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/locations",
@@ -4181,11 +4254,14 @@ pub fn appengine_apps_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_operations_get_execute()` to send, or `appengine_apps_operations_get` for simplest API.
 
-pub fn appengine_apps_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     operationsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/operations/{}",
@@ -4341,14 +4417,17 @@ pub fn appengine_apps_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_operations_list_execute()` to send, or `appengine_apps_operations_list` for simplest API.
 
-pub fn appengine_apps_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/operations",
@@ -4541,11 +4620,14 @@ pub fn appengine_apps_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_delete_execute()` to send, or `appengine_apps_services_delete` for simplest API.
 
-pub fn appengine_apps_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}",
@@ -4701,11 +4783,14 @@ pub fn appengine_apps_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_get_execute()` to send, or `appengine_apps_services_get` for simplest API.
 
-pub fn appengine_apps_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}",
@@ -4861,12 +4946,15 @@ pub fn appengine_apps_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_list_execute()` to send, or `appengine_apps_services_list` for simplest API.
 
-pub fn appengine_apps_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services",
@@ -5047,13 +5135,16 @@ pub fn appengine_apps_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_patch_execute()` to send, or `appengine_apps_services_patch` for simplest API.
 
-pub fn appengine_apps_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     migrateTraffic: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}",
@@ -5233,11 +5324,14 @@ pub fn appengine_apps_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_create_execute()` to send, or `appengine_apps_services_versions_create` for simplest API.
 
-pub fn appengine_apps_services_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions",
@@ -5394,12 +5488,15 @@ pub fn appengine_apps_services_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_delete_execute()` to send, or `appengine_apps_services_versions_delete` for simplest API.
 
-pub fn appengine_apps_services_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}",
@@ -5562,12 +5659,15 @@ pub fn appengine_apps_services_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_export_app_image_execute()` to send, or `appengine_apps_services_versions_export_app_image` for simplest API.
 
-pub fn appengine_apps_services_versions_export_app_image_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_export_app_image_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}:exportAppImage",
@@ -5730,13 +5830,16 @@ pub fn appengine_apps_services_versions_export_app_image(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_get_execute()` to send, or `appengine_apps_services_versions_get` for simplest API.
 
-pub fn appengine_apps_services_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}",
@@ -5913,14 +6016,17 @@ pub fn appengine_apps_services_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_list_execute()` to send, or `appengine_apps_services_versions_list` for simplest API.
 
-pub fn appengine_apps_services_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions",
@@ -6110,13 +6216,16 @@ pub fn appengine_apps_services_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_patch_execute()` to send, or `appengine_apps_services_versions_patch` for simplest API.
 
-pub fn appengine_apps_services_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}",
@@ -6293,13 +6402,16 @@ pub fn appengine_apps_services_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_instances_debug_execute()` to send, or `appengine_apps_services_versions_instances_debug` for simplest API.
 
-pub fn appengine_apps_services_versions_instances_debug_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_instances_debug_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
     instancesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}:debug",
@@ -6465,13 +6577,16 @@ pub fn appengine_apps_services_versions_instances_debug(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_instances_delete_execute()` to send, or `appengine_apps_services_versions_instances_delete` for simplest API.
 
-pub fn appengine_apps_services_versions_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
     instancesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}",
@@ -6637,13 +6752,16 @@ pub fn appengine_apps_services_versions_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_instances_get_execute()` to send, or `appengine_apps_services_versions_instances_get` for simplest API.
 
-pub fn appengine_apps_services_versions_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
     instancesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}",
@@ -6809,14 +6927,17 @@ pub fn appengine_apps_services_versions_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_services_versions_instances_list_execute()` to send, or `appengine_apps_services_versions_instances_list` for simplest API.
 
-pub fn appengine_apps_services_versions_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_apps_services_versions_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances",
@@ -7003,13 +7124,16 @@ pub fn appengine_apps_services_versions_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_patch_execute()` to send, or `appengine_projects_locations_applications_patch` for simplest API.
 
-pub fn appengine_projects_locations_applications_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}",
@@ -7186,12 +7310,15 @@ pub fn appengine_projects_locations_applications_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_authorized_certificates_create_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_create` for simplest API.
 
-pub fn appengine_projects_locations_applications_authorized_certificates_create_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_authorized_certificates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates",
@@ -7361,13 +7488,16 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_authorized_certificates_delete_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_delete` for simplest API.
 
-pub fn appengine_projects_locations_applications_authorized_certificates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_authorized_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     authorizedCertificatesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates/{}",
@@ -7537,14 +7667,17 @@ pub fn appengine_projects_locations_applications_authorized_certificates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_authorized_certificates_get_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_get` for simplest API.
 
-pub fn appengine_projects_locations_applications_authorized_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_authorized_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     authorizedCertificatesId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates/{}",
@@ -7731,15 +7864,18 @@ pub fn appengine_projects_locations_applications_authorized_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_authorized_certificates_list_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_list` for simplest API.
 
-pub fn appengine_projects_locations_applications_authorized_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_authorized_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates",
@@ -7939,14 +8075,17 @@ pub fn appengine_projects_locations_applications_authorized_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_authorized_certificates_patch_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_patch` for simplest API.
 
-pub fn appengine_projects_locations_applications_authorized_certificates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_authorized_certificates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     authorizedCertificatesId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates/{}",
@@ -8134,14 +8273,17 @@ pub fn appengine_projects_locations_applications_authorized_certificates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_authorized_domains_list_execute()` to send, or `appengine_projects_locations_applications_authorized_domains_list` for simplest API.
 
-pub fn appengine_projects_locations_applications_authorized_domains_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_authorized_domains_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedDomains",
@@ -8334,13 +8476,16 @@ pub fn appengine_projects_locations_applications_authorized_domains_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_domain_mappings_create_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_create` for simplest API.
 
-pub fn appengine_projects_locations_applications_domain_mappings_create_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_domain_mappings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     overrideStrategy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings",
@@ -8519,13 +8664,16 @@ pub fn appengine_projects_locations_applications_domain_mappings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_domain_mappings_delete_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_delete` for simplest API.
 
-pub fn appengine_projects_locations_applications_domain_mappings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_domain_mappings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     domainMappingsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings/{}",
@@ -8694,13 +8842,16 @@ pub fn appengine_projects_locations_applications_domain_mappings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_domain_mappings_get_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_get` for simplest API.
 
-pub fn appengine_projects_locations_applications_domain_mappings_get_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_domain_mappings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     domainMappingsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings/{}",
@@ -8873,14 +9024,17 @@ pub fn appengine_projects_locations_applications_domain_mappings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_domain_mappings_list_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_list` for simplest API.
 
-pub fn appengine_projects_locations_applications_domain_mappings_list_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_domain_mappings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings",
@@ -9073,14 +9227,17 @@ pub fn appengine_projects_locations_applications_domain_mappings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_domain_mappings_patch_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_patch` for simplest API.
 
-pub fn appengine_projects_locations_applications_domain_mappings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_domain_mappings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     domainMappingsId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings/{}",
@@ -9263,13 +9420,16 @@ pub fn appengine_projects_locations_applications_domain_mappings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_services_delete_execute()` to send, or `appengine_projects_locations_applications_services_delete` for simplest API.
 
-pub fn appengine_projects_locations_applications_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}",
@@ -9435,15 +9595,18 @@ pub fn appengine_projects_locations_applications_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_services_patch_execute()` to send, or `appengine_projects_locations_applications_services_patch` for simplest API.
 
-pub fn appengine_projects_locations_applications_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
     migrateTraffic: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}",
@@ -9629,14 +9792,17 @@ pub fn appengine_projects_locations_applications_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_services_versions_delete_execute()` to send, or `appengine_projects_locations_applications_services_versions_delete` for simplest API.
 
-pub fn appengine_projects_locations_applications_services_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_services_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
     versionsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}",
@@ -9809,14 +9975,17 @@ pub fn appengine_projects_locations_applications_services_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_services_versions_export_app_image_execute()` to send, or `appengine_projects_locations_applications_services_versions_export_app_image` for simplest API.
 
-pub fn appengine_projects_locations_applications_services_versions_export_app_image_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_services_versions_export_app_image_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
     versionsId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}:exportAppImage",
@@ -9991,15 +10160,18 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_services_versions_patch_execute()` to send, or `appengine_projects_locations_applications_services_versions_patch` for simplest API.
 
-pub fn appengine_projects_locations_applications_services_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_services_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
     versionsId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}",
@@ -10186,15 +10358,18 @@ pub fn appengine_projects_locations_applications_services_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_services_versions_instances_debug_execute()` to send, or `appengine_projects_locations_applications_services_versions_instances_debug` for simplest API.
 
-pub fn appengine_projects_locations_applications_services_versions_instances_debug_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_services_versions_instances_debug_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
     versionsId: &String,
     instancesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}/instances/{}:debug",
@@ -10373,15 +10548,18 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_projects_locations_applications_services_versions_instances_delete_execute()` to send, or `appengine_projects_locations_applications_services_versions_instances_delete` for simplest API.
 
-pub fn appengine_projects_locations_applications_services_versions_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn appengine_projects_locations_applications_services_versions_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
     versionsId: &String,
     instancesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}/instances/{}",

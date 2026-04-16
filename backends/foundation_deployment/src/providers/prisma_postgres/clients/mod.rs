@@ -7,8 +7,6 @@
 
 #![cfg(feature = "prisma_postgres")]
 
-pub mod types;
-
 use crate::providers::prisma_postgres::clients::types::*;
 use crate::providers::prisma_postgres::resources::*;
 use foundation_core::valtron::{
@@ -16,8 +14,10 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -27,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_compute_services_execute()` to send, or `get_v1_compute_services` for simplest API.
 
-pub fn get_v1_compute_services_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-    projectId: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_compute_services_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    projectId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/compute-services",);
 
@@ -173,11 +176,11 @@ pub fn get_v1_compute_services_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1ComputeServicesArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: projectId
-    pub projectId: Option<String>,
+    pub projectId: Option<Option<String>>,
 }
 
 /// GET /v1/compute-services
@@ -213,10 +216,13 @@ pub fn get_v1_compute_services(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `post_v1_compute_services_execute()` to send, or `post_v1_compute_services` for simplest API.
 
-pub fn post_v1_compute_services_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn post_v1_compute_services_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &ComputeservicesPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/compute-services",);
 
@@ -342,7 +348,7 @@ pub fn post_v1_compute_services_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1ComputeServicesArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ComputeservicesPostRequest,
 }
 
 /// POST /v1/compute-services
@@ -375,12 +381,15 @@ pub fn post_v1_compute_services(
 /// Get compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_compute_services_versions_versionId_execute()` to send, or `get_v1_compute_services_versions_versionId` for simplest API.
+/// Use `get_v1_compute_services_versions_by_version_id_execute()` to send, or `get_v1_compute_services_versions_by_version_id` for simplest API.
 
-pub fn get_v1_compute_services_versions_versionId_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_compute_services_versions_by_version_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}",
@@ -406,17 +415,17 @@ pub fn get_v1_compute_services_versions_versionId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_compute_services_versions_versionId_execute()` or `get_v1_compute_services_versions_versionId`.
+/// For direct execution, use `get_v1_compute_services_versions_by_version_id_execute()` or `get_v1_compute_services_versions_by_version_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_versions_versionId_task(
+pub fn get_v1_compute_services_versions_by_version_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -475,21 +484,21 @@ pub fn get_v1_compute_services_versions_versionId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_compute_services_versions_versionId_builder()` to create the builder,
+/// For full customization, use `get_v1_compute_services_versions_by_version_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_compute_services_versions_versionId_task()`.
-/// For the simplest API, use `get_v1_compute_services_versions_versionId()`.
+/// For task-level control, use `get_v1_compute_services_versions_by_version_id_task()`.
+/// For the simplest API, use `get_v1_compute_services_versions_by_version_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_compute_services_versions_versionId_execute(
+pub fn get_v1_compute_services_versions_by_version_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -499,13 +508,13 @@ pub fn get_v1_compute_services_versions_versionId_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_compute_services_versions_versionId_task(builder)?;
+    let task = get_v1_compute_services_versions_by_version_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_compute_services_versions_versionId`].
+/// Arguments for [`get_v1_compute_services_versions_by_version_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1ComputeServicesVersionsVersionIdArgs {
+pub struct GetV1ComputeServicesVersionsByVersionIdArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -514,16 +523,16 @@ pub struct GetV1ComputeServicesVersionsVersionIdArgs {
 /// Get compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_compute_services_versions_versionId_builder()` + `get_v1_compute_services_versions_versionId_execute()`.
-/// For task-level control, use `get_v1_compute_services_versions_versionId_task()`.
+/// For customization, use `get_v1_compute_services_versions_by_version_id_builder()` + `get_v1_compute_services_versions_by_version_id_execute()`.
+/// For task-level control, use `get_v1_compute_services_versions_by_version_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_versions_versionId(
+pub fn get_v1_compute_services_versions_by_version_id(
     client: &SimpleHttpClient,
-    args: &GetV1ComputeServicesVersionsVersionIdArgs,
+    args: &GetV1ComputeServicesVersionsByVersionIdArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
@@ -532,20 +541,23 @@ pub fn get_v1_compute_services_versions_versionId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_compute_services_versions_versionId_builder(client, &args.versionId)?;
-    get_v1_compute_services_versions_versionId_execute(builder)
+    let builder = get_v1_compute_services_versions_by_version_id_builder(client, &args.versionId)?;
+    get_v1_compute_services_versions_by_version_id_execute(builder)
 }
 
 /// DELETE /v1/compute-services/versions/{versionId}
 /// Delete compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_compute_services_versions_versionId_execute()` to send, or `delete_v1_compute_services_versions_versionId` for simplest API.
+/// Use `delete_v1_compute_services_versions_by_version_id_execute()` to send, or `delete_v1_compute_services_versions_by_version_id` for simplest API.
 
-pub fn delete_v1_compute_services_versions_versionId_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_compute_services_versions_by_version_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}",
@@ -571,17 +583,17 @@ pub fn delete_v1_compute_services_versions_versionId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_compute_services_versions_versionId_execute()` or `delete_v1_compute_services_versions_versionId`.
+/// For direct execution, use `delete_v1_compute_services_versions_by_version_id_execute()` or `delete_v1_compute_services_versions_by_version_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_compute_services_versions_versionId_task(
+pub fn delete_v1_compute_services_versions_by_version_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -637,33 +649,33 @@ pub fn delete_v1_compute_services_versions_versionId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_compute_services_versions_versionId_builder()` to create the builder,
+/// For full customization, use `delete_v1_compute_services_versions_by_version_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_compute_services_versions_versionId_task()`.
-/// For the simplest API, use `delete_v1_compute_services_versions_versionId()`.
+/// For task-level control, use `delete_v1_compute_services_versions_by_version_id_task()`.
+/// For the simplest API, use `delete_v1_compute_services_versions_by_version_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_compute_services_versions_versionId_execute(
+pub fn delete_v1_compute_services_versions_by_version_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_compute_services_versions_versionId_task(builder)?;
+    let task = delete_v1_compute_services_versions_by_version_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_compute_services_versions_versionId`].
+/// Arguments for [`delete_v1_compute_services_versions_by_version_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1ComputeServicesVersionsVersionIdArgs {
+pub struct DeleteV1ComputeServicesVersionsByVersionIdArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -672,34 +684,38 @@ pub struct DeleteV1ComputeServicesVersionsVersionIdArgs {
 /// Delete compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_compute_services_versions_versionId_builder()` + `delete_v1_compute_services_versions_versionId_execute()`.
-/// For task-level control, use `delete_v1_compute_services_versions_versionId_task()`.
+/// For customization, use `delete_v1_compute_services_versions_by_version_id_builder()` + `delete_v1_compute_services_versions_by_version_id_execute()`.
+/// For task-level control, use `delete_v1_compute_services_versions_by_version_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_compute_services_versions_versionId(
+pub fn delete_v1_compute_services_versions_by_version_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1ComputeServicesVersionsVersionIdArgs,
+    args: &DeleteV1ComputeServicesVersionsByVersionIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_compute_services_versions_versionId_builder(client, &args.versionId)?;
-    delete_v1_compute_services_versions_versionId_execute(builder)
+    let builder =
+        delete_v1_compute_services_versions_by_version_id_builder(client, &args.versionId)?;
+    delete_v1_compute_services_versions_by_version_id_execute(builder)
 }
 
 /// POST /v1/compute-services/versions/{versionId}/start
 /// Start compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_compute_services_versions_versionId_start_execute()` to send, or `post_v1_compute_services_versions_versionId_start` for simplest API.
+/// Use `post_v1_compute_services_versions_by_version_id_start_execute()` to send, or `post_v1_compute_services_versions_by_version_id_start` for simplest API.
 
-pub fn post_v1_compute_services_versions_versionId_start_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_compute_services_versions_by_version_id_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}/start",
@@ -725,17 +741,17 @@ pub fn post_v1_compute_services_versions_versionId_start_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_compute_services_versions_versionId_start_execute()` or `post_v1_compute_services_versions_versionId_start`.
+/// For direct execution, use `post_v1_compute_services_versions_by_version_id_start_execute()` or `post_v1_compute_services_versions_by_version_id_start`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_by_version_id_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_versions_versionId_start_task(
+pub fn post_v1_compute_services_versions_by_version_id_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -794,21 +810,21 @@ pub fn post_v1_compute_services_versions_versionId_start_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_compute_services_versions_versionId_start_builder()` to create the builder,
+/// For full customization, use `post_v1_compute_services_versions_by_version_id_start_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_compute_services_versions_versionId_start_task()`.
-/// For the simplest API, use `post_v1_compute_services_versions_versionId_start()`.
+/// For task-level control, use `post_v1_compute_services_versions_by_version_id_start_task()`.
+/// For the simplest API, use `post_v1_compute_services_versions_by_version_id_start()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_by_version_id_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_compute_services_versions_versionId_start_execute(
+pub fn post_v1_compute_services_versions_by_version_id_start_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -818,13 +834,13 @@ pub fn post_v1_compute_services_versions_versionId_start_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_compute_services_versions_versionId_start_task(builder)?;
+    let task = post_v1_compute_services_versions_by_version_id_start_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_compute_services_versions_versionId_start`].
+/// Arguments for [`post_v1_compute_services_versions_by_version_id_start`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ComputeServicesVersionsVersionIdStartArgs {
+pub struct PostV1ComputeServicesVersionsByVersionIdStartArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -833,16 +849,16 @@ pub struct PostV1ComputeServicesVersionsVersionIdStartArgs {
 /// Start compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_compute_services_versions_versionId_start_builder()` + `post_v1_compute_services_versions_versionId_start_execute()`.
-/// For task-level control, use `post_v1_compute_services_versions_versionId_start_task()`.
+/// For customization, use `post_v1_compute_services_versions_by_version_id_start_builder()` + `post_v1_compute_services_versions_by_version_id_start_execute()`.
+/// For task-level control, use `post_v1_compute_services_versions_by_version_id_start_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_versions_versionId_start(
+pub fn post_v1_compute_services_versions_by_version_id_start(
     client: &SimpleHttpClient,
-    args: &PostV1ComputeServicesVersionsVersionIdStartArgs,
+    args: &PostV1ComputeServicesVersionsByVersionIdStartArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeservicesVersionsStartPostResponse>, ApiError>,
@@ -852,20 +868,23 @@ pub fn post_v1_compute_services_versions_versionId_start(
     ApiError,
 > {
     let builder =
-        post_v1_compute_services_versions_versionId_start_builder(client, &args.versionId)?;
-    post_v1_compute_services_versions_versionId_start_execute(builder)
+        post_v1_compute_services_versions_by_version_id_start_builder(client, &args.versionId)?;
+    post_v1_compute_services_versions_by_version_id_start_execute(builder)
 }
 
 /// POST /v1/compute-services/versions/{versionId}/stop
 /// Stop compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_compute_services_versions_versionId_stop_execute()` to send, or `post_v1_compute_services_versions_versionId_stop` for simplest API.
+/// Use `post_v1_compute_services_versions_by_version_id_stop_execute()` to send, or `post_v1_compute_services_versions_by_version_id_stop` for simplest API.
 
-pub fn post_v1_compute_services_versions_versionId_stop_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_compute_services_versions_by_version_id_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}/stop",
@@ -891,17 +910,17 @@ pub fn post_v1_compute_services_versions_versionId_stop_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_compute_services_versions_versionId_stop_execute()` or `post_v1_compute_services_versions_versionId_stop`.
+/// For direct execution, use `post_v1_compute_services_versions_by_version_id_stop_execute()` or `post_v1_compute_services_versions_by_version_id_stop`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_stop_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_by_version_id_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_versions_versionId_stop_task(
+pub fn post_v1_compute_services_versions_by_version_id_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -957,33 +976,33 @@ pub fn post_v1_compute_services_versions_versionId_stop_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_compute_services_versions_versionId_stop_builder()` to create the builder,
+/// For full customization, use `post_v1_compute_services_versions_by_version_id_stop_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_compute_services_versions_versionId_stop_task()`.
-/// For the simplest API, use `post_v1_compute_services_versions_versionId_stop()`.
+/// For task-level control, use `post_v1_compute_services_versions_by_version_id_stop_task()`.
+/// For the simplest API, use `post_v1_compute_services_versions_by_version_id_stop()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_stop_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_by_version_id_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_compute_services_versions_versionId_stop_execute(
+pub fn post_v1_compute_services_versions_by_version_id_stop_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_v1_compute_services_versions_versionId_stop_task(builder)?;
+    let task = post_v1_compute_services_versions_by_version_id_stop_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_compute_services_versions_versionId_stop`].
+/// Arguments for [`post_v1_compute_services_versions_by_version_id_stop`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ComputeServicesVersionsVersionIdStopArgs {
+pub struct PostV1ComputeServicesVersionsByVersionIdStopArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -992,35 +1011,38 @@ pub struct PostV1ComputeServicesVersionsVersionIdStopArgs {
 /// Stop compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_compute_services_versions_versionId_stop_builder()` + `post_v1_compute_services_versions_versionId_stop_execute()`.
-/// For task-level control, use `post_v1_compute_services_versions_versionId_stop_task()`.
+/// For customization, use `post_v1_compute_services_versions_by_version_id_stop_builder()` + `post_v1_compute_services_versions_by_version_id_stop_execute()`.
+/// For task-level control, use `post_v1_compute_services_versions_by_version_id_stop_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_versions_versionId_stop(
+pub fn post_v1_compute_services_versions_by_version_id_stop(
     client: &SimpleHttpClient,
-    args: &PostV1ComputeServicesVersionsVersionIdStopArgs,
+    args: &PostV1ComputeServicesVersionsByVersionIdStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        post_v1_compute_services_versions_versionId_stop_builder(client, &args.versionId)?;
-    post_v1_compute_services_versions_versionId_stop_execute(builder)
+        post_v1_compute_services_versions_by_version_id_stop_builder(client, &args.versionId)?;
+    post_v1_compute_services_versions_by_version_id_stop_execute(builder)
 }
 
 /// GET /v1/compute-services/{computeServiceId}
 /// Get compute service
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_compute_services_computeServiceId_execute()` to send, or `get_v1_compute_services_computeServiceId` for simplest API.
+/// Use `get_v1_compute_services_by_compute_service_id_execute()` to send, or `get_v1_compute_services_by_compute_service_id` for simplest API.
 
-pub fn get_v1_compute_services_computeServiceId_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_compute_services_by_compute_service_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     computeServiceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
@@ -1046,17 +1068,17 @@ pub fn get_v1_compute_services_computeServiceId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_compute_services_computeServiceId_execute()` or `get_v1_compute_services_computeServiceId`.
+/// For direct execution, use `get_v1_compute_services_by_compute_service_id_execute()` or `get_v1_compute_services_by_compute_service_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_by_compute_service_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_computeServiceId_task(
+pub fn get_v1_compute_services_by_compute_service_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1115,21 +1137,21 @@ pub fn get_v1_compute_services_computeServiceId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_compute_services_computeServiceId_builder()` to create the builder,
+/// For full customization, use `get_v1_compute_services_by_compute_service_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_compute_services_computeServiceId_task()`.
-/// For the simplest API, use `get_v1_compute_services_computeServiceId()`.
+/// For task-level control, use `get_v1_compute_services_by_compute_service_id_task()`.
+/// For the simplest API, use `get_v1_compute_services_by_compute_service_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_by_compute_service_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_compute_services_computeServiceId_execute(
+pub fn get_v1_compute_services_by_compute_service_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -1139,13 +1161,13 @@ pub fn get_v1_compute_services_computeServiceId_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_compute_services_computeServiceId_task(builder)?;
+    let task = get_v1_compute_services_by_compute_service_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_compute_services_computeServiceId`].
+/// Arguments for [`get_v1_compute_services_by_compute_service_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1ComputeServicesComputeServiceIdArgs {
+pub struct GetV1ComputeServicesByComputeServiceIdArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
 }
@@ -1154,16 +1176,16 @@ pub struct GetV1ComputeServicesComputeServiceIdArgs {
 /// Get compute service
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_compute_services_computeServiceId_builder()` + `get_v1_compute_services_computeServiceId_execute()`.
-/// For task-level control, use `get_v1_compute_services_computeServiceId_task()`.
+/// For customization, use `get_v1_compute_services_by_compute_service_id_builder()` + `get_v1_compute_services_by_compute_service_id_execute()`.
+/// For task-level control, use `get_v1_compute_services_by_compute_service_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_computeServiceId(
+pub fn get_v1_compute_services_by_compute_service_id(
     client: &SimpleHttpClient,
-    args: &GetV1ComputeServicesComputeServiceIdArgs,
+    args: &GetV1ComputeServicesByComputeServiceIdArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>,
@@ -1172,21 +1194,25 @@ pub fn get_v1_compute_services_computeServiceId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_compute_services_computeServiceId_builder(client, &args.computeServiceId)?;
-    get_v1_compute_services_computeServiceId_execute(builder)
+    let builder =
+        get_v1_compute_services_by_compute_service_id_builder(client, &args.computeServiceId)?;
+    get_v1_compute_services_by_compute_service_id_execute(builder)
 }
 
 /// PATCH /v1/compute-services/{computeServiceId}
 /// Update compute service
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `patch_v1_compute_services_computeServiceId_execute()` to send, or `patch_v1_compute_services_computeServiceId` for simplest API.
+/// Use `patch_v1_compute_services_by_compute_service_id_execute()` to send, or `patch_v1_compute_services_by_compute_service_id` for simplest API.
 
-pub fn patch_v1_compute_services_computeServiceId_builder(
-    client: &SimpleHttpClient,
+pub fn patch_v1_compute_services_by_compute_service_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     computeServiceId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ComputeservicesPatchRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
@@ -1214,17 +1240,17 @@ pub fn patch_v1_compute_services_computeServiceId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `patch_v1_compute_services_computeServiceId_execute()` or `patch_v1_compute_services_computeServiceId`.
+/// For direct execution, use `patch_v1_compute_services_by_compute_service_id_execute()` or `patch_v1_compute_services_by_compute_service_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_compute_services_computeServiceId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_compute_services_by_compute_service_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_compute_services_computeServiceId_task(
+pub fn patch_v1_compute_services_by_compute_service_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1283,21 +1309,21 @@ pub fn patch_v1_compute_services_computeServiceId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `patch_v1_compute_services_computeServiceId_builder()` to create the builder,
+/// For full customization, use `patch_v1_compute_services_by_compute_service_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `patch_v1_compute_services_computeServiceId_task()`.
-/// For the simplest API, use `patch_v1_compute_services_computeServiceId()`.
+/// For task-level control, use `patch_v1_compute_services_by_compute_service_id_task()`.
+/// For the simplest API, use `patch_v1_compute_services_by_compute_service_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_compute_services_computeServiceId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_compute_services_by_compute_service_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn patch_v1_compute_services_computeServiceId_execute(
+pub fn patch_v1_compute_services_by_compute_service_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -1307,33 +1333,33 @@ pub fn patch_v1_compute_services_computeServiceId_execute(
         + 'static,
     ApiError,
 > {
-    let task = patch_v1_compute_services_computeServiceId_task(builder)?;
+    let task = patch_v1_compute_services_by_compute_service_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`patch_v1_compute_services_computeServiceId`].
+/// Arguments for [`patch_v1_compute_services_by_compute_service_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PatchV1ComputeServicesComputeServiceIdArgs {
+pub struct PatchV1ComputeServicesByComputeServiceIdArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ComputeservicesPatchRequest,
 }
 
 /// PATCH /v1/compute-services/{computeServiceId}
 /// Update compute service
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `patch_v1_compute_services_computeServiceId_builder()` + `patch_v1_compute_services_computeServiceId_execute()`.
-/// For task-level control, use `patch_v1_compute_services_computeServiceId_task()`.
+/// For customization, use `patch_v1_compute_services_by_compute_service_id_builder()` + `patch_v1_compute_services_by_compute_service_id_execute()`.
+/// For task-level control, use `patch_v1_compute_services_by_compute_service_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_compute_services_computeServiceId(
+pub fn patch_v1_compute_services_by_compute_service_id(
     client: &SimpleHttpClient,
-    args: &PatchV1ComputeServicesComputeServiceIdArgs,
+    args: &PatchV1ComputeServicesByComputeServiceIdArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeservicesPatchResponse>, ApiError>,
@@ -1342,24 +1368,27 @@ pub fn patch_v1_compute_services_computeServiceId(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_compute_services_computeServiceId_builder(
+    let builder = patch_v1_compute_services_by_compute_service_id_builder(
         client,
         &args.computeServiceId,
         &args.body,
     )?;
-    patch_v1_compute_services_computeServiceId_execute(builder)
+    patch_v1_compute_services_by_compute_service_id_execute(builder)
 }
 
 /// DELETE /v1/compute-services/{computeServiceId}
 /// Delete compute service
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_compute_services_computeServiceId_execute()` to send, or `delete_v1_compute_services_computeServiceId` for simplest API.
+/// Use `delete_v1_compute_services_by_compute_service_id_execute()` to send, or `delete_v1_compute_services_by_compute_service_id` for simplest API.
 
-pub fn delete_v1_compute_services_computeServiceId_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_compute_services_by_compute_service_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     computeServiceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
@@ -1385,17 +1414,17 @@ pub fn delete_v1_compute_services_computeServiceId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_compute_services_computeServiceId_execute()` or `delete_v1_compute_services_computeServiceId`.
+/// For direct execution, use `delete_v1_compute_services_by_compute_service_id_execute()` or `delete_v1_compute_services_by_compute_service_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_computeServiceId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_by_compute_service_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_compute_services_computeServiceId_task(
+pub fn delete_v1_compute_services_by_compute_service_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1451,33 +1480,33 @@ pub fn delete_v1_compute_services_computeServiceId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_compute_services_computeServiceId_builder()` to create the builder,
+/// For full customization, use `delete_v1_compute_services_by_compute_service_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_compute_services_computeServiceId_task()`.
-/// For the simplest API, use `delete_v1_compute_services_computeServiceId()`.
+/// For task-level control, use `delete_v1_compute_services_by_compute_service_id_task()`.
+/// For the simplest API, use `delete_v1_compute_services_by_compute_service_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_computeServiceId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_by_compute_service_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_compute_services_computeServiceId_execute(
+pub fn delete_v1_compute_services_by_compute_service_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_compute_services_computeServiceId_task(builder)?;
+    let task = delete_v1_compute_services_by_compute_service_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_compute_services_computeServiceId`].
+/// Arguments for [`delete_v1_compute_services_by_compute_service_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1ComputeServicesComputeServiceIdArgs {
+pub struct DeleteV1ComputeServicesByComputeServiceIdArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
 }
@@ -1486,36 +1515,39 @@ pub struct DeleteV1ComputeServicesComputeServiceIdArgs {
 /// Delete compute service
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_compute_services_computeServiceId_builder()` + `delete_v1_compute_services_computeServiceId_execute()`.
-/// For task-level control, use `delete_v1_compute_services_computeServiceId_task()`.
+/// For customization, use `delete_v1_compute_services_by_compute_service_id_builder()` + `delete_v1_compute_services_by_compute_service_id_execute()`.
+/// For task-level control, use `delete_v1_compute_services_by_compute_service_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_compute_services_computeServiceId(
+pub fn delete_v1_compute_services_by_compute_service_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1ComputeServicesComputeServiceIdArgs,
+    args: &DeleteV1ComputeServicesByComputeServiceIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        delete_v1_compute_services_computeServiceId_builder(client, &args.computeServiceId)?;
-    delete_v1_compute_services_computeServiceId_execute(builder)
+        delete_v1_compute_services_by_compute_service_id_builder(client, &args.computeServiceId)?;
+    delete_v1_compute_services_by_compute_service_id_execute(builder)
 }
 
 /// POST /v1/compute-services/{computeServiceId}/promote
 /// Promote compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_compute_services_computeServiceId_promote_execute()` to send, or `post_v1_compute_services_computeServiceId_promote` for simplest API.
+/// Use `post_v1_compute_services_by_compute_service_id_promote_execute()` to send, or `post_v1_compute_services_by_compute_service_id_promote` for simplest API.
 
-pub fn post_v1_compute_services_computeServiceId_promote_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_compute_services_by_compute_service_id_promote_builder<R>(
+    client: &SimpleHttpClient<R>,
     computeServiceId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ComputeservicesPromotePostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/promote",
@@ -1543,17 +1575,17 @@ pub fn post_v1_compute_services_computeServiceId_promote_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_compute_services_computeServiceId_promote_execute()` or `post_v1_compute_services_computeServiceId_promote`.
+/// For direct execution, use `post_v1_compute_services_by_compute_service_id_promote_execute()` or `post_v1_compute_services_by_compute_service_id_promote`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_promote_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_by_compute_service_id_promote_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_computeServiceId_promote_task(
+pub fn post_v1_compute_services_by_compute_service_id_promote_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1612,21 +1644,21 @@ pub fn post_v1_compute_services_computeServiceId_promote_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_compute_services_computeServiceId_promote_builder()` to create the builder,
+/// For full customization, use `post_v1_compute_services_by_compute_service_id_promote_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_compute_services_computeServiceId_promote_task()`.
-/// For the simplest API, use `post_v1_compute_services_computeServiceId_promote()`.
+/// For task-level control, use `post_v1_compute_services_by_compute_service_id_promote_task()`.
+/// For the simplest API, use `post_v1_compute_services_by_compute_service_id_promote()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_promote_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_by_compute_service_id_promote_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_compute_services_computeServiceId_promote_execute(
+pub fn post_v1_compute_services_by_compute_service_id_promote_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -1636,33 +1668,33 @@ pub fn post_v1_compute_services_computeServiceId_promote_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_compute_services_computeServiceId_promote_task(builder)?;
+    let task = post_v1_compute_services_by_compute_service_id_promote_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_compute_services_computeServiceId_promote`].
+/// Arguments for [`post_v1_compute_services_by_compute_service_id_promote`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ComputeServicesComputeServiceIdPromoteArgs {
+pub struct PostV1ComputeServicesByComputeServiceIdPromoteArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ComputeservicesPromotePostRequest,
 }
 
 /// POST /v1/compute-services/{computeServiceId}/promote
 /// Promote compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_compute_services_computeServiceId_promote_builder()` + `post_v1_compute_services_computeServiceId_promote_execute()`.
-/// For task-level control, use `post_v1_compute_services_computeServiceId_promote_task()`.
+/// For customization, use `post_v1_compute_services_by_compute_service_id_promote_builder()` + `post_v1_compute_services_by_compute_service_id_promote_execute()`.
+/// For task-level control, use `post_v1_compute_services_by_compute_service_id_promote_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_computeServiceId_promote(
+pub fn post_v1_compute_services_by_compute_service_id_promote(
     client: &SimpleHttpClient,
-    args: &PostV1ComputeServicesComputeServiceIdPromoteArgs,
+    args: &PostV1ComputeServicesByComputeServiceIdPromoteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeservicesPromotePostResponse>, ApiError>,
@@ -1671,26 +1703,29 @@ pub fn post_v1_compute_services_computeServiceId_promote(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_compute_services_computeServiceId_promote_builder(
+    let builder = post_v1_compute_services_by_compute_service_id_promote_builder(
         client,
         &args.computeServiceId,
         &args.body,
     )?;
-    post_v1_compute_services_computeServiceId_promote_execute(builder)
+    post_v1_compute_services_by_compute_service_id_promote_execute(builder)
 }
 
 /// GET /v1/compute-services/{computeServiceId}/versions
 /// List compute versions
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_compute_services_computeServiceId_versions_execute()` to send, or `get_v1_compute_services_computeServiceId_versions` for simplest API.
+/// Use `get_v1_compute_services_by_compute_service_id_versions_execute()` to send, or `get_v1_compute_services_by_compute_service_id_versions` for simplest API.
 
-pub fn get_v1_compute_services_computeServiceId_versions_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_compute_services_by_compute_service_id_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
     computeServiceId: &String,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/versions",
@@ -1730,17 +1765,17 @@ pub fn get_v1_compute_services_computeServiceId_versions_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_compute_services_computeServiceId_versions_execute()` or `get_v1_compute_services_computeServiceId_versions`.
+/// For direct execution, use `get_v1_compute_services_by_compute_service_id_versions_execute()` or `get_v1_compute_services_by_compute_service_id_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_versions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_by_compute_service_id_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_computeServiceId_versions_task(
+pub fn get_v1_compute_services_by_compute_service_id_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1799,21 +1834,21 @@ pub fn get_v1_compute_services_computeServiceId_versions_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_compute_services_computeServiceId_versions_builder()` to create the builder,
+/// For full customization, use `get_v1_compute_services_by_compute_service_id_versions_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_compute_services_computeServiceId_versions_task()`.
-/// For the simplest API, use `get_v1_compute_services_computeServiceId_versions()`.
+/// For task-level control, use `get_v1_compute_services_by_compute_service_id_versions_task()`.
+/// For the simplest API, use `get_v1_compute_services_by_compute_service_id_versions()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_versions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_by_compute_service_id_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_compute_services_computeServiceId_versions_execute(
+pub fn get_v1_compute_services_by_compute_service_id_versions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -1823,35 +1858,35 @@ pub fn get_v1_compute_services_computeServiceId_versions_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_compute_services_computeServiceId_versions_task(builder)?;
+    let task = get_v1_compute_services_by_compute_service_id_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_compute_services_computeServiceId_versions`].
+/// Arguments for [`get_v1_compute_services_by_compute_service_id_versions`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1ComputeServicesComputeServiceIdVersionsArgs {
+pub struct GetV1ComputeServicesByComputeServiceIdVersionsArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/compute-services/{computeServiceId}/versions
 /// List compute versions
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_compute_services_computeServiceId_versions_builder()` + `get_v1_compute_services_computeServiceId_versions_execute()`.
-/// For task-level control, use `get_v1_compute_services_computeServiceId_versions_task()`.
+/// For customization, use `get_v1_compute_services_by_compute_service_id_versions_builder()` + `get_v1_compute_services_by_compute_service_id_versions_execute()`.
+/// For task-level control, use `get_v1_compute_services_by_compute_service_id_versions_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_computeServiceId_versions(
+pub fn get_v1_compute_services_by_compute_service_id_versions(
     client: &SimpleHttpClient,
-    args: &GetV1ComputeServicesComputeServiceIdVersionsArgs,
+    args: &GetV1ComputeServicesByComputeServiceIdVersionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
@@ -1860,26 +1895,29 @@ pub fn get_v1_compute_services_computeServiceId_versions(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_compute_services_computeServiceId_versions_builder(
+    let builder = get_v1_compute_services_by_compute_service_id_versions_builder(
         client,
         &args.computeServiceId,
         &args.cursor,
         &args.limit,
     )?;
-    get_v1_compute_services_computeServiceId_versions_execute(builder)
+    get_v1_compute_services_by_compute_service_id_versions_execute(builder)
 }
 
 /// POST /v1/compute-services/{computeServiceId}/versions
 /// Create compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_compute_services_computeServiceId_versions_execute()` to send, or `post_v1_compute_services_computeServiceId_versions` for simplest API.
+/// Use `post_v1_compute_services_by_compute_service_id_versions_execute()` to send, or `post_v1_compute_services_by_compute_service_id_versions` for simplest API.
 
-pub fn post_v1_compute_services_computeServiceId_versions_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_compute_services_by_compute_service_id_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
     computeServiceId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ComputeservicesVersionsPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/versions",
@@ -1907,17 +1945,17 @@ pub fn post_v1_compute_services_computeServiceId_versions_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_compute_services_computeServiceId_versions_execute()` or `post_v1_compute_services_computeServiceId_versions`.
+/// For direct execution, use `post_v1_compute_services_by_compute_service_id_versions_execute()` or `post_v1_compute_services_by_compute_service_id_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_versions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_by_compute_service_id_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_computeServiceId_versions_task(
+pub fn post_v1_compute_services_by_compute_service_id_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1976,21 +2014,21 @@ pub fn post_v1_compute_services_computeServiceId_versions_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_compute_services_computeServiceId_versions_builder()` to create the builder,
+/// For full customization, use `post_v1_compute_services_by_compute_service_id_versions_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_compute_services_computeServiceId_versions_task()`.
-/// For the simplest API, use `post_v1_compute_services_computeServiceId_versions()`.
+/// For task-level control, use `post_v1_compute_services_by_compute_service_id_versions_task()`.
+/// For the simplest API, use `post_v1_compute_services_by_compute_service_id_versions()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_versions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_by_compute_service_id_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_compute_services_computeServiceId_versions_execute(
+pub fn post_v1_compute_services_by_compute_service_id_versions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -2000,33 +2038,33 @@ pub fn post_v1_compute_services_computeServiceId_versions_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_compute_services_computeServiceId_versions_task(builder)?;
+    let task = post_v1_compute_services_by_compute_service_id_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_compute_services_computeServiceId_versions`].
+/// Arguments for [`post_v1_compute_services_by_compute_service_id_versions`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ComputeServicesComputeServiceIdVersionsArgs {
+pub struct PostV1ComputeServicesByComputeServiceIdVersionsArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ComputeservicesVersionsPostRequest,
 }
 
 /// POST /v1/compute-services/{computeServiceId}/versions
 /// Create compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_compute_services_computeServiceId_versions_builder()` + `post_v1_compute_services_computeServiceId_versions_execute()`.
-/// For task-level control, use `post_v1_compute_services_computeServiceId_versions_task()`.
+/// For customization, use `post_v1_compute_services_by_compute_service_id_versions_builder()` + `post_v1_compute_services_by_compute_service_id_versions_execute()`.
+/// For task-level control, use `post_v1_compute_services_by_compute_service_id_versions_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_computeServiceId_versions(
+pub fn post_v1_compute_services_by_compute_service_id_versions(
     client: &SimpleHttpClient,
-    args: &PostV1ComputeServicesComputeServiceIdVersionsArgs,
+    args: &PostV1ComputeServicesByComputeServiceIdVersionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeservicesVersionsPostResponse>, ApiError>,
@@ -2035,12 +2073,12 @@ pub fn post_v1_compute_services_computeServiceId_versions(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_compute_services_computeServiceId_versions_builder(
+    let builder = post_v1_compute_services_by_compute_service_id_versions_builder(
         client,
         &args.computeServiceId,
         &args.body,
     )?;
-    post_v1_compute_services_computeServiceId_versions_execute(builder)
+    post_v1_compute_services_by_compute_service_id_versions_execute(builder)
 }
 
 /// GET /v1/connections
@@ -2049,12 +2087,15 @@ pub fn post_v1_compute_services_computeServiceId_versions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_connections_execute()` to send, or `get_v1_connections` for simplest API.
 
-pub fn get_v1_connections_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-    databaseId: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_connections_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    databaseId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/connections",);
 
@@ -2193,11 +2234,11 @@ pub fn get_v1_connections_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1ConnectionsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: databaseId
-    pub databaseId: Option<String>,
+    pub databaseId: Option<Option<String>>,
 }
 
 /// GET /v1/connections
@@ -2230,10 +2271,13 @@ pub fn get_v1_connections(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `post_v1_connections_execute()` to send, or `post_v1_connections` for simplest API.
 
-pub fn post_v1_connections_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn post_v1_connections_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &ConnectionsPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/connections",);
 
@@ -2357,7 +2401,7 @@ pub fn post_v1_connections_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1ConnectionsArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ConnectionsPostRequest,
 }
 
 /// POST /v1/connections
@@ -2388,12 +2432,15 @@ pub fn post_v1_connections(
 /// Get connection
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_connections_id_execute()` to send, or `get_v1_connections_id` for simplest API.
+/// Use `get_v1_connections_by_id_execute()` to send, or `get_v1_connections_by_id` for simplest API.
 
-pub fn get_v1_connections_id_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_connections_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id,);
 
@@ -2416,17 +2463,17 @@ pub fn get_v1_connections_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_connections_id_execute()` or `get_v1_connections_id`.
+/// For direct execution, use `get_v1_connections_by_id_execute()` or `get_v1_connections_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_connections_id_task(
+pub fn get_v1_connections_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2485,21 +2532,21 @@ pub fn get_v1_connections_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_connections_id_builder()` to create the builder,
+/// For full customization, use `get_v1_connections_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_connections_id_task()`.
-/// For the simplest API, use `get_v1_connections_id()`.
+/// For task-level control, use `get_v1_connections_by_id_task()`.
+/// For the simplest API, use `get_v1_connections_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_connections_id_execute(
+pub fn get_v1_connections_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
@@ -2507,13 +2554,13 @@ pub fn get_v1_connections_id_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_connections_id_task(builder)?;
+    let task = get_v1_connections_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_connections_id`].
+/// Arguments for [`get_v1_connections_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1ConnectionsIdArgs {
+pub struct GetV1ConnectionsByIdArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -2522,36 +2569,39 @@ pub struct GetV1ConnectionsIdArgs {
 /// Get connection
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_connections_id_builder()` + `get_v1_connections_id_execute()`.
-/// For task-level control, use `get_v1_connections_id_task()`.
+/// For customization, use `get_v1_connections_by_id_builder()` + `get_v1_connections_by_id_execute()`.
+/// For task-level control, use `get_v1_connections_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_connections_id(
+pub fn get_v1_connections_by_id(
     client: &SimpleHttpClient,
-    args: &GetV1ConnectionsIdArgs,
+    args: &GetV1ConnectionsByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_connections_id_builder(client, &args.id)?;
-    get_v1_connections_id_execute(builder)
+    let builder = get_v1_connections_by_id_builder(client, &args.id)?;
+    get_v1_connections_by_id_execute(builder)
 }
 
 /// DELETE /v1/connections/{id}
 /// Delete connection
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_connections_id_execute()` to send, or `delete_v1_connections_id` for simplest API.
+/// Use `delete_v1_connections_by_id_execute()` to send, or `delete_v1_connections_by_id` for simplest API.
 
-pub fn delete_v1_connections_id_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_connections_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id,);
 
@@ -2574,17 +2624,17 @@ pub fn delete_v1_connections_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_connections_id_execute()` or `delete_v1_connections_id`.
+/// For direct execution, use `delete_v1_connections_by_id_execute()` or `delete_v1_connections_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_connections_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_connections_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_connections_id_task(
+pub fn delete_v1_connections_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2640,33 +2690,33 @@ pub fn delete_v1_connections_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_connections_id_builder()` to create the builder,
+/// For full customization, use `delete_v1_connections_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_connections_id_task()`.
-/// For the simplest API, use `delete_v1_connections_id()`.
+/// For task-level control, use `delete_v1_connections_by_id_task()`.
+/// For the simplest API, use `delete_v1_connections_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_connections_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_connections_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_connections_id_execute(
+pub fn delete_v1_connections_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_connections_id_task(builder)?;
+    let task = delete_v1_connections_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_connections_id`].
+/// Arguments for [`delete_v1_connections_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1ConnectionsIdArgs {
+pub struct DeleteV1ConnectionsByIdArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -2675,34 +2725,37 @@ pub struct DeleteV1ConnectionsIdArgs {
 /// Delete connection
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_connections_id_builder()` + `delete_v1_connections_id_execute()`.
-/// For task-level control, use `delete_v1_connections_id_task()`.
+/// For customization, use `delete_v1_connections_by_id_builder()` + `delete_v1_connections_by_id_execute()`.
+/// For task-level control, use `delete_v1_connections_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_connections_id(
+pub fn delete_v1_connections_by_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1ConnectionsIdArgs,
+    args: &DeleteV1ConnectionsByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_connections_id_builder(client, &args.id)?;
-    delete_v1_connections_id_execute(builder)
+    let builder = delete_v1_connections_by_id_builder(client, &args.id)?;
+    delete_v1_connections_by_id_execute(builder)
 }
 
 /// POST /v1/connections/{id}/rotate
 /// Rotate connection credentials
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_connections_id_rotate_execute()` to send, or `post_v1_connections_id_rotate` for simplest API.
+/// Use `post_v1_connections_by_id_rotate_execute()` to send, or `post_v1_connections_by_id_rotate` for simplest API.
 
-pub fn post_v1_connections_id_rotate_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_connections_by_id_rotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/connections/{}/rotate", id,);
 
@@ -2725,17 +2778,17 @@ pub fn post_v1_connections_id_rotate_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_connections_id_rotate_execute()` or `post_v1_connections_id_rotate`.
+/// For direct execution, use `post_v1_connections_by_id_rotate_execute()` or `post_v1_connections_by_id_rotate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_id_rotate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_by_id_rotate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_connections_id_rotate_task(
+pub fn post_v1_connections_by_id_rotate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2794,21 +2847,21 @@ pub fn post_v1_connections_id_rotate_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_connections_id_rotate_builder()` to create the builder,
+/// For full customization, use `post_v1_connections_by_id_rotate_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_connections_id_rotate_task()`.
-/// For the simplest API, use `post_v1_connections_id_rotate()`.
+/// For task-level control, use `post_v1_connections_by_id_rotate_task()`.
+/// For the simplest API, use `post_v1_connections_by_id_rotate()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_id_rotate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_by_id_rotate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_connections_id_rotate_execute(
+pub fn post_v1_connections_by_id_rotate_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -2818,13 +2871,13 @@ pub fn post_v1_connections_id_rotate_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_connections_id_rotate_task(builder)?;
+    let task = post_v1_connections_by_id_rotate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_connections_id_rotate`].
+/// Arguments for [`post_v1_connections_by_id_rotate`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ConnectionsIdRotateArgs {
+pub struct PostV1ConnectionsByIdRotateArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -2833,16 +2886,16 @@ pub struct PostV1ConnectionsIdRotateArgs {
 /// Rotate connection credentials
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_connections_id_rotate_builder()` + `post_v1_connections_id_rotate_execute()`.
-/// For task-level control, use `post_v1_connections_id_rotate_task()`.
+/// For customization, use `post_v1_connections_by_id_rotate_builder()` + `post_v1_connections_by_id_rotate_execute()`.
+/// For task-level control, use `post_v1_connections_by_id_rotate_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_connections_id_rotate(
+pub fn post_v1_connections_by_id_rotate(
     client: &SimpleHttpClient,
-    args: &PostV1ConnectionsIdRotateArgs,
+    args: &PostV1ConnectionsByIdRotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ConnectionsRotatePostResponse>, ApiError>,
@@ -2851,8 +2904,8 @@ pub fn post_v1_connections_id_rotate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_connections_id_rotate_builder(client, &args.id)?;
-    post_v1_connections_id_rotate_execute(builder)
+    let builder = post_v1_connections_by_id_rotate_builder(client, &args.id)?;
+    post_v1_connections_by_id_rotate_execute(builder)
 }
 
 /// GET /v1/databases
@@ -2861,12 +2914,15 @@ pub fn post_v1_connections_id_rotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_databases_execute()` to send, or `get_v1_databases` for simplest API.
 
-pub fn get_v1_databases_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-    projectId: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_databases_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    projectId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases",);
 
@@ -3005,11 +3061,11 @@ pub fn get_v1_databases_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1DatabasesArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: projectId
-    pub projectId: Option<String>,
+    pub projectId: Option<Option<String>>,
 }
 
 /// GET /v1/databases
@@ -3042,10 +3098,13 @@ pub fn get_v1_databases(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `post_v1_databases_execute()` to send, or `post_v1_databases` for simplest API.
 
-pub fn post_v1_databases_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn post_v1_databases_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &DatabasesPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases",);
 
@@ -3169,7 +3228,7 @@ pub fn post_v1_databases_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1DatabasesArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: DatabasesPostRequest,
 }
 
 /// POST /v1/databases
@@ -3200,12 +3259,15 @@ pub fn post_v1_databases(
 /// Get database
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_databases_databaseId_execute()` to send, or `get_v1_databases_databaseId` for simplest API.
+/// Use `get_v1_databases_by_database_id_execute()` to send, or `get_v1_databases_by_database_id` for simplest API.
 
-pub fn get_v1_databases_databaseId_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_databases_by_database_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
 
@@ -3228,17 +3290,17 @@ pub fn get_v1_databases_databaseId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_databases_databaseId_execute()` or `get_v1_databases_databaseId`.
+/// For direct execution, use `get_v1_databases_by_database_id_execute()` or `get_v1_databases_by_database_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_task(
+pub fn get_v1_databases_by_database_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3297,21 +3359,21 @@ pub fn get_v1_databases_databaseId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_databases_databaseId_builder()` to create the builder,
+/// For full customization, use `get_v1_databases_by_database_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_databases_databaseId_task()`.
-/// For the simplest API, use `get_v1_databases_databaseId()`.
+/// For task-level control, use `get_v1_databases_by_database_id_task()`.
+/// For the simplest API, use `get_v1_databases_by_database_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_databases_databaseId_execute(
+pub fn get_v1_databases_by_database_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
@@ -3319,13 +3381,13 @@ pub fn get_v1_databases_databaseId_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_databases_databaseId_task(builder)?;
+    let task = get_v1_databases_by_database_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_databases_databaseId`].
+/// Arguments for [`get_v1_databases_by_database_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1DatabasesDatabaseIdArgs {
+pub struct GetV1DatabasesByDatabaseIdArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
 }
@@ -3334,37 +3396,40 @@ pub struct GetV1DatabasesDatabaseIdArgs {
 /// Get database
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_databases_databaseId_builder()` + `get_v1_databases_databaseId_execute()`.
-/// For task-level control, use `get_v1_databases_databaseId_task()`.
+/// For customization, use `get_v1_databases_by_database_id_builder()` + `get_v1_databases_by_database_id_execute()`.
+/// For task-level control, use `get_v1_databases_by_database_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId(
+pub fn get_v1_databases_by_database_id(
     client: &SimpleHttpClient,
-    args: &GetV1DatabasesDatabaseIdArgs,
+    args: &GetV1DatabasesByDatabaseIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_databases_databaseId_builder(client, &args.databaseId)?;
-    get_v1_databases_databaseId_execute(builder)
+    let builder = get_v1_databases_by_database_id_builder(client, &args.databaseId)?;
+    get_v1_databases_by_database_id_execute(builder)
 }
 
 /// PATCH /v1/databases/{databaseId}
 /// Update database
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `patch_v1_databases_databaseId_execute()` to send, or `patch_v1_databases_databaseId` for simplest API.
+/// Use `patch_v1_databases_by_database_id_execute()` to send, or `patch_v1_databases_by_database_id` for simplest API.
 
-pub fn patch_v1_databases_databaseId_builder(
-    client: &SimpleHttpClient,
+pub fn patch_v1_databases_by_database_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &DatabasesPatchRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
 
@@ -3389,17 +3454,17 @@ pub fn patch_v1_databases_databaseId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `patch_v1_databases_databaseId_execute()` or `patch_v1_databases_databaseId`.
+/// For direct execution, use `patch_v1_databases_by_database_id_execute()` or `patch_v1_databases_by_database_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_databases_databaseId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_databases_by_database_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_databases_databaseId_task(
+pub fn patch_v1_databases_by_database_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3458,21 +3523,21 @@ pub fn patch_v1_databases_databaseId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `patch_v1_databases_databaseId_builder()` to create the builder,
+/// For full customization, use `patch_v1_databases_by_database_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `patch_v1_databases_databaseId_task()`.
-/// For the simplest API, use `patch_v1_databases_databaseId()`.
+/// For task-level control, use `patch_v1_databases_by_database_id_task()`.
+/// For the simplest API, use `patch_v1_databases_by_database_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_databases_databaseId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_databases_by_database_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn patch_v1_databases_databaseId_execute(
+pub fn patch_v1_databases_by_database_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabasesPatchResponse>, ApiError>, P = ApiPending>
@@ -3480,53 +3545,56 @@ pub fn patch_v1_databases_databaseId_execute(
         + 'static,
     ApiError,
 > {
-    let task = patch_v1_databases_databaseId_task(builder)?;
+    let task = patch_v1_databases_by_database_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`patch_v1_databases_databaseId`].
+/// Arguments for [`patch_v1_databases_by_database_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PatchV1DatabasesDatabaseIdArgs {
+pub struct PatchV1DatabasesByDatabaseIdArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: DatabasesPatchRequest,
 }
 
 /// PATCH /v1/databases/{databaseId}
 /// Update database
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `patch_v1_databases_databaseId_builder()` + `patch_v1_databases_databaseId_execute()`.
-/// For task-level control, use `patch_v1_databases_databaseId_task()`.
+/// For customization, use `patch_v1_databases_by_database_id_builder()` + `patch_v1_databases_by_database_id_execute()`.
+/// For task-level control, use `patch_v1_databases_by_database_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_databases_databaseId(
+pub fn patch_v1_databases_by_database_id(
     client: &SimpleHttpClient,
-    args: &PatchV1DatabasesDatabaseIdArgs,
+    args: &PatchV1DatabasesByDatabaseIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabasesPatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_databases_databaseId_builder(client, &args.databaseId, &args.body)?;
-    patch_v1_databases_databaseId_execute(builder)
+    let builder = patch_v1_databases_by_database_id_builder(client, &args.databaseId, &args.body)?;
+    patch_v1_databases_by_database_id_execute(builder)
 }
 
 /// DELETE /v1/databases/{databaseId}
 /// Delete database
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_databases_databaseId_execute()` to send, or `delete_v1_databases_databaseId` for simplest API.
+/// Use `delete_v1_databases_by_database_id_execute()` to send, or `delete_v1_databases_by_database_id` for simplest API.
 
-pub fn delete_v1_databases_databaseId_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_databases_by_database_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
 
@@ -3549,17 +3617,17 @@ pub fn delete_v1_databases_databaseId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_databases_databaseId_execute()` or `delete_v1_databases_databaseId`.
+/// For direct execution, use `delete_v1_databases_by_database_id_execute()` or `delete_v1_databases_by_database_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_databases_databaseId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_databases_by_database_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_databases_databaseId_task(
+pub fn delete_v1_databases_by_database_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3615,33 +3683,33 @@ pub fn delete_v1_databases_databaseId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_databases_databaseId_builder()` to create the builder,
+/// For full customization, use `delete_v1_databases_by_database_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_databases_databaseId_task()`.
-/// For the simplest API, use `delete_v1_databases_databaseId()`.
+/// For task-level control, use `delete_v1_databases_by_database_id_task()`.
+/// For the simplest API, use `delete_v1_databases_by_database_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_databases_databaseId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_databases_by_database_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_databases_databaseId_execute(
+pub fn delete_v1_databases_by_database_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_databases_databaseId_task(builder)?;
+    let task = delete_v1_databases_by_database_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_databases_databaseId`].
+/// Arguments for [`delete_v1_databases_by_database_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1DatabasesDatabaseIdArgs {
+pub struct DeleteV1DatabasesByDatabaseIdArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
 }
@@ -3650,35 +3718,38 @@ pub struct DeleteV1DatabasesDatabaseIdArgs {
 /// Delete database
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_databases_databaseId_builder()` + `delete_v1_databases_databaseId_execute()`.
-/// For task-level control, use `delete_v1_databases_databaseId_task()`.
+/// For customization, use `delete_v1_databases_by_database_id_builder()` + `delete_v1_databases_by_database_id_execute()`.
+/// For task-level control, use `delete_v1_databases_by_database_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_databases_databaseId(
+pub fn delete_v1_databases_by_database_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1DatabasesDatabaseIdArgs,
+    args: &DeleteV1DatabasesByDatabaseIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_databases_databaseId_builder(client, &args.databaseId)?;
-    delete_v1_databases_databaseId_execute(builder)
+    let builder = delete_v1_databases_by_database_id_builder(client, &args.databaseId)?;
+    delete_v1_databases_by_database_id_execute(builder)
 }
 
 /// GET /v1/databases/{databaseId}/backups
 /// Get list of backups
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_databases_databaseId_backups_execute()` to send, or `get_v1_databases_databaseId_backups` for simplest API.
+/// Use `get_v1_databases_by_database_id_backups_execute()` to send, or `get_v1_databases_by_database_id_backups` for simplest API.
 
-pub fn get_v1_databases_databaseId_backups_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_databases_by_database_id_backups_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseId: &String,
-    limit: &Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases/{}/backups", databaseId,);
 
@@ -3712,17 +3783,17 @@ pub fn get_v1_databases_databaseId_backups_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_databases_databaseId_backups_execute()` or `get_v1_databases_databaseId_backups`.
+/// For direct execution, use `get_v1_databases_by_database_id_backups_execute()` or `get_v1_databases_by_database_id_backups`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_backups_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_backups_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_backups_task(
+pub fn get_v1_databases_by_database_id_backups_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3781,21 +3852,21 @@ pub fn get_v1_databases_databaseId_backups_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_databases_databaseId_backups_builder()` to create the builder,
+/// For full customization, use `get_v1_databases_by_database_id_backups_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_databases_databaseId_backups_task()`.
-/// For the simplest API, use `get_v1_databases_databaseId_backups()`.
+/// For task-level control, use `get_v1_databases_by_database_id_backups_task()`.
+/// For the simplest API, use `get_v1_databases_by_database_id_backups()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_backups_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_backups_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_databases_databaseId_backups_execute(
+pub fn get_v1_databases_by_database_id_backups_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -3805,33 +3876,33 @@ pub fn get_v1_databases_databaseId_backups_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_databases_databaseId_backups_task(builder)?;
+    let task = get_v1_databases_by_database_id_backups_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_databases_databaseId_backups`].
+/// Arguments for [`get_v1_databases_by_database_id_backups`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1DatabasesDatabaseIdBackupsArgs {
+pub struct GetV1DatabasesByDatabaseIdBackupsArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/databases/{databaseId}/backups
 /// Get list of backups
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_databases_databaseId_backups_builder()` + `get_v1_databases_databaseId_backups_execute()`.
-/// For task-level control, use `get_v1_databases_databaseId_backups_task()`.
+/// For customization, use `get_v1_databases_by_database_id_backups_builder()` + `get_v1_databases_by_database_id_backups_execute()`.
+/// For task-level control, use `get_v1_databases_by_database_id_backups_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_backups(
+pub fn get_v1_databases_by_database_id_backups(
     client: &SimpleHttpClient,
-    args: &GetV1DatabasesDatabaseIdBackupsArgs,
+    args: &GetV1DatabasesByDatabaseIdBackupsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatabasesBackupsGetResponse>, ApiError>,
@@ -3841,22 +3912,25 @@ pub fn get_v1_databases_databaseId_backups(
     ApiError,
 > {
     let builder =
-        get_v1_databases_databaseId_backups_builder(client, &args.databaseId, &args.limit)?;
-    get_v1_databases_databaseId_backups_execute(builder)
+        get_v1_databases_by_database_id_backups_builder(client, &args.databaseId, &args.limit)?;
+    get_v1_databases_by_database_id_backups_execute(builder)
 }
 
 /// GET /v1/databases/{databaseId}/connections
 /// Get list of database connections
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_databases_databaseId_connections_execute()` to send, or `get_v1_databases_databaseId_connections` for simplest API.
+/// Use `get_v1_databases_by_database_id_connections_execute()` to send, or `get_v1_databases_by_database_id_connections` for simplest API.
 
-pub fn get_v1_databases_databaseId_connections_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_databases_by_database_id_connections_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseId: &String,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/connections",
@@ -3896,17 +3970,17 @@ pub fn get_v1_databases_databaseId_connections_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_databases_databaseId_connections_execute()` or `get_v1_databases_databaseId_connections`.
+/// For direct execution, use `get_v1_databases_by_database_id_connections_execute()` or `get_v1_databases_by_database_id_connections`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_connections_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_connections_task(
+pub fn get_v1_databases_by_database_id_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3965,21 +4039,21 @@ pub fn get_v1_databases_databaseId_connections_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_databases_databaseId_connections_builder()` to create the builder,
+/// For full customization, use `get_v1_databases_by_database_id_connections_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_databases_databaseId_connections_task()`.
-/// For the simplest API, use `get_v1_databases_databaseId_connections()`.
+/// For task-level control, use `get_v1_databases_by_database_id_connections_task()`.
+/// For the simplest API, use `get_v1_databases_by_database_id_connections()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_connections_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_databases_databaseId_connections_execute(
+pub fn get_v1_databases_by_database_id_connections_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -3989,35 +4063,35 @@ pub fn get_v1_databases_databaseId_connections_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_databases_databaseId_connections_task(builder)?;
+    let task = get_v1_databases_by_database_id_connections_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_databases_databaseId_connections`].
+/// Arguments for [`get_v1_databases_by_database_id_connections`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1DatabasesDatabaseIdConnectionsArgs {
+pub struct GetV1DatabasesByDatabaseIdConnectionsArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/databases/{databaseId}/connections
 /// Get list of database connections
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_databases_databaseId_connections_builder()` + `get_v1_databases_databaseId_connections_execute()`.
-/// For task-level control, use `get_v1_databases_databaseId_connections_task()`.
+/// For customization, use `get_v1_databases_by_database_id_connections_builder()` + `get_v1_databases_by_database_id_connections_execute()`.
+/// For task-level control, use `get_v1_databases_by_database_id_connections_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_connections(
+pub fn get_v1_databases_by_database_id_connections(
     client: &SimpleHttpClient,
-    args: &GetV1DatabasesDatabaseIdConnectionsArgs,
+    args: &GetV1DatabasesByDatabaseIdConnectionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatabasesConnectionsGetResponse>, ApiError>,
@@ -4026,26 +4100,29 @@ pub fn get_v1_databases_databaseId_connections(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_databases_databaseId_connections_builder(
+    let builder = get_v1_databases_by_database_id_connections_builder(
         client,
         &args.databaseId,
         &args.cursor,
         &args.limit,
     )?;
-    get_v1_databases_databaseId_connections_execute(builder)
+    get_v1_databases_by_database_id_connections_execute(builder)
 }
 
 /// POST /v1/databases/{databaseId}/connections
 /// Create database connection string
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_databases_databaseId_connections_execute()` to send, or `post_v1_databases_databaseId_connections` for simplest API.
+/// Use `post_v1_databases_by_database_id_connections_execute()` to send, or `post_v1_databases_by_database_id_connections` for simplest API.
 
-pub fn post_v1_databases_databaseId_connections_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_databases_by_database_id_connections_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &DatabasesConnectionsPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/connections",
@@ -4073,17 +4150,17 @@ pub fn post_v1_databases_databaseId_connections_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_databases_databaseId_connections_execute()` or `post_v1_databases_databaseId_connections`.
+/// For direct execution, use `post_v1_databases_by_database_id_connections_execute()` or `post_v1_databases_by_database_id_connections`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_databaseId_connections_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_by_database_id_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_databases_databaseId_connections_task(
+pub fn post_v1_databases_by_database_id_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4142,21 +4219,21 @@ pub fn post_v1_databases_databaseId_connections_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_databases_databaseId_connections_builder()` to create the builder,
+/// For full customization, use `post_v1_databases_by_database_id_connections_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_databases_databaseId_connections_task()`.
-/// For the simplest API, use `post_v1_databases_databaseId_connections()`.
+/// For task-level control, use `post_v1_databases_by_database_id_connections_task()`.
+/// For the simplest API, use `post_v1_databases_by_database_id_connections()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_databaseId_connections_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_by_database_id_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_databases_databaseId_connections_execute(
+pub fn post_v1_databases_by_database_id_connections_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -4166,33 +4243,33 @@ pub fn post_v1_databases_databaseId_connections_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_databases_databaseId_connections_task(builder)?;
+    let task = post_v1_databases_by_database_id_connections_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_databases_databaseId_connections`].
+/// Arguments for [`post_v1_databases_by_database_id_connections`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1DatabasesDatabaseIdConnectionsArgs {
+pub struct PostV1DatabasesByDatabaseIdConnectionsArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: DatabasesConnectionsPostRequest,
 }
 
 /// POST /v1/databases/{databaseId}/connections
 /// Create database connection string
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_databases_databaseId_connections_builder()` + `post_v1_databases_databaseId_connections_execute()`.
-/// For task-level control, use `post_v1_databases_databaseId_connections_task()`.
+/// For customization, use `post_v1_databases_by_database_id_connections_builder()` + `post_v1_databases_by_database_id_connections_execute()`.
+/// For task-level control, use `post_v1_databases_by_database_id_connections_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_databases_databaseId_connections(
+pub fn post_v1_databases_by_database_id_connections(
     client: &SimpleHttpClient,
-    args: &PostV1DatabasesDatabaseIdConnectionsArgs,
+    args: &PostV1DatabasesByDatabaseIdConnectionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatabasesConnectionsPostResponse>, ApiError>,
@@ -4202,22 +4279,25 @@ pub fn post_v1_databases_databaseId_connections(
     ApiError,
 > {
     let builder =
-        post_v1_databases_databaseId_connections_builder(client, &args.databaseId, &args.body)?;
-    post_v1_databases_databaseId_connections_execute(builder)
+        post_v1_databases_by_database_id_connections_builder(client, &args.databaseId, &args.body)?;
+    post_v1_databases_by_database_id_connections_execute(builder)
 }
 
 /// GET /v1/databases/{databaseId}/usage
 /// Get database usage metrics
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_databases_databaseId_usage_execute()` to send, or `get_v1_databases_databaseId_usage` for simplest API.
+/// Use `get_v1_databases_by_database_id_usage_execute()` to send, or `get_v1_databases_by_database_id_usage` for simplest API.
 
-pub fn get_v1_databases_databaseId_usage_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_databases_by_database_id_usage_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseId: &String,
-    startDate: &Option<String>,
-    endDate: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    startDate: &Option<Option<String>>,
+    endDate: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases/{}/usage", databaseId,);
 
@@ -4254,17 +4334,17 @@ pub fn get_v1_databases_databaseId_usage_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_databases_databaseId_usage_execute()` or `get_v1_databases_databaseId_usage`.
+/// For direct execution, use `get_v1_databases_by_database_id_usage_execute()` or `get_v1_databases_by_database_id_usage`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_usage_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_usage_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_usage_task(
+pub fn get_v1_databases_by_database_id_usage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4323,21 +4403,21 @@ pub fn get_v1_databases_databaseId_usage_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_databases_databaseId_usage_builder()` to create the builder,
+/// For full customization, use `get_v1_databases_by_database_id_usage_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_databases_databaseId_usage_task()`.
-/// For the simplest API, use `get_v1_databases_databaseId_usage()`.
+/// For task-level control, use `get_v1_databases_by_database_id_usage_task()`.
+/// For the simplest API, use `get_v1_databases_by_database_id_usage()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_usage_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_by_database_id_usage_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_databases_databaseId_usage_execute(
+pub fn get_v1_databases_by_database_id_usage_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabasesUsageGetResponse>, ApiError>, P = ApiPending>
@@ -4345,61 +4425,64 @@ pub fn get_v1_databases_databaseId_usage_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_databases_databaseId_usage_task(builder)?;
+    let task = get_v1_databases_by_database_id_usage_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_databases_databaseId_usage`].
+/// Arguments for [`get_v1_databases_by_database_id_usage`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1DatabasesDatabaseIdUsageArgs {
+pub struct GetV1DatabasesByDatabaseIdUsageArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Query parameter: startDate
-    pub startDate: Option<String>,
+    pub startDate: Option<Option<String>>,
     /// Query parameter: endDate
-    pub endDate: Option<String>,
+    pub endDate: Option<Option<String>>,
 }
 
 /// GET /v1/databases/{databaseId}/usage
 /// Get database usage metrics
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_databases_databaseId_usage_builder()` + `get_v1_databases_databaseId_usage_execute()`.
-/// For task-level control, use `get_v1_databases_databaseId_usage_task()`.
+/// For customization, use `get_v1_databases_by_database_id_usage_builder()` + `get_v1_databases_by_database_id_usage_execute()`.
+/// For task-level control, use `get_v1_databases_by_database_id_usage_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_usage(
+pub fn get_v1_databases_by_database_id_usage(
     client: &SimpleHttpClient,
-    args: &GetV1DatabasesDatabaseIdUsageArgs,
+    args: &GetV1DatabasesByDatabaseIdUsageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabasesUsageGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_databases_databaseId_usage_builder(
+    let builder = get_v1_databases_by_database_id_usage_builder(
         client,
         &args.databaseId,
         &args.startDate,
         &args.endDate,
     )?;
-    get_v1_databases_databaseId_usage_execute(builder)
+    get_v1_databases_by_database_id_usage_execute(builder)
 }
 
 /// POST /v1/databases/{targetDatabaseId}/restore
 /// Restore database (destructive)
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_databases_targetDatabaseId_restore_execute()` to send, or `post_v1_databases_targetDatabaseId_restore` for simplest API.
+/// Use `post_v1_databases_by_target_database_id_restore_execute()` to send, or `post_v1_databases_by_target_database_id_restore` for simplest API.
 
-pub fn post_v1_databases_targetDatabaseId_restore_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_databases_by_target_database_id_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     targetDatabaseId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &DatabasesRestorePostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/restore",
@@ -4427,17 +4510,17 @@ pub fn post_v1_databases_targetDatabaseId_restore_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_databases_targetDatabaseId_restore_execute()` or `post_v1_databases_targetDatabaseId_restore`.
+/// For direct execution, use `post_v1_databases_by_target_database_id_restore_execute()` or `post_v1_databases_by_target_database_id_restore`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_targetDatabaseId_restore_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_by_target_database_id_restore_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_databases_targetDatabaseId_restore_task(
+pub fn post_v1_databases_by_target_database_id_restore_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4496,21 +4579,21 @@ pub fn post_v1_databases_targetDatabaseId_restore_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_databases_targetDatabaseId_restore_builder()` to create the builder,
+/// For full customization, use `post_v1_databases_by_target_database_id_restore_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_databases_targetDatabaseId_restore_task()`.
-/// For the simplest API, use `post_v1_databases_targetDatabaseId_restore()`.
+/// For task-level control, use `post_v1_databases_by_target_database_id_restore_task()`.
+/// For the simplest API, use `post_v1_databases_by_target_database_id_restore()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_targetDatabaseId_restore_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_by_target_database_id_restore_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_databases_targetDatabaseId_restore_execute(
+pub fn post_v1_databases_by_target_database_id_restore_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -4520,33 +4603,33 @@ pub fn post_v1_databases_targetDatabaseId_restore_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_databases_targetDatabaseId_restore_task(builder)?;
+    let task = post_v1_databases_by_target_database_id_restore_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_databases_targetDatabaseId_restore`].
+/// Arguments for [`post_v1_databases_by_target_database_id_restore`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1DatabasesTargetDatabaseIdRestoreArgs {
+pub struct PostV1DatabasesByTargetDatabaseIdRestoreArgs {
     /// Path parameter: targetDatabaseId
     pub targetDatabaseId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: DatabasesRestorePostRequest,
 }
 
 /// POST /v1/databases/{targetDatabaseId}/restore
 /// Restore database (destructive)
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_databases_targetDatabaseId_restore_builder()` + `post_v1_databases_targetDatabaseId_restore_execute()`.
-/// For task-level control, use `post_v1_databases_targetDatabaseId_restore_task()`.
+/// For customization, use `post_v1_databases_by_target_database_id_restore_builder()` + `post_v1_databases_by_target_database_id_restore_execute()`.
+/// For task-level control, use `post_v1_databases_by_target_database_id_restore_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_databases_targetDatabaseId_restore(
+pub fn post_v1_databases_by_target_database_id_restore(
     client: &SimpleHttpClient,
-    args: &PostV1DatabasesTargetDatabaseIdRestoreArgs,
+    args: &PostV1DatabasesByTargetDatabaseIdRestoreArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatabasesRestorePostResponse>, ApiError>,
@@ -4555,12 +4638,12 @@ pub fn post_v1_databases_targetDatabaseId_restore(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_databases_targetDatabaseId_restore_builder(
+    let builder = post_v1_databases_by_target_database_id_restore_builder(
         client,
         &args.targetDatabaseId,
         &args.body,
     )?;
-    post_v1_databases_targetDatabaseId_restore_execute(builder)
+    post_v1_databases_by_target_database_id_restore_execute(builder)
 }
 
 /// GET /v1/integrations
@@ -4569,12 +4652,15 @@ pub fn post_v1_databases_targetDatabaseId_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_integrations_execute()` to send, or `get_v1_integrations` for simplest API.
 
-pub fn get_v1_integrations_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-    workspaceId: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_integrations_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    workspaceId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/integrations",);
 
@@ -4713,11 +4799,11 @@ pub fn get_v1_integrations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1IntegrationsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: workspaceId
-    pub workspaceId: Option<String>,
+    pub workspaceId: Option<Option<String>>,
 }
 
 /// GET /v1/integrations
@@ -4749,12 +4835,15 @@ pub fn get_v1_integrations(
 /// Get integration by ID
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_integrations_id_execute()` to send, or `get_v1_integrations_id` for simplest API.
+/// Use `get_v1_integrations_by_id_execute()` to send, or `get_v1_integrations_by_id` for simplest API.
 
-pub fn get_v1_integrations_id_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_integrations_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id,);
 
@@ -4777,17 +4866,17 @@ pub fn get_v1_integrations_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_integrations_id_execute()` or `get_v1_integrations_id`.
+/// For direct execution, use `get_v1_integrations_by_id_execute()` or `get_v1_integrations_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_integrations_id_task(
+pub fn get_v1_integrations_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4846,21 +4935,21 @@ pub fn get_v1_integrations_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_integrations_id_builder()` to create the builder,
+/// For full customization, use `get_v1_integrations_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_integrations_id_task()`.
-/// For the simplest API, use `get_v1_integrations_id()`.
+/// For task-level control, use `get_v1_integrations_by_id_task()`.
+/// For the simplest API, use `get_v1_integrations_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_integrations_id_execute(
+pub fn get_v1_integrations_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
@@ -4868,13 +4957,13 @@ pub fn get_v1_integrations_id_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_integrations_id_task(builder)?;
+    let task = get_v1_integrations_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_integrations_id`].
+/// Arguments for [`get_v1_integrations_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1IntegrationsIdArgs {
+pub struct GetV1IntegrationsByIdArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -4883,36 +4972,39 @@ pub struct GetV1IntegrationsIdArgs {
 /// Get integration by ID
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_integrations_id_builder()` + `get_v1_integrations_id_execute()`.
-/// For task-level control, use `get_v1_integrations_id_task()`.
+/// For customization, use `get_v1_integrations_by_id_builder()` + `get_v1_integrations_by_id_execute()`.
+/// For task-level control, use `get_v1_integrations_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_integrations_id(
+pub fn get_v1_integrations_by_id(
     client: &SimpleHttpClient,
-    args: &GetV1IntegrationsIdArgs,
+    args: &GetV1IntegrationsByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_integrations_id_builder(client, &args.id)?;
-    get_v1_integrations_id_execute(builder)
+    let builder = get_v1_integrations_by_id_builder(client, &args.id)?;
+    get_v1_integrations_by_id_execute(builder)
 }
 
 /// DELETE /v1/integrations/{id}
 /// Delete integration
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_integrations_id_execute()` to send, or `delete_v1_integrations_id` for simplest API.
+/// Use `delete_v1_integrations_by_id_execute()` to send, or `delete_v1_integrations_by_id` for simplest API.
 
-pub fn delete_v1_integrations_id_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_integrations_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id,);
 
@@ -4935,17 +5027,17 @@ pub fn delete_v1_integrations_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_integrations_id_execute()` or `delete_v1_integrations_id`.
+/// For direct execution, use `delete_v1_integrations_by_id_execute()` or `delete_v1_integrations_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_integrations_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_integrations_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_integrations_id_task(
+pub fn delete_v1_integrations_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5001,33 +5093,33 @@ pub fn delete_v1_integrations_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_integrations_id_builder()` to create the builder,
+/// For full customization, use `delete_v1_integrations_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_integrations_id_task()`.
-/// For the simplest API, use `delete_v1_integrations_id()`.
+/// For task-level control, use `delete_v1_integrations_by_id_task()`.
+/// For the simplest API, use `delete_v1_integrations_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_integrations_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_integrations_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_integrations_id_execute(
+pub fn delete_v1_integrations_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_integrations_id_task(builder)?;
+    let task = delete_v1_integrations_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_integrations_id`].
+/// Arguments for [`delete_v1_integrations_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1IntegrationsIdArgs {
+pub struct DeleteV1IntegrationsByIdArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -5036,22 +5128,22 @@ pub struct DeleteV1IntegrationsIdArgs {
 /// Delete integration
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_integrations_id_builder()` + `delete_v1_integrations_id_execute()`.
-/// For task-level control, use `delete_v1_integrations_id_task()`.
+/// For customization, use `delete_v1_integrations_by_id_builder()` + `delete_v1_integrations_by_id_execute()`.
+/// For task-level control, use `delete_v1_integrations_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_integrations_id(
+pub fn delete_v1_integrations_by_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1IntegrationsIdArgs,
+    args: &DeleteV1IntegrationsByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_integrations_id_builder(client, &args.id)?;
-    delete_v1_integrations_id_execute(builder)
+    let builder = delete_v1_integrations_by_id_builder(client, &args.id)?;
+    delete_v1_integrations_by_id_execute(builder)
 }
 
 /// GET /v1/projects
@@ -5060,11 +5152,14 @@ pub fn delete_v1_integrations_id(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_projects_execute()` to send, or `get_v1_projects` for simplest API.
 
-pub fn get_v1_projects_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_projects_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects",);
 
@@ -5200,9 +5295,9 @@ pub fn get_v1_projects_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1ProjectsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/projects
@@ -5235,10 +5330,13 @@ pub fn get_v1_projects(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `post_v1_projects_execute()` to send, or `post_v1_projects` for simplest API.
 
-pub fn post_v1_projects_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn post_v1_projects_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &ProjectsPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects",);
 
@@ -5362,7 +5460,7 @@ pub fn post_v1_projects_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1ProjectsArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ProjectsPostRequest,
 }
 
 /// POST /v1/projects
@@ -5393,12 +5491,15 @@ pub fn post_v1_projects(
 /// Get project
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_projects_id_execute()` to send, or `get_v1_projects_id` for simplest API.
+/// Use `get_v1_projects_by_id_execute()` to send, or `get_v1_projects_by_id` for simplest API.
 
-pub fn get_v1_projects_id_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_projects_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id,);
 
@@ -5421,17 +5522,17 @@ pub fn get_v1_projects_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_projects_id_execute()` or `get_v1_projects_id`.
+/// For direct execution, use `get_v1_projects_by_id_execute()` or `get_v1_projects_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_id_task(
+pub fn get_v1_projects_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5490,21 +5591,21 @@ pub fn get_v1_projects_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_projects_id_builder()` to create the builder,
+/// For full customization, use `get_v1_projects_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_projects_id_task()`.
-/// For the simplest API, use `get_v1_projects_id()`.
+/// For task-level control, use `get_v1_projects_by_id_task()`.
+/// For the simplest API, use `get_v1_projects_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_projects_id_execute(
+pub fn get_v1_projects_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
@@ -5512,13 +5613,13 @@ pub fn get_v1_projects_id_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_projects_id_task(builder)?;
+    let task = get_v1_projects_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_projects_id`].
+/// Arguments for [`get_v1_projects_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1ProjectsIdArgs {
+pub struct GetV1ProjectsByIdArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -5527,37 +5628,40 @@ pub struct GetV1ProjectsIdArgs {
 /// Get project
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_projects_id_builder()` + `get_v1_projects_id_execute()`.
-/// For task-level control, use `get_v1_projects_id_task()`.
+/// For customization, use `get_v1_projects_by_id_builder()` + `get_v1_projects_by_id_execute()`.
+/// For task-level control, use `get_v1_projects_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_id(
+pub fn get_v1_projects_by_id(
     client: &SimpleHttpClient,
-    args: &GetV1ProjectsIdArgs,
+    args: &GetV1ProjectsByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_id_builder(client, &args.id)?;
-    get_v1_projects_id_execute(builder)
+    let builder = get_v1_projects_by_id_builder(client, &args.id)?;
+    get_v1_projects_by_id_execute(builder)
 }
 
 /// PATCH /v1/projects/{id}
 /// Update project
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `patch_v1_projects_id_execute()` to send, or `patch_v1_projects_id` for simplest API.
+/// Use `patch_v1_projects_by_id_execute()` to send, or `patch_v1_projects_by_id` for simplest API.
 
-pub fn patch_v1_projects_id_builder(
-    client: &SimpleHttpClient,
+pub fn patch_v1_projects_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ProjectsPatchRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id,);
 
@@ -5582,17 +5686,17 @@ pub fn patch_v1_projects_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `patch_v1_projects_id_execute()` or `patch_v1_projects_id`.
+/// For direct execution, use `patch_v1_projects_by_id_execute()` or `patch_v1_projects_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_projects_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_projects_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_projects_id_task(
+pub fn patch_v1_projects_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5651,21 +5755,21 @@ pub fn patch_v1_projects_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `patch_v1_projects_id_builder()` to create the builder,
+/// For full customization, use `patch_v1_projects_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `patch_v1_projects_id_task()`.
-/// For the simplest API, use `patch_v1_projects_id()`.
+/// For task-level control, use `patch_v1_projects_by_id_task()`.
+/// For the simplest API, use `patch_v1_projects_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_projects_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_projects_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn patch_v1_projects_id_execute(
+pub fn patch_v1_projects_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectsPatchResponse>, ApiError>, P = ApiPending>
@@ -5673,53 +5777,56 @@ pub fn patch_v1_projects_id_execute(
         + 'static,
     ApiError,
 > {
-    let task = patch_v1_projects_id_task(builder)?;
+    let task = patch_v1_projects_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`patch_v1_projects_id`].
+/// Arguments for [`patch_v1_projects_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PatchV1ProjectsIdArgs {
+pub struct PatchV1ProjectsByIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ProjectsPatchRequest,
 }
 
 /// PATCH /v1/projects/{id}
 /// Update project
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `patch_v1_projects_id_builder()` + `patch_v1_projects_id_execute()`.
-/// For task-level control, use `patch_v1_projects_id_task()`.
+/// For customization, use `patch_v1_projects_by_id_builder()` + `patch_v1_projects_by_id_execute()`.
+/// For task-level control, use `patch_v1_projects_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_projects_id(
+pub fn patch_v1_projects_by_id(
     client: &SimpleHttpClient,
-    args: &PatchV1ProjectsIdArgs,
+    args: &PatchV1ProjectsByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectsPatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_id_builder(client, &args.id, &args.body)?;
-    patch_v1_projects_id_execute(builder)
+    let builder = patch_v1_projects_by_id_builder(client, &args.id, &args.body)?;
+    patch_v1_projects_by_id_execute(builder)
 }
 
 /// DELETE /v1/projects/{id}
 /// Delete project
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_projects_id_execute()` to send, or `delete_v1_projects_id` for simplest API.
+/// Use `delete_v1_projects_by_id_execute()` to send, or `delete_v1_projects_by_id` for simplest API.
 
-pub fn delete_v1_projects_id_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_projects_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id,);
 
@@ -5742,17 +5849,17 @@ pub fn delete_v1_projects_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_projects_id_execute()` or `delete_v1_projects_id`.
+/// For direct execution, use `delete_v1_projects_by_id_execute()` or `delete_v1_projects_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_projects_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_projects_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_projects_id_task(
+pub fn delete_v1_projects_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5808,33 +5915,33 @@ pub fn delete_v1_projects_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_projects_id_builder()` to create the builder,
+/// For full customization, use `delete_v1_projects_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_projects_id_task()`.
-/// For the simplest API, use `delete_v1_projects_id()`.
+/// For task-level control, use `delete_v1_projects_by_id_task()`.
+/// For the simplest API, use `delete_v1_projects_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_projects_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_projects_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_projects_id_execute(
+pub fn delete_v1_projects_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_projects_id_task(builder)?;
+    let task = delete_v1_projects_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_projects_id`].
+/// Arguments for [`delete_v1_projects_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1ProjectsIdArgs {
+pub struct DeleteV1ProjectsByIdArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -5843,35 +5950,38 @@ pub struct DeleteV1ProjectsIdArgs {
 /// Delete project
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_projects_id_builder()` + `delete_v1_projects_id_execute()`.
-/// For task-level control, use `delete_v1_projects_id_task()`.
+/// For customization, use `delete_v1_projects_by_id_builder()` + `delete_v1_projects_by_id_execute()`.
+/// For task-level control, use `delete_v1_projects_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_projects_id(
+pub fn delete_v1_projects_by_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1ProjectsIdArgs,
+    args: &DeleteV1ProjectsByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_id_builder(client, &args.id)?;
-    delete_v1_projects_id_execute(builder)
+    let builder = delete_v1_projects_by_id_builder(client, &args.id)?;
+    delete_v1_projects_by_id_execute(builder)
 }
 
 /// POST /v1/projects/{id}/transfer
 /// Transfer project
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_projects_id_transfer_execute()` to send, or `post_v1_projects_id_transfer` for simplest API.
+/// Use `post_v1_projects_by_id_transfer_execute()` to send, or `post_v1_projects_by_id_transfer` for simplest API.
 
-pub fn post_v1_projects_id_transfer_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_projects_by_id_transfer_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ProjectsTransferPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/transfer", id,);
 
@@ -5896,17 +6006,17 @@ pub fn post_v1_projects_id_transfer_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_projects_id_transfer_execute()` or `post_v1_projects_id_transfer`.
+/// For direct execution, use `post_v1_projects_by_id_transfer_execute()` or `post_v1_projects_by_id_transfer`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_id_transfer_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_by_id_transfer_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_id_transfer_task(
+pub fn post_v1_projects_by_id_transfer_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5962,73 +6072,76 @@ pub fn post_v1_projects_id_transfer_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_projects_id_transfer_builder()` to create the builder,
+/// For full customization, use `post_v1_projects_by_id_transfer_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_projects_id_transfer_task()`.
-/// For the simplest API, use `post_v1_projects_id_transfer()`.
+/// For task-level control, use `post_v1_projects_by_id_transfer_task()`.
+/// For the simplest API, use `post_v1_projects_by_id_transfer()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_id_transfer_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_by_id_transfer_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_projects_id_transfer_execute(
+pub fn post_v1_projects_by_id_transfer_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_v1_projects_id_transfer_task(builder)?;
+    let task = post_v1_projects_by_id_transfer_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_projects_id_transfer`].
+/// Arguments for [`post_v1_projects_by_id_transfer`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ProjectsIdTransferArgs {
+pub struct PostV1ProjectsByIdTransferArgs {
     /// Path parameter: id
     pub id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ProjectsTransferPostRequest,
 }
 
 /// POST /v1/projects/{id}/transfer
 /// Transfer project
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_projects_id_transfer_builder()` + `post_v1_projects_id_transfer_execute()`.
-/// For task-level control, use `post_v1_projects_id_transfer_task()`.
+/// For customization, use `post_v1_projects_by_id_transfer_builder()` + `post_v1_projects_by_id_transfer_execute()`.
+/// For task-level control, use `post_v1_projects_by_id_transfer_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_id_transfer(
+pub fn post_v1_projects_by_id_transfer(
     client: &SimpleHttpClient,
-    args: &PostV1ProjectsIdTransferArgs,
+    args: &PostV1ProjectsByIdTransferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_id_transfer_builder(client, &args.id, &args.body)?;
-    post_v1_projects_id_transfer_execute(builder)
+    let builder = post_v1_projects_by_id_transfer_builder(client, &args.id, &args.body)?;
+    post_v1_projects_by_id_transfer_execute(builder)
 }
 
 /// GET /v1/projects/{projectId}/compute-services
 /// List compute services for a project
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_projects_projectId_compute_services_execute()` to send, or `get_v1_projects_projectId_compute_services` for simplest API.
+/// Use `get_v1_projects_by_project_id_compute_services_execute()` to send, or `get_v1_projects_by_project_id_compute_services` for simplest API.
 
-pub fn get_v1_projects_projectId_compute_services_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_projects_by_project_id_compute_services_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/projects/{}/compute-services",
@@ -6068,17 +6181,17 @@ pub fn get_v1_projects_projectId_compute_services_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_projects_projectId_compute_services_execute()` or `get_v1_projects_projectId_compute_services`.
+/// For direct execution, use `get_v1_projects_by_project_id_compute_services_execute()` or `get_v1_projects_by_project_id_compute_services`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_compute_services_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_by_project_id_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_projectId_compute_services_task(
+pub fn get_v1_projects_by_project_id_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6137,21 +6250,21 @@ pub fn get_v1_projects_projectId_compute_services_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_projects_projectId_compute_services_builder()` to create the builder,
+/// For full customization, use `get_v1_projects_by_project_id_compute_services_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_projects_projectId_compute_services_task()`.
-/// For the simplest API, use `get_v1_projects_projectId_compute_services()`.
+/// For task-level control, use `get_v1_projects_by_project_id_compute_services_task()`.
+/// For the simplest API, use `get_v1_projects_by_project_id_compute_services()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_compute_services_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_by_project_id_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_projects_projectId_compute_services_execute(
+pub fn get_v1_projects_by_project_id_compute_services_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -6161,35 +6274,35 @@ pub fn get_v1_projects_projectId_compute_services_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_projects_projectId_compute_services_task(builder)?;
+    let task = get_v1_projects_by_project_id_compute_services_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_projects_projectId_compute_services`].
+/// Arguments for [`get_v1_projects_by_project_id_compute_services`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1ProjectsProjectIdComputeServicesArgs {
+pub struct GetV1ProjectsByProjectIdComputeServicesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/projects/{projectId}/compute-services
 /// List compute services for a project
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_projects_projectId_compute_services_builder()` + `get_v1_projects_projectId_compute_services_execute()`.
-/// For task-level control, use `get_v1_projects_projectId_compute_services_task()`.
+/// For customization, use `get_v1_projects_by_project_id_compute_services_builder()` + `get_v1_projects_by_project_id_compute_services_execute()`.
+/// For task-level control, use `get_v1_projects_by_project_id_compute_services_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_projectId_compute_services(
+pub fn get_v1_projects_by_project_id_compute_services(
     client: &SimpleHttpClient,
-    args: &GetV1ProjectsProjectIdComputeServicesArgs,
+    args: &GetV1ProjectsByProjectIdComputeServicesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProjectsComputeservicesGetResponse>, ApiError>,
@@ -6198,26 +6311,29 @@ pub fn get_v1_projects_projectId_compute_services(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_projectId_compute_services_builder(
+    let builder = get_v1_projects_by_project_id_compute_services_builder(
         client,
         &args.projectId,
         &args.cursor,
         &args.limit,
     )?;
-    get_v1_projects_projectId_compute_services_execute(builder)
+    get_v1_projects_by_project_id_compute_services_execute(builder)
 }
 
 /// POST /v1/projects/{projectId}/compute-services
 /// Create compute service
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_projects_projectId_compute_services_execute()` to send, or `post_v1_projects_projectId_compute_services` for simplest API.
+/// Use `post_v1_projects_by_project_id_compute_services_execute()` to send, or `post_v1_projects_by_project_id_compute_services` for simplest API.
 
-pub fn post_v1_projects_projectId_compute_services_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_projects_by_project_id_compute_services_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ProjectsComputeservicesPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/projects/{}/compute-services",
@@ -6245,17 +6361,17 @@ pub fn post_v1_projects_projectId_compute_services_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_projects_projectId_compute_services_execute()` or `post_v1_projects_projectId_compute_services`.
+/// For direct execution, use `post_v1_projects_by_project_id_compute_services_execute()` or `post_v1_projects_by_project_id_compute_services`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_compute_services_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_by_project_id_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_projectId_compute_services_task(
+pub fn post_v1_projects_by_project_id_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6314,21 +6430,21 @@ pub fn post_v1_projects_projectId_compute_services_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_projects_projectId_compute_services_builder()` to create the builder,
+/// For full customization, use `post_v1_projects_by_project_id_compute_services_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_projects_projectId_compute_services_task()`.
-/// For the simplest API, use `post_v1_projects_projectId_compute_services()`.
+/// For task-level control, use `post_v1_projects_by_project_id_compute_services_task()`.
+/// For the simplest API, use `post_v1_projects_by_project_id_compute_services()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_compute_services_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_by_project_id_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_projects_projectId_compute_services_execute(
+pub fn post_v1_projects_by_project_id_compute_services_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -6338,33 +6454,33 @@ pub fn post_v1_projects_projectId_compute_services_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_projects_projectId_compute_services_task(builder)?;
+    let task = post_v1_projects_by_project_id_compute_services_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_projects_projectId_compute_services`].
+/// Arguments for [`post_v1_projects_by_project_id_compute_services`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ProjectsProjectIdComputeServicesArgs {
+pub struct PostV1ProjectsByProjectIdComputeServicesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ProjectsComputeservicesPostRequest,
 }
 
 /// POST /v1/projects/{projectId}/compute-services
 /// Create compute service
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_projects_projectId_compute_services_builder()` + `post_v1_projects_projectId_compute_services_execute()`.
-/// For task-level control, use `post_v1_projects_projectId_compute_services_task()`.
+/// For customization, use `post_v1_projects_by_project_id_compute_services_builder()` + `post_v1_projects_by_project_id_compute_services_execute()`.
+/// For task-level control, use `post_v1_projects_by_project_id_compute_services_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_projectId_compute_services(
+pub fn post_v1_projects_by_project_id_compute_services(
     client: &SimpleHttpClient,
-    args: &PostV1ProjectsProjectIdComputeServicesArgs,
+    args: &PostV1ProjectsByProjectIdComputeServicesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProjectsComputeservicesPostResponse>, ApiError>,
@@ -6373,23 +6489,29 @@ pub fn post_v1_projects_projectId_compute_services(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_projectId_compute_services_builder(client, &args.projectId, &args.body)?;
-    post_v1_projects_projectId_compute_services_execute(builder)
+    let builder = post_v1_projects_by_project_id_compute_services_builder(
+        client,
+        &args.projectId,
+        &args.body,
+    )?;
+    post_v1_projects_by_project_id_compute_services_execute(builder)
 }
 
 /// GET /v1/projects/{projectId}/databases
 /// Get list of databases
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_projects_projectId_databases_execute()` to send, or `get_v1_projects_projectId_databases` for simplest API.
+/// Use `get_v1_projects_by_project_id_databases_execute()` to send, or `get_v1_projects_by_project_id_databases` for simplest API.
 
-pub fn get_v1_projects_projectId_databases_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_projects_by_project_id_databases_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/databases", projectId,);
 
@@ -6426,17 +6548,17 @@ pub fn get_v1_projects_projectId_databases_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_projects_projectId_databases_execute()` or `get_v1_projects_projectId_databases`.
+/// For direct execution, use `get_v1_projects_by_project_id_databases_execute()` or `get_v1_projects_by_project_id_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_databases_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_by_project_id_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_projectId_databases_task(
+pub fn get_v1_projects_by_project_id_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6495,21 +6617,21 @@ pub fn get_v1_projects_projectId_databases_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_projects_projectId_databases_builder()` to create the builder,
+/// For full customization, use `get_v1_projects_by_project_id_databases_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_projects_projectId_databases_task()`.
-/// For the simplest API, use `get_v1_projects_projectId_databases()`.
+/// For task-level control, use `get_v1_projects_by_project_id_databases_task()`.
+/// For the simplest API, use `get_v1_projects_by_project_id_databases()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_databases_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_by_project_id_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_projects_projectId_databases_execute(
+pub fn get_v1_projects_by_project_id_databases_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -6519,35 +6641,35 @@ pub fn get_v1_projects_projectId_databases_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_projects_projectId_databases_task(builder)?;
+    let task = get_v1_projects_by_project_id_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_projects_projectId_databases`].
+/// Arguments for [`get_v1_projects_by_project_id_databases`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1ProjectsProjectIdDatabasesArgs {
+pub struct GetV1ProjectsByProjectIdDatabasesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/projects/{projectId}/databases
 /// Get list of databases
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_projects_projectId_databases_builder()` + `get_v1_projects_projectId_databases_execute()`.
-/// For task-level control, use `get_v1_projects_projectId_databases_task()`.
+/// For customization, use `get_v1_projects_by_project_id_databases_builder()` + `get_v1_projects_by_project_id_databases_execute()`.
+/// For task-level control, use `get_v1_projects_by_project_id_databases_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_projectId_databases(
+pub fn get_v1_projects_by_project_id_databases(
     client: &SimpleHttpClient,
-    args: &GetV1ProjectsProjectIdDatabasesArgs,
+    args: &GetV1ProjectsByProjectIdDatabasesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProjectsDatabasesGetResponse>, ApiError>,
@@ -6556,26 +6678,29 @@ pub fn get_v1_projects_projectId_databases(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_projectId_databases_builder(
+    let builder = get_v1_projects_by_project_id_databases_builder(
         client,
         &args.projectId,
         &args.cursor,
         &args.limit,
     )?;
-    get_v1_projects_projectId_databases_execute(builder)
+    get_v1_projects_by_project_id_databases_execute(builder)
 }
 
 /// POST /v1/projects/{projectId}/databases
 /// Create database
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_projects_projectId_databases_execute()` to send, or `post_v1_projects_projectId_databases` for simplest API.
+/// Use `post_v1_projects_by_project_id_databases_execute()` to send, or `post_v1_projects_by_project_id_databases` for simplest API.
 
-pub fn post_v1_projects_projectId_databases_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_projects_by_project_id_databases_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ProjectsDatabasesPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/databases", projectId,);
 
@@ -6600,17 +6725,17 @@ pub fn post_v1_projects_projectId_databases_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_projects_projectId_databases_execute()` or `post_v1_projects_projectId_databases`.
+/// For direct execution, use `post_v1_projects_by_project_id_databases_execute()` or `post_v1_projects_by_project_id_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_databases_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_by_project_id_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_projectId_databases_task(
+pub fn post_v1_projects_by_project_id_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6669,21 +6794,21 @@ pub fn post_v1_projects_projectId_databases_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_projects_projectId_databases_builder()` to create the builder,
+/// For full customization, use `post_v1_projects_by_project_id_databases_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_projects_projectId_databases_task()`.
-/// For the simplest API, use `post_v1_projects_projectId_databases()`.
+/// For task-level control, use `post_v1_projects_by_project_id_databases_task()`.
+/// For the simplest API, use `post_v1_projects_by_project_id_databases()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_databases_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_by_project_id_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_projects_projectId_databases_execute(
+pub fn post_v1_projects_by_project_id_databases_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -6693,33 +6818,33 @@ pub fn post_v1_projects_projectId_databases_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_projects_projectId_databases_task(builder)?;
+    let task = post_v1_projects_by_project_id_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_projects_projectId_databases`].
+/// Arguments for [`post_v1_projects_by_project_id_databases`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1ProjectsProjectIdDatabasesArgs {
+pub struct PostV1ProjectsByProjectIdDatabasesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ProjectsDatabasesPostRequest,
 }
 
 /// POST /v1/projects/{projectId}/databases
 /// Create database
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_projects_projectId_databases_builder()` + `post_v1_projects_projectId_databases_execute()`.
-/// For task-level control, use `post_v1_projects_projectId_databases_task()`.
+/// For customization, use `post_v1_projects_by_project_id_databases_builder()` + `post_v1_projects_by_project_id_databases_execute()`.
+/// For task-level control, use `post_v1_projects_by_project_id_databases_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_projectId_databases(
+pub fn post_v1_projects_by_project_id_databases(
     client: &SimpleHttpClient,
-    args: &PostV1ProjectsProjectIdDatabasesArgs,
+    args: &PostV1ProjectsByProjectIdDatabasesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProjectsDatabasesPostResponse>, ApiError>,
@@ -6729,8 +6854,8 @@ pub fn post_v1_projects_projectId_databases(
     ApiError,
 > {
     let builder =
-        post_v1_projects_projectId_databases_builder(client, &args.projectId, &args.body)?;
-    post_v1_projects_projectId_databases_execute(builder)
+        post_v1_projects_by_project_id_databases_builder(client, &args.projectId, &args.body)?;
+    post_v1_projects_by_project_id_databases_execute(builder)
 }
 
 /// GET /v1/regions
@@ -6739,10 +6864,13 @@ pub fn post_v1_projects_projectId_databases(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_regions_execute()` to send, or `get_v1_regions` for simplest API.
 
-pub fn get_v1_regions_builder(
-    client: &SimpleHttpClient,
-    product: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_regions_builder<R>(
+    client: &SimpleHttpClient<R>,
+    product: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/regions",);
 
@@ -6875,7 +7003,7 @@ pub fn get_v1_regions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1RegionsArgs {
     /// Query parameter: product
-    pub product: Option<String>,
+    pub product: Option<Option<String>>,
 }
 
 /// GET /v1/regions
@@ -6908,9 +7036,12 @@ pub fn get_v1_regions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_regions_accelerate_execute()` to send, or `get_v1_regions_accelerate` for simplest API.
 
-pub fn get_v1_regions_accelerate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_regions_accelerate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/regions/accelerate",);
 
@@ -7061,9 +7192,12 @@ pub fn get_v1_regions_accelerate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_regions_postgres_execute()` to send, or `get_v1_regions_postgres` for simplest API.
 
-pub fn get_v1_regions_postgres_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_regions_postgres_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/regions/postgres",);
 
@@ -7214,12 +7348,15 @@ pub fn get_v1_regions_postgres(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_versions_execute()` to send, or `get_v1_versions` for simplest API.
 
-pub fn get_v1_versions_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-    computeServiceId: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    computeServiceId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/versions",);
 
@@ -7358,11 +7495,11 @@ pub fn get_v1_versions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1VersionsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: computeServiceId
-    pub computeServiceId: Option<String>,
+    pub computeServiceId: Option<Option<String>>,
 }
 
 /// GET /v1/versions
@@ -7396,10 +7533,13 @@ pub fn get_v1_versions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `post_v1_versions_execute()` to send, or `post_v1_versions` for simplest API.
 
-pub fn post_v1_versions_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn post_v1_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &VersionsPostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/versions",);
 
@@ -7523,7 +7663,7 @@ pub fn post_v1_versions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1VersionsArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: VersionsPostRequest,
 }
 
 /// POST /v1/versions
@@ -7554,12 +7694,15 @@ pub fn post_v1_versions(
 /// Get compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_versions_versionId_execute()` to send, or `get_v1_versions_versionId` for simplest API.
+/// Use `get_v1_versions_by_version_id_execute()` to send, or `get_v1_versions_by_version_id` for simplest API.
 
-pub fn get_v1_versions_versionId_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_versions_by_version_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId,);
 
@@ -7582,17 +7725,17 @@ pub fn get_v1_versions_versionId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_versions_versionId_execute()` or `get_v1_versions_versionId`.
+/// For direct execution, use `get_v1_versions_by_version_id_execute()` or `get_v1_versions_by_version_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_versions_versionId_task(
+pub fn get_v1_versions_by_version_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -7651,21 +7794,21 @@ pub fn get_v1_versions_versionId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_versions_versionId_builder()` to create the builder,
+/// For full customization, use `get_v1_versions_by_version_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_versions_versionId_task()`.
-/// For the simplest API, use `get_v1_versions_versionId()`.
+/// For task-level control, use `get_v1_versions_by_version_id_task()`.
+/// For the simplest API, use `get_v1_versions_by_version_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_versions_versionId_execute(
+pub fn get_v1_versions_by_version_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
@@ -7673,13 +7816,13 @@ pub fn get_v1_versions_versionId_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_versions_versionId_task(builder)?;
+    let task = get_v1_versions_by_version_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_versions_versionId`].
+/// Arguments for [`get_v1_versions_by_version_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1VersionsVersionIdArgs {
+pub struct GetV1VersionsByVersionIdArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -7688,36 +7831,39 @@ pub struct GetV1VersionsVersionIdArgs {
 /// Get compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_versions_versionId_builder()` + `get_v1_versions_versionId_execute()`.
-/// For task-level control, use `get_v1_versions_versionId_task()`.
+/// For customization, use `get_v1_versions_by_version_id_builder()` + `get_v1_versions_by_version_id_execute()`.
+/// For task-level control, use `get_v1_versions_by_version_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_versions_versionId(
+pub fn get_v1_versions_by_version_id(
     client: &SimpleHttpClient,
-    args: &GetV1VersionsVersionIdArgs,
+    args: &GetV1VersionsByVersionIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_versions_versionId_builder(client, &args.versionId)?;
-    get_v1_versions_versionId_execute(builder)
+    let builder = get_v1_versions_by_version_id_builder(client, &args.versionId)?;
+    get_v1_versions_by_version_id_execute(builder)
 }
 
 /// DELETE /v1/versions/{versionId}
 /// Delete compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_versions_versionId_execute()` to send, or `delete_v1_versions_versionId` for simplest API.
+/// Use `delete_v1_versions_by_version_id_execute()` to send, or `delete_v1_versions_by_version_id` for simplest API.
 
-pub fn delete_v1_versions_versionId_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_versions_by_version_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId,);
 
@@ -7740,17 +7886,17 @@ pub fn delete_v1_versions_versionId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_versions_versionId_execute()` or `delete_v1_versions_versionId`.
+/// For direct execution, use `delete_v1_versions_by_version_id_execute()` or `delete_v1_versions_by_version_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_versions_versionId_task(
+pub fn delete_v1_versions_by_version_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -7806,33 +7952,33 @@ pub fn delete_v1_versions_versionId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_versions_versionId_builder()` to create the builder,
+/// For full customization, use `delete_v1_versions_by_version_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_versions_versionId_task()`.
-/// For the simplest API, use `delete_v1_versions_versionId()`.
+/// For task-level control, use `delete_v1_versions_by_version_id_task()`.
+/// For the simplest API, use `delete_v1_versions_by_version_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_versions_versionId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_versions_by_version_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_versions_versionId_execute(
+pub fn delete_v1_versions_by_version_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_versions_versionId_task(builder)?;
+    let task = delete_v1_versions_by_version_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_versions_versionId`].
+/// Arguments for [`delete_v1_versions_by_version_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1VersionsVersionIdArgs {
+pub struct DeleteV1VersionsByVersionIdArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -7841,34 +7987,37 @@ pub struct DeleteV1VersionsVersionIdArgs {
 /// Delete compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_versions_versionId_builder()` + `delete_v1_versions_versionId_execute()`.
-/// For task-level control, use `delete_v1_versions_versionId_task()`.
+/// For customization, use `delete_v1_versions_by_version_id_builder()` + `delete_v1_versions_by_version_id_execute()`.
+/// For task-level control, use `delete_v1_versions_by_version_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_versions_versionId(
+pub fn delete_v1_versions_by_version_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1VersionsVersionIdArgs,
+    args: &DeleteV1VersionsByVersionIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_versions_versionId_builder(client, &args.versionId)?;
-    delete_v1_versions_versionId_execute(builder)
+    let builder = delete_v1_versions_by_version_id_builder(client, &args.versionId)?;
+    delete_v1_versions_by_version_id_execute(builder)
 }
 
 /// POST /v1/versions/{versionId}/start
 /// Start compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_versions_versionId_start_execute()` to send, or `post_v1_versions_versionId_start` for simplest API.
+/// Use `post_v1_versions_by_version_id_start_execute()` to send, or `post_v1_versions_by_version_id_start` for simplest API.
 
-pub fn post_v1_versions_versionId_start_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_versions_by_version_id_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/versions/{}/start", versionId,);
 
@@ -7891,17 +8040,17 @@ pub fn post_v1_versions_versionId_start_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_versions_versionId_start_execute()` or `post_v1_versions_versionId_start`.
+/// For direct execution, use `post_v1_versions_by_version_id_start_execute()` or `post_v1_versions_by_version_id_start`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_by_version_id_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_versions_versionId_start_task(
+pub fn post_v1_versions_by_version_id_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -7960,21 +8109,21 @@ pub fn post_v1_versions_versionId_start_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_versions_versionId_start_builder()` to create the builder,
+/// For full customization, use `post_v1_versions_by_version_id_start_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_versions_versionId_start_task()`.
-/// For the simplest API, use `post_v1_versions_versionId_start()`.
+/// For task-level control, use `post_v1_versions_by_version_id_start_task()`.
+/// For the simplest API, use `post_v1_versions_by_version_id_start()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_by_version_id_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_versions_versionId_start_execute(
+pub fn post_v1_versions_by_version_id_start_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VersionsStartPostResponse>, ApiError>, P = ApiPending>
@@ -7982,13 +8131,13 @@ pub fn post_v1_versions_versionId_start_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_v1_versions_versionId_start_task(builder)?;
+    let task = post_v1_versions_by_version_id_start_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_versions_versionId_start`].
+/// Arguments for [`post_v1_versions_by_version_id_start`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1VersionsVersionIdStartArgs {
+pub struct PostV1VersionsByVersionIdStartArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -7997,36 +8146,39 @@ pub struct PostV1VersionsVersionIdStartArgs {
 /// Start compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_versions_versionId_start_builder()` + `post_v1_versions_versionId_start_execute()`.
-/// For task-level control, use `post_v1_versions_versionId_start_task()`.
+/// For customization, use `post_v1_versions_by_version_id_start_builder()` + `post_v1_versions_by_version_id_start_execute()`.
+/// For task-level control, use `post_v1_versions_by_version_id_start_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_versions_versionId_start(
+pub fn post_v1_versions_by_version_id_start(
     client: &SimpleHttpClient,
-    args: &PostV1VersionsVersionIdStartArgs,
+    args: &PostV1VersionsByVersionIdStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VersionsStartPostResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_versions_versionId_start_builder(client, &args.versionId)?;
-    post_v1_versions_versionId_start_execute(builder)
+    let builder = post_v1_versions_by_version_id_start_builder(client, &args.versionId)?;
+    post_v1_versions_by_version_id_start_execute(builder)
 }
 
 /// POST /v1/versions/{versionId}/stop
 /// Stop compute version
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_v1_versions_versionId_stop_execute()` to send, or `post_v1_versions_versionId_stop` for simplest API.
+/// Use `post_v1_versions_by_version_id_stop_execute()` to send, or `post_v1_versions_by_version_id_stop` for simplest API.
 
-pub fn post_v1_versions_versionId_stop_builder(
-    client: &SimpleHttpClient,
+pub fn post_v1_versions_by_version_id_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     versionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/versions/{}/stop", versionId,);
 
@@ -8049,17 +8201,17 @@ pub fn post_v1_versions_versionId_stop_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_v1_versions_versionId_stop_execute()` or `post_v1_versions_versionId_stop`.
+/// For direct execution, use `post_v1_versions_by_version_id_stop_execute()` or `post_v1_versions_by_version_id_stop`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_stop_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_by_version_id_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_versions_versionId_stop_task(
+pub fn post_v1_versions_by_version_id_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8115,33 +8267,33 @@ pub fn post_v1_versions_versionId_stop_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_v1_versions_versionId_stop_builder()` to create the builder,
+/// For full customization, use `post_v1_versions_by_version_id_stop_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_v1_versions_versionId_stop_task()`.
-/// For the simplest API, use `post_v1_versions_versionId_stop()`.
+/// For task-level control, use `post_v1_versions_by_version_id_stop_task()`.
+/// For the simplest API, use `post_v1_versions_by_version_id_stop()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_stop_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_by_version_id_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_v1_versions_versionId_stop_execute(
+pub fn post_v1_versions_by_version_id_stop_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_v1_versions_versionId_stop_task(builder)?;
+    let task = post_v1_versions_by_version_id_stop_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_v1_versions_versionId_stop`].
+/// Arguments for [`post_v1_versions_by_version_id_stop`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostV1VersionsVersionIdStopArgs {
+pub struct PostV1VersionsByVersionIdStopArgs {
     /// Path parameter: versionId
     pub versionId: String,
 }
@@ -8150,22 +8302,22 @@ pub struct PostV1VersionsVersionIdStopArgs {
 /// Stop compute version
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_v1_versions_versionId_stop_builder()` + `post_v1_versions_versionId_stop_execute()`.
-/// For task-level control, use `post_v1_versions_versionId_stop_task()`.
+/// For customization, use `post_v1_versions_by_version_id_stop_builder()` + `post_v1_versions_by_version_id_stop_execute()`.
+/// For task-level control, use `post_v1_versions_by_version_id_stop_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_versions_versionId_stop(
+pub fn post_v1_versions_by_version_id_stop(
     client: &SimpleHttpClient,
-    args: &PostV1VersionsVersionIdStopArgs,
+    args: &PostV1VersionsByVersionIdStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_versions_versionId_stop_builder(client, &args.versionId)?;
-    post_v1_versions_versionId_stop_execute(builder)
+    let builder = post_v1_versions_by_version_id_stop_builder(client, &args.versionId)?;
+    post_v1_versions_by_version_id_stop_execute(builder)
 }
 
 /// GET /v1/workspaces
@@ -8174,11 +8326,14 @@ pub fn post_v1_versions_versionId_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_v1_workspaces_execute()` to send, or `get_v1_workspaces` for simplest API.
 
-pub fn get_v1_workspaces_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_v1_workspaces_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/workspaces",);
 
@@ -8314,9 +8469,9 @@ pub fn get_v1_workspaces_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1WorkspacesArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/workspaces
@@ -8347,12 +8502,15 @@ pub fn get_v1_workspaces(
 /// Get workspace
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_workspaces_id_execute()` to send, or `get_v1_workspaces_id` for simplest API.
+/// Use `get_v1_workspaces_by_id_execute()` to send, or `get_v1_workspaces_by_id` for simplest API.
 
-pub fn get_v1_workspaces_id_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_workspaces_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/workspaces/{}", id,);
 
@@ -8375,17 +8533,17 @@ pub fn get_v1_workspaces_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_workspaces_id_execute()` or `get_v1_workspaces_id`.
+/// For direct execution, use `get_v1_workspaces_by_id_execute()` or `get_v1_workspaces_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_workspaces_id_task(
+pub fn get_v1_workspaces_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8444,21 +8602,21 @@ pub fn get_v1_workspaces_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_workspaces_id_builder()` to create the builder,
+/// For full customization, use `get_v1_workspaces_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_workspaces_id_task()`.
-/// For the simplest API, use `get_v1_workspaces_id()`.
+/// For task-level control, use `get_v1_workspaces_by_id_task()`.
+/// For the simplest API, use `get_v1_workspaces_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_workspaces_id_execute(
+pub fn get_v1_workspaces_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
@@ -8466,13 +8624,13 @@ pub fn get_v1_workspaces_id_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_workspaces_id_task(builder)?;
+    let task = get_v1_workspaces_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_workspaces_id`].
+/// Arguments for [`get_v1_workspaces_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1WorkspacesIdArgs {
+pub struct GetV1WorkspacesByIdArgs {
     /// Path parameter: id
     pub id: String,
 }
@@ -8481,38 +8639,41 @@ pub struct GetV1WorkspacesIdArgs {
 /// Get workspace
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_workspaces_id_builder()` + `get_v1_workspaces_id_execute()`.
-/// For task-level control, use `get_v1_workspaces_id_task()`.
+/// For customization, use `get_v1_workspaces_by_id_builder()` + `get_v1_workspaces_by_id_execute()`.
+/// For task-level control, use `get_v1_workspaces_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_workspaces_id(
+pub fn get_v1_workspaces_by_id(
     client: &SimpleHttpClient,
-    args: &GetV1WorkspacesIdArgs,
+    args: &GetV1WorkspacesByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_workspaces_id_builder(client, &args.id)?;
-    get_v1_workspaces_id_execute(builder)
+    let builder = get_v1_workspaces_by_id_builder(client, &args.id)?;
+    get_v1_workspaces_by_id_execute(builder)
 }
 
 /// GET /v1/workspaces/{workspaceId}/integrations
 /// Get list of integrations
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_workspaces_workspaceId_integrations_execute()` to send, or `get_v1_workspaces_workspaceId_integrations` for simplest API.
+/// Use `get_v1_workspaces_by_workspace_id_integrations_execute()` to send, or `get_v1_workspaces_by_workspace_id_integrations` for simplest API.
 
-pub fn get_v1_workspaces_workspaceId_integrations_builder(
-    client: &SimpleHttpClient,
+pub fn get_v1_workspaces_by_workspace_id_integrations_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspaceId: &String,
-    cursor: &Option<String>,
-    limit: &Option<f64>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/workspaces/{}/integrations",
@@ -8552,17 +8713,17 @@ pub fn get_v1_workspaces_workspaceId_integrations_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_workspaces_workspaceId_integrations_execute()` or `get_v1_workspaces_workspaceId_integrations`.
+/// For direct execution, use `get_v1_workspaces_by_workspace_id_integrations_execute()` or `get_v1_workspaces_by_workspace_id_integrations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_workspaceId_integrations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_by_workspace_id_integrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_workspaces_workspaceId_integrations_task(
+pub fn get_v1_workspaces_by_workspace_id_integrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8621,21 +8782,21 @@ pub fn get_v1_workspaces_workspaceId_integrations_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_workspaces_workspaceId_integrations_builder()` to create the builder,
+/// For full customization, use `get_v1_workspaces_by_workspace_id_integrations_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_workspaces_workspaceId_integrations_task()`.
-/// For the simplest API, use `get_v1_workspaces_workspaceId_integrations()`.
+/// For task-level control, use `get_v1_workspaces_by_workspace_id_integrations_task()`.
+/// For the simplest API, use `get_v1_workspaces_by_workspace_id_integrations()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_workspaceId_integrations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_by_workspace_id_integrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_workspaces_workspaceId_integrations_execute(
+pub fn get_v1_workspaces_by_workspace_id_integrations_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -8645,35 +8806,35 @@ pub fn get_v1_workspaces_workspaceId_integrations_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_workspaces_workspaceId_integrations_task(builder)?;
+    let task = get_v1_workspaces_by_workspace_id_integrations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_v1_workspaces_workspaceId_integrations`].
+/// Arguments for [`get_v1_workspaces_by_workspace_id_integrations`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetV1WorkspacesWorkspaceIdIntegrationsArgs {
+pub struct GetV1WorkspacesByWorkspaceIdIntegrationsArgs {
     /// Path parameter: workspaceId
     pub workspaceId: String,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<f64>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /v1/workspaces/{workspaceId}/integrations
 /// Get list of integrations
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_workspaces_workspaceId_integrations_builder()` + `get_v1_workspaces_workspaceId_integrations_execute()`.
-/// For task-level control, use `get_v1_workspaces_workspaceId_integrations_task()`.
+/// For customization, use `get_v1_workspaces_by_workspace_id_integrations_builder()` + `get_v1_workspaces_by_workspace_id_integrations_execute()`.
+/// For task-level control, use `get_v1_workspaces_by_workspace_id_integrations_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_workspaces_workspaceId_integrations(
+pub fn get_v1_workspaces_by_workspace_id_integrations(
     client: &SimpleHttpClient,
-    args: &GetV1WorkspacesWorkspaceIdIntegrationsArgs,
+    args: &GetV1WorkspacesByWorkspaceIdIntegrationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<WorkspacesIntegrationsGetResponse>, ApiError>,
@@ -8682,26 +8843,29 @@ pub fn get_v1_workspaces_workspaceId_integrations(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_workspaces_workspaceId_integrations_builder(
+    let builder = get_v1_workspaces_by_workspace_id_integrations_builder(
         client,
         &args.workspaceId,
         &args.cursor,
         &args.limit,
     )?;
-    get_v1_workspaces_workspaceId_integrations_execute(builder)
+    get_v1_workspaces_by_workspace_id_integrations_execute(builder)
 }
 
 /// DELETE /v1/workspaces/{workspaceId}/integrations/{clientId}
 /// Revoke integration tokens
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_v1_workspaces_workspaceId_integrations_clientId_execute()` to send, or `delete_v1_workspaces_workspaceId_integrations_clientId` for simplest API.
+/// Use `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_execute()` to send, or `delete_v1_workspaces_by_workspace_id_integrations_by_client_id` for simplest API.
 
-pub fn delete_v1_workspaces_workspaceId_integrations_clientId_builder(
-    client: &SimpleHttpClient,
+pub fn delete_v1_workspaces_by_workspace_id_integrations_by_client_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     clientId: &String,
     workspaceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/workspaces/{}/integrations/{}",
@@ -8727,17 +8891,17 @@ pub fn delete_v1_workspaces_workspaceId_integrations_clientId_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_v1_workspaces_workspaceId_integrations_clientId_execute()` or `delete_v1_workspaces_workspaceId_integrations_clientId`.
+/// For direct execution, use `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_execute()` or `delete_v1_workspaces_by_workspace_id_integrations_by_client_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_workspaces_workspaceId_integrations_clientId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_workspaces_workspaceId_integrations_clientId_task(
+pub fn delete_v1_workspaces_by_workspace_id_integrations_by_client_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8793,33 +8957,33 @@ pub fn delete_v1_workspaces_workspaceId_integrations_clientId_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_v1_workspaces_workspaceId_integrations_clientId_builder()` to create the builder,
+/// For full customization, use `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_v1_workspaces_workspaceId_integrations_clientId_task()`.
-/// For the simplest API, use `delete_v1_workspaces_workspaceId_integrations_clientId()`.
+/// For task-level control, use `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_task()`.
+/// For the simplest API, use `delete_v1_workspaces_by_workspace_id_integrations_by_client_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_workspaces_workspaceId_integrations_clientId_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_v1_workspaces_workspaceId_integrations_clientId_execute(
+pub fn delete_v1_workspaces_by_workspace_id_integrations_by_client_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_v1_workspaces_workspaceId_integrations_clientId_task(builder)?;
+    let task = delete_v1_workspaces_by_workspace_id_integrations_by_client_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_v1_workspaces_workspaceId_integrations_clientId`].
+/// Arguments for [`delete_v1_workspaces_by_workspace_id_integrations_by_client_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteV1WorkspacesWorkspaceIdIntegrationsClientIdArgs {
+pub struct DeleteV1WorkspacesByWorkspaceIdIntegrationsByClientIdArgs {
     /// Path parameter: clientId
     pub clientId: String,
     /// Path parameter: workspaceId
@@ -8830,24 +8994,1354 @@ pub struct DeleteV1WorkspacesWorkspaceIdIntegrationsClientIdArgs {
 /// Revoke integration tokens
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_v1_workspaces_workspaceId_integrations_clientId_builder()` + `delete_v1_workspaces_workspaceId_integrations_clientId_execute()`.
-/// For task-level control, use `delete_v1_workspaces_workspaceId_integrations_clientId_task()`.
+/// For customization, use `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_builder()` + `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_execute()`.
+/// For task-level control, use `delete_v1_workspaces_by_workspace_id_integrations_by_client_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_workspaces_workspaceId_integrations_clientId(
+pub fn delete_v1_workspaces_by_workspace_id_integrations_by_client_id(
     client: &SimpleHttpClient,
-    args: &DeleteV1WorkspacesWorkspaceIdIntegrationsClientIdArgs,
+    args: &DeleteV1WorkspacesByWorkspaceIdIntegrationsByClientIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_workspaces_workspaceId_integrations_clientId_builder(
+    let builder = delete_v1_workspaces_by_workspace_id_integrations_by_client_id_builder(
         client,
         &args.clientId,
         &args.workspaceId,
     )?;
-    delete_v1_workspaces_workspaceId_integrations_clientId_execute(builder)
+    delete_v1_workspaces_by_workspace_id_integrations_by_client_id_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesGetResponse with GetV1ComputeServicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ComputeServicesArgs> for ComputeservicesGetResponse {
+    fn generate_resource_id(&self, input: &GetV1ComputeServicesArgs) -> String {
+        "prisma_postgres::ComputeservicesGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesPostResponse with PostV1ComputeServicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ComputeServicesArgs> for ComputeservicesPostResponse {
+    fn generate_resource_id(&self, input: &PostV1ComputeServicesArgs) -> String {
+        "prisma_postgres::ComputeservicesPostResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesVersionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesVersionsGetResponse with GetV1ComputeServicesVersionsByVersionIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ComputeServicesVersionsByVersionIdArgs>
+    for ComputeservicesVersionsGetResponse
+{
+    fn generate_resource_id(&self, input: &GetV1ComputeServicesVersionsByVersionIdArgs) -> String {
+        format!(
+            "prisma_postgres::ComputeservicesVersionsGetResponse/{}",
+            input.versionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesVersionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1ComputeServicesVersionsByVersionIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1ComputeServicesVersionsByVersionIdArgs> for () {
+    fn generate_resource_id(
+        &self,
+        input: &DeleteV1ComputeServicesVersionsByVersionIdArgs,
+    ) -> String {
+        format!("prisma_postgres::()/{}", input.versionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesVersionsStartPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesVersionsStartPostResponse with PostV1ComputeServicesVersionsByVersionIdStartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ComputeServicesVersionsByVersionIdStartArgs>
+    for ComputeservicesVersionsStartPostResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PostV1ComputeServicesVersionsByVersionIdStartArgs,
+    ) -> String {
+        format!(
+            "prisma_postgres::ComputeservicesVersionsStartPostResponse/{}",
+            input.versionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesVersionsStartPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with PostV1ComputeServicesVersionsByVersionIdStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ComputeServicesVersionsByVersionIdStopArgs> for () {
+    fn generate_resource_id(
+        &self,
+        input: &PostV1ComputeServicesVersionsByVersionIdStopArgs,
+    ) -> String {
+        format!("prisma_postgres::()/{}", input.versionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesGetResponse with GetV1ComputeServicesByComputeServiceIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ComputeServicesByComputeServiceIdArgs> for ComputeservicesGetResponse {
+    fn generate_resource_id(&self, input: &GetV1ComputeServicesByComputeServiceIdArgs) -> String {
+        format!(
+            "prisma_postgres::ComputeservicesGetResponse/{}",
+            input.computeServiceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesPatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesPatchResponse with PatchV1ComputeServicesByComputeServiceIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PatchV1ComputeServicesByComputeServiceIdArgs>
+    for ComputeservicesPatchResponse
+{
+    fn generate_resource_id(&self, input: &PatchV1ComputeServicesByComputeServiceIdArgs) -> String {
+        format!(
+            "prisma_postgres::ComputeservicesPatchResponse/{}",
+            input.computeServiceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1ComputeServicesByComputeServiceIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1ComputeServicesByComputeServiceIdArgs> for () {
+    fn generate_resource_id(
+        &self,
+        input: &DeleteV1ComputeServicesByComputeServiceIdArgs,
+    ) -> String {
+        format!("prisma_postgres::()/{}", input.computeServiceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesPromotePostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesPromotePostResponse with PostV1ComputeServicesByComputeServiceIdPromoteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ComputeServicesByComputeServiceIdPromoteArgs>
+    for ComputeservicesPromotePostResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PostV1ComputeServicesByComputeServiceIdPromoteArgs,
+    ) -> String {
+        format!(
+            "prisma_postgres::ComputeservicesPromotePostResponse/{}",
+            input.computeServiceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesPromotePostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesVersionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesVersionsGetResponse with GetV1ComputeServicesByComputeServiceIdVersionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ComputeServicesByComputeServiceIdVersionsArgs>
+    for ComputeservicesVersionsGetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GetV1ComputeServicesByComputeServiceIdVersionsArgs,
+    ) -> String {
+        format!(
+            "prisma_postgres::ComputeservicesVersionsGetResponse/{}",
+            input.computeServiceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesVersionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeservicesVersionsPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeservicesVersionsPostResponse with PostV1ComputeServicesByComputeServiceIdVersionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ComputeServicesByComputeServiceIdVersionsArgs>
+    for ComputeservicesVersionsPostResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PostV1ComputeServicesByComputeServiceIdVersionsArgs,
+    ) -> String {
+        format!(
+            "prisma_postgres::ComputeservicesVersionsPostResponse/{}",
+            input.computeServiceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ComputeservicesVersionsPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConnectionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConnectionsGetResponse with GetV1ConnectionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ConnectionsArgs> for ConnectionsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1ConnectionsArgs) -> String {
+        "prisma_postgres::ConnectionsGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ConnectionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConnectionsPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConnectionsPostResponse with PostV1ConnectionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ConnectionsArgs> for ConnectionsPostResponse {
+    fn generate_resource_id(&self, input: &PostV1ConnectionsArgs) -> String {
+        "prisma_postgres::ConnectionsPostResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ConnectionsPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConnectionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConnectionsGetResponse with GetV1ConnectionsByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ConnectionsByIdArgs> for ConnectionsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1ConnectionsByIdArgs) -> String {
+        format!("prisma_postgres::ConnectionsGetResponse/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ConnectionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1ConnectionsByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1ConnectionsByIdArgs> for () {
+    fn generate_resource_id(&self, input: &DeleteV1ConnectionsByIdArgs) -> String {
+        format!("prisma_postgres::()/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConnectionsRotatePostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConnectionsRotatePostResponse with PostV1ConnectionsByIdRotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ConnectionsByIdRotateArgs> for ConnectionsRotatePostResponse {
+    fn generate_resource_id(&self, input: &PostV1ConnectionsByIdRotateArgs) -> String {
+        format!(
+            "prisma_postgres::ConnectionsRotatePostResponse/{}",
+            input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ConnectionsRotatePostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesGetResponse with GetV1DatabasesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1DatabasesArgs> for DatabasesGetResponse {
+    fn generate_resource_id(&self, input: &GetV1DatabasesArgs) -> String {
+        "prisma_postgres::DatabasesGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesPostResponse with PostV1DatabasesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1DatabasesArgs> for DatabasesPostResponse {
+    fn generate_resource_id(&self, input: &PostV1DatabasesArgs) -> String {
+        "prisma_postgres::DatabasesPostResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesGetResponse with GetV1DatabasesByDatabaseIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1DatabasesByDatabaseIdArgs> for DatabasesGetResponse {
+    fn generate_resource_id(&self, input: &GetV1DatabasesByDatabaseIdArgs) -> String {
+        format!("prisma_postgres::DatabasesGetResponse/{}", input.databaseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesPatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesPatchResponse with PatchV1DatabasesByDatabaseIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PatchV1DatabasesByDatabaseIdArgs> for DatabasesPatchResponse {
+    fn generate_resource_id(&self, input: &PatchV1DatabasesByDatabaseIdArgs) -> String {
+        format!(
+            "prisma_postgres::DatabasesPatchResponse/{}",
+            input.databaseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1DatabasesByDatabaseIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1DatabasesByDatabaseIdArgs> for () {
+    fn generate_resource_id(&self, input: &DeleteV1DatabasesByDatabaseIdArgs) -> String {
+        format!("prisma_postgres::()/{}", input.databaseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesBackupsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesBackupsGetResponse with GetV1DatabasesByDatabaseIdBackupsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1DatabasesByDatabaseIdBackupsArgs> for DatabasesBackupsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1DatabasesByDatabaseIdBackupsArgs) -> String {
+        format!(
+            "prisma_postgres::DatabasesBackupsGetResponse/{}",
+            input.databaseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesBackupsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesConnectionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesConnectionsGetResponse with GetV1DatabasesByDatabaseIdConnectionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1DatabasesByDatabaseIdConnectionsArgs>
+    for DatabasesConnectionsGetResponse
+{
+    fn generate_resource_id(&self, input: &GetV1DatabasesByDatabaseIdConnectionsArgs) -> String {
+        format!(
+            "prisma_postgres::DatabasesConnectionsGetResponse/{}",
+            input.databaseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesConnectionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesConnectionsPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesConnectionsPostResponse with PostV1DatabasesByDatabaseIdConnectionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1DatabasesByDatabaseIdConnectionsArgs>
+    for DatabasesConnectionsPostResponse
+{
+    fn generate_resource_id(&self, input: &PostV1DatabasesByDatabaseIdConnectionsArgs) -> String {
+        format!(
+            "prisma_postgres::DatabasesConnectionsPostResponse/{}",
+            input.databaseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesConnectionsPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesUsageGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesUsageGetResponse with GetV1DatabasesByDatabaseIdUsageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1DatabasesByDatabaseIdUsageArgs> for DatabasesUsageGetResponse {
+    fn generate_resource_id(&self, input: &GetV1DatabasesByDatabaseIdUsageArgs) -> String {
+        format!(
+            "prisma_postgres::DatabasesUsageGetResponse/{}",
+            input.databaseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesUsageGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesRestorePostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesRestorePostResponse with PostV1DatabasesByTargetDatabaseIdRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1DatabasesByTargetDatabaseIdRestoreArgs>
+    for DatabasesRestorePostResponse
+{
+    fn generate_resource_id(&self, input: &PostV1DatabasesByTargetDatabaseIdRestoreArgs) -> String {
+        format!(
+            "prisma_postgres::DatabasesRestorePostResponse/{}",
+            input.targetDatabaseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::DatabasesRestorePostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IntegrationsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IntegrationsGetResponse with GetV1IntegrationsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1IntegrationsArgs> for IntegrationsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1IntegrationsArgs) -> String {
+        "prisma_postgres::IntegrationsGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::IntegrationsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IntegrationsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IntegrationsGetResponse with GetV1IntegrationsByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1IntegrationsByIdArgs> for IntegrationsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1IntegrationsByIdArgs) -> String {
+        format!("prisma_postgres::IntegrationsGetResponse/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::IntegrationsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1IntegrationsByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1IntegrationsByIdArgs> for () {
+    fn generate_resource_id(&self, input: &DeleteV1IntegrationsByIdArgs) -> String {
+        format!("prisma_postgres::()/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsGetResponse with GetV1ProjectsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ProjectsArgs> for ProjectsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1ProjectsArgs) -> String {
+        "prisma_postgres::ProjectsGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsPostResponse with PostV1ProjectsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ProjectsArgs> for ProjectsPostResponse {
+    fn generate_resource_id(&self, input: &PostV1ProjectsArgs) -> String {
+        "prisma_postgres::ProjectsPostResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsGetResponse with GetV1ProjectsByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ProjectsByIdArgs> for ProjectsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1ProjectsByIdArgs) -> String {
+        format!("prisma_postgres::ProjectsGetResponse/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsPatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsPatchResponse with PatchV1ProjectsByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PatchV1ProjectsByIdArgs> for ProjectsPatchResponse {
+    fn generate_resource_id(&self, input: &PatchV1ProjectsByIdArgs) -> String {
+        format!("prisma_postgres::ProjectsPatchResponse/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1ProjectsByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1ProjectsByIdArgs> for () {
+    fn generate_resource_id(&self, input: &DeleteV1ProjectsByIdArgs) -> String {
+        format!("prisma_postgres::()/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with PostV1ProjectsByIdTransferArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ProjectsByIdTransferArgs> for () {
+    fn generate_resource_id(&self, input: &PostV1ProjectsByIdTransferArgs) -> String {
+        format!("prisma_postgres::()/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsComputeservicesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsComputeservicesGetResponse with GetV1ProjectsByProjectIdComputeServicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ProjectsByProjectIdComputeServicesArgs>
+    for ProjectsComputeservicesGetResponse
+{
+    fn generate_resource_id(&self, input: &GetV1ProjectsByProjectIdComputeServicesArgs) -> String {
+        format!(
+            "prisma_postgres::ProjectsComputeservicesGetResponse/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsComputeservicesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsComputeservicesPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsComputeservicesPostResponse with PostV1ProjectsByProjectIdComputeServicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ProjectsByProjectIdComputeServicesArgs>
+    for ProjectsComputeservicesPostResponse
+{
+    fn generate_resource_id(&self, input: &PostV1ProjectsByProjectIdComputeServicesArgs) -> String {
+        format!(
+            "prisma_postgres::ProjectsComputeservicesPostResponse/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsComputeservicesPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsDatabasesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsDatabasesGetResponse with GetV1ProjectsByProjectIdDatabasesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1ProjectsByProjectIdDatabasesArgs> for ProjectsDatabasesGetResponse {
+    fn generate_resource_id(&self, input: &GetV1ProjectsByProjectIdDatabasesArgs) -> String {
+        format!(
+            "prisma_postgres::ProjectsDatabasesGetResponse/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsDatabasesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectsDatabasesPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectsDatabasesPostResponse with PostV1ProjectsByProjectIdDatabasesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1ProjectsByProjectIdDatabasesArgs> for ProjectsDatabasesPostResponse {
+    fn generate_resource_id(&self, input: &PostV1ProjectsByProjectIdDatabasesArgs) -> String {
+        format!(
+            "prisma_postgres::ProjectsDatabasesPostResponse/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::ProjectsDatabasesPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RegionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RegionsGetResponse with GetV1RegionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1RegionsArgs> for RegionsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1RegionsArgs) -> String {
+        "prisma_postgres::RegionsGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::RegionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RegionsAccelerateGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RegionsAccelerateGetResponse with GetV1RegionsAccelerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1RegionsAccelerateArgs> for RegionsAccelerateGetResponse {
+    fn generate_resource_id(&self, input: &GetV1RegionsAccelerateArgs) -> String {
+        "prisma_postgres::RegionsAccelerateGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::RegionsAccelerateGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RegionsPostgresGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RegionsPostgresGetResponse with GetV1RegionsPostgresArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1RegionsPostgresArgs> for RegionsPostgresGetResponse {
+    fn generate_resource_id(&self, input: &GetV1RegionsPostgresArgs) -> String {
+        "prisma_postgres::RegionsPostgresGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::RegionsPostgresGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VersionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VersionsGetResponse with GetV1VersionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1VersionsArgs> for VersionsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1VersionsArgs) -> String {
+        "prisma_postgres::VersionsGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::VersionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VersionsPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VersionsPostResponse with PostV1VersionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1VersionsArgs> for VersionsPostResponse {
+    fn generate_resource_id(&self, input: &PostV1VersionsArgs) -> String {
+        "prisma_postgres::VersionsPostResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::VersionsPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VersionsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VersionsGetResponse with GetV1VersionsByVersionIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1VersionsByVersionIdArgs> for VersionsGetResponse {
+    fn generate_resource_id(&self, input: &GetV1VersionsByVersionIdArgs) -> String {
+        format!("prisma_postgres::VersionsGetResponse/{}", input.versionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::VersionsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1VersionsByVersionIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1VersionsByVersionIdArgs> for () {
+    fn generate_resource_id(&self, input: &DeleteV1VersionsByVersionIdArgs) -> String {
+        format!("prisma_postgres::()/{}", input.versionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VersionsStartPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VersionsStartPostResponse with PostV1VersionsByVersionIdStartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1VersionsByVersionIdStartArgs> for VersionsStartPostResponse {
+    fn generate_resource_id(&self, input: &PostV1VersionsByVersionIdStartArgs) -> String {
+        format!(
+            "prisma_postgres::VersionsStartPostResponse/{}",
+            input.versionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::VersionsStartPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with PostV1VersionsByVersionIdStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostV1VersionsByVersionIdStopArgs> for () {
+    fn generate_resource_id(&self, input: &PostV1VersionsByVersionIdStopArgs) -> String {
+        format!("prisma_postgres::()/{}", input.versionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WorkspacesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WorkspacesGetResponse with GetV1WorkspacesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1WorkspacesArgs> for WorkspacesGetResponse {
+    fn generate_resource_id(&self, input: &GetV1WorkspacesArgs) -> String {
+        "prisma_postgres::WorkspacesGetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::WorkspacesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WorkspacesGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WorkspacesGetResponse with GetV1WorkspacesByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1WorkspacesByIdArgs> for WorkspacesGetResponse {
+    fn generate_resource_id(&self, input: &GetV1WorkspacesByIdArgs) -> String {
+        format!("prisma_postgres::WorkspacesGetResponse/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::WorkspacesGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WorkspacesIntegrationsGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WorkspacesIntegrationsGetResponse with GetV1WorkspacesByWorkspaceIdIntegrationsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetV1WorkspacesByWorkspaceIdIntegrationsArgs>
+    for WorkspacesIntegrationsGetResponse
+{
+    fn generate_resource_id(&self, input: &GetV1WorkspacesByWorkspaceIdIntegrationsArgs) -> String {
+        format!(
+            "prisma_postgres::WorkspacesIntegrationsGetResponse/{}",
+            input.workspaceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::WorkspacesIntegrationsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteV1WorkspacesByWorkspaceIdIntegrationsByClientIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteV1WorkspacesByWorkspaceIdIntegrationsByClientIdArgs> for () {
+    fn generate_resource_id(
+        &self,
+        input: &DeleteV1WorkspacesByWorkspaceIdIntegrationsByClientIdArgs,
+    ) -> String {
+        format!(
+            "prisma_postgres::()/{}/{}",
+            input.clientId, input.workspaceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "prisma_postgres::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "prisma_postgres"
+    }
 }

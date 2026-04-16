@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `civicinfo_divisions_query_division_by_address_execute()` to send, or `civicinfo_divisions_query_division_by_address` for simplest API.
 
-pub fn civicinfo_divisions_query_division_by_address_builder(
-    client: &SimpleHttpClient,
+pub fn civicinfo_divisions_query_division_by_address_builder<R>(
+    client: &SimpleHttpClient<R>,
     address: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisionsByAddress",);
 
@@ -200,10 +204,13 @@ pub fn civicinfo_divisions_query_division_by_address(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `civicinfo_divisions_search_execute()` to send, or `civicinfo_divisions_search` for simplest API.
 
-pub fn civicinfo_divisions_search_builder(
-    client: &SimpleHttpClient,
+pub fn civicinfo_divisions_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisions",);
 
@@ -374,10 +381,13 @@ pub fn civicinfo_divisions_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `civicinfo_elections_election_query_execute()` to send, or `civicinfo_elections_election_query` for simplest API.
 
-pub fn civicinfo_elections_election_query_builder(
-    client: &SimpleHttpClient,
+pub fn civicinfo_elections_election_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     productionDataOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/elections",);
 
@@ -548,14 +558,17 @@ pub fn civicinfo_elections_election_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `civicinfo_elections_voter_info_query_execute()` to send, or `civicinfo_elections_voter_info_query` for simplest API.
 
-pub fn civicinfo_elections_voter_info_query_builder(
-    client: &SimpleHttpClient,
+pub fn civicinfo_elections_voter_info_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     address: &Option<Option<String>>,
     electionId: &Option<Option<String>>,
     officialOnly: &Option<Option<String>>,
     productionDataOnly: &Option<Option<String>>,
     returnAllAvailableData: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/voterinfo",);
 

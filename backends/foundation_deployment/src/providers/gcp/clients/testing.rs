@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_application_detail_service_get_apk_details_execute()` to send, or `testing_application_detail_service_get_apk_details` for simplest API.
 
-pub fn testing_application_detail_service_get_apk_details_builder(
-    client: &SimpleHttpClient,
+pub fn testing_application_detail_service_get_apk_details_builder<R>(
+    client: &SimpleHttpClient<R>,
     bundleLocation_gcsPath: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://testing.googleapis.com/v1/applicationDetailService/getApkDetails",);
@@ -199,10 +203,13 @@ pub fn testing_application_detail_service_get_apk_details(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_device_sessions_cancel_execute()` to send, or `testing_projects_device_sessions_cancel` for simplest API.
 
-pub fn testing_projects_device_sessions_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_device_sessions_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/deviceSessions/{deviceSessionsId}:cancel",
@@ -356,10 +363,13 @@ pub fn testing_projects_device_sessions_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_device_sessions_create_execute()` to send, or `testing_projects_device_sessions_create` for simplest API.
 
-pub fn testing_projects_device_sessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_device_sessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/deviceSessions",
@@ -517,10 +527,13 @@ pub fn testing_projects_device_sessions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_device_sessions_get_execute()` to send, or `testing_projects_device_sessions_get` for simplest API.
 
-pub fn testing_projects_device_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_device_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/deviceSessions/{deviceSessionsId}",
@@ -678,13 +691,16 @@ pub fn testing_projects_device_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_device_sessions_list_execute()` to send, or `testing_projects_device_sessions_list` for simplest API.
 
-pub fn testing_projects_device_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_device_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/deviceSessions",
@@ -875,11 +891,14 @@ pub fn testing_projects_device_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_device_sessions_patch_execute()` to send, or `testing_projects_device_sessions_patch` for simplest API.
 
-pub fn testing_projects_device_sessions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_device_sessions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/deviceSessions/{deviceSessionsId}",
@@ -1051,11 +1070,14 @@ pub fn testing_projects_device_sessions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_test_matrices_cancel_execute()` to send, or `testing_projects_test_matrices_cancel` for simplest API.
 
-pub fn testing_projects_test_matrices_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_test_matrices_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     testMatrixId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices/{}:cancel",
@@ -1216,11 +1238,14 @@ pub fn testing_projects_test_matrices_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_test_matrices_create_execute()` to send, or `testing_projects_test_matrices_create` for simplest API.
 
-pub fn testing_projects_test_matrices_create_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_test_matrices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices",
@@ -1388,11 +1413,14 @@ pub fn testing_projects_test_matrices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_projects_test_matrices_get_execute()` to send, or `testing_projects_test_matrices_get` for simplest API.
 
-pub fn testing_projects_test_matrices_get_builder(
-    client: &SimpleHttpClient,
+pub fn testing_projects_test_matrices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     testMatrixId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices/{}",
@@ -1549,12 +1577,15 @@ pub fn testing_projects_test_matrices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `testing_test_environment_catalog_get_execute()` to send, or `testing_test_environment_catalog_get` for simplest API.
 
-pub fn testing_test_environment_catalog_get_builder(
-    client: &SimpleHttpClient,
+pub fn testing_test_environment_catalog_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     environmentType: &String,
     includeViewableModels: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/testEnvironmentCatalog/{}",

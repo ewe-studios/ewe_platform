@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appsmarket_customer_license_get_execute()` to send, or `appsmarket_customer_license_get` for simplest API.
 
-pub fn appsmarket_customer_license_get_builder(
-    client: &SimpleHttpClient,
+pub fn appsmarket_customer_license_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     customerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appsmarket.googleapis.com/appsmarket/v2/customerLicense/{}/{}",
@@ -191,11 +195,14 @@ pub fn appsmarket_customer_license_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appsmarket_user_license_get_execute()` to send, or `appsmarket_user_license_get` for simplest API.
 
-pub fn appsmarket_user_license_get_builder(
-    client: &SimpleHttpClient,
+pub fn appsmarket_user_license_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://appsmarket.googleapis.com/appsmarket/v2/userLicense/{}/{}",

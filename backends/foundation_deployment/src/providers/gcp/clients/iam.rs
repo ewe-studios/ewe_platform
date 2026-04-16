@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iam_policies_create_policy_execute()` to send, or `iam_policies_create_policy` for simplest API.
 
-pub fn iam_policies_create_policy_builder(
-    client: &SimpleHttpClient,
+pub fn iam_policies_create_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     policyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iam.googleapis.com/v2/policies/{}/{policiesId1}",
@@ -205,11 +209,14 @@ pub fn iam_policies_create_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iam_policies_delete_execute()` to send, or `iam_policies_delete` for simplest API.
 
-pub fn iam_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn iam_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iam.googleapis.com/v2/policies/{}/{policiesId1}/{policiesId2}",
@@ -384,10 +391,13 @@ pub fn iam_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iam_policies_get_execute()` to send, or `iam_policies_get` for simplest API.
 
-pub fn iam_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn iam_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iam.googleapis.com/v2/policies/{}/{policiesId1}/{policiesId2}",
@@ -545,12 +555,15 @@ pub fn iam_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iam_policies_list_policies_execute()` to send, or `iam_policies_list_policies` for simplest API.
 
-pub fn iam_policies_list_policies_builder(
-    client: &SimpleHttpClient,
+pub fn iam_policies_list_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iam.googleapis.com/v2/policies/{}/{policiesId1}",
@@ -731,10 +744,13 @@ pub fn iam_policies_list_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iam_policies_update_execute()` to send, or `iam_policies_update` for simplest API.
 
-pub fn iam_policies_update_builder(
-    client: &SimpleHttpClient,
+pub fn iam_policies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iam.googleapis.com/v2/policies/{}/{policiesId1}/{policiesId2}",
@@ -896,10 +912,13 @@ pub fn iam_policies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iam_policies_operations_get_execute()` to send, or `iam_policies_operations_get` for simplest API.
 
-pub fn iam_policies_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn iam_policies_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iam.googleapis.com/v2/policies/{}/{policiesId1}/{policiesId2}/operations/{operationsId}",

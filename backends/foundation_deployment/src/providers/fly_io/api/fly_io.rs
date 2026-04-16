@@ -11,36 +11,53 @@
 
 #![cfg(feature = "fly_io")]
 
-use crate::providers::fly_io::clients::fly_io::{
+use crate::providers::fly_io::clients::{
+    apps_list_builder, apps_list_task,
     apps_create_builder, apps_create_task,
+    apps_show_builder, apps_show_task,
     apps_delete_builder, apps_delete_task,
+    app_certificates_list_builder, app_certificates_list_task,
     app_certificates_acme_create_builder, app_certificates_acme_create_task,
     app_certificates_custom_create_builder, app_certificates_custom_create_task,
+    app_certificates_show_builder, app_certificates_show_task,
     app_certificates_delete_builder, app_certificates_delete_task,
     app_certificates_acme_delete_builder, app_certificates_acme_delete_task,
     app_certificates_check_builder, app_certificates_check_task,
     app_certificates_custom_delete_builder, app_certificates_custom_delete_task,
     app_create_deploy_token_builder, app_create_deploy_token_task,
+    app_i_p_assignments_list_builder, app_i_p_assignments_list_task,
     app_i_p_assignments_create_builder, app_i_p_assignments_create_task,
     app_i_p_assignments_delete_builder, app_i_p_assignments_delete_task,
+    machines_list_builder, machines_list_task,
     machines_create_builder, machines_create_task,
+    machines_show_builder, machines_show_task,
     machines_update_builder, machines_update_task,
     machines_delete_builder, machines_delete_task,
     machines_cordon_builder, machines_cordon_task,
+    machines_list_events_builder, machines_list_events_task,
     machines_exec_builder, machines_exec_task,
+    machines_show_lease_builder, machines_show_lease_task,
     machines_create_lease_builder, machines_create_lease_task,
     machines_release_lease_builder, machines_release_lease_task,
+    machines_get_memory_builder, machines_get_memory_task,
     machines_set_memory_limit_builder, machines_set_memory_limit_task,
     machines_reclaim_memory_builder, machines_reclaim_memory_task,
+    machines_show_metadata_builder, machines_show_metadata_task,
     machines_update_metadata_builder, machines_update_metadata_task,
+    machines_get_metadata_key_builder, machines_get_metadata_key_task,
     machines_upsert_metadata_builder, machines_upsert_metadata_task,
     machines_delete_metadata_builder, machines_delete_metadata_task,
+    machines_list_processes_builder, machines_list_processes_task,
     machines_restart_builder, machines_restart_task,
     machines_signal_builder, machines_signal_task,
     machines_start_builder, machines_start_task,
     machines_stop_builder, machines_stop_task,
     machines_suspend_builder, machines_suspend_task,
     machines_uncordon_builder, machines_uncordon_task,
+    machines_list_versions_builder, machines_list_versions_task,
+    machines_wait_builder, machines_wait_task,
+    secretkeys_list_builder, secretkeys_list_task,
+    secretkey_get_builder, secretkey_get_task,
     secretkey_set_builder, secretkey_set_task,
     secretkey_delete_builder, secretkey_delete_task,
     secretkey_decrypt_builder, secretkey_decrypt_task,
@@ -48,90 +65,136 @@ use crate::providers::fly_io::clients::fly_io::{
     secretkey_generate_builder, secretkey_generate_task,
     secretkey_sign_builder, secretkey_sign_task,
     secretkey_verify_builder, secretkey_verify_task,
+    secrets_list_builder, secrets_list_task,
     secrets_update_builder, secrets_update_task,
+    secret_get_builder, secret_get_task,
     secret_create_builder, secret_create_task,
     secret_delete_builder, secret_delete_task,
+    volumes_list_builder, volumes_list_task,
     volumes_create_builder, volumes_create_task,
+    volumes_get_by_id_builder, volumes_get_by_id_task,
     volumes_update_builder, volumes_update_task,
     volume_delete_builder, volume_delete_task,
     volumes_extend_builder, volumes_extend_task,
+    volumes_list_snapshots_builder, volumes_list_snapshots_task,
     create_volume_snapshot_builder, create_volume_snapshot_task,
+    machines_org_list_builder, machines_org_list_task,
+    volumes_org_list_builder, volumes_org_list_task,
     platform_placements_post_builder, platform_placements_post_task,
+    platform_regions_get_builder, platform_regions_get_task,
     tokens_request_kms_builder, tokens_request_kms_task,
     tokens_request_o_i_d_c_builder, tokens_request_o_i_d_c_task,
+    current_token_show_builder, current_token_show_task,
 };
 use crate::providers::fly_io::clients::types::{ApiError, ApiPending};
-use crate::providers::fly_io::clients::fly_io::AppSecretsUpdateResp;
-use crate::providers::fly_io::clients::fly_io::CertificateCheckResponse;
-use crate::providers::fly_io::clients::fly_io::CertificateDetail;
-use crate::providers::fly_io::clients::fly_io::CreateAppResponse;
-use crate::providers::fly_io::clients::fly_io::DecryptSecretkeyResponse;
-use crate::providers::fly_io::clients::fly_io::DeleteAppSecretResponse;
-use crate::providers::fly_io::clients::fly_io::DeleteSecretkeyResponse;
-use crate::providers::fly_io::clients::fly_io::DestroyCustomCertificateResponse;
-use crate::providers::fly_io::clients::fly_io::EncryptSecretkeyResponse;
-use crate::providers::fly_io::clients::fly_io::ExtendVolumeResponse;
-use crate::providers::fly_io::clients::fly_io::Flydv1ExecResponse;
-use crate::providers::fly_io::clients::fly_io::IPAssignment;
-use crate::providers::fly_io::clients::fly_io::Lease;
-use crate::providers::fly_io::clients::fly_io::Machine;
-use crate::providers::fly_io::clients::fly_io::MainGetPlacementsResponse;
-use crate::providers::fly_io::clients::fly_io::MainMemoryResponse;
-use crate::providers::fly_io::clients::fly_io::MainReclaimMemoryResponse;
-use crate::providers::fly_io::clients::fly_io::SetAppSecretResponse;
-use crate::providers::fly_io::clients::fly_io::SetSecretkeyResponse;
-use crate::providers::fly_io::clients::fly_io::SignSecretkeyResponse;
-use crate::providers::fly_io::clients::fly_io::Volume;
-use crate::providers::fly_io::clients::fly_io::AppCertificatesAcmeCreateArgs;
-use crate::providers::fly_io::clients::fly_io::AppCertificatesAcmeDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::AppCertificatesCheckArgs;
-use crate::providers::fly_io::clients::fly_io::AppCertificatesCustomCreateArgs;
-use crate::providers::fly_io::clients::fly_io::AppCertificatesCustomDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::AppCertificatesDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::AppCreateDeployTokenArgs;
-use crate::providers::fly_io::clients::fly_io::AppIPAssignmentsCreateArgs;
-use crate::providers::fly_io::clients::fly_io::AppIPAssignmentsDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::AppsCreateArgs;
-use crate::providers::fly_io::clients::fly_io::AppsDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::CreateVolumeSnapshotArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesCordonArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesCreateArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesCreateLeaseArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesDeleteMetadataArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesExecArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesReclaimMemoryArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesReleaseLeaseArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesRestartArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesSetMemoryLimitArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesSignalArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesStartArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesStopArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesSuspendArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesUncordonArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesUpdateArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesUpdateMetadataArgs;
-use crate::providers::fly_io::clients::fly_io::MachinesUpsertMetadataArgs;
-use crate::providers::fly_io::clients::fly_io::PlatformPlacementsPostArgs;
-use crate::providers::fly_io::clients::fly_io::SecretCreateArgs;
-use crate::providers::fly_io::clients::fly_io::SecretDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::SecretkeyDecryptArgs;
-use crate::providers::fly_io::clients::fly_io::SecretkeyDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::SecretkeyEncryptArgs;
-use crate::providers::fly_io::clients::fly_io::SecretkeyGenerateArgs;
-use crate::providers::fly_io::clients::fly_io::SecretkeySetArgs;
-use crate::providers::fly_io::clients::fly_io::SecretkeySignArgs;
-use crate::providers::fly_io::clients::fly_io::SecretkeyVerifyArgs;
-use crate::providers::fly_io::clients::fly_io::SecretsUpdateArgs;
-use crate::providers::fly_io::clients::fly_io::TokensRequestKmsArgs;
-use crate::providers::fly_io::clients::fly_io::TokensRequestOIDCArgs;
-use crate::providers::fly_io::clients::fly_io::VolumeDeleteArgs;
-use crate::providers::fly_io::clients::fly_io::VolumesCreateArgs;
-use crate::providers::fly_io::clients::fly_io::VolumesExtendArgs;
-use crate::providers::fly_io::clients::fly_io::VolumesUpdateArgs;
+use crate::providers::fly_io::clients::App;
+use crate::providers::fly_io::clients::AppSecret;
+use crate::providers::fly_io::clients::AppSecrets;
+use crate::providers::fly_io::clients::AppSecretsUpdateResp;
+use crate::providers::fly_io::clients::CertificateCheckResponse;
+use crate::providers::fly_io::clients::CertificateDetail;
+use crate::providers::fly_io::clients::CreateAppResponse;
+use crate::providers::fly_io::clients::CurrentTokenResponse;
+use crate::providers::fly_io::clients::DecryptSecretkeyResponse;
+use crate::providers::fly_io::clients::DeleteAppSecretResponse;
+use crate::providers::fly_io::clients::DeleteSecretkeyResponse;
+use crate::providers::fly_io::clients::DestroyCustomCertificateResponse;
+use crate::providers::fly_io::clients::EncryptSecretkeyResponse;
+use crate::providers::fly_io::clients::ExtendVolumeResponse;
+use crate::providers::fly_io::clients::Flydv1ExecResponse;
+use crate::providers::fly_io::clients::IPAssignment;
+use crate::providers::fly_io::clients::Lease;
+use crate::providers::fly_io::clients::ListAppsResponse;
+use crate::providers::fly_io::clients::ListCertificatesResponse;
+use crate::providers::fly_io::clients::ListIPAssignmentsResponse;
+use crate::providers::fly_io::clients::Machine;
+use crate::providers::fly_io::clients::MainGetPlacementsResponse;
+use crate::providers::fly_io::clients::MainMemoryResponse;
+use crate::providers::fly_io::clients::MainReclaimMemoryResponse;
+use crate::providers::fly_io::clients::MainRegionResponse;
+use crate::providers::fly_io::clients::MetadataValueResponse;
+use crate::providers::fly_io::clients::OrgMachinesResponse;
+use crate::providers::fly_io::clients::OrgVolumesResponse;
+use crate::providers::fly_io::clients::SecretKey;
+use crate::providers::fly_io::clients::SecretKeys;
+use crate::providers::fly_io::clients::SetAppSecretResponse;
+use crate::providers::fly_io::clients::SetSecretkeyResponse;
+use crate::providers::fly_io::clients::SignSecretkeyResponse;
+use crate::providers::fly_io::clients::Volume;
+use crate::providers::fly_io::clients::WaitMachineResponse;
+use crate::providers::fly_io::clients::AppCertificatesAcmeCreateArgs;
+use crate::providers::fly_io::clients::AppCertificatesAcmeDeleteArgs;
+use crate::providers::fly_io::clients::AppCertificatesCheckArgs;
+use crate::providers::fly_io::clients::AppCertificatesCustomCreateArgs;
+use crate::providers::fly_io::clients::AppCertificatesCustomDeleteArgs;
+use crate::providers::fly_io::clients::AppCertificatesDeleteArgs;
+use crate::providers::fly_io::clients::AppCertificatesListArgs;
+use crate::providers::fly_io::clients::AppCertificatesShowArgs;
+use crate::providers::fly_io::clients::AppCreateDeployTokenArgs;
+use crate::providers::fly_io::clients::AppIPAssignmentsCreateArgs;
+use crate::providers::fly_io::clients::AppIPAssignmentsDeleteArgs;
+use crate::providers::fly_io::clients::AppIPAssignmentsListArgs;
+use crate::providers::fly_io::clients::AppsCreateArgs;
+use crate::providers::fly_io::clients::AppsDeleteArgs;
+use crate::providers::fly_io::clients::AppsListArgs;
+use crate::providers::fly_io::clients::AppsShowArgs;
+use crate::providers::fly_io::clients::CreateVolumeSnapshotArgs;
+use crate::providers::fly_io::clients::MachinesCordonArgs;
+use crate::providers::fly_io::clients::MachinesCreateArgs;
+use crate::providers::fly_io::clients::MachinesCreateLeaseArgs;
+use crate::providers::fly_io::clients::MachinesDeleteArgs;
+use crate::providers::fly_io::clients::MachinesDeleteMetadataArgs;
+use crate::providers::fly_io::clients::MachinesExecArgs;
+use crate::providers::fly_io::clients::MachinesGetMemoryArgs;
+use crate::providers::fly_io::clients::MachinesGetMetadataKeyArgs;
+use crate::providers::fly_io::clients::MachinesListArgs;
+use crate::providers::fly_io::clients::MachinesListEventsArgs;
+use crate::providers::fly_io::clients::MachinesListProcessesArgs;
+use crate::providers::fly_io::clients::MachinesListVersionsArgs;
+use crate::providers::fly_io::clients::MachinesOrgListArgs;
+use crate::providers::fly_io::clients::MachinesReclaimMemoryArgs;
+use crate::providers::fly_io::clients::MachinesReleaseLeaseArgs;
+use crate::providers::fly_io::clients::MachinesRestartArgs;
+use crate::providers::fly_io::clients::MachinesSetMemoryLimitArgs;
+use crate::providers::fly_io::clients::MachinesShowArgs;
+use crate::providers::fly_io::clients::MachinesShowLeaseArgs;
+use crate::providers::fly_io::clients::MachinesShowMetadataArgs;
+use crate::providers::fly_io::clients::MachinesSignalArgs;
+use crate::providers::fly_io::clients::MachinesStartArgs;
+use crate::providers::fly_io::clients::MachinesStopArgs;
+use crate::providers::fly_io::clients::MachinesSuspendArgs;
+use crate::providers::fly_io::clients::MachinesUncordonArgs;
+use crate::providers::fly_io::clients::MachinesUpdateArgs;
+use crate::providers::fly_io::clients::MachinesUpdateMetadataArgs;
+use crate::providers::fly_io::clients::MachinesUpsertMetadataArgs;
+use crate::providers::fly_io::clients::MachinesWaitArgs;
+use crate::providers::fly_io::clients::PlatformPlacementsPostArgs;
+use crate::providers::fly_io::clients::SecretCreateArgs;
+use crate::providers::fly_io::clients::SecretDeleteArgs;
+use crate::providers::fly_io::clients::SecretGetArgs;
+use crate::providers::fly_io::clients::SecretkeyDecryptArgs;
+use crate::providers::fly_io::clients::SecretkeyDeleteArgs;
+use crate::providers::fly_io::clients::SecretkeyEncryptArgs;
+use crate::providers::fly_io::clients::SecretkeyGenerateArgs;
+use crate::providers::fly_io::clients::SecretkeyGetArgs;
+use crate::providers::fly_io::clients::SecretkeySetArgs;
+use crate::providers::fly_io::clients::SecretkeySignArgs;
+use crate::providers::fly_io::clients::SecretkeyVerifyArgs;
+use crate::providers::fly_io::clients::SecretkeysListArgs;
+use crate::providers::fly_io::clients::SecretsListArgs;
+use crate::providers::fly_io::clients::SecretsUpdateArgs;
+use crate::providers::fly_io::clients::TokensRequestOIDCArgs;
+use crate::providers::fly_io::clients::VolumeDeleteArgs;
+use crate::providers::fly_io::clients::VolumesCreateArgs;
+use crate::providers::fly_io::clients::VolumesExtendArgs;
+use crate::providers::fly_io::clients::VolumesGetByIdArgs;
+use crate::providers::fly_io::clients::VolumesListArgs;
+use crate::providers::fly_io::clients::VolumesListSnapshotsArgs;
+use crate::providers::fly_io::clients::VolumesOrgListArgs;
+use crate::providers::fly_io::clients::VolumesUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -140,34 +203,83 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = FlyIoProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = FlyIoProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct FlyIoProvider<S>
+pub struct FlyIoProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> FlyIoProvider<S>
+impl<S, R> FlyIoProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new FlyIoProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new FlyIoProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
+    }
+
+    /// Apps list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAppsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn apps_list(
+        &self,
+        args: &AppsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAppsResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apps_list_builder(
+            &self.http_client,
+            &args.org_slug,
+            &args.app_role,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apps_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Apps create.
@@ -212,6 +324,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Apps show.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the App result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn apps_show(
+        &self,
+        args: &AppsShowArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<App, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apps_show_builder(
+            &self.http_client,
+            &args.app_name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apps_show_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Apps delete.
     ///
     /// Automatically stores the result in the state store on success.
@@ -253,6 +403,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// App certificates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCertificatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn app_certificates_list(
+        &self,
+        args: &AppCertificatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCertificatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = app_certificates_list_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.filter,
+            &args.cursor,
+            &args.limit,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = app_certificates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// App certificates acme create.
@@ -339,6 +530,45 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// App certificates show.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CertificateDetail result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn app_certificates_show(
+        &self,
+        args: &AppCertificatesShowArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CertificateDetail, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = app_certificates_show_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.hostname,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = app_certificates_show_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// App certificates delete.
@@ -560,6 +790,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// App i p assignments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListIPAssignmentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn app_i_p_assignments_list(
+        &self,
+        args: &AppIPAssignmentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListIPAssignmentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = app_i_p_assignments_list_builder(
+            &self.http_client,
+            &args.app_name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = app_i_p_assignments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// App i p assignments create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -647,6 +915,48 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Machines list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the serde_json::Value result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_list(
+        &self,
+        args: &MachinesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<serde_json::Value, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_list_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.include_deleted,
+            &args.region,
+            &args.state,
+            &args.summary,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Machines create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -688,6 +998,45 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Machines show.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Machine result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_show(
+        &self,
+        args: &MachinesShowArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Machine, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_show_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_show_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Machines update.
@@ -823,6 +1172,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Machines list events.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the serde_json::Value result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_list_events(
+        &self,
+        args: &MachinesListEventsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<serde_json::Value, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_list_events_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+            &args.limit,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_list_events_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Machines exec.
     ///
     /// Automatically stores the result in the state store on success.
@@ -865,6 +1254,45 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Machines show lease.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Lease result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_show_lease(
+        &self,
+        args: &MachinesShowLeaseArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Lease, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_show_lease_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_show_lease_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Machines create lease.
@@ -955,6 +1383,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Machines get memory.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the MainMemoryResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_get_memory(
+        &self,
+        args: &MachinesGetMemoryArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<MainMemoryResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_get_memory_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_get_memory_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Machines set memory limit.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1043,6 +1510,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Machines show metadata.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the serde_json::Value result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_show_metadata(
+        &self,
+        args: &MachinesShowMetadataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<serde_json::Value, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_show_metadata_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_show_metadata_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Machines update metadata.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1085,6 +1591,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Machines get metadata key.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the MetadataValueResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_get_metadata_key(
+        &self,
+        args: &MachinesGetMetadataKeyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<MetadataValueResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_get_metadata_key_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+            &args.key,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_get_metadata_key_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Machines upsert metadata.
@@ -1175,6 +1721,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Machines list processes.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the serde_json::Value result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_list_processes(
+        &self,
+        args: &MachinesListProcessesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<serde_json::Value, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_list_processes_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+            &args.sort_by,
+            &args.order,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_list_processes_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Machines restart.
@@ -1441,6 +2028,169 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Machines list versions.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the serde_json::Value result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_list_versions(
+        &self,
+        args: &MachinesListVersionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<serde_json::Value, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_list_versions_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_list_versions_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Machines wait.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the WaitMachineResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_wait(
+        &self,
+        args: &MachinesWaitArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<WaitMachineResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_wait_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.machine_id,
+            &args.version,
+            &args.instance_id,
+            &args.from_event_id,
+            &args.timeout,
+            &args.state,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_wait_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Secretkeys list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SecretKeys result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn secretkeys_list(
+        &self,
+        args: &SecretkeysListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SecretKeys, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = secretkeys_list_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.min_version,
+            &args.types,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = secretkeys_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Secretkey get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SecretKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn secretkey_get(
+        &self,
+        args: &SecretkeyGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SecretKey, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = secretkey_get_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.secret_name,
+            &args.min_version,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = secretkey_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Secretkey set.
@@ -1755,6 +2505,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Secrets list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AppSecrets result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn secrets_list(
+        &self,
+        args: &SecretsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AppSecrets, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = secrets_list_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.min_version,
+            &args.show_secrets,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = secrets_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Secrets update.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1796,6 +2586,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Secret get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AppSecret result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn secret_get(
+        &self,
+        args: &SecretGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AppSecret, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = secret_get_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.secret_name,
+            &args.min_version,
+            &args.show_secrets,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = secret_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Secret create.
@@ -1886,6 +2717,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Volumes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the serde_json::Value result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn volumes_list(
+        &self,
+        args: &VolumesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<serde_json::Value, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = volumes_list_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.summary,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = volumes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Volumes create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1927,6 +2797,45 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Volumes get by id.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Volume result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn volumes_get_by_id(
+        &self,
+        args: &VolumesGetByIdArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Volume, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = volumes_get_by_id_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.volume_id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = volumes_get_by_id_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Volumes update.
@@ -2061,6 +2970,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Volumes list snapshots.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the serde_json::Value result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn volumes_list_snapshots(
+        &self,
+        args: &VolumesListSnapshotsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<serde_json::Value, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = volumes_list_snapshots_builder(
+            &self.http_client,
+            &args.app_name,
+            &args.volume_id,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = volumes_list_snapshots_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Create volume snapshot.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2105,6 +3053,96 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Machines org list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the OrgMachinesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn machines_org_list(
+        &self,
+        args: &MachinesOrgListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<OrgMachinesResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = machines_org_list_builder(
+            &self.http_client,
+            &args.org_slug,
+            &args.include_deleted,
+            &args.region,
+            &args.state,
+            &args.summary,
+            &args.updated_after,
+            &args.cursor,
+            &args.limit,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = machines_org_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Volumes org list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the OrgVolumesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn volumes_org_list(
+        &self,
+        args: &VolumesOrgListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<OrgVolumesResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = volumes_org_list_builder(
+            &self.http_client,
+            &args.org_slug,
+            &args.include_deleted,
+            &args.region,
+            &args.state,
+            &args.summary,
+            &args.updated_after,
+            &args.cursor,
+            &args.limit,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = volumes_org_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Platform placements post.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2145,6 +3183,43 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Platform regions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the MainRegionResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn platform_regions_get(
+        &self,
+        args: &PlatformRegionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<MainRegionResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = platform_regions_get_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = platform_regions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Tokens request kms.
@@ -2229,6 +3304,43 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Current token show.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CurrentTokenResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn current_token_show(
+        &self,
+        args: &CurrentTokenShowArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CurrentTokenResponse, ProviderError<ApiError>>,
+            P = crate::providers::fly_io::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = current_token_show_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = current_token_show_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

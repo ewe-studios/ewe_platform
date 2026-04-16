@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicecontrol_services_check_execute()` to send, or `servicecontrol_services_check` for simplest API.
 
-pub fn servicecontrol_services_check_builder(
-    client: &SimpleHttpClient,
+pub fn servicecontrol_services_check_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicecontrol.googleapis.com/v2/services/{}:check",
@@ -187,10 +191,13 @@ pub fn servicecontrol_services_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicecontrol_services_report_execute()` to send, or `servicecontrol_services_report` for simplest API.
 
-pub fn servicecontrol_services_report_builder(
-    client: &SimpleHttpClient,
+pub fn servicecontrol_services_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicecontrol.googleapis.com/v2/services/{}:report",

@@ -7,8 +7,6 @@
 
 #![cfg(feature = "fly_io")]
 
-pub mod types;
-
 use crate::providers::fly_io::clients::types::*;
 use crate::providers::fly_io::resources::*;
 use foundation_core::valtron::{
@@ -16,8 +14,10 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -25,13 +25,16 @@ use serde::Serialize;
 /// List Apps
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_execute()` to send, or `get_apps` for simplest API.
+/// Use `apps_list_execute()` to send, or `apps_list` for simplest API.
 
-pub fn get_apps_builder(
-    client: &SimpleHttpClient,
-    org_slug: &Option<String>,
-    app_role: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_slug: &Option<Option<String>>,
+    app_role: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps",);
 
@@ -68,17 +71,17 @@ pub fn get_apps_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_execute()` or `get_apps`.
+/// For direct execution, use `apps_list_execute()` or `apps_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_task(
+pub fn apps_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -137,21 +140,21 @@ pub fn get_apps_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_builder()` to create the builder,
+/// For full customization, use `apps_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_task()`.
-/// For the simplest API, use `get_apps()`.
+/// For task-level control, use `apps_list_task()`.
+/// For the simplest API, use `apps_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_execute(
+pub fn apps_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
@@ -159,53 +162,56 @@ pub fn get_apps_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_apps_task(builder)?;
+    let task = apps_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps`].
+/// Arguments for [`apps_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsArgs {
+pub struct AppsListArgs {
     /// Query parameter: org_slug
-    pub org_slug: Option<String>,
+    pub org_slug: Option<Option<String>>,
     /// Query parameter: app_role
-    pub app_role: Option<String>,
+    pub app_role: Option<Option<String>>,
 }
 
 /// GET /apps
 /// List Apps
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_builder()` + `get_apps_execute()`.
-/// For task-level control, use `get_apps_task()`.
+/// For customization, use `apps_list_builder()` + `apps_list_execute()`.
+/// For task-level control, use `apps_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps(
+pub fn apps_list(
     client: &SimpleHttpClient,
-    args: &GetAppsArgs,
+    args: &AppsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_builder(client, &args.org_slug, &args.app_role)?;
-    get_apps_execute(builder)
+    let builder = apps_list_builder(client, &args.org_slug, &args.app_role)?;
+    apps_list_execute(builder)
 }
 
 /// POST /apps
 /// Create App
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_execute()` to send, or `post_apps` for simplest API.
+/// Use `apps_create_execute()` to send, or `apps_create` for simplest API.
 
-pub fn post_apps_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &CreateAppRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps",);
 
@@ -230,17 +236,17 @@ pub fn post_apps_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_execute()` or `post_apps`.
+/// For direct execution, use `apps_create_execute()` or `apps_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_task(
+pub fn apps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -296,69 +302,72 @@ pub fn post_apps_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_builder()` to create the builder,
+/// For full customization, use `apps_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_task()`.
-/// For the simplest API, use `post_apps()`.
+/// For task-level control, use `apps_create_task()`.
+/// For the simplest API, use `apps_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_execute(
+pub fn apps_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_task(builder)?;
+    let task = apps_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps`].
+/// Arguments for [`apps_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsArgs {
+pub struct AppsCreateArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateAppRequest,
 }
 
 /// POST /apps
 /// Create App
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_builder()` + `post_apps_execute()`.
-/// For task-level control, use `post_apps_task()`.
+/// For customization, use `apps_create_builder()` + `apps_create_execute()`.
+/// For task-level control, use `apps_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps(
+pub fn apps_create(
     client: &SimpleHttpClient,
-    args: &PostAppsArgs,
+    args: &AppsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_builder(client, &args.body)?;
-    post_apps_execute(builder)
+    let builder = apps_create_builder(client, &args.body)?;
+    apps_create_execute(builder)
 }
 
 /// GET /apps/{app_name}
 /// Get App
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_execute()` to send, or `get_apps_app_name` for simplest API.
+/// Use `apps_show_execute()` to send, or `apps_show` for simplest API.
 
-pub fn get_apps_app_name_builder(
-    client: &SimpleHttpClient,
+pub fn apps_show_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}", app_name,);
 
@@ -381,17 +390,17 @@ pub fn get_apps_app_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_execute()` or `get_apps_app_name`.
+/// For direct execution, use `apps_show_execute()` or `apps_show`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_task(
+pub fn apps_show_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -450,33 +459,33 @@ pub fn get_apps_app_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_builder()` to create the builder,
+/// For full customization, use `apps_show_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_task()`.
-/// For the simplest API, use `get_apps_app_name()`.
+/// For task-level control, use `apps_show_task()`.
+/// For the simplest API, use `apps_show()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_execute(
+pub fn apps_show_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_task(builder)?;
+    let task = apps_show_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name`].
+/// Arguments for [`apps_show`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameArgs {
+pub struct AppsShowArgs {
     /// Path parameter: app_name
     pub app_name: String,
 }
@@ -485,34 +494,37 @@ pub struct GetAppsAppNameArgs {
 /// Get App
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_builder()` + `get_apps_app_name_execute()`.
-/// For task-level control, use `get_apps_app_name_task()`.
+/// For customization, use `apps_show_builder()` + `apps_show_execute()`.
+/// For task-level control, use `apps_show_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name(
+pub fn apps_show(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameArgs,
+    args: &AppsShowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_builder(client, &args.app_name)?;
-    get_apps_app_name_execute(builder)
+    let builder = apps_show_builder(client, &args.app_name)?;
+    apps_show_execute(builder)
 }
 
 /// DELETE /apps/{app_name}
 /// Destroy App
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_execute()` to send, or `delete_apps_app_name` for simplest API.
+/// Use `apps_delete_execute()` to send, or `apps_delete` for simplest API.
 
-pub fn delete_apps_app_name_builder(
-    client: &SimpleHttpClient,
+pub fn apps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}", app_name,);
 
@@ -535,17 +547,17 @@ pub fn delete_apps_app_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_execute()` or `delete_apps_app_name`.
+/// For direct execution, use `apps_delete_execute()` or `apps_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_task(
+pub fn apps_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -601,33 +613,33 @@ pub fn delete_apps_app_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_builder()` to create the builder,
+/// For full customization, use `apps_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_task()`.
-/// For the simplest API, use `delete_apps_app_name()`.
+/// For task-level control, use `apps_delete_task()`.
+/// For the simplest API, use `apps_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `apps_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_execute(
+pub fn apps_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_task(builder)?;
+    let task = apps_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name`].
+/// Arguments for [`apps_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameArgs {
+pub struct AppsDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
 }
@@ -636,37 +648,40 @@ pub struct DeleteAppsAppNameArgs {
 /// Destroy App
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_builder()` + `delete_apps_app_name_execute()`.
-/// For task-level control, use `delete_apps_app_name_task()`.
+/// For customization, use `apps_delete_builder()` + `apps_delete_execute()`.
+/// For task-level control, use `apps_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name(
+pub fn apps_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameArgs,
+    args: &AppsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_builder(client, &args.app_name)?;
-    delete_apps_app_name_execute(builder)
+    let builder = apps_delete_builder(client, &args.app_name)?;
+    apps_delete_execute(builder)
 }
 
 /// GET /apps/{app_name}/certificates
 /// List certificates for app
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_certificates_execute()` to send, or `get_apps_app_name_certificates` for simplest API.
+/// Use `app_certificates_list_execute()` to send, or `app_certificates_list` for simplest API.
 
-pub fn get_apps_app_name_certificates_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    filter: &Option<String>,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    filter: &Option<Option<String>>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/certificates", app_name,);
 
@@ -706,17 +721,17 @@ pub fn get_apps_app_name_certificates_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_certificates_execute()` or `get_apps_app_name_certificates`.
+/// For direct execution, use `app_certificates_list_execute()` or `app_certificates_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_certificates_task(
+pub fn app_certificates_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -775,21 +790,21 @@ pub fn get_apps_app_name_certificates_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_certificates_builder()` to create the builder,
+/// For full customization, use `app_certificates_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_certificates_task()`.
-/// For the simplest API, use `get_apps_app_name_certificates()`.
+/// For task-level control, use `app_certificates_list_task()`.
+/// For the simplest API, use `app_certificates_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_certificates_execute(
+pub fn app_certificates_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
@@ -797,64 +812,67 @@ pub fn get_apps_app_name_certificates_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_certificates_task(builder)?;
+    let task = app_certificates_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_certificates`].
+/// Arguments for [`app_certificates_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameCertificatesArgs {
+pub struct AppCertificatesListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/certificates
 /// List certificates for app
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_certificates_builder()` + `get_apps_app_name_certificates_execute()`.
-/// For task-level control, use `get_apps_app_name_certificates_task()`.
+/// For customization, use `app_certificates_list_builder()` + `app_certificates_list_execute()`.
+/// For task-level control, use `app_certificates_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_certificates(
+pub fn app_certificates_list(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameCertificatesArgs,
+    args: &AppCertificatesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_certificates_builder(
+    let builder = app_certificates_list_builder(
         client,
         &args.app_name,
         &args.filter,
         &args.cursor,
         &args.limit,
     )?;
-    get_apps_app_name_certificates_execute(builder)
+    app_certificates_list_execute(builder)
 }
 
 /// POST /apps/{app_name}/certificates/acme
 /// Request ACME certificate
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_certificates_acme_execute()` to send, or `post_apps_app_name_certificates_acme` for simplest API.
+/// Use `app_certificates_acme_create_execute()` to send, or `app_certificates_acme_create` for simplest API.
 
-pub fn post_apps_app_name_certificates_acme_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_acme_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &CreateAcmeCertificateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/acme",
@@ -882,17 +900,17 @@ pub fn post_apps_app_name_certificates_acme_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_certificates_acme_execute()` or `post_apps_app_name_certificates_acme`.
+/// For direct execution, use `app_certificates_acme_create_execute()` or `app_certificates_acme_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_acme_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_acme_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_acme_task(
+pub fn app_certificates_acme_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -951,21 +969,21 @@ pub fn post_apps_app_name_certificates_acme_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_certificates_acme_builder()` to create the builder,
+/// For full customization, use `app_certificates_acme_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_certificates_acme_task()`.
-/// For the simplest API, use `post_apps_app_name_certificates_acme()`.
+/// For task-level control, use `app_certificates_acme_create_task()`.
+/// For the simplest API, use `app_certificates_acme_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_acme_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_acme_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_certificates_acme_execute(
+pub fn app_certificates_acme_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
@@ -973,54 +991,57 @@ pub fn post_apps_app_name_certificates_acme_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_certificates_acme_task(builder)?;
+    let task = app_certificates_acme_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_certificates_acme`].
+/// Arguments for [`app_certificates_acme_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameCertificatesAcmeArgs {
+pub struct AppCertificatesAcmeCreateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateAcmeCertificateRequest,
 }
 
 /// POST /apps/{app_name}/certificates/acme
 /// Request ACME certificate
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_certificates_acme_builder()` + `post_apps_app_name_certificates_acme_execute()`.
-/// For task-level control, use `post_apps_app_name_certificates_acme_task()`.
+/// For customization, use `app_certificates_acme_create_builder()` + `app_certificates_acme_create_execute()`.
+/// For task-level control, use `app_certificates_acme_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_acme(
+pub fn app_certificates_acme_create(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameCertificatesAcmeArgs,
+    args: &AppCertificatesAcmeCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_certificates_acme_builder(client, &args.app_name, &args.body)?;
-    post_apps_app_name_certificates_acme_execute(builder)
+    let builder = app_certificates_acme_create_builder(client, &args.app_name, &args.body)?;
+    app_certificates_acme_create_execute(builder)
 }
 
 /// POST /apps/{app_name}/certificates/custom
 /// Upload custom certificate
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_certificates_custom_execute()` to send, or `post_apps_app_name_certificates_custom` for simplest API.
+/// Use `app_certificates_custom_create_execute()` to send, or `app_certificates_custom_create` for simplest API.
 
-pub fn post_apps_app_name_certificates_custom_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_custom_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &CreateCustomCertificateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/custom",
@@ -1048,17 +1069,17 @@ pub fn post_apps_app_name_certificates_custom_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_certificates_custom_execute()` or `post_apps_app_name_certificates_custom`.
+/// For direct execution, use `app_certificates_custom_create_execute()` or `app_certificates_custom_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_custom_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_custom_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_custom_task(
+pub fn app_certificates_custom_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1117,21 +1138,21 @@ pub fn post_apps_app_name_certificates_custom_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_certificates_custom_builder()` to create the builder,
+/// For full customization, use `app_certificates_custom_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_certificates_custom_task()`.
-/// For the simplest API, use `post_apps_app_name_certificates_custom()`.
+/// For task-level control, use `app_certificates_custom_create_task()`.
+/// For the simplest API, use `app_certificates_custom_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_custom_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_custom_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_certificates_custom_execute(
+pub fn app_certificates_custom_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
@@ -1139,55 +1160,57 @@ pub fn post_apps_app_name_certificates_custom_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_certificates_custom_task(builder)?;
+    let task = app_certificates_custom_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_certificates_custom`].
+/// Arguments for [`app_certificates_custom_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameCertificatesCustomArgs {
+pub struct AppCertificatesCustomCreateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateCustomCertificateRequest,
 }
 
 /// POST /apps/{app_name}/certificates/custom
 /// Upload custom certificate
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_certificates_custom_builder()` + `post_apps_app_name_certificates_custom_execute()`.
-/// For task-level control, use `post_apps_app_name_certificates_custom_task()`.
+/// For customization, use `app_certificates_custom_create_builder()` + `app_certificates_custom_create_execute()`.
+/// For task-level control, use `app_certificates_custom_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_custom(
+pub fn app_certificates_custom_create(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameCertificatesCustomArgs,
+    args: &AppCertificatesCustomCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_certificates_custom_builder(client, &args.app_name, &args.body)?;
-    post_apps_app_name_certificates_custom_execute(builder)
+    let builder = app_certificates_custom_create_builder(client, &args.app_name, &args.body)?;
+    app_certificates_custom_create_execute(builder)
 }
 
 /// GET /apps/{app_name}/certificates/{hostname}
 /// Get certificate details
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_certificates_hostname_execute()` to send, or `get_apps_app_name_certificates_hostname` for simplest API.
+/// Use `app_certificates_show_execute()` to send, or `app_certificates_show` for simplest API.
 
-pub fn get_apps_app_name_certificates_hostname_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_show_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     hostname: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}",
@@ -1213,17 +1236,17 @@ pub fn get_apps_app_name_certificates_hostname_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_certificates_hostname_execute()` or `get_apps_app_name_certificates_hostname`.
+/// For direct execution, use `app_certificates_show_execute()` or `app_certificates_show`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_hostname_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_certificates_hostname_task(
+pub fn app_certificates_show_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1282,21 +1305,21 @@ pub fn get_apps_app_name_certificates_hostname_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_certificates_hostname_builder()` to create the builder,
+/// For full customization, use `app_certificates_show_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_certificates_hostname_task()`.
-/// For the simplest API, use `get_apps_app_name_certificates_hostname()`.
+/// For task-level control, use `app_certificates_show_task()`.
+/// For the simplest API, use `app_certificates_show()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_hostname_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_certificates_hostname_execute(
+pub fn app_certificates_show_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
@@ -1304,13 +1327,13 @@ pub fn get_apps_app_name_certificates_hostname_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_certificates_hostname_task(builder)?;
+    let task = app_certificates_show_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_certificates_hostname`].
+/// Arguments for [`app_certificates_show`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameCertificatesHostnameArgs {
+pub struct AppCertificatesShowArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: hostname
@@ -1321,38 +1344,40 @@ pub struct GetAppsAppNameCertificatesHostnameArgs {
 /// Get certificate details
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_certificates_hostname_builder()` + `get_apps_app_name_certificates_hostname_execute()`.
-/// For task-level control, use `get_apps_app_name_certificates_hostname_task()`.
+/// For customization, use `app_certificates_show_builder()` + `app_certificates_show_execute()`.
+/// For task-level control, use `app_certificates_show_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_certificates_hostname(
+pub fn app_certificates_show(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameCertificatesHostnameArgs,
+    args: &AppCertificatesShowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_certificates_hostname_builder(client, &args.app_name, &args.hostname)?;
-    get_apps_app_name_certificates_hostname_execute(builder)
+    let builder = app_certificates_show_builder(client, &args.app_name, &args.hostname)?;
+    app_certificates_show_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/certificates/{hostname}
 /// Remove certificate
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_certificates_hostname_execute()` to send, or `delete_apps_app_name_certificates_hostname` for simplest API.
+/// Use `app_certificates_delete_execute()` to send, or `app_certificates_delete` for simplest API.
 
-pub fn delete_apps_app_name_certificates_hostname_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     hostname: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}",
@@ -1378,17 +1403,17 @@ pub fn delete_apps_app_name_certificates_hostname_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_certificates_hostname_execute()` or `delete_apps_app_name_certificates_hostname`.
+/// For direct execution, use `app_certificates_delete_execute()` or `app_certificates_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_task(
+pub fn app_certificates_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1444,33 +1469,33 @@ pub fn delete_apps_app_name_certificates_hostname_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_certificates_hostname_builder()` to create the builder,
+/// For full customization, use `app_certificates_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_certificates_hostname_task()`.
-/// For the simplest API, use `delete_apps_app_name_certificates_hostname()`.
+/// For task-level control, use `app_certificates_delete_task()`.
+/// For the simplest API, use `app_certificates_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_certificates_hostname_execute(
+pub fn app_certificates_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_certificates_hostname_task(builder)?;
+    let task = app_certificates_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_certificates_hostname`].
+/// Arguments for [`app_certificates_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameCertificatesHostnameArgs {
+pub struct AppCertificatesDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: hostname
@@ -1481,36 +1506,38 @@ pub struct DeleteAppsAppNameCertificatesHostnameArgs {
 /// Remove certificate
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_certificates_hostname_builder()` + `delete_apps_app_name_certificates_hostname_execute()`.
-/// For task-level control, use `delete_apps_app_name_certificates_hostname_task()`.
+/// For customization, use `app_certificates_delete_builder()` + `app_certificates_delete_execute()`.
+/// For task-level control, use `app_certificates_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname(
+pub fn app_certificates_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameCertificatesHostnameArgs,
+    args: &AppCertificatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_apps_app_name_certificates_hostname_builder(client, &args.app_name, &args.hostname)?;
-    delete_apps_app_name_certificates_hostname_execute(builder)
+    let builder = app_certificates_delete_builder(client, &args.app_name, &args.hostname)?;
+    app_certificates_delete_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/certificates/{hostname}/acme
 /// Remove ACME certificates
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_certificates_hostname_acme_execute()` to send, or `delete_apps_app_name_certificates_hostname_acme` for simplest API.
+/// Use `app_certificates_acme_delete_execute()` to send, or `app_certificates_acme_delete` for simplest API.
 
-pub fn delete_apps_app_name_certificates_hostname_acme_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_acme_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     hostname: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}/acme",
@@ -1536,17 +1563,17 @@ pub fn delete_apps_app_name_certificates_hostname_acme_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_certificates_hostname_acme_execute()` or `delete_apps_app_name_certificates_hostname_acme`.
+/// For direct execution, use `app_certificates_acme_delete_execute()` or `app_certificates_acme_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_acme_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_acme_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_acme_task(
+pub fn app_certificates_acme_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1605,21 +1632,21 @@ pub fn delete_apps_app_name_certificates_hostname_acme_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_certificates_hostname_acme_builder()` to create the builder,
+/// For full customization, use `app_certificates_acme_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_certificates_hostname_acme_task()`.
-/// For the simplest API, use `delete_apps_app_name_certificates_hostname_acme()`.
+/// For task-level control, use `app_certificates_acme_delete_task()`.
+/// For the simplest API, use `app_certificates_acme_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_acme_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_acme_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_certificates_hostname_acme_execute(
+pub fn app_certificates_acme_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
@@ -1627,13 +1654,13 @@ pub fn delete_apps_app_name_certificates_hostname_acme_execute(
         + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_certificates_hostname_acme_task(builder)?;
+    let task = app_certificates_acme_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_certificates_hostname_acme`].
+/// Arguments for [`app_certificates_acme_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameCertificatesHostnameAcmeArgs {
+pub struct AppCertificatesAcmeDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: hostname
@@ -1644,41 +1671,40 @@ pub struct DeleteAppsAppNameCertificatesHostnameAcmeArgs {
 /// Remove ACME certificates
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_certificates_hostname_acme_builder()` + `delete_apps_app_name_certificates_hostname_acme_execute()`.
-/// For task-level control, use `delete_apps_app_name_certificates_hostname_acme_task()`.
+/// For customization, use `app_certificates_acme_delete_builder()` + `app_certificates_acme_delete_execute()`.
+/// For task-level control, use `app_certificates_acme_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_acme(
+pub fn app_certificates_acme_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameCertificatesHostnameAcmeArgs,
+    args: &AppCertificatesAcmeDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_certificates_hostname_acme_builder(
-        client,
-        &args.app_name,
-        &args.hostname,
-    )?;
-    delete_apps_app_name_certificates_hostname_acme_execute(builder)
+    let builder = app_certificates_acme_delete_builder(client, &args.app_name, &args.hostname)?;
+    app_certificates_acme_delete_execute(builder)
 }
 
 /// POST /apps/{app_name}/certificates/{hostname}/check
 /// Check DNS and re-validate certificate
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_certificates_hostname_check_execute()` to send, or `post_apps_app_name_certificates_hostname_check` for simplest API.
+/// Use `app_certificates_check_execute()` to send, or `app_certificates_check` for simplest API.
 
-pub fn post_apps_app_name_certificates_hostname_check_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_check_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     hostname: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}/check",
@@ -1704,17 +1730,17 @@ pub fn post_apps_app_name_certificates_hostname_check_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_certificates_hostname_check_execute()` or `post_apps_app_name_certificates_hostname_check`.
+/// For direct execution, use `app_certificates_check_execute()` or `app_certificates_check`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_hostname_check_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_check_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_hostname_check_task(
+pub fn app_certificates_check_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1773,21 +1799,21 @@ pub fn post_apps_app_name_certificates_hostname_check_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_certificates_hostname_check_builder()` to create the builder,
+/// For full customization, use `app_certificates_check_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_certificates_hostname_check_task()`.
-/// For the simplest API, use `post_apps_app_name_certificates_hostname_check()`.
+/// For task-level control, use `app_certificates_check_task()`.
+/// For the simplest API, use `app_certificates_check()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_hostname_check_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_check_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_certificates_hostname_check_execute(
+pub fn app_certificates_check_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateCheckResponse>, ApiError>, P = ApiPending>
@@ -1795,13 +1821,13 @@ pub fn post_apps_app_name_certificates_hostname_check_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_certificates_hostname_check_task(builder)?;
+    let task = app_certificates_check_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_certificates_hostname_check`].
+/// Arguments for [`app_certificates_check`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameCertificatesHostnameCheckArgs {
+pub struct AppCertificatesCheckArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: hostname
@@ -1812,41 +1838,40 @@ pub struct PostAppsAppNameCertificatesHostnameCheckArgs {
 /// Check DNS and re-validate certificate
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_certificates_hostname_check_builder()` + `post_apps_app_name_certificates_hostname_check_execute()`.
-/// For task-level control, use `post_apps_app_name_certificates_hostname_check_task()`.
+/// For customization, use `app_certificates_check_builder()` + `app_certificates_check_execute()`.
+/// For task-level control, use `app_certificates_check_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_hostname_check(
+pub fn app_certificates_check(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameCertificatesHostnameCheckArgs,
+    args: &AppCertificatesCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateCheckResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_certificates_hostname_check_builder(
-        client,
-        &args.app_name,
-        &args.hostname,
-    )?;
-    post_apps_app_name_certificates_hostname_check_execute(builder)
+    let builder = app_certificates_check_builder(client, &args.app_name, &args.hostname)?;
+    app_certificates_check_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/certificates/{hostname}/custom
 /// Remove custom certificate
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_certificates_hostname_custom_execute()` to send, or `delete_apps_app_name_certificates_hostname_custom` for simplest API.
+/// Use `app_certificates_custom_delete_execute()` to send, or `app_certificates_custom_delete` for simplest API.
 
-pub fn delete_apps_app_name_certificates_hostname_custom_builder(
-    client: &SimpleHttpClient,
+pub fn app_certificates_custom_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     hostname: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}/custom",
@@ -1872,17 +1897,17 @@ pub fn delete_apps_app_name_certificates_hostname_custom_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_certificates_hostname_custom_execute()` or `delete_apps_app_name_certificates_hostname_custom`.
+/// For direct execution, use `app_certificates_custom_delete_execute()` or `app_certificates_custom_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_custom_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_custom_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_custom_task(
+pub fn app_certificates_custom_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1941,21 +1966,21 @@ pub fn delete_apps_app_name_certificates_hostname_custom_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_certificates_hostname_custom_builder()` to create the builder,
+/// For full customization, use `app_certificates_custom_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_certificates_hostname_custom_task()`.
-/// For the simplest API, use `delete_apps_app_name_certificates_hostname_custom()`.
+/// For task-level control, use `app_certificates_custom_delete_task()`.
+/// For the simplest API, use `app_certificates_custom_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_custom_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_certificates_custom_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_certificates_hostname_custom_execute(
+pub fn app_certificates_custom_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -1965,13 +1990,13 @@ pub fn delete_apps_app_name_certificates_hostname_custom_execute(
         + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_certificates_hostname_custom_task(builder)?;
+    let task = app_certificates_custom_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_certificates_hostname_custom`].
+/// Arguments for [`app_certificates_custom_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameCertificatesHostnameCustomArgs {
+pub struct AppCertificatesCustomDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: hostname
@@ -1982,16 +2007,16 @@ pub struct DeleteAppsAppNameCertificatesHostnameCustomArgs {
 /// Remove custom certificate
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_certificates_hostname_custom_builder()` + `delete_apps_app_name_certificates_hostname_custom_execute()`.
-/// For task-level control, use `delete_apps_app_name_certificates_hostname_custom_task()`.
+/// For customization, use `app_certificates_custom_delete_builder()` + `app_certificates_custom_delete_execute()`.
+/// For task-level control, use `app_certificates_custom_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_custom(
+pub fn app_certificates_custom_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameCertificatesHostnameCustomArgs,
+    args: &AppCertificatesCustomDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DestroyCustomCertificateResponse>, ApiError>,
@@ -2000,25 +2025,24 @@ pub fn delete_apps_app_name_certificates_hostname_custom(
         + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_certificates_hostname_custom_builder(
-        client,
-        &args.app_name,
-        &args.hostname,
-    )?;
-    delete_apps_app_name_certificates_hostname_custom_execute(builder)
+    let builder = app_certificates_custom_delete_builder(client, &args.app_name, &args.hostname)?;
+    app_certificates_custom_delete_execute(builder)
 }
 
 /// POST /apps/{app_name}/deploy_token
 /// Create App deploy token
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_deploy_token_execute()` to send, or `post_apps_app_name_deploy_token` for simplest API.
+/// Use `app_create_deploy_token_execute()` to send, or `app_create_deploy_token` for simplest API.
 
-pub fn post_apps_app_name_deploy_token_builder(
-    client: &SimpleHttpClient,
+pub fn app_create_deploy_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &CreateAppDeployTokenRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/deploy_token", app_name,);
 
@@ -2043,17 +2067,17 @@ pub fn post_apps_app_name_deploy_token_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_deploy_token_execute()` or `post_apps_app_name_deploy_token`.
+/// For direct execution, use `app_create_deploy_token_execute()` or `app_create_deploy_token`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_deploy_token_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_create_deploy_token_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_deploy_token_task(
+pub fn app_create_deploy_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2112,21 +2136,21 @@ pub fn post_apps_app_name_deploy_token_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_deploy_token_builder()` to create the builder,
+/// For full customization, use `app_create_deploy_token_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_deploy_token_task()`.
-/// For the simplest API, use `post_apps_app_name_deploy_token()`.
+/// For task-level control, use `app_create_deploy_token_task()`.
+/// For the simplest API, use `app_create_deploy_token()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_deploy_token_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_create_deploy_token_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_deploy_token_execute(
+pub fn app_create_deploy_token_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateAppResponse>, ApiError>, P = ApiPending>
@@ -2134,53 +2158,56 @@ pub fn post_apps_app_name_deploy_token_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_deploy_token_task(builder)?;
+    let task = app_create_deploy_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_deploy_token`].
+/// Arguments for [`app_create_deploy_token`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameDeployTokenArgs {
+pub struct AppCreateDeployTokenArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateAppDeployTokenRequest,
 }
 
 /// POST /apps/{app_name}/deploy_token
 /// Create App deploy token
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_deploy_token_builder()` + `post_apps_app_name_deploy_token_execute()`.
-/// For task-level control, use `post_apps_app_name_deploy_token_task()`.
+/// For customization, use `app_create_deploy_token_builder()` + `app_create_deploy_token_execute()`.
+/// For task-level control, use `app_create_deploy_token_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_deploy_token(
+pub fn app_create_deploy_token(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameDeployTokenArgs,
+    args: &AppCreateDeployTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateAppResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_deploy_token_builder(client, &args.app_name, &args.body)?;
-    post_apps_app_name_deploy_token_execute(builder)
+    let builder = app_create_deploy_token_builder(client, &args.app_name, &args.body)?;
+    app_create_deploy_token_execute(builder)
 }
 
 /// GET /apps/{app_name}/ip_assignments
 /// List IP assignments for app
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_ip_assignments_execute()` to send, or `get_apps_app_name_ip_assignments` for simplest API.
+/// Use `app_ipassignments_list_execute()` to send, or `app_ipassignments_list` for simplest API.
 
-pub fn get_apps_app_name_ip_assignments_builder(
-    client: &SimpleHttpClient,
+pub fn app_ipassignments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/ip_assignments",
@@ -2206,17 +2233,17 @@ pub fn get_apps_app_name_ip_assignments_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_ip_assignments_execute()` or `get_apps_app_name_ip_assignments`.
+/// For direct execution, use `app_ipassignments_list_execute()` or `app_ipassignments_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_ip_assignments_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_ipassignments_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_ip_assignments_task(
+pub fn app_ipassignments_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2275,21 +2302,21 @@ pub fn get_apps_app_name_ip_assignments_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_ip_assignments_builder()` to create the builder,
+/// For full customization, use `app_ipassignments_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_ip_assignments_task()`.
-/// For the simplest API, use `get_apps_app_name_ip_assignments()`.
+/// For task-level control, use `app_ipassignments_list_task()`.
+/// For the simplest API, use `app_ipassignments_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_ip_assignments_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_ipassignments_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_ip_assignments_execute(
+pub fn app_ipassignments_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListIPAssignmentsResponse>, ApiError>, P = ApiPending>
@@ -2297,13 +2324,13 @@ pub fn get_apps_app_name_ip_assignments_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_ip_assignments_task(builder)?;
+    let task = app_ipassignments_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_ip_assignments`].
+/// Arguments for [`app_ipassignments_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameIpAssignmentsArgs {
+pub struct AppIpassignmentsListArgs {
     /// Path parameter: app_name
     pub app_name: String,
 }
@@ -2312,37 +2339,40 @@ pub struct GetAppsAppNameIpAssignmentsArgs {
 /// List IP assignments for app
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_ip_assignments_builder()` + `get_apps_app_name_ip_assignments_execute()`.
-/// For task-level control, use `get_apps_app_name_ip_assignments_task()`.
+/// For customization, use `app_ipassignments_list_builder()` + `app_ipassignments_list_execute()`.
+/// For task-level control, use `app_ipassignments_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_ip_assignments(
+pub fn app_ipassignments_list(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameIpAssignmentsArgs,
+    args: &AppIpassignmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListIPAssignmentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_ip_assignments_builder(client, &args.app_name)?;
-    get_apps_app_name_ip_assignments_execute(builder)
+    let builder = app_ipassignments_list_builder(client, &args.app_name)?;
+    app_ipassignments_list_execute(builder)
 }
 
 /// POST /apps/{app_name}/ip_assignments
 /// Assign new IP address to app
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_ip_assignments_execute()` to send, or `post_apps_app_name_ip_assignments` for simplest API.
+/// Use `app_ipassignments_create_execute()` to send, or `app_ipassignments_create` for simplest API.
 
-pub fn post_apps_app_name_ip_assignments_builder(
-    client: &SimpleHttpClient,
+pub fn app_ipassignments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &AssignIPRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/ip_assignments",
@@ -2370,17 +2400,17 @@ pub fn post_apps_app_name_ip_assignments_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_ip_assignments_execute()` or `post_apps_app_name_ip_assignments`.
+/// For direct execution, use `app_ipassignments_create_execute()` or `app_ipassignments_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_ip_assignments_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_ipassignments_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_ip_assignments_task(
+pub fn app_ipassignments_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2439,21 +2469,21 @@ pub fn post_apps_app_name_ip_assignments_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_ip_assignments_builder()` to create the builder,
+/// For full customization, use `app_ipassignments_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_ip_assignments_task()`.
-/// For the simplest API, use `post_apps_app_name_ip_assignments()`.
+/// For task-level control, use `app_ipassignments_create_task()`.
+/// For the simplest API, use `app_ipassignments_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_ip_assignments_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_ipassignments_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_ip_assignments_execute(
+pub fn app_ipassignments_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IPAssignment>, ApiError>, P = ApiPending>
@@ -2461,54 +2491,57 @@ pub fn post_apps_app_name_ip_assignments_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_ip_assignments_task(builder)?;
+    let task = app_ipassignments_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_ip_assignments`].
+/// Arguments for [`app_ipassignments_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameIpAssignmentsArgs {
+pub struct AppIpassignmentsCreateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: AssignIPRequest,
 }
 
 /// POST /apps/{app_name}/ip_assignments
 /// Assign new IP address to app
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_ip_assignments_builder()` + `post_apps_app_name_ip_assignments_execute()`.
-/// For task-level control, use `post_apps_app_name_ip_assignments_task()`.
+/// For customization, use `app_ipassignments_create_builder()` + `app_ipassignments_create_execute()`.
+/// For task-level control, use `app_ipassignments_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_ip_assignments(
+pub fn app_ipassignments_create(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameIpAssignmentsArgs,
+    args: &AppIpassignmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IPAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_ip_assignments_builder(client, &args.app_name, &args.body)?;
-    post_apps_app_name_ip_assignments_execute(builder)
+    let builder = app_ipassignments_create_builder(client, &args.app_name, &args.body)?;
+    app_ipassignments_create_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/ip_assignments/{ip}
 /// Remove IP assignment from app
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_ip_assignments_ip_execute()` to send, or `delete_apps_app_name_ip_assignments_ip` for simplest API.
+/// Use `app_ipassignments_delete_execute()` to send, or `app_ipassignments_delete` for simplest API.
 
-pub fn delete_apps_app_name_ip_assignments_ip_builder(
-    client: &SimpleHttpClient,
+pub fn app_ipassignments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     ip: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/ip_assignments/{}",
@@ -2534,17 +2567,17 @@ pub fn delete_apps_app_name_ip_assignments_ip_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_ip_assignments_ip_execute()` or `delete_apps_app_name_ip_assignments_ip`.
+/// For direct execution, use `app_ipassignments_delete_execute()` or `app_ipassignments_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_ip_assignments_ip_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_ipassignments_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_ip_assignments_ip_task(
+pub fn app_ipassignments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2600,33 +2633,33 @@ pub fn delete_apps_app_name_ip_assignments_ip_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_ip_assignments_ip_builder()` to create the builder,
+/// For full customization, use `app_ipassignments_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_ip_assignments_ip_task()`.
-/// For the simplest API, use `delete_apps_app_name_ip_assignments_ip()`.
+/// For task-level control, use `app_ipassignments_delete_task()`.
+/// For the simplest API, use `app_ipassignments_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_ip_assignments_ip_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `app_ipassignments_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_ip_assignments_ip_execute(
+pub fn app_ipassignments_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_ip_assignments_ip_task(builder)?;
+    let task = app_ipassignments_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_ip_assignments_ip`].
+/// Arguments for [`app_ipassignments_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameIpAssignmentsIpArgs {
+pub struct AppIpassignmentsDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: ip
@@ -2637,38 +2670,41 @@ pub struct DeleteAppsAppNameIpAssignmentsIpArgs {
 /// Remove IP assignment from app
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_ip_assignments_ip_builder()` + `delete_apps_app_name_ip_assignments_ip_execute()`.
-/// For task-level control, use `delete_apps_app_name_ip_assignments_ip_task()`.
+/// For customization, use `app_ipassignments_delete_builder()` + `app_ipassignments_delete_execute()`.
+/// For task-level control, use `app_ipassignments_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_ip_assignments_ip(
+pub fn app_ipassignments_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameIpAssignmentsIpArgs,
+    args: &AppIpassignmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_ip_assignments_ip_builder(client, &args.app_name, &args.ip)?;
-    delete_apps_app_name_ip_assignments_ip_execute(builder)
+    let builder = app_ipassignments_delete_builder(client, &args.app_name, &args.ip)?;
+    app_ipassignments_delete_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines
 /// List Machines
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_execute()` to send, or `get_apps_app_name_machines` for simplest API.
+/// Use `machines_list_execute()` to send, or `machines_list` for simplest API.
 
-pub fn get_apps_app_name_machines_builder(
-    client: &SimpleHttpClient,
+pub fn machines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    include_deleted: &Option<bool>,
-    region: &Option<String>,
-    state: &Option<String>,
-    summary: &Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    include_deleted: &Option<Option<String>>,
+    region: &Option<Option<String>>,
+    state: &Option<Option<String>>,
+    summary: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/machines", app_name,);
 
@@ -2711,21 +2747,21 @@ pub fn get_apps_app_name_machines_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_execute()` or `get_apps_app_name_machines`.
+/// For direct execution, use `machines_list_execute()` or `machines_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_task(
+pub fn machines_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -2760,10 +2796,13 @@ pub fn get_apps_app_name_machines_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -2777,64 +2816,68 @@ pub fn get_apps_app_name_machines_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_builder()` to create the builder,
+/// For full customization, use `machines_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_task()`.
-/// For the simplest API, use `get_apps_app_name_machines()`.
+/// For task-level control, use `machines_list_task()`.
+/// For the simplest API, use `machines_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_execute(
+pub fn machines_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_task(builder)?;
+    let task = machines_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines`].
+/// Arguments for [`machines_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesArgs {
+pub struct MachinesListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: include_deleted
-    pub include_deleted: Option<bool>,
+    pub include_deleted: Option<Option<String>>,
     /// Query parameter: region
-    pub region: Option<String>,
+    pub region: Option<Option<String>>,
     /// Query parameter: state
-    pub state: Option<String>,
+    pub state: Option<Option<String>>,
     /// Query parameter: summary
-    pub summary: Option<bool>,
+    pub summary: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/machines
 /// List Machines
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_builder()` + `get_apps_app_name_machines_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_task()`.
+/// For customization, use `machines_list_builder()` + `machines_list_execute()`.
+/// For task-level control, use `machines_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines(
+pub fn machines_list(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesArgs,
+    args: &MachinesListArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_builder(
+    let builder = machines_list_builder(
         client,
         &args.app_name,
         &args.include_deleted,
@@ -2842,20 +2885,23 @@ pub fn get_apps_app_name_machines(
         &args.state,
         &args.summary,
     )?;
-    get_apps_app_name_machines_execute(builder)
+    machines_list_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines
 /// Create Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_execute()` to send, or `post_apps_app_name_machines` for simplest API.
+/// Use `machines_create_execute()` to send, or `machines_create` for simplest API.
 
-pub fn post_apps_app_name_machines_builder(
-    client: &SimpleHttpClient,
+pub fn machines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &CreateMachineRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/machines", app_name,);
 
@@ -2880,17 +2926,17 @@ pub fn post_apps_app_name_machines_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_execute()` or `post_apps_app_name_machines`.
+/// For direct execution, use `machines_create_execute()` or `machines_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_task(
+pub fn machines_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2949,72 +2995,75 @@ pub fn post_apps_app_name_machines_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_builder()` to create the builder,
+/// For full customization, use `machines_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_task()`.
-/// For the simplest API, use `post_apps_app_name_machines()`.
+/// For task-level control, use `machines_create_task()`.
+/// For the simplest API, use `machines_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_execute(
+pub fn machines_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_task(builder)?;
+    let task = machines_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines`].
+/// Arguments for [`machines_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesArgs {
+pub struct MachinesCreateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateMachineRequest,
 }
 
 /// POST /apps/{app_name}/machines
 /// Create Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_builder()` + `post_apps_app_name_machines_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_task()`.
+/// For customization, use `machines_create_builder()` + `machines_create_execute()`.
+/// For task-level control, use `machines_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines(
+pub fn machines_create(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesArgs,
+    args: &MachinesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_builder(client, &args.app_name, &args.body)?;
-    post_apps_app_name_machines_execute(builder)
+    let builder = machines_create_builder(client, &args.app_name, &args.body)?;
+    machines_create_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}
 /// Get Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_execute()` to send, or `get_apps_app_name_machines_machine_id` for simplest API.
+/// Use `machines_show_execute()` to send, or `machines_show` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_builder(
-    client: &SimpleHttpClient,
+pub fn machines_show_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}",
@@ -3040,17 +3089,17 @@ pub fn get_apps_app_name_machines_machine_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_execute()` or `get_apps_app_name_machines_machine_id`.
+/// For direct execution, use `machines_show_execute()` or `machines_show`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_task(
+pub fn machines_show_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3109,33 +3158,33 @@ pub fn get_apps_app_name_machines_machine_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_builder()` to create the builder,
+/// For full customization, use `machines_show_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id()`.
+/// For task-level control, use `machines_show_task()`.
+/// For the simplest API, use `machines_show()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_execute(
+pub fn machines_show_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_task(builder)?;
+    let task = machines_show_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id`].
+/// Arguments for [`machines_show`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdArgs {
+pub struct MachinesShowArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -3146,37 +3195,39 @@ pub struct GetAppsAppNameMachinesMachineIdArgs {
 /// Get Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_builder()` + `get_apps_app_name_machines_machine_id_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_task()`.
+/// For customization, use `machines_show_builder()` + `machines_show_execute()`.
+/// For task-level control, use `machines_show_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id(
+pub fn machines_show(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdArgs,
+    args: &MachinesShowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_machines_machine_id_builder(client, &args.app_name, &args.machine_id)?;
-    get_apps_app_name_machines_machine_id_execute(builder)
+    let builder = machines_show_builder(client, &args.app_name, &args.machine_id)?;
+    machines_show_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}
 /// Update Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_execute()` to send, or `post_apps_app_name_machines_machine_id` for simplest API.
+/// Use `machines_update_execute()` to send, or `machines_update` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_builder(
-    client: &SimpleHttpClient,
+pub fn machines_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &UpdateMachineRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}",
@@ -3204,17 +3255,17 @@ pub fn post_apps_app_name_machines_machine_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_execute()` or `post_apps_app_name_machines_machine_id`.
+/// For direct execution, use `machines_update_execute()` or `machines_update`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_task(
+pub fn machines_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3273,80 +3324,78 @@ pub fn post_apps_app_name_machines_machine_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_builder()` to create the builder,
+/// For full customization, use `machines_update_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id()`.
+/// For task-level control, use `machines_update_task()`.
+/// For the simplest API, use `machines_update()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_execute(
+pub fn machines_update_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_task(builder)?;
+    let task = machines_update_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id`].
+/// Arguments for [`machines_update`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdArgs {
+pub struct MachinesUpdateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: UpdateMachineRequest,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}
 /// Update Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_builder()` + `post_apps_app_name_machines_machine_id_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_task()`.
+/// For customization, use `machines_update_builder()` + `machines_update_execute()`.
+/// For task-level control, use `machines_update_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id(
+pub fn machines_update(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdArgs,
+    args: &MachinesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    post_apps_app_name_machines_machine_id_execute(builder)
+    let builder = machines_update_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_update_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/machines/{machine_id}
 /// Destroy Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_machines_machine_id_execute()` to send, or `delete_apps_app_name_machines_machine_id` for simplest API.
+/// Use `machines_delete_execute()` to send, or `machines_delete` for simplest API.
 
-pub fn delete_apps_app_name_machines_machine_id_builder(
-    client: &SimpleHttpClient,
+pub fn machines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    force: &Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}",
@@ -3383,17 +3432,17 @@ pub fn delete_apps_app_name_machines_machine_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_machines_machine_id_execute()` or `delete_apps_app_name_machines_machine_id`.
+/// For direct execution, use `machines_delete_execute()` or `machines_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_task(
+pub fn machines_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3449,79 +3498,77 @@ pub fn delete_apps_app_name_machines_machine_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_machines_machine_id_builder()` to create the builder,
+/// For full customization, use `machines_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_machines_machine_id_task()`.
-/// For the simplest API, use `delete_apps_app_name_machines_machine_id()`.
+/// For task-level control, use `machines_delete_task()`.
+/// For the simplest API, use `machines_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_machines_machine_id_execute(
+pub fn machines_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_machines_machine_id_task(builder)?;
+    let task = machines_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_machines_machine_id`].
+/// Arguments for [`machines_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameMachinesMachineIdArgs {
+pub struct MachinesDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: force
-    pub force: Option<bool>,
+    pub force: Option<Option<String>>,
 }
 
 /// DELETE /apps/{app_name}/machines/{machine_id}
 /// Destroy Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_machines_machine_id_builder()` + `delete_apps_app_name_machines_machine_id_execute()`.
-/// For task-level control, use `delete_apps_app_name_machines_machine_id_task()`.
+/// For customization, use `machines_delete_builder()` + `machines_delete_execute()`.
+/// For task-level control, use `machines_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id(
+pub fn machines_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameMachinesMachineIdArgs,
+    args: &MachinesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_machines_machine_id_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.force,
-    )?;
-    delete_apps_app_name_machines_machine_id_execute(builder)
+    let builder = machines_delete_builder(client, &args.app_name, &args.machine_id, &args.force)?;
+    machines_delete_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/cordon
 /// Cordon Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_cordon_execute()` to send, or `post_apps_app_name_machines_machine_id_cordon` for simplest API.
+/// Use `machines_cordon_execute()` to send, or `machines_cordon` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_cordon_builder(
-    client: &SimpleHttpClient,
+pub fn machines_cordon_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/cordon",
@@ -3547,17 +3594,17 @@ pub fn post_apps_app_name_machines_machine_id_cordon_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_cordon_execute()` or `post_apps_app_name_machines_machine_id_cordon`.
+/// For direct execution, use `machines_cordon_execute()` or `machines_cordon`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_cordon_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_cordon_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_cordon_task(
+pub fn machines_cordon_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3613,33 +3660,33 @@ pub fn post_apps_app_name_machines_machine_id_cordon_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_cordon_builder()` to create the builder,
+/// For full customization, use `machines_cordon_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_cordon_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_cordon()`.
+/// For task-level control, use `machines_cordon_task()`.
+/// For the simplest API, use `machines_cordon()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_cordon_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_cordon_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_cordon_execute(
+pub fn machines_cordon_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_cordon_task(builder)?;
+    let task = machines_cordon_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_cordon`].
+/// Arguments for [`machines_cordon`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdCordonArgs {
+pub struct MachinesCordonArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -3650,40 +3697,39 @@ pub struct PostAppsAppNameMachinesMachineIdCordonArgs {
 /// Cordon Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_cordon_builder()` + `post_apps_app_name_machines_machine_id_cordon_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_cordon_task()`.
+/// For customization, use `machines_cordon_builder()` + `machines_cordon_execute()`.
+/// For task-level control, use `machines_cordon_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_cordon(
+pub fn machines_cordon(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdCordonArgs,
+    args: &MachinesCordonArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_cordon_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    post_apps_app_name_machines_machine_id_cordon_execute(builder)
+    let builder = machines_cordon_builder(client, &args.app_name, &args.machine_id)?;
+    machines_cordon_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/events
 /// List Events
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_events_execute()` to send, or `get_apps_app_name_machines_machine_id_events` for simplest API.
+/// Use `machines_list_events_execute()` to send, or `machines_list_events` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_events_builder(
-    client: &SimpleHttpClient,
+pub fn machines_list_events_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    limit: &Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/events",
@@ -3720,21 +3766,21 @@ pub fn get_apps_app_name_machines_machine_id_events_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_events_execute()` or `get_apps_app_name_machines_machine_id_events`.
+/// For direct execution, use `machines_list_events_execute()` or `machines_list_events`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_events_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_events_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_events_task(
+pub fn machines_list_events_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -3769,10 +3815,13 @@ pub fn get_apps_app_name_machines_machine_id_events_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -3786,80 +3835,83 @@ pub fn get_apps_app_name_machines_machine_id_events_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_events_builder()` to create the builder,
+/// For full customization, use `machines_list_events_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_events_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_events()`.
+/// For task-level control, use `machines_list_events_task()`.
+/// For the simplest API, use `machines_list_events()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_events_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_events_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_events_execute(
+pub fn machines_list_events_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_events_task(builder)?;
+    let task = machines_list_events_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_events`].
+/// Arguments for [`machines_list_events`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdEventsArgs {
+pub struct MachinesListEventsArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/events
 /// List Events
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_events_builder()` + `get_apps_app_name_machines_machine_id_events_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_events_task()`.
+/// For customization, use `machines_list_events_builder()` + `machines_list_events_execute()`.
+/// For task-level control, use `machines_list_events_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_events(
+pub fn machines_list_events(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdEventsArgs,
+    args: &MachinesListEventsArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_events_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.limit,
-    )?;
-    get_apps_app_name_machines_machine_id_events_execute(builder)
+    let builder =
+        machines_list_events_builder(client, &args.app_name, &args.machine_id, &args.limit)?;
+    machines_list_events_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/exec
 /// Execute Command
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_exec_execute()` to send, or `post_apps_app_name_machines_machine_id_exec` for simplest API.
+/// Use `machines_exec_execute()` to send, or `machines_exec` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_exec_builder(
-    client: &SimpleHttpClient,
+pub fn machines_exec_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &MachineExecRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/exec",
@@ -3887,17 +3939,17 @@ pub fn post_apps_app_name_machines_machine_id_exec_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_exec_execute()` or `post_apps_app_name_machines_machine_id_exec`.
+/// For direct execution, use `machines_exec_execute()` or `machines_exec`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_exec_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_exec_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_exec_task(
+pub fn machines_exec_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3956,21 +4008,21 @@ pub fn post_apps_app_name_machines_machine_id_exec_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_exec_builder()` to create the builder,
+/// For full customization, use `machines_exec_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_exec_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_exec()`.
+/// For task-level control, use `machines_exec_task()`.
+/// For the simplest API, use `machines_exec()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_exec_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_exec_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_exec_execute(
+pub fn machines_exec_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Flydv1ExecResponse>, ApiError>, P = ApiPending>
@@ -3978,61 +4030,59 @@ pub fn post_apps_app_name_machines_machine_id_exec_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_exec_task(builder)?;
+    let task = machines_exec_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_exec`].
+/// Arguments for [`machines_exec`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdExecArgs {
+pub struct MachinesExecArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: MachineExecRequest,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/exec
 /// Execute Command
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_exec_builder()` + `post_apps_app_name_machines_machine_id_exec_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_exec_task()`.
+/// For customization, use `machines_exec_builder()` + `machines_exec_execute()`.
+/// For task-level control, use `machines_exec_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_exec(
+pub fn machines_exec(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdExecArgs,
+    args: &MachinesExecArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Flydv1ExecResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_exec_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    post_apps_app_name_machines_machine_id_exec_execute(builder)
+    let builder = machines_exec_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_exec_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/lease
 /// Get Lease
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_lease_execute()` to send, or `get_apps_app_name_machines_machine_id_lease` for simplest API.
+/// Use `machines_show_lease_execute()` to send, or `machines_show_lease` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_lease_builder(
-    client: &SimpleHttpClient,
+pub fn machines_show_lease_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
@@ -4058,17 +4108,17 @@ pub fn get_apps_app_name_machines_machine_id_lease_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_lease_execute()` or `get_apps_app_name_machines_machine_id_lease`.
+/// For direct execution, use `machines_show_lease_execute()` or `machines_show_lease`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_lease_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_show_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_lease_task(
+pub fn machines_show_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4127,33 +4177,33 @@ pub fn get_apps_app_name_machines_machine_id_lease_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_lease_builder()` to create the builder,
+/// For full customization, use `machines_show_lease_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_lease_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_lease()`.
+/// For task-level control, use `machines_show_lease_task()`.
+/// For the simplest API, use `machines_show_lease()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_lease_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_show_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_lease_execute(
+pub fn machines_show_lease_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_lease_task(builder)?;
+    let task = machines_show_lease_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_lease`].
+/// Arguments for [`machines_show_lease`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdLeaseArgs {
+pub struct MachinesShowLeaseArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -4164,40 +4214,39 @@ pub struct GetAppsAppNameMachinesMachineIdLeaseArgs {
 /// Get Lease
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_lease_builder()` + `get_apps_app_name_machines_machine_id_lease_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_lease_task()`.
+/// For customization, use `machines_show_lease_builder()` + `machines_show_lease_execute()`.
+/// For task-level control, use `machines_show_lease_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_lease(
+pub fn machines_show_lease(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdLeaseArgs,
+    args: &MachinesShowLeaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_lease_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    get_apps_app_name_machines_machine_id_lease_execute(builder)
+    let builder = machines_show_lease_builder(client, &args.app_name, &args.machine_id)?;
+    machines_show_lease_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/lease
 /// Create Lease
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_lease_execute()` to send, or `post_apps_app_name_machines_machine_id_lease` for simplest API.
+/// Use `machines_create_lease_execute()` to send, or `machines_create_lease` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_lease_builder(
-    client: &SimpleHttpClient,
+pub fn machines_create_lease_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &CreateLeaseRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
@@ -4225,17 +4274,17 @@ pub fn post_apps_app_name_machines_machine_id_lease_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_lease_execute()` or `post_apps_app_name_machines_machine_id_lease`.
+/// For direct execution, use `machines_create_lease_execute()` or `machines_create_lease`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_lease_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_create_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_lease_task(
+pub fn machines_create_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4294,79 +4343,78 @@ pub fn post_apps_app_name_machines_machine_id_lease_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_lease_builder()` to create the builder,
+/// For full customization, use `machines_create_lease_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_lease_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_lease()`.
+/// For task-level control, use `machines_create_lease_task()`.
+/// For the simplest API, use `machines_create_lease()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_lease_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_create_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_lease_execute(
+pub fn machines_create_lease_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_lease_task(builder)?;
+    let task = machines_create_lease_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_lease`].
+/// Arguments for [`machines_create_lease`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdLeaseArgs {
+pub struct MachinesCreateLeaseArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateLeaseRequest,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/lease
 /// Create Lease
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_lease_builder()` + `post_apps_app_name_machines_machine_id_lease_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_lease_task()`.
+/// For customization, use `machines_create_lease_builder()` + `machines_create_lease_execute()`.
+/// For task-level control, use `machines_create_lease_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_lease(
+pub fn machines_create_lease(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdLeaseArgs,
+    args: &MachinesCreateLeaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_lease_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    post_apps_app_name_machines_machine_id_lease_execute(builder)
+    let builder =
+        machines_create_lease_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_create_lease_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/machines/{machine_id}/lease
 /// Release Lease
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_machines_machine_id_lease_execute()` to send, or `delete_apps_app_name_machines_machine_id_lease` for simplest API.
+/// Use `machines_release_lease_execute()` to send, or `machines_release_lease` for simplest API.
 
-pub fn delete_apps_app_name_machines_machine_id_lease_builder(
-    client: &SimpleHttpClient,
+pub fn machines_release_lease_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
@@ -4392,17 +4440,17 @@ pub fn delete_apps_app_name_machines_machine_id_lease_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_machines_machine_id_lease_execute()` or `delete_apps_app_name_machines_machine_id_lease`.
+/// For direct execution, use `machines_release_lease_execute()` or `machines_release_lease`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_lease_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_release_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_lease_task(
+pub fn machines_release_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4458,33 +4506,33 @@ pub fn delete_apps_app_name_machines_machine_id_lease_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_machines_machine_id_lease_builder()` to create the builder,
+/// For full customization, use `machines_release_lease_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_machines_machine_id_lease_task()`.
-/// For the simplest API, use `delete_apps_app_name_machines_machine_id_lease()`.
+/// For task-level control, use `machines_release_lease_task()`.
+/// For the simplest API, use `machines_release_lease()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_lease_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_release_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_machines_machine_id_lease_execute(
+pub fn machines_release_lease_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_machines_machine_id_lease_task(builder)?;
+    let task = machines_release_lease_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_machines_machine_id_lease`].
+/// Arguments for [`machines_release_lease`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameMachinesMachineIdLeaseArgs {
+pub struct MachinesReleaseLeaseArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -4495,39 +4543,38 @@ pub struct DeleteAppsAppNameMachinesMachineIdLeaseArgs {
 /// Release Lease
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_machines_machine_id_lease_builder()` + `delete_apps_app_name_machines_machine_id_lease_execute()`.
-/// For task-level control, use `delete_apps_app_name_machines_machine_id_lease_task()`.
+/// For customization, use `machines_release_lease_builder()` + `machines_release_lease_execute()`.
+/// For task-level control, use `machines_release_lease_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_lease(
+pub fn machines_release_lease(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameMachinesMachineIdLeaseArgs,
+    args: &MachinesReleaseLeaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_machines_machine_id_lease_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    delete_apps_app_name_machines_machine_id_lease_execute(builder)
+    let builder = machines_release_lease_builder(client, &args.app_name, &args.machine_id)?;
+    machines_release_lease_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/memory
 /// Get Machine Memory
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_memory_execute()` to send, or `get_apps_app_name_machines_machine_id_memory` for simplest API.
+/// Use `machines_get_memory_execute()` to send, or `machines_get_memory` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_memory_builder(
-    client: &SimpleHttpClient,
+pub fn machines_get_memory_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/memory",
@@ -4553,17 +4600,17 @@ pub fn get_apps_app_name_machines_machine_id_memory_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_memory_execute()` or `get_apps_app_name_machines_machine_id_memory`.
+/// For direct execution, use `machines_get_memory_execute()` or `machines_get_memory`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_memory_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_get_memory_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_memory_task(
+pub fn machines_get_memory_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4622,21 +4669,21 @@ pub fn get_apps_app_name_machines_machine_id_memory_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_memory_builder()` to create the builder,
+/// For full customization, use `machines_get_memory_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_memory_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_memory()`.
+/// For task-level control, use `machines_get_memory_task()`.
+/// For the simplest API, use `machines_get_memory()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_memory_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_get_memory_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_memory_execute(
+pub fn machines_get_memory_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
@@ -4644,13 +4691,13 @@ pub fn get_apps_app_name_machines_machine_id_memory_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_memory_task(builder)?;
+    let task = machines_get_memory_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_memory`].
+/// Arguments for [`machines_get_memory`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdMemoryArgs {
+pub struct MachinesGetMemoryArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -4661,42 +4708,41 @@ pub struct GetAppsAppNameMachinesMachineIdMemoryArgs {
 /// Get Machine Memory
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_memory_builder()` + `get_apps_app_name_machines_machine_id_memory_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_memory_task()`.
+/// For customization, use `machines_get_memory_builder()` + `machines_get_memory_execute()`.
+/// For task-level control, use `machines_get_memory_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_memory(
+pub fn machines_get_memory(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdMemoryArgs,
+    args: &MachinesGetMemoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_memory_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    get_apps_app_name_machines_machine_id_memory_execute(builder)
+    let builder = machines_get_memory_builder(client, &args.app_name, &args.machine_id)?;
+    machines_get_memory_execute(builder)
 }
 
 /// PUT /apps/{app_name}/machines/{machine_id}/memory
 /// Set Machine Memory Limit
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `put_apps_app_name_machines_machine_id_memory_execute()` to send, or `put_apps_app_name_machines_machine_id_memory` for simplest API.
+/// Use `machines_set_memory_limit_execute()` to send, or `machines_set_memory_limit` for simplest API.
 
-pub fn put_apps_app_name_machines_machine_id_memory_builder(
-    client: &SimpleHttpClient,
+pub fn machines_set_memory_limit_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &MainSetMemoryLimitRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/memory",
@@ -4724,17 +4770,17 @@ pub fn put_apps_app_name_machines_machine_id_memory_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `put_apps_app_name_machines_machine_id_memory_execute()` or `put_apps_app_name_machines_machine_id_memory`.
+/// For direct execution, use `machines_set_memory_limit_execute()` or `machines_set_memory_limit`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_memory_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_set_memory_limit_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_machines_machine_id_memory_task(
+pub fn machines_set_memory_limit_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4793,21 +4839,21 @@ pub fn put_apps_app_name_machines_machine_id_memory_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `put_apps_app_name_machines_machine_id_memory_builder()` to create the builder,
+/// For full customization, use `machines_set_memory_limit_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `put_apps_app_name_machines_machine_id_memory_task()`.
-/// For the simplest API, use `put_apps_app_name_machines_machine_id_memory()`.
+/// For task-level control, use `machines_set_memory_limit_task()`.
+/// For the simplest API, use `machines_set_memory_limit()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_memory_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_set_memory_limit_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn put_apps_app_name_machines_machine_id_memory_execute(
+pub fn machines_set_memory_limit_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
@@ -4815,62 +4861,61 @@ pub fn put_apps_app_name_machines_machine_id_memory_execute(
         + 'static,
     ApiError,
 > {
-    let task = put_apps_app_name_machines_machine_id_memory_task(builder)?;
+    let task = machines_set_memory_limit_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`put_apps_app_name_machines_machine_id_memory`].
+/// Arguments for [`machines_set_memory_limit`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PutAppsAppNameMachinesMachineIdMemoryArgs {
+pub struct MachinesSetMemoryLimitArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: MainSetMemoryLimitRequest,
 }
 
 /// PUT /apps/{app_name}/machines/{machine_id}/memory
 /// Set Machine Memory Limit
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `put_apps_app_name_machines_machine_id_memory_builder()` + `put_apps_app_name_machines_machine_id_memory_execute()`.
-/// For task-level control, use `put_apps_app_name_machines_machine_id_memory_task()`.
+/// For customization, use `machines_set_memory_limit_builder()` + `machines_set_memory_limit_execute()`.
+/// For task-level control, use `machines_set_memory_limit_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_machines_machine_id_memory(
+pub fn machines_set_memory_limit(
     client: &SimpleHttpClient,
-    args: &PutAppsAppNameMachinesMachineIdMemoryArgs,
+    args: &MachinesSetMemoryLimitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_apps_app_name_machines_machine_id_memory_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    put_apps_app_name_machines_machine_id_memory_execute(builder)
+    let builder =
+        machines_set_memory_limit_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_set_memory_limit_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/memory/reclaim
 /// Reclaim Machine Memory
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_memory_reclaim_execute()` to send, or `post_apps_app_name_machines_machine_id_memory_reclaim` for simplest API.
+/// Use `machines_reclaim_memory_execute()` to send, or `machines_reclaim_memory` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_memory_reclaim_builder(
-    client: &SimpleHttpClient,
+pub fn machines_reclaim_memory_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &MainReclaimMemoryRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/memory/reclaim",
@@ -4898,17 +4943,17 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_memory_reclaim_execute()` or `post_apps_app_name_machines_machine_id_memory_reclaim`.
+/// For direct execution, use `machines_reclaim_memory_execute()` or `machines_reclaim_memory`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_memory_reclaim_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_reclaim_memory_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_memory_reclaim_task(
+pub fn machines_reclaim_memory_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4967,21 +5012,21 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_memory_reclaim_builder()` to create the builder,
+/// For full customization, use `machines_reclaim_memory_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_memory_reclaim_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_memory_reclaim()`.
+/// For task-level control, use `machines_reclaim_memory_task()`.
+/// For the simplest API, use `machines_reclaim_memory()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_memory_reclaim_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_reclaim_memory_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
+pub fn machines_reclaim_memory_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainReclaimMemoryResponse>, ApiError>, P = ApiPending>
@@ -4989,61 +5034,60 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_memory_reclaim_task(builder)?;
+    let task = machines_reclaim_memory_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_memory_reclaim`].
+/// Arguments for [`machines_reclaim_memory`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdMemoryReclaimArgs {
+pub struct MachinesReclaimMemoryArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: MainReclaimMemoryRequest,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/memory/reclaim
 /// Reclaim Machine Memory
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_memory_reclaim_builder()` + `post_apps_app_name_machines_machine_id_memory_reclaim_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_memory_reclaim_task()`.
+/// For customization, use `machines_reclaim_memory_builder()` + `machines_reclaim_memory_execute()`.
+/// For task-level control, use `machines_reclaim_memory_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_memory_reclaim(
+pub fn machines_reclaim_memory(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdMemoryReclaimArgs,
+    args: &MachinesReclaimMemoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainReclaimMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_memory_reclaim_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    post_apps_app_name_machines_machine_id_memory_reclaim_execute(builder)
+    let builder =
+        machines_reclaim_memory_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_reclaim_memory_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/metadata
 /// Get Metadata
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_metadata_execute()` to send, or `get_apps_app_name_machines_machine_id_metadata` for simplest API.
+/// Use `machines_show_metadata_execute()` to send, or `machines_show_metadata` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn machines_show_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata",
@@ -5069,21 +5113,21 @@ pub fn get_apps_app_name_machines_machine_id_metadata_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_metadata_execute()` or `get_apps_app_name_machines_machine_id_metadata`.
+/// For direct execution, use `machines_show_metadata_execute()` or `machines_show_metadata`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_show_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_task(
+pub fn machines_show_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -5118,10 +5162,13 @@ pub fn get_apps_app_name_machines_machine_id_metadata_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -5135,33 +5182,35 @@ pub fn get_apps_app_name_machines_machine_id_metadata_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_metadata_builder()` to create the builder,
+/// For full customization, use `machines_show_metadata_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_metadata()`.
+/// For task-level control, use `machines_show_metadata_task()`.
+/// For the simplest API, use `machines_show_metadata()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_show_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_execute(
+pub fn machines_show_metadata_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_metadata_task(builder)?;
+    let task = machines_show_metadata_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_metadata`].
+/// Arguments for [`machines_show_metadata`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdMetadataArgs {
+pub struct MachinesShowMetadataArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -5172,40 +5221,41 @@ pub struct GetAppsAppNameMachinesMachineIdMetadataArgs {
 /// Get Metadata
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_metadata_builder()` + `get_apps_app_name_machines_machine_id_metadata_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_task()`.
+/// For customization, use `machines_show_metadata_builder()` + `machines_show_metadata_execute()`.
+/// For task-level control, use `machines_show_metadata_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_metadata(
+pub fn machines_show_metadata(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdMetadataArgs,
+    args: &MachinesShowMetadataArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_metadata_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    get_apps_app_name_machines_machine_id_metadata_execute(builder)
+    let builder = machines_show_metadata_builder(client, &args.app_name, &args.machine_id)?;
+    machines_show_metadata_execute(builder)
 }
 
 /// PUT /apps/{app_name}/machines/{machine_id}/metadata
 /// Update Metadata (`set/remove` multiple keys)
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `put_apps_app_name_machines_machine_id_metadata_execute()` to send, or `put_apps_app_name_machines_machine_id_metadata` for simplest API.
+/// Use `machines_update_metadata_execute()` to send, or `machines_update_metadata` for simplest API.
 
-pub fn put_apps_app_name_machines_machine_id_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn machines_update_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &UpdateMetadataRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata",
@@ -5233,17 +5283,17 @@ pub fn put_apps_app_name_machines_machine_id_metadata_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `put_apps_app_name_machines_machine_id_metadata_execute()` or `put_apps_app_name_machines_machine_id_metadata`.
+/// For direct execution, use `machines_update_metadata_execute()` or `machines_update_metadata`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_metadata_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_update_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_machines_machine_id_metadata_task(
+pub fn machines_update_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5299,80 +5349,79 @@ pub fn put_apps_app_name_machines_machine_id_metadata_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `put_apps_app_name_machines_machine_id_metadata_builder()` to create the builder,
+/// For full customization, use `machines_update_metadata_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `put_apps_app_name_machines_machine_id_metadata_task()`.
-/// For the simplest API, use `put_apps_app_name_machines_machine_id_metadata()`.
+/// For task-level control, use `machines_update_metadata_task()`.
+/// For the simplest API, use `machines_update_metadata()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_metadata_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_update_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn put_apps_app_name_machines_machine_id_metadata_execute(
+pub fn machines_update_metadata_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = put_apps_app_name_machines_machine_id_metadata_task(builder)?;
+    let task = machines_update_metadata_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`put_apps_app_name_machines_machine_id_metadata`].
+/// Arguments for [`machines_update_metadata`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PutAppsAppNameMachinesMachineIdMetadataArgs {
+pub struct MachinesUpdateMetadataArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: UpdateMetadataRequest,
 }
 
 /// PUT /apps/{app_name}/machines/{machine_id}/metadata
 /// Update Metadata (`set/remove` multiple keys)
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `put_apps_app_name_machines_machine_id_metadata_builder()` + `put_apps_app_name_machines_machine_id_metadata_execute()`.
-/// For task-level control, use `put_apps_app_name_machines_machine_id_metadata_task()`.
+/// For customization, use `machines_update_metadata_builder()` + `machines_update_metadata_execute()`.
+/// For task-level control, use `machines_update_metadata_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_machines_machine_id_metadata(
+pub fn machines_update_metadata(
     client: &SimpleHttpClient,
-    args: &PutAppsAppNameMachinesMachineIdMetadataArgs,
+    args: &MachinesUpdateMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = put_apps_app_name_machines_machine_id_metadata_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    put_apps_app_name_machines_machine_id_metadata_execute(builder)
+    let builder =
+        machines_update_metadata_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_update_metadata_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Get Metadata Value
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_metadata_key_execute()` to send, or `get_apps_app_name_machines_machine_id_metadata_key` for simplest API.
+/// Use `machines_get_metadata_key_execute()` to send, or `machines_get_metadata_key` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_key_builder(
-    client: &SimpleHttpClient,
+pub fn machines_get_metadata_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
     key: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
@@ -5398,17 +5447,17 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_metadata_key_execute()` or `get_apps_app_name_machines_machine_id_metadata_key`.
+/// For direct execution, use `machines_get_metadata_key_execute()` or `machines_get_metadata_key`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_key_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_get_metadata_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_key_task(
+pub fn machines_get_metadata_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5467,21 +5516,21 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_metadata_key_builder()` to create the builder,
+/// For full customization, use `machines_get_metadata_key_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_key_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_metadata_key()`.
+/// For task-level control, use `machines_get_metadata_key_task()`.
+/// For the simplest API, use `machines_get_metadata_key()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_key_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_get_metadata_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
+pub fn machines_get_metadata_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MetadataValueResponse>, ApiError>, P = ApiPending>
@@ -5489,13 +5538,13 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_metadata_key_task(builder)?;
+    let task = machines_get_metadata_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_metadata_key`].
+/// Arguments for [`machines_get_metadata_key`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdMetadataKeyArgs {
+pub struct MachinesGetMetadataKeyArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -5508,44 +5557,43 @@ pub struct GetAppsAppNameMachinesMachineIdMetadataKeyArgs {
 /// Get Metadata Value
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_metadata_key_builder()` + `get_apps_app_name_machines_machine_id_metadata_key_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_key_task()`.
+/// For customization, use `machines_get_metadata_key_builder()` + `machines_get_metadata_key_execute()`.
+/// For task-level control, use `machines_get_metadata_key_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_key(
+pub fn machines_get_metadata_key(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdMetadataKeyArgs,
+    args: &MachinesGetMetadataKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MetadataValueResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_metadata_key_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.key,
-    )?;
-    get_apps_app_name_machines_machine_id_metadata_key_execute(builder)
+    let builder =
+        machines_get_metadata_key_builder(client, &args.app_name, &args.machine_id, &args.key)?;
+    machines_get_metadata_key_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Upsert Metadata Key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_metadata_key_execute()` to send, or `post_apps_app_name_machines_machine_id_metadata_key` for simplest API.
+/// Use `machines_upsert_metadata_execute()` to send, or `machines_upsert_metadata` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_metadata_key_builder(
-    client: &SimpleHttpClient,
+pub fn machines_upsert_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
     key: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &UpsertMetadataKeyRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
@@ -5573,17 +5621,17 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_metadata_key_execute()` or `post_apps_app_name_machines_machine_id_metadata_key`.
+/// For direct execution, use `machines_upsert_metadata_execute()` or `machines_upsert_metadata`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_metadata_key_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_upsert_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_metadata_key_task(
+pub fn machines_upsert_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5639,33 +5687,33 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_metadata_key_builder()` to create the builder,
+/// For full customization, use `machines_upsert_metadata_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_metadata_key_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_metadata_key()`.
+/// For task-level control, use `machines_upsert_metadata_task()`.
+/// For the simplest API, use `machines_upsert_metadata()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_metadata_key_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_upsert_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_metadata_key_execute(
+pub fn machines_upsert_metadata_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_metadata_key_task(builder)?;
+    let task = machines_upsert_metadata_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_metadata_key`].
+/// Arguments for [`machines_upsert_metadata`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdMetadataKeyArgs {
+pub struct MachinesUpsertMetadataArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -5673,49 +5721,52 @@ pub struct PostAppsAppNameMachinesMachineIdMetadataKeyArgs {
     /// Path parameter: key
     pub key: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: UpsertMetadataKeyRequest,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Upsert Metadata Key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_metadata_key_builder()` + `post_apps_app_name_machines_machine_id_metadata_key_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_metadata_key_task()`.
+/// For customization, use `machines_upsert_metadata_builder()` + `machines_upsert_metadata_execute()`.
+/// For task-level control, use `machines_upsert_metadata_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_metadata_key(
+pub fn machines_upsert_metadata(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdMetadataKeyArgs,
+    args: &MachinesUpsertMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_metadata_key_builder(
+    let builder = machines_upsert_metadata_builder(
         client,
         &args.app_name,
         &args.machine_id,
         &args.key,
         &args.body,
     )?;
-    post_apps_app_name_machines_machine_id_metadata_key_execute(builder)
+    machines_upsert_metadata_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Delete Metadata
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_machines_machine_id_metadata_key_execute()` to send, or `delete_apps_app_name_machines_machine_id_metadata_key` for simplest API.
+/// Use `machines_delete_metadata_execute()` to send, or `machines_delete_metadata` for simplest API.
 
-pub fn delete_apps_app_name_machines_machine_id_metadata_key_builder(
-    client: &SimpleHttpClient,
+pub fn machines_delete_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
     key: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
@@ -5741,17 +5792,17 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_machines_machine_id_metadata_key_execute()` or `delete_apps_app_name_machines_machine_id_metadata_key`.
+/// For direct execution, use `machines_delete_metadata_execute()` or `machines_delete_metadata`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_metadata_key_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_delete_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_metadata_key_task(
+pub fn machines_delete_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -5807,33 +5858,33 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_machines_machine_id_metadata_key_builder()` to create the builder,
+/// For full customization, use `machines_delete_metadata_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_machines_machine_id_metadata_key_task()`.
-/// For the simplest API, use `delete_apps_app_name_machines_machine_id_metadata_key()`.
+/// For task-level control, use `machines_delete_metadata_task()`.
+/// For the simplest API, use `machines_delete_metadata()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_metadata_key_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_delete_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_machines_machine_id_metadata_key_execute(
+pub fn machines_delete_metadata_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_machines_machine_id_metadata_key_task(builder)?;
+    let task = machines_delete_metadata_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_machines_machine_id_metadata_key`].
+/// Arguments for [`machines_delete_metadata`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameMachinesMachineIdMetadataKeyArgs {
+pub struct MachinesDeleteMetadataArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -5846,42 +5897,41 @@ pub struct DeleteAppsAppNameMachinesMachineIdMetadataKeyArgs {
 /// Delete Metadata
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_machines_machine_id_metadata_key_builder()` + `delete_apps_app_name_machines_machine_id_metadata_key_execute()`.
-/// For task-level control, use `delete_apps_app_name_machines_machine_id_metadata_key_task()`.
+/// For customization, use `machines_delete_metadata_builder()` + `machines_delete_metadata_execute()`.
+/// For task-level control, use `machines_delete_metadata_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_metadata_key(
+pub fn machines_delete_metadata(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameMachinesMachineIdMetadataKeyArgs,
+    args: &MachinesDeleteMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_machines_machine_id_metadata_key_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.key,
-    )?;
-    delete_apps_app_name_machines_machine_id_metadata_key_execute(builder)
+    let builder =
+        machines_delete_metadata_builder(client, &args.app_name, &args.machine_id, &args.key)?;
+    machines_delete_metadata_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/ps
 /// List Processes
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_ps_execute()` to send, or `get_apps_app_name_machines_machine_id_ps` for simplest API.
+/// Use `machines_list_processes_execute()` to send, or `machines_list_processes` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_ps_builder(
-    client: &SimpleHttpClient,
+pub fn machines_list_processes_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    sort_by: &Option<String>,
-    order: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    sort_by: &Option<Option<String>>,
+    order: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/ps",
@@ -5921,21 +5971,21 @@ pub fn get_apps_app_name_machines_machine_id_ps_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_ps_execute()` or `get_apps_app_name_machines_machine_id_ps`.
+/// For direct execution, use `machines_list_processes_execute()` or `machines_list_processes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_ps_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_processes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_ps_task(
+pub fn machines_list_processes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -5970,10 +6020,13 @@ pub fn get_apps_app_name_machines_machine_id_ps_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -5987,84 +6040,91 @@ pub fn get_apps_app_name_machines_machine_id_ps_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_ps_builder()` to create the builder,
+/// For full customization, use `machines_list_processes_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_ps_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_ps()`.
+/// For task-level control, use `machines_list_processes_task()`.
+/// For the simplest API, use `machines_list_processes()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_ps_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_processes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_ps_execute(
+pub fn machines_list_processes_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_ps_task(builder)?;
+    let task = machines_list_processes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_ps`].
+/// Arguments for [`machines_list_processes`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdPsArgs {
+pub struct MachinesListProcessesArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: sort_by
-    pub sort_by: Option<String>,
+    pub sort_by: Option<Option<String>>,
     /// Query parameter: order
-    pub order: Option<String>,
+    pub order: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/ps
 /// List Processes
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_ps_builder()` + `get_apps_app_name_machines_machine_id_ps_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_ps_task()`.
+/// For customization, use `machines_list_processes_builder()` + `machines_list_processes_execute()`.
+/// For task-level control, use `machines_list_processes_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_ps(
+pub fn machines_list_processes(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdPsArgs,
+    args: &MachinesListProcessesArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_ps_builder(
+    let builder = machines_list_processes_builder(
         client,
         &args.app_name,
         &args.machine_id,
         &args.sort_by,
         &args.order,
     )?;
-    get_apps_app_name_machines_machine_id_ps_execute(builder)
+    machines_list_processes_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/restart
 /// Restart Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_restart_execute()` to send, or `post_apps_app_name_machines_machine_id_restart` for simplest API.
+/// Use `machines_restart_execute()` to send, or `machines_restart` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_restart_builder(
-    client: &SimpleHttpClient,
+pub fn machines_restart_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    timeout: &Option<String>,
-    signal: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    timeout: &Option<Option<String>>,
+    signal: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/restart",
@@ -6104,17 +6164,17 @@ pub fn post_apps_app_name_machines_machine_id_restart_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_restart_execute()` or `post_apps_app_name_machines_machine_id_restart`.
+/// For direct execution, use `machines_restart_execute()` or `machines_restart`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_restart_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_restart_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_restart_task(
+pub fn machines_restart_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6170,83 +6230,86 @@ pub fn post_apps_app_name_machines_machine_id_restart_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_restart_builder()` to create the builder,
+/// For full customization, use `machines_restart_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_restart_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_restart()`.
+/// For task-level control, use `machines_restart_task()`.
+/// For the simplest API, use `machines_restart()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_restart_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_restart_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_restart_execute(
+pub fn machines_restart_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_restart_task(builder)?;
+    let task = machines_restart_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_restart`].
+/// Arguments for [`machines_restart`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdRestartArgs {
+pub struct MachinesRestartArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: timeout
-    pub timeout: Option<String>,
+    pub timeout: Option<Option<String>>,
     /// Query parameter: signal
-    pub signal: Option<String>,
+    pub signal: Option<Option<String>>,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/restart
 /// Restart Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_restart_builder()` + `post_apps_app_name_machines_machine_id_restart_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_restart_task()`.
+/// For customization, use `machines_restart_builder()` + `machines_restart_execute()`.
+/// For task-level control, use `machines_restart_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_restart(
+pub fn machines_restart(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdRestartArgs,
+    args: &MachinesRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_restart_builder(
+    let builder = machines_restart_builder(
         client,
         &args.app_name,
         &args.machine_id,
         &args.timeout,
         &args.signal,
     )?;
-    post_apps_app_name_machines_machine_id_restart_execute(builder)
+    machines_restart_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/signal
 /// Signal Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_signal_execute()` to send, or `post_apps_app_name_machines_machine_id_signal` for simplest API.
+/// Use `machines_signal_execute()` to send, or `machines_signal` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_signal_builder(
-    client: &SimpleHttpClient,
+pub fn machines_signal_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &SignalRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/signal",
@@ -6274,17 +6337,17 @@ pub fn post_apps_app_name_machines_machine_id_signal_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_signal_execute()` or `post_apps_app_name_machines_machine_id_signal`.
+/// For direct execution, use `machines_signal_execute()` or `machines_signal`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_signal_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_signal_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_signal_task(
+pub fn machines_signal_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6340,79 +6403,77 @@ pub fn post_apps_app_name_machines_machine_id_signal_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_signal_builder()` to create the builder,
+/// For full customization, use `machines_signal_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_signal_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_signal()`.
+/// For task-level control, use `machines_signal_task()`.
+/// For the simplest API, use `machines_signal()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_signal_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_signal_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_signal_execute(
+pub fn machines_signal_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_signal_task(builder)?;
+    let task = machines_signal_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_signal`].
+/// Arguments for [`machines_signal`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdSignalArgs {
+pub struct MachinesSignalArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: SignalRequest,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/signal
 /// Signal Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_signal_builder()` + `post_apps_app_name_machines_machine_id_signal_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_signal_task()`.
+/// For customization, use `machines_signal_builder()` + `machines_signal_execute()`.
+/// For task-level control, use `machines_signal_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_signal(
+pub fn machines_signal(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdSignalArgs,
+    args: &MachinesSignalArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_signal_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    post_apps_app_name_machines_machine_id_signal_execute(builder)
+    let builder = machines_signal_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_signal_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/start
 /// Start Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_start_execute()` to send, or `post_apps_app_name_machines_machine_id_start` for simplest API.
+/// Use `machines_start_execute()` to send, or `machines_start` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_start_builder(
-    client: &SimpleHttpClient,
+pub fn machines_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/start",
@@ -6438,17 +6499,17 @@ pub fn post_apps_app_name_machines_machine_id_start_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_start_execute()` or `post_apps_app_name_machines_machine_id_start`.
+/// For direct execution, use `machines_start_execute()` or `machines_start`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_start_task(
+pub fn machines_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6504,33 +6565,33 @@ pub fn post_apps_app_name_machines_machine_id_start_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_start_builder()` to create the builder,
+/// For full customization, use `machines_start_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_start_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_start()`.
+/// For task-level control, use `machines_start_task()`.
+/// For the simplest API, use `machines_start()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_start_execute(
+pub fn machines_start_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_start_task(builder)?;
+    let task = machines_start_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_start`].
+/// Arguments for [`machines_start`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdStartArgs {
+pub struct MachinesStartArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -6541,40 +6602,39 @@ pub struct PostAppsAppNameMachinesMachineIdStartArgs {
 /// Start Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_start_builder()` + `post_apps_app_name_machines_machine_id_start_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_start_task()`.
+/// For customization, use `machines_start_builder()` + `machines_start_execute()`.
+/// For task-level control, use `machines_start_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_start(
+pub fn machines_start(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdStartArgs,
+    args: &MachinesStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_start_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    post_apps_app_name_machines_machine_id_start_execute(builder)
+    let builder = machines_start_builder(client, &args.app_name, &args.machine_id)?;
+    machines_start_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/stop
 /// Stop Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_stop_execute()` to send, or `post_apps_app_name_machines_machine_id_stop` for simplest API.
+/// Use `machines_stop_execute()` to send, or `machines_stop` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_stop_builder(
-    client: &SimpleHttpClient,
+pub fn machines_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &StopRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/stop",
@@ -6602,17 +6662,17 @@ pub fn post_apps_app_name_machines_machine_id_stop_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_stop_execute()` or `post_apps_app_name_machines_machine_id_stop`.
+/// For direct execution, use `machines_stop_execute()` or `machines_stop`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_stop_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_stop_task(
+pub fn machines_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6668,79 +6728,77 @@ pub fn post_apps_app_name_machines_machine_id_stop_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_stop_builder()` to create the builder,
+/// For full customization, use `machines_stop_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_stop_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_stop()`.
+/// For task-level control, use `machines_stop_task()`.
+/// For the simplest API, use `machines_stop()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_stop_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_stop_execute(
+pub fn machines_stop_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_stop_task(builder)?;
+    let task = machines_stop_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_stop`].
+/// Arguments for [`machines_stop`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdStopArgs {
+pub struct MachinesStopArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: StopRequest,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/stop
 /// Stop Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_stop_builder()` + `post_apps_app_name_machines_machine_id_stop_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_stop_task()`.
+/// For customization, use `machines_stop_builder()` + `machines_stop_execute()`.
+/// For task-level control, use `machines_stop_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_stop(
+pub fn machines_stop(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdStopArgs,
+    args: &MachinesStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_stop_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-        &args.body,
-    )?;
-    post_apps_app_name_machines_machine_id_stop_execute(builder)
+    let builder = machines_stop_builder(client, &args.app_name, &args.machine_id, &args.body)?;
+    machines_stop_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/suspend
 /// Suspend Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_suspend_execute()` to send, or `post_apps_app_name_machines_machine_id_suspend` for simplest API.
+/// Use `machines_suspend_execute()` to send, or `machines_suspend` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_suspend_builder(
-    client: &SimpleHttpClient,
+pub fn machines_suspend_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/suspend",
@@ -6766,17 +6824,17 @@ pub fn post_apps_app_name_machines_machine_id_suspend_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_suspend_execute()` or `post_apps_app_name_machines_machine_id_suspend`.
+/// For direct execution, use `machines_suspend_execute()` or `machines_suspend`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_suspend_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_suspend_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_suspend_task(
+pub fn machines_suspend_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6832,33 +6890,33 @@ pub fn post_apps_app_name_machines_machine_id_suspend_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_suspend_builder()` to create the builder,
+/// For full customization, use `machines_suspend_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_suspend_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_suspend()`.
+/// For task-level control, use `machines_suspend_task()`.
+/// For the simplest API, use `machines_suspend()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_suspend_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_suspend_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_suspend_execute(
+pub fn machines_suspend_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_suspend_task(builder)?;
+    let task = machines_suspend_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_suspend`].
+/// Arguments for [`machines_suspend`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdSuspendArgs {
+pub struct MachinesSuspendArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -6869,39 +6927,38 @@ pub struct PostAppsAppNameMachinesMachineIdSuspendArgs {
 /// Suspend Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_suspend_builder()` + `post_apps_app_name_machines_machine_id_suspend_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_suspend_task()`.
+/// For customization, use `machines_suspend_builder()` + `machines_suspend_execute()`.
+/// For task-level control, use `machines_suspend_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_suspend(
+pub fn machines_suspend(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdSuspendArgs,
+    args: &MachinesSuspendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_suspend_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    post_apps_app_name_machines_machine_id_suspend_execute(builder)
+    let builder = machines_suspend_builder(client, &args.app_name, &args.machine_id)?;
+    machines_suspend_execute(builder)
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/uncordon
 /// Uncordon Machine
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_machines_machine_id_uncordon_execute()` to send, or `post_apps_app_name_machines_machine_id_uncordon` for simplest API.
+/// Use `machines_uncordon_execute()` to send, or `machines_uncordon` for simplest API.
 
-pub fn post_apps_app_name_machines_machine_id_uncordon_builder(
-    client: &SimpleHttpClient,
+pub fn machines_uncordon_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/uncordon",
@@ -6927,17 +6984,17 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_machines_machine_id_uncordon_execute()` or `post_apps_app_name_machines_machine_id_uncordon`.
+/// For direct execution, use `machines_uncordon_execute()` or `machines_uncordon`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_uncordon_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_uncordon_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_uncordon_task(
+pub fn machines_uncordon_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -6993,33 +7050,33 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_machines_machine_id_uncordon_builder()` to create the builder,
+/// For full customization, use `machines_uncordon_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_uncordon_task()`.
-/// For the simplest API, use `post_apps_app_name_machines_machine_id_uncordon()`.
+/// For task-level control, use `machines_uncordon_task()`.
+/// For the simplest API, use `machines_uncordon()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_uncordon_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_uncordon_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_machines_machine_id_uncordon_execute(
+pub fn machines_uncordon_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_machines_machine_id_uncordon_task(builder)?;
+    let task = machines_uncordon_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_machines_machine_id_uncordon`].
+/// Arguments for [`machines_uncordon`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameMachinesMachineIdUncordonArgs {
+pub struct MachinesUncordonArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -7030,39 +7087,38 @@ pub struct PostAppsAppNameMachinesMachineIdUncordonArgs {
 /// Uncordon Machine
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_machines_machine_id_uncordon_builder()` + `post_apps_app_name_machines_machine_id_uncordon_execute()`.
-/// For task-level control, use `post_apps_app_name_machines_machine_id_uncordon_task()`.
+/// For customization, use `machines_uncordon_builder()` + `machines_uncordon_execute()`.
+/// For task-level control, use `machines_uncordon_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_uncordon(
+pub fn machines_uncordon(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameMachinesMachineIdUncordonArgs,
+    args: &MachinesUncordonArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_machine_id_uncordon_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    post_apps_app_name_machines_machine_id_uncordon_execute(builder)
+    let builder = machines_uncordon_builder(client, &args.app_name, &args.machine_id)?;
+    machines_uncordon_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/versions
 /// List Versions
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_versions_execute()` to send, or `get_apps_app_name_machines_machine_id_versions` for simplest API.
+/// Use `machines_list_versions_execute()` to send, or `machines_list_versions` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_versions_builder(
-    client: &SimpleHttpClient,
+pub fn machines_list_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/versions",
@@ -7088,21 +7144,21 @@ pub fn get_apps_app_name_machines_machine_id_versions_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_versions_execute()` or `get_apps_app_name_machines_machine_id_versions`.
+/// For direct execution, use `machines_list_versions_execute()` or `machines_list_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_versions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_versions_task(
+pub fn machines_list_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -7137,10 +7193,13 @@ pub fn get_apps_app_name_machines_machine_id_versions_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -7154,33 +7213,35 @@ pub fn get_apps_app_name_machines_machine_id_versions_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_versions_builder()` to create the builder,
+/// For full customization, use `machines_list_versions_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_versions_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_versions()`.
+/// For task-level control, use `machines_list_versions_task()`.
+/// For the simplest API, use `machines_list_versions()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_versions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_list_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_versions_execute(
+pub fn machines_list_versions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_versions_task(builder)?;
+    let task = machines_list_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_versions`].
+/// Arguments for [`machines_list_versions`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdVersionsArgs {
+pub struct MachinesListVersionsArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
@@ -7191,44 +7252,45 @@ pub struct GetAppsAppNameMachinesMachineIdVersionsArgs {
 /// List Versions
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_versions_builder()` + `get_apps_app_name_machines_machine_id_versions_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_versions_task()`.
+/// For customization, use `machines_list_versions_builder()` + `machines_list_versions_execute()`.
+/// For task-level control, use `machines_list_versions_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_versions(
+pub fn machines_list_versions(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdVersionsArgs,
+    args: &MachinesListVersionsArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_versions_builder(
-        client,
-        &args.app_name,
-        &args.machine_id,
-    )?;
-    get_apps_app_name_machines_machine_id_versions_execute(builder)
+    let builder = machines_list_versions_builder(client, &args.app_name, &args.machine_id)?;
+    machines_list_versions_execute(builder)
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/wait
 /// Wait for State
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_machines_machine_id_wait_execute()` to send, or `get_apps_app_name_machines_machine_id_wait` for simplest API.
+/// Use `machines_wait_execute()` to send, or `machines_wait` for simplest API.
 
-pub fn get_apps_app_name_machines_machine_id_wait_builder(
-    client: &SimpleHttpClient,
+pub fn machines_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    version: &Option<String>,
-    instance_id: &Option<String>,
-    from_event_id: &Option<String>,
-    timeout: &Option<i32>,
-    state: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    version: &Option<Option<String>>,
+    instance_id: &Option<Option<String>>,
+    from_event_id: &Option<Option<String>>,
+    timeout: &Option<Option<String>>,
+    state: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/wait",
@@ -7277,17 +7339,17 @@ pub fn get_apps_app_name_machines_machine_id_wait_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_machines_machine_id_wait_execute()` or `get_apps_app_name_machines_machine_id_wait`.
+/// For direct execution, use `machines_wait_execute()` or `machines_wait`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_wait_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_wait_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_wait_task(
+pub fn machines_wait_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -7346,21 +7408,21 @@ pub fn get_apps_app_name_machines_machine_id_wait_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_machines_machine_id_wait_builder()` to create the builder,
+/// For full customization, use `machines_wait_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_wait_task()`.
-/// For the simplest API, use `get_apps_app_name_machines_machine_id_wait()`.
+/// For task-level control, use `machines_wait_task()`.
+/// For the simplest API, use `machines_wait()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_wait_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_wait_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_machines_machine_id_wait_execute(
+pub fn machines_wait_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WaitMachineResponse>, ApiError>, P = ApiPending>
@@ -7368,50 +7430,50 @@ pub fn get_apps_app_name_machines_machine_id_wait_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_machines_machine_id_wait_task(builder)?;
+    let task = machines_wait_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_machines_machine_id_wait`].
+/// Arguments for [`machines_wait`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameMachinesMachineIdWaitArgs {
+pub struct MachinesWaitArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: version
-    pub version: Option<String>,
+    pub version: Option<Option<String>>,
     /// Query parameter: instance_id
-    pub instance_id: Option<String>,
+    pub instance_id: Option<Option<String>>,
     /// Query parameter: from_event_id
-    pub from_event_id: Option<String>,
+    pub from_event_id: Option<Option<String>>,
     /// Query parameter: timeout
-    pub timeout: Option<i32>,
+    pub timeout: Option<Option<String>>,
     /// Query parameter: state
-    pub state: Option<String>,
+    pub state: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/wait
 /// Wait for State
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_machines_machine_id_wait_builder()` + `get_apps_app_name_machines_machine_id_wait_execute()`.
-/// For task-level control, use `get_apps_app_name_machines_machine_id_wait_task()`.
+/// For customization, use `machines_wait_builder()` + `machines_wait_execute()`.
+/// For task-level control, use `machines_wait_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_wait(
+pub fn machines_wait(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameMachinesMachineIdWaitArgs,
+    args: &MachinesWaitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WaitMachineResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_wait_builder(
+    let builder = machines_wait_builder(
         client,
         &args.app_name,
         &args.machine_id,
@@ -7421,21 +7483,24 @@ pub fn get_apps_app_name_machines_machine_id_wait(
         &args.timeout,
         &args.state,
     )?;
-    get_apps_app_name_machines_machine_id_wait_execute(builder)
+    machines_wait_execute(builder)
 }
 
 /// GET /apps/{app_name}/secretkeys
 /// List secret keys belonging to an app
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_secretkeys_execute()` to send, or `get_apps_app_name_secretkeys` for simplest API.
+/// Use `secretkeys_list_execute()` to send, or `secretkeys_list` for simplest API.
 
-pub fn get_apps_app_name_secretkeys_builder(
-    client: &SimpleHttpClient,
+pub fn secretkeys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    min_version: &Option<String>,
-    types: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+    types: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/secretkeys", app_name,);
 
@@ -7472,17 +7537,17 @@ pub fn get_apps_app_name_secretkeys_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_secretkeys_execute()` or `get_apps_app_name_secretkeys`.
+/// For direct execution, use `secretkeys_list_execute()` or `secretkeys_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkeys_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secretkeys_task(
+pub fn secretkeys_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -7541,80 +7606,78 @@ pub fn get_apps_app_name_secretkeys_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_secretkeys_builder()` to create the builder,
+/// For full customization, use `secretkeys_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_secretkeys_task()`.
-/// For the simplest API, use `get_apps_app_name_secretkeys()`.
+/// For task-level control, use `secretkeys_list_task()`.
+/// For the simplest API, use `secretkeys_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkeys_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_secretkeys_execute(
+pub fn secretkeys_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretKeys>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_secretkeys_task(builder)?;
+    let task = secretkeys_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_secretkeys`].
+/// Arguments for [`secretkeys_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameSecretkeysArgs {
+pub struct SecretkeysListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
     /// Query parameter: types
-    pub types: Option<String>,
+    pub types: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/secretkeys
 /// List secret keys belonging to an app
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_secretkeys_builder()` + `get_apps_app_name_secretkeys_execute()`.
-/// For task-level control, use `get_apps_app_name_secretkeys_task()`.
+/// For customization, use `secretkeys_list_builder()` + `secretkeys_list_execute()`.
+/// For task-level control, use `secretkeys_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secretkeys(
+pub fn secretkeys_list(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameSecretkeysArgs,
+    args: &SecretkeysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretKeys>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_secretkeys_builder(
-        client,
-        &args.app_name,
-        &args.min_version,
-        &args.types,
-    )?;
-    get_apps_app_name_secretkeys_execute(builder)
+    let builder = secretkeys_list_builder(client, &args.app_name, &args.min_version, &args.types)?;
+    secretkeys_list_execute(builder)
 }
 
 /// GET /apps/{app_name}/secretkeys/{secret_name}
 /// Get an app's secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_secretkeys_secret_name_execute()` to send, or `get_apps_app_name_secretkeys_secret_name` for simplest API.
+/// Use `secretkey_get_execute()` to send, or `secretkey_get` for simplest API.
 
-pub fn get_apps_app_name_secretkeys_secret_name_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
@@ -7651,17 +7714,17 @@ pub fn get_apps_app_name_secretkeys_secret_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_secretkeys_secret_name_execute()` or `get_apps_app_name_secretkeys_secret_name`.
+/// For direct execution, use `secretkey_get_execute()` or `secretkey_get`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_get_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secretkeys_secret_name_task(
+pub fn secretkey_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -7720,80 +7783,79 @@ pub fn get_apps_app_name_secretkeys_secret_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_secretkeys_secret_name_builder()` to create the builder,
+/// For full customization, use `secretkey_get_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_secretkeys_secret_name_task()`.
-/// For the simplest API, use `get_apps_app_name_secretkeys_secret_name()`.
+/// For task-level control, use `secretkey_get_task()`.
+/// For the simplest API, use `secretkey_get()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_get_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_secretkeys_secret_name_execute(
+pub fn secretkey_get_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_secretkeys_secret_name_task(builder)?;
+    let task = secretkey_get_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_secretkeys_secret_name`].
+/// Arguments for [`secretkey_get`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameSecretkeysSecretNameArgs {
+pub struct SecretkeyGetArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/secretkeys/{secret_name}
 /// Get an app's secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_secretkeys_secret_name_builder()` + `get_apps_app_name_secretkeys_secret_name_execute()`.
-/// For task-level control, use `get_apps_app_name_secretkeys_secret_name_task()`.
+/// For customization, use `secretkey_get_builder()` + `secretkey_get_execute()`.
+/// For task-level control, use `secretkey_get_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secretkeys_secret_name(
+pub fn secretkey_get(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameSecretkeysSecretNameArgs,
+    args: &SecretkeyGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_secretkeys_secret_name_builder(
-        client,
-        &args.app_name,
-        &args.secret_name,
-        &args.min_version,
-    )?;
-    get_apps_app_name_secretkeys_secret_name_execute(builder)
+    let builder =
+        secretkey_get_builder(client, &args.app_name, &args.secret_name, &args.min_version)?;
+    secretkey_get_execute(builder)
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}
 /// Create or update a secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secretkeys_secret_name_execute()` to send, or `post_apps_app_name_secretkeys_secret_name` for simplest API.
+/// Use `secretkey_set_execute()` to send, or `secretkey_set` for simplest API.
 
-pub fn post_apps_app_name_secretkeys_secret_name_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_set_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &SetSecretkeyRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
@@ -7821,17 +7883,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_execute()` or `post_apps_app_name_secretkeys_secret_name`.
+/// For direct execution, use `secretkey_set_execute()` or `secretkey_set`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_set_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_task(
+pub fn secretkey_set_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -7890,21 +7952,21 @@ pub fn post_apps_app_name_secretkeys_secret_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secretkeys_secret_name_builder()` to create the builder,
+/// For full customization, use `secretkey_set_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_task()`.
-/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name()`.
+/// For task-level control, use `secretkey_set_task()`.
+/// For the simplest API, use `secretkey_set()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_set_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secretkeys_secret_name_execute(
+pub fn secretkey_set_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
@@ -7912,61 +7974,59 @@ pub fn post_apps_app_name_secretkeys_secret_name_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secretkeys_secret_name_task(builder)?;
+    let task = secretkey_set_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secretkeys_secret_name`].
+/// Arguments for [`secretkey_set`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretkeysSecretNameArgs {
+pub struct SecretkeySetArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: SetSecretkeyRequest,
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}
 /// Create or update a secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_builder()` + `post_apps_app_name_secretkeys_secret_name_execute()`.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_task()`.
+/// For customization, use `secretkey_set_builder()` + `secretkey_set_execute()`.
+/// For task-level control, use `secretkey_set_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name(
+pub fn secretkey_set(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretkeysSecretNameArgs,
+    args: &SecretkeySetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secretkeys_secret_name_builder(
-        client,
-        &args.app_name,
-        &args.secret_name,
-        &args.body,
-    )?;
-    post_apps_app_name_secretkeys_secret_name_execute(builder)
+    let builder = secretkey_set_builder(client, &args.app_name, &args.secret_name, &args.body)?;
+    secretkey_set_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/secretkeys/{secret_name}
 /// Delete an app's secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_secretkeys_secret_name_execute()` to send, or `delete_apps_app_name_secretkeys_secret_name` for simplest API.
+/// Use `secretkey_delete_execute()` to send, or `secretkey_delete` for simplest API.
 
-pub fn delete_apps_app_name_secretkeys_secret_name_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
@@ -7992,17 +8052,17 @@ pub fn delete_apps_app_name_secretkeys_secret_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_secretkeys_secret_name_execute()` or `delete_apps_app_name_secretkeys_secret_name`.
+/// For direct execution, use `secretkey_delete_execute()` or `secretkey_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secretkeys_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_secretkeys_secret_name_task(
+pub fn secretkey_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8061,21 +8121,21 @@ pub fn delete_apps_app_name_secretkeys_secret_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_secretkeys_secret_name_builder()` to create the builder,
+/// For full customization, use `secretkey_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_secretkeys_secret_name_task()`.
-/// For the simplest API, use `delete_apps_app_name_secretkeys_secret_name()`.
+/// For task-level control, use `secretkey_delete_task()`.
+/// For the simplest API, use `secretkey_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secretkeys_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_secretkeys_secret_name_execute(
+pub fn secretkey_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteSecretkeyResponse>, ApiError>, P = ApiPending>
@@ -8083,13 +8143,13 @@ pub fn delete_apps_app_name_secretkeys_secret_name_execute(
         + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_secretkeys_secret_name_task(builder)?;
+    let task = secretkey_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_secretkeys_secret_name`].
+/// Arguments for [`secretkey_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameSecretkeysSecretNameArgs {
+pub struct SecretkeyDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
@@ -8100,43 +8160,42 @@ pub struct DeleteAppsAppNameSecretkeysSecretNameArgs {
 /// Delete an app's secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_secretkeys_secret_name_builder()` + `delete_apps_app_name_secretkeys_secret_name_execute()`.
-/// For task-level control, use `delete_apps_app_name_secretkeys_secret_name_task()`.
+/// For customization, use `secretkey_delete_builder()` + `secretkey_delete_execute()`.
+/// For task-level control, use `secretkey_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_secretkeys_secret_name(
+pub fn secretkey_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameSecretkeysSecretNameArgs,
+    args: &SecretkeyDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_secretkeys_secret_name_builder(
-        client,
-        &args.app_name,
-        &args.secret_name,
-    )?;
-    delete_apps_app_name_secretkeys_secret_name_execute(builder)
+    let builder = secretkey_delete_builder(client, &args.app_name, &args.secret_name)?;
+    secretkey_delete_execute(builder)
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/decrypt
 /// Decrypt with a secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secretkeys_secret_name_decrypt_execute()` to send, or `post_apps_app_name_secretkeys_secret_name_decrypt` for simplest API.
+/// Use `secretkey_decrypt_execute()` to send, or `secretkey_decrypt` for simplest API.
 
-pub fn post_apps_app_name_secretkeys_secret_name_decrypt_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_decrypt_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<String>,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+    body: &DecryptSecretkeyRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/decrypt",
@@ -8175,17 +8234,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_decrypt_execute()` or `post_apps_app_name_secretkeys_secret_name_decrypt`.
+/// For direct execution, use `secretkey_decrypt_execute()` or `secretkey_decrypt`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_decrypt_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_decrypt_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_decrypt_task(
+pub fn secretkey_decrypt_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8244,21 +8303,21 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secretkeys_secret_name_decrypt_builder()` to create the builder,
+/// For full customization, use `secretkey_decrypt_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_decrypt_task()`.
-/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_decrypt()`.
+/// For task-level control, use `secretkey_decrypt_task()`.
+/// For the simplest API, use `secretkey_decrypt()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_decrypt_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_decrypt_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
+pub fn secretkey_decrypt_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DecryptSecretkeyResponse>, ApiError>, P = ApiPending>
@@ -8266,66 +8325,69 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secretkeys_secret_name_decrypt_task(builder)?;
+    let task = secretkey_decrypt_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secretkeys_secret_name_decrypt`].
+/// Arguments for [`secretkey_decrypt`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretkeysSecretNameDecryptArgs {
+pub struct SecretkeyDecryptArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: DecryptSecretkeyRequest,
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/decrypt
 /// Decrypt with a secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_decrypt_builder()` + `post_apps_app_name_secretkeys_secret_name_decrypt_execute()`.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_decrypt_task()`.
+/// For customization, use `secretkey_decrypt_builder()` + `secretkey_decrypt_execute()`.
+/// For task-level control, use `secretkey_decrypt_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_decrypt(
+pub fn secretkey_decrypt(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretkeysSecretNameDecryptArgs,
+    args: &SecretkeyDecryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DecryptSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secretkeys_secret_name_decrypt_builder(
+    let builder = secretkey_decrypt_builder(
         client,
         &args.app_name,
         &args.secret_name,
         &args.min_version,
         &args.body,
     )?;
-    post_apps_app_name_secretkeys_secret_name_decrypt_execute(builder)
+    secretkey_decrypt_execute(builder)
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/encrypt
 /// Encrypt with a secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secretkeys_secret_name_encrypt_execute()` to send, or `post_apps_app_name_secretkeys_secret_name_encrypt` for simplest API.
+/// Use `secretkey_encrypt_execute()` to send, or `secretkey_encrypt` for simplest API.
 
-pub fn post_apps_app_name_secretkeys_secret_name_encrypt_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_encrypt_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<String>,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+    body: &EncryptSecretkeyRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/encrypt",
@@ -8364,17 +8426,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_encrypt_execute()` or `post_apps_app_name_secretkeys_secret_name_encrypt`.
+/// For direct execution, use `secretkey_encrypt_execute()` or `secretkey_encrypt`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_encrypt_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_encrypt_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_encrypt_task(
+pub fn secretkey_encrypt_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8433,21 +8495,21 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secretkeys_secret_name_encrypt_builder()` to create the builder,
+/// For full customization, use `secretkey_encrypt_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_encrypt_task()`.
-/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_encrypt()`.
+/// For task-level control, use `secretkey_encrypt_task()`.
+/// For the simplest API, use `secretkey_encrypt()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_encrypt_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_encrypt_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
+pub fn secretkey_encrypt_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EncryptSecretkeyResponse>, ApiError>, P = ApiPending>
@@ -8455,65 +8517,68 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secretkeys_secret_name_encrypt_task(builder)?;
+    let task = secretkey_encrypt_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secretkeys_secret_name_encrypt`].
+/// Arguments for [`secretkey_encrypt`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretkeysSecretNameEncryptArgs {
+pub struct SecretkeyEncryptArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: EncryptSecretkeyRequest,
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/encrypt
 /// Encrypt with a secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_encrypt_builder()` + `post_apps_app_name_secretkeys_secret_name_encrypt_execute()`.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_encrypt_task()`.
+/// For customization, use `secretkey_encrypt_builder()` + `secretkey_encrypt_execute()`.
+/// For task-level control, use `secretkey_encrypt_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_encrypt(
+pub fn secretkey_encrypt(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretkeysSecretNameEncryptArgs,
+    args: &SecretkeyEncryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EncryptSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secretkeys_secret_name_encrypt_builder(
+    let builder = secretkey_encrypt_builder(
         client,
         &args.app_name,
         &args.secret_name,
         &args.min_version,
         &args.body,
     )?;
-    post_apps_app_name_secretkeys_secret_name_encrypt_execute(builder)
+    secretkey_encrypt_execute(builder)
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/generate
 /// Generate a random secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secretkeys_secret_name_generate_execute()` to send, or `post_apps_app_name_secretkeys_secret_name_generate` for simplest API.
+/// Use `secretkey_generate_execute()` to send, or `secretkey_generate` for simplest API.
 
-pub fn post_apps_app_name_secretkeys_secret_name_generate_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &SetSecretkeyRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/generate",
@@ -8541,17 +8606,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_generate_execute()` or `post_apps_app_name_secretkeys_secret_name_generate`.
+/// For direct execution, use `secretkey_generate_execute()` or `secretkey_generate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_generate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_generate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_generate_task(
+pub fn secretkey_generate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8610,21 +8675,21 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secretkeys_secret_name_generate_builder()` to create the builder,
+/// For full customization, use `secretkey_generate_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_generate_task()`.
-/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_generate()`.
+/// For task-level control, use `secretkey_generate_task()`.
+/// For the simplest API, use `secretkey_generate()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_generate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_generate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
+pub fn secretkey_generate_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
@@ -8632,63 +8697,62 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secretkeys_secret_name_generate_task(builder)?;
+    let task = secretkey_generate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secretkeys_secret_name_generate`].
+/// Arguments for [`secretkey_generate`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretkeysSecretNameGenerateArgs {
+pub struct SecretkeyGenerateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: SetSecretkeyRequest,
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/generate
 /// Generate a random secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_generate_builder()` + `post_apps_app_name_secretkeys_secret_name_generate_execute()`.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_generate_task()`.
+/// For customization, use `secretkey_generate_builder()` + `secretkey_generate_execute()`.
+/// For task-level control, use `secretkey_generate_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_generate(
+pub fn secretkey_generate(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretkeysSecretNameGenerateArgs,
+    args: &SecretkeyGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secretkeys_secret_name_generate_builder(
-        client,
-        &args.app_name,
-        &args.secret_name,
-        &args.body,
-    )?;
-    post_apps_app_name_secretkeys_secret_name_generate_execute(builder)
+    let builder =
+        secretkey_generate_builder(client, &args.app_name, &args.secret_name, &args.body)?;
+    secretkey_generate_execute(builder)
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/sign
 /// Sign with a secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secretkeys_secret_name_sign_execute()` to send, or `post_apps_app_name_secretkeys_secret_name_sign` for simplest API.
+/// Use `secretkey_sign_execute()` to send, or `secretkey_sign` for simplest API.
 
-pub fn post_apps_app_name_secretkeys_secret_name_sign_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_sign_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<String>,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+    body: &SignSecretkeyRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/sign",
@@ -8727,17 +8791,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_sign_execute()` or `post_apps_app_name_secretkeys_secret_name_sign`.
+/// For direct execution, use `secretkey_sign_execute()` or `secretkey_sign`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_sign_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_sign_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_sign_task(
+pub fn secretkey_sign_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8796,21 +8860,21 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secretkeys_secret_name_sign_builder()` to create the builder,
+/// For full customization, use `secretkey_sign_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_sign_task()`.
-/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_sign()`.
+/// For task-level control, use `secretkey_sign_task()`.
+/// For the simplest API, use `secretkey_sign()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_sign_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_sign_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
+pub fn secretkey_sign_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignSecretkeyResponse>, ApiError>, P = ApiPending>
@@ -8818,66 +8882,69 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secretkeys_secret_name_sign_task(builder)?;
+    let task = secretkey_sign_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secretkeys_secret_name_sign`].
+/// Arguments for [`secretkey_sign`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretkeysSecretNameSignArgs {
+pub struct SecretkeySignArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: SignSecretkeyRequest,
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/sign
 /// Sign with a secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_sign_builder()` + `post_apps_app_name_secretkeys_secret_name_sign_execute()`.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_sign_task()`.
+/// For customization, use `secretkey_sign_builder()` + `secretkey_sign_execute()`.
+/// For task-level control, use `secretkey_sign_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_sign(
+pub fn secretkey_sign(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretkeysSecretNameSignArgs,
+    args: &SecretkeySignArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secretkeys_secret_name_sign_builder(
+    let builder = secretkey_sign_builder(
         client,
         &args.app_name,
         &args.secret_name,
         &args.min_version,
         &args.body,
     )?;
-    post_apps_app_name_secretkeys_secret_name_sign_execute(builder)
+    secretkey_sign_execute(builder)
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/verify
 /// Verify with a secret key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secretkeys_secret_name_verify_execute()` to send, or `post_apps_app_name_secretkeys_secret_name_verify` for simplest API.
+/// Use `secretkey_verify_execute()` to send, or `secretkey_verify` for simplest API.
 
-pub fn post_apps_app_name_secretkeys_secret_name_verify_builder(
-    client: &SimpleHttpClient,
+pub fn secretkey_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<String>,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+    body: &VerifySecretkeyRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/verify",
@@ -8916,17 +8983,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_verify_execute()` or `post_apps_app_name_secretkeys_secret_name_verify`.
+/// For direct execution, use `secretkey_verify_execute()` or `secretkey_verify`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_verify_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_verify_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_verify_task(
+pub fn secretkey_verify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -8982,83 +9049,86 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secretkeys_secret_name_verify_builder()` to create the builder,
+/// For full customization, use `secretkey_verify_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_verify_task()`.
-/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_verify()`.
+/// For task-level control, use `secretkey_verify_task()`.
+/// For the simplest API, use `secretkey_verify()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_verify_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretkey_verify_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secretkeys_secret_name_verify_execute(
+pub fn secretkey_verify_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secretkeys_secret_name_verify_task(builder)?;
+    let task = secretkey_verify_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secretkeys_secret_name_verify`].
+/// Arguments for [`secretkey_verify`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretkeysSecretNameVerifyArgs {
+pub struct SecretkeyVerifyArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: VerifySecretkeyRequest,
 }
 
 /// POST /apps/{app_name}/secretkeys/{secret_name}/verify
 /// Verify with a secret key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_verify_builder()` + `post_apps_app_name_secretkeys_secret_name_verify_execute()`.
-/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_verify_task()`.
+/// For customization, use `secretkey_verify_builder()` + `secretkey_verify_execute()`.
+/// For task-level control, use `secretkey_verify_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_verify(
+pub fn secretkey_verify(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretkeysSecretNameVerifyArgs,
+    args: &SecretkeyVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secretkeys_secret_name_verify_builder(
+    let builder = secretkey_verify_builder(
         client,
         &args.app_name,
         &args.secret_name,
         &args.min_version,
         &args.body,
     )?;
-    post_apps_app_name_secretkeys_secret_name_verify_execute(builder)
+    secretkey_verify_execute(builder)
 }
 
 /// GET /apps/{app_name}/secrets
 /// List app secrets belonging to an app
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_secrets_execute()` to send, or `get_apps_app_name_secrets` for simplest API.
+/// Use `secrets_list_execute()` to send, or `secrets_list` for simplest API.
 
-pub fn get_apps_app_name_secrets_builder(
-    client: &SimpleHttpClient,
+pub fn secrets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    min_version: &Option<String>,
-    show_secrets: &Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+    show_secrets: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/secrets", app_name,);
 
@@ -9095,17 +9165,17 @@ pub fn get_apps_app_name_secrets_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_secrets_execute()` or `get_apps_app_name_secrets`.
+/// For direct execution, use `secrets_list_execute()` or `secrets_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secrets_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secrets_task(
+pub fn secrets_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -9164,79 +9234,82 @@ pub fn get_apps_app_name_secrets_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_secrets_builder()` to create the builder,
+/// For full customization, use `secrets_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_secrets_task()`.
-/// For the simplest API, use `get_apps_app_name_secrets()`.
+/// For task-level control, use `secrets_list_task()`.
+/// For the simplest API, use `secrets_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secrets_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_secrets_execute(
+pub fn secrets_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecrets>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_secrets_task(builder)?;
+    let task = secrets_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_secrets`].
+/// Arguments for [`secrets_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameSecretsArgs {
+pub struct SecretsListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
     /// Query parameter: show_secrets
-    pub show_secrets: Option<bool>,
+    pub show_secrets: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/secrets
 /// List app secrets belonging to an app
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_secrets_builder()` + `get_apps_app_name_secrets_execute()`.
-/// For task-level control, use `get_apps_app_name_secrets_task()`.
+/// For customization, use `secrets_list_builder()` + `secrets_list_execute()`.
+/// For task-level control, use `secrets_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secrets(
+pub fn secrets_list(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameSecretsArgs,
+    args: &SecretsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecrets>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_secrets_builder(
+    let builder = secrets_list_builder(
         client,
         &args.app_name,
         &args.min_version,
         &args.show_secrets,
     )?;
-    get_apps_app_name_secrets_execute(builder)
+    secrets_list_execute(builder)
 }
 
 /// POST /apps/{app_name}/secrets
 /// Update app secrets belonging to an app
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secrets_execute()` to send, or `post_apps_app_name_secrets` for simplest API.
+/// Use `secrets_update_execute()` to send, or `secrets_update` for simplest API.
 
-pub fn post_apps_app_name_secrets_builder(
-    client: &SimpleHttpClient,
+pub fn secrets_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &AppSecretsUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/secrets", app_name,);
 
@@ -9261,17 +9334,17 @@ pub fn post_apps_app_name_secrets_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secrets_execute()` or `post_apps_app_name_secrets`.
+/// For direct execution, use `secrets_update_execute()` or `secrets_update`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secrets_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secrets_task(
+pub fn secrets_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -9330,21 +9403,21 @@ pub fn post_apps_app_name_secrets_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secrets_builder()` to create the builder,
+/// For full customization, use `secrets_update_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secrets_task()`.
-/// For the simplest API, use `post_apps_app_name_secrets()`.
+/// For task-level control, use `secrets_update_task()`.
+/// For the simplest API, use `secrets_update()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secrets_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secrets_execute(
+pub fn secrets_update_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecretsUpdateResp>, ApiError>, P = ApiPending>
@@ -9352,56 +9425,59 @@ pub fn post_apps_app_name_secrets_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secrets_task(builder)?;
+    let task = secrets_update_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secrets`].
+/// Arguments for [`secrets_update`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretsArgs {
+pub struct SecretsUpdateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: AppSecretsUpdateRequest,
 }
 
 /// POST /apps/{app_name}/secrets
 /// Update app secrets belonging to an app
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secrets_builder()` + `post_apps_app_name_secrets_execute()`.
-/// For task-level control, use `post_apps_app_name_secrets_task()`.
+/// For customization, use `secrets_update_builder()` + `secrets_update_execute()`.
+/// For task-level control, use `secrets_update_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secrets(
+pub fn secrets_update(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretsArgs,
+    args: &SecretsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecretsUpdateResp>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secrets_builder(client, &args.app_name, &args.body)?;
-    post_apps_app_name_secrets_execute(builder)
+    let builder = secrets_update_builder(client, &args.app_name, &args.body)?;
+    secrets_update_execute(builder)
 }
 
 /// GET /apps/{app_name}/secrets/{secret_name}
 /// Get an app secret
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_secrets_secret_name_execute()` to send, or `get_apps_app_name_secrets_secret_name` for simplest API.
+/// Use `secret_get_execute()` to send, or `secret_get` for simplest API.
 
-pub fn get_apps_app_name_secrets_secret_name_builder(
-    client: &SimpleHttpClient,
+pub fn secret_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<String>,
-    show_secrets: &Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    min_version: &Option<Option<String>>,
+    show_secrets: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secrets/{}",
@@ -9441,17 +9517,17 @@ pub fn get_apps_app_name_secrets_secret_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_secrets_secret_name_execute()` or `get_apps_app_name_secrets_secret_name`.
+/// For direct execution, use `secret_get_execute()` or `secret_get`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secret_get_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secrets_secret_name_task(
+pub fn secret_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -9510,83 +9586,86 @@ pub fn get_apps_app_name_secrets_secret_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_secrets_secret_name_builder()` to create the builder,
+/// For full customization, use `secret_get_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_secrets_secret_name_task()`.
-/// For the simplest API, use `get_apps_app_name_secrets_secret_name()`.
+/// For task-level control, use `secret_get_task()`.
+/// For the simplest API, use `secret_get()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secret_get_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_secrets_secret_name_execute(
+pub fn secret_get_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_secrets_secret_name_task(builder)?;
+    let task = secret_get_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_secrets_secret_name`].
+/// Arguments for [`secret_get`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameSecretsSecretNameArgs {
+pub struct SecretGetArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<String>,
+    pub min_version: Option<Option<String>>,
     /// Query parameter: show_secrets
-    pub show_secrets: Option<bool>,
+    pub show_secrets: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/secrets/{secret_name}
 /// Get an app secret
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_secrets_secret_name_builder()` + `get_apps_app_name_secrets_secret_name_execute()`.
-/// For task-level control, use `get_apps_app_name_secrets_secret_name_task()`.
+/// For customization, use `secret_get_builder()` + `secret_get_execute()`.
+/// For task-level control, use `secret_get_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secrets_secret_name(
+pub fn secret_get(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameSecretsSecretNameArgs,
+    args: &SecretGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_secrets_secret_name_builder(
+    let builder = secret_get_builder(
         client,
         &args.app_name,
         &args.secret_name,
         &args.min_version,
         &args.show_secrets,
     )?;
-    get_apps_app_name_secrets_secret_name_execute(builder)
+    secret_get_execute(builder)
 }
 
 /// POST /apps/{app_name}/secrets/{secret_name}
 /// Create or update Secret
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_secrets_secret_name_execute()` to send, or `post_apps_app_name_secrets_secret_name` for simplest API.
+/// Use `secret_create_execute()` to send, or `secret_create` for simplest API.
 
-pub fn post_apps_app_name_secrets_secret_name_builder(
-    client: &SimpleHttpClient,
+pub fn secret_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &SetAppSecretRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secrets/{}",
@@ -9614,17 +9693,17 @@ pub fn post_apps_app_name_secrets_secret_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_secrets_secret_name_execute()` or `post_apps_app_name_secrets_secret_name`.
+/// For direct execution, use `secret_create_execute()` or `secret_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secret_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secrets_secret_name_task(
+pub fn secret_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -9683,21 +9762,21 @@ pub fn post_apps_app_name_secrets_secret_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_secrets_secret_name_builder()` to create the builder,
+/// For full customization, use `secret_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_secrets_secret_name_task()`.
-/// For the simplest API, use `post_apps_app_name_secrets_secret_name()`.
+/// For task-level control, use `secret_create_task()`.
+/// For the simplest API, use `secret_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secret_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_secrets_secret_name_execute(
+pub fn secret_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetAppSecretResponse>, ApiError>, P = ApiPending>
@@ -9705,61 +9784,59 @@ pub fn post_apps_app_name_secrets_secret_name_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_secrets_secret_name_task(builder)?;
+    let task = secret_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_secrets_secret_name`].
+/// Arguments for [`secret_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameSecretsSecretNameArgs {
+pub struct SecretCreateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: SetAppSecretRequest,
 }
 
 /// POST /apps/{app_name}/secrets/{secret_name}
 /// Create or update Secret
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_secrets_secret_name_builder()` + `post_apps_app_name_secrets_secret_name_execute()`.
-/// For task-level control, use `post_apps_app_name_secrets_secret_name_task()`.
+/// For customization, use `secret_create_builder()` + `secret_create_execute()`.
+/// For task-level control, use `secret_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secrets_secret_name(
+pub fn secret_create(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameSecretsSecretNameArgs,
+    args: &SecretCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetAppSecretResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secrets_secret_name_builder(
-        client,
-        &args.app_name,
-        &args.secret_name,
-        &args.body,
-    )?;
-    post_apps_app_name_secrets_secret_name_execute(builder)
+    let builder = secret_create_builder(client, &args.app_name, &args.secret_name, &args.body)?;
+    secret_create_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/secrets/{secret_name}
 /// Delete an app secret
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_secrets_secret_name_execute()` to send, or `delete_apps_app_name_secrets_secret_name` for simplest API.
+/// Use `secret_delete_execute()` to send, or `secret_delete` for simplest API.
 
-pub fn delete_apps_app_name_secrets_secret_name_builder(
-    client: &SimpleHttpClient,
+pub fn secret_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secrets/{}",
@@ -9785,17 +9862,17 @@ pub fn delete_apps_app_name_secrets_secret_name_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_secrets_secret_name_execute()` or `delete_apps_app_name_secrets_secret_name`.
+/// For direct execution, use `secret_delete_execute()` or `secret_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secrets_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secret_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_secrets_secret_name_task(
+pub fn secret_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -9854,21 +9931,21 @@ pub fn delete_apps_app_name_secrets_secret_name_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_secrets_secret_name_builder()` to create the builder,
+/// For full customization, use `secret_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_secrets_secret_name_task()`.
-/// For the simplest API, use `delete_apps_app_name_secrets_secret_name()`.
+/// For task-level control, use `secret_delete_task()`.
+/// For the simplest API, use `secret_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secrets_secret_name_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `secret_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_secrets_secret_name_execute(
+pub fn secret_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteAppSecretResponse>, ApiError>, P = ApiPending>
@@ -9876,13 +9953,13 @@ pub fn delete_apps_app_name_secrets_secret_name_execute(
         + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_secrets_secret_name_task(builder)?;
+    let task = secret_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_secrets_secret_name`].
+/// Arguments for [`secret_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameSecretsSecretNameArgs {
+pub struct SecretDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: secret_name
@@ -9893,41 +9970,40 @@ pub struct DeleteAppsAppNameSecretsSecretNameArgs {
 /// Delete an app secret
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_secrets_secret_name_builder()` + `delete_apps_app_name_secrets_secret_name_execute()`.
-/// For task-level control, use `delete_apps_app_name_secrets_secret_name_task()`.
+/// For customization, use `secret_delete_builder()` + `secret_delete_execute()`.
+/// For task-level control, use `secret_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_secrets_secret_name(
+pub fn secret_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameSecretsSecretNameArgs,
+    args: &SecretDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteAppSecretResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_secrets_secret_name_builder(
-        client,
-        &args.app_name,
-        &args.secret_name,
-    )?;
-    delete_apps_app_name_secrets_secret_name_execute(builder)
+    let builder = secret_delete_builder(client, &args.app_name, &args.secret_name)?;
+    secret_delete_execute(builder)
 }
 
 /// GET /apps/{app_name}/volumes
 /// List Volumes
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_volumes_execute()` to send, or `get_apps_app_name_volumes` for simplest API.
+/// Use `volumes_list_execute()` to send, or `volumes_list` for simplest API.
 
-pub fn get_apps_app_name_volumes_builder(
-    client: &SimpleHttpClient,
+pub fn volumes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    summary: &Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    summary: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/volumes", app_name,);
 
@@ -9961,21 +10037,21 @@ pub fn get_apps_app_name_volumes_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_volumes_execute()` or `get_apps_app_name_volumes`.
+/// For direct execution, use `volumes_list_execute()` or `volumes_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_task(
+pub fn volumes_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -10010,10 +10086,13 @@ pub fn get_apps_app_name_volumes_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -10027,72 +10106,79 @@ pub fn get_apps_app_name_volumes_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_volumes_builder()` to create the builder,
+/// For full customization, use `volumes_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_volumes_task()`.
-/// For the simplest API, use `get_apps_app_name_volumes()`.
+/// For task-level control, use `volumes_list_task()`.
+/// For the simplest API, use `volumes_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_volumes_execute(
+pub fn volumes_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_volumes_task(builder)?;
+    let task = volumes_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_volumes`].
+/// Arguments for [`volumes_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameVolumesArgs {
+pub struct VolumesListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: summary
-    pub summary: Option<bool>,
+    pub summary: Option<Option<String>>,
 }
 
 /// GET /apps/{app_name}/volumes
 /// List Volumes
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_volumes_builder()` + `get_apps_app_name_volumes_execute()`.
-/// For task-level control, use `get_apps_app_name_volumes_task()`.
+/// For customization, use `volumes_list_builder()` + `volumes_list_execute()`.
+/// For task-level control, use `volumes_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes(
+pub fn volumes_list(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameVolumesArgs,
+    args: &VolumesListArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_volumes_builder(client, &args.app_name, &args.summary)?;
-    get_apps_app_name_volumes_execute(builder)
+    let builder = volumes_list_builder(client, &args.app_name, &args.summary)?;
+    volumes_list_execute(builder)
 }
 
 /// POST /apps/{app_name}/volumes
 /// Create Volume
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_volumes_execute()` to send, or `post_apps_app_name_volumes` for simplest API.
+/// Use `volumes_create_execute()` to send, or `volumes_create` for simplest API.
 
-pub fn post_apps_app_name_volumes_builder(
-    client: &SimpleHttpClient,
+pub fn volumes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &CreateVolumeRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/volumes", app_name,);
 
@@ -10117,17 +10203,17 @@ pub fn post_apps_app_name_volumes_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_volumes_execute()` or `post_apps_app_name_volumes`.
+/// For direct execution, use `volumes_create_execute()` or `volumes_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_volumes_task(
+pub fn volumes_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -10186,72 +10272,75 @@ pub fn post_apps_app_name_volumes_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_volumes_builder()` to create the builder,
+/// For full customization, use `volumes_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_volumes_task()`.
-/// For the simplest API, use `post_apps_app_name_volumes()`.
+/// For task-level control, use `volumes_create_task()`.
+/// For the simplest API, use `volumes_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_volumes_execute(
+pub fn volumes_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_volumes_task(builder)?;
+    let task = volumes_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_volumes`].
+/// Arguments for [`volumes_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameVolumesArgs {
+pub struct VolumesCreateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateVolumeRequest,
 }
 
 /// POST /apps/{app_name}/volumes
 /// Create Volume
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_volumes_builder()` + `post_apps_app_name_volumes_execute()`.
-/// For task-level control, use `post_apps_app_name_volumes_task()`.
+/// For customization, use `volumes_create_builder()` + `volumes_create_execute()`.
+/// For task-level control, use `volumes_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_volumes(
+pub fn volumes_create(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameVolumesArgs,
+    args: &VolumesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_volumes_builder(client, &args.app_name, &args.body)?;
-    post_apps_app_name_volumes_execute(builder)
+    let builder = volumes_create_builder(client, &args.app_name, &args.body)?;
+    volumes_create_execute(builder)
 }
 
 /// GET /apps/{app_name}/volumes/{volume_id}
 /// Get Volume
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_volumes_volume_id_execute()` to send, or `get_apps_app_name_volumes_volume_id` for simplest API.
+/// Use `volumes_get_by_id_execute()` to send, or `volumes_get_by_id` for simplest API.
 
-pub fn get_apps_app_name_volumes_volume_id_builder(
-    client: &SimpleHttpClient,
+pub fn volumes_get_by_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     volume_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}",
@@ -10277,17 +10366,17 @@ pub fn get_apps_app_name_volumes_volume_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_volumes_volume_id_execute()` or `get_apps_app_name_volumes_volume_id`.
+/// For direct execution, use `volumes_get_by_id_execute()` or `volumes_get_by_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_get_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_volume_id_task(
+pub fn volumes_get_by_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -10346,33 +10435,33 @@ pub fn get_apps_app_name_volumes_volume_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_volumes_volume_id_builder()` to create the builder,
+/// For full customization, use `volumes_get_by_id_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_volumes_volume_id_task()`.
-/// For the simplest API, use `get_apps_app_name_volumes_volume_id()`.
+/// For task-level control, use `volumes_get_by_id_task()`.
+/// For the simplest API, use `volumes_get_by_id()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_get_by_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_volumes_volume_id_execute(
+pub fn volumes_get_by_id_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_volumes_volume_id_task(builder)?;
+    let task = volumes_get_by_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_volumes_volume_id`].
+/// Arguments for [`volumes_get_by_id`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameVolumesVolumeIdArgs {
+pub struct VolumesGetByIdArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: volume_id
@@ -10383,37 +10472,39 @@ pub struct GetAppsAppNameVolumesVolumeIdArgs {
 /// Get Volume
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_volumes_volume_id_builder()` + `get_apps_app_name_volumes_volume_id_execute()`.
-/// For task-level control, use `get_apps_app_name_volumes_volume_id_task()`.
+/// For customization, use `volumes_get_by_id_builder()` + `volumes_get_by_id_execute()`.
+/// For task-level control, use `volumes_get_by_id_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_volume_id(
+pub fn volumes_get_by_id(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameVolumesVolumeIdArgs,
+    args: &VolumesGetByIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_volumes_volume_id_builder(client, &args.app_name, &args.volume_id)?;
-    get_apps_app_name_volumes_volume_id_execute(builder)
+    let builder = volumes_get_by_id_builder(client, &args.app_name, &args.volume_id)?;
+    volumes_get_by_id_execute(builder)
 }
 
 /// PUT /apps/{app_name}/volumes/{volume_id}
 /// Update Volume
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `put_apps_app_name_volumes_volume_id_execute()` to send, or `put_apps_app_name_volumes_volume_id` for simplest API.
+/// Use `volumes_update_execute()` to send, or `volumes_update` for simplest API.
 
-pub fn put_apps_app_name_volumes_volume_id_builder(
-    client: &SimpleHttpClient,
+pub fn volumes_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     volume_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &UpdateVolumeRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}",
@@ -10441,17 +10532,17 @@ pub fn put_apps_app_name_volumes_volume_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `put_apps_app_name_volumes_volume_id_execute()` or `put_apps_app_name_volumes_volume_id`.
+/// For direct execution, use `volumes_update_execute()` or `volumes_update`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_volumes_volume_id_task(
+pub fn volumes_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -10510,79 +10601,77 @@ pub fn put_apps_app_name_volumes_volume_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `put_apps_app_name_volumes_volume_id_builder()` to create the builder,
+/// For full customization, use `volumes_update_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `put_apps_app_name_volumes_volume_id_task()`.
-/// For the simplest API, use `put_apps_app_name_volumes_volume_id()`.
+/// For task-level control, use `volumes_update_task()`.
+/// For the simplest API, use `volumes_update()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn put_apps_app_name_volumes_volume_id_execute(
+pub fn volumes_update_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = put_apps_app_name_volumes_volume_id_task(builder)?;
+    let task = volumes_update_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`put_apps_app_name_volumes_volume_id`].
+/// Arguments for [`volumes_update`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PutAppsAppNameVolumesVolumeIdArgs {
+pub struct VolumesUpdateArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: volume_id
     pub volume_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: UpdateVolumeRequest,
 }
 
 /// PUT /apps/{app_name}/volumes/{volume_id}
 /// Update Volume
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `put_apps_app_name_volumes_volume_id_builder()` + `put_apps_app_name_volumes_volume_id_execute()`.
-/// For task-level control, use `put_apps_app_name_volumes_volume_id_task()`.
+/// For customization, use `volumes_update_builder()` + `volumes_update_execute()`.
+/// For task-level control, use `volumes_update_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_volumes_volume_id(
+pub fn volumes_update(
     client: &SimpleHttpClient,
-    args: &PutAppsAppNameVolumesVolumeIdArgs,
+    args: &VolumesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = put_apps_app_name_volumes_volume_id_builder(
-        client,
-        &args.app_name,
-        &args.volume_id,
-        &args.body,
-    )?;
-    put_apps_app_name_volumes_volume_id_execute(builder)
+    let builder = volumes_update_builder(client, &args.app_name, &args.volume_id, &args.body)?;
+    volumes_update_execute(builder)
 }
 
 /// DELETE /apps/{app_name}/volumes/{volume_id}
 /// Destroy Volume
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_apps_app_name_volumes_volume_id_execute()` to send, or `delete_apps_app_name_volumes_volume_id` for simplest API.
+/// Use `volume_delete_execute()` to send, or `volume_delete` for simplest API.
 
-pub fn delete_apps_app_name_volumes_volume_id_builder(
-    client: &SimpleHttpClient,
+pub fn volume_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     volume_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}",
@@ -10608,17 +10697,17 @@ pub fn delete_apps_app_name_volumes_volume_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_apps_app_name_volumes_volume_id_execute()` or `delete_apps_app_name_volumes_volume_id`.
+/// For direct execution, use `volume_delete_execute()` or `volume_delete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_volumes_volume_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volume_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_volumes_volume_id_task(
+pub fn volume_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -10677,33 +10766,33 @@ pub fn delete_apps_app_name_volumes_volume_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_apps_app_name_volumes_volume_id_builder()` to create the builder,
+/// For full customization, use `volume_delete_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_apps_app_name_volumes_volume_id_task()`.
-/// For the simplest API, use `delete_apps_app_name_volumes_volume_id()`.
+/// For task-level control, use `volume_delete_task()`.
+/// For the simplest API, use `volume_delete()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_volumes_volume_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volume_delete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_apps_app_name_volumes_volume_id_execute(
+pub fn volume_delete_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_apps_app_name_volumes_volume_id_task(builder)?;
+    let task = volume_delete_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_apps_app_name_volumes_volume_id`].
+/// Arguments for [`volume_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteAppsAppNameVolumesVolumeIdArgs {
+pub struct VolumeDeleteArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: volume_id
@@ -10714,37 +10803,39 @@ pub struct DeleteAppsAppNameVolumesVolumeIdArgs {
 /// Destroy Volume
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_apps_app_name_volumes_volume_id_builder()` + `delete_apps_app_name_volumes_volume_id_execute()`.
-/// For task-level control, use `delete_apps_app_name_volumes_volume_id_task()`.
+/// For customization, use `volume_delete_builder()` + `volume_delete_execute()`.
+/// For task-level control, use `volume_delete_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_volumes_volume_id(
+pub fn volume_delete(
     client: &SimpleHttpClient,
-    args: &DeleteAppsAppNameVolumesVolumeIdArgs,
+    args: &VolumeDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_apps_app_name_volumes_volume_id_builder(client, &args.app_name, &args.volume_id)?;
-    delete_apps_app_name_volumes_volume_id_execute(builder)
+    let builder = volume_delete_builder(client, &args.app_name, &args.volume_id)?;
+    volume_delete_execute(builder)
 }
 
 /// PUT /apps/{app_name}/volumes/{volume_id}/extend
 /// Extend Volume
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `put_apps_app_name_volumes_volume_id_extend_execute()` to send, or `put_apps_app_name_volumes_volume_id_extend` for simplest API.
+/// Use `volumes_extend_execute()` to send, or `volumes_extend` for simplest API.
 
-pub fn put_apps_app_name_volumes_volume_id_extend_builder(
-    client: &SimpleHttpClient,
+pub fn volumes_extend_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     volume_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    body: &ExtendVolumeRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}/extend",
@@ -10772,17 +10863,17 @@ pub fn put_apps_app_name_volumes_volume_id_extend_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `put_apps_app_name_volumes_volume_id_extend_execute()` or `put_apps_app_name_volumes_volume_id_extend`.
+/// For direct execution, use `volumes_extend_execute()` or `volumes_extend`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_extend_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_extend_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_volumes_volume_id_extend_task(
+pub fn volumes_extend_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -10841,21 +10932,21 @@ pub fn put_apps_app_name_volumes_volume_id_extend_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `put_apps_app_name_volumes_volume_id_extend_builder()` to create the builder,
+/// For full customization, use `volumes_extend_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `put_apps_app_name_volumes_volume_id_extend_task()`.
-/// For the simplest API, use `put_apps_app_name_volumes_volume_id_extend()`.
+/// For task-level control, use `volumes_extend_task()`.
+/// For the simplest API, use `volumes_extend()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_extend_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_extend_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn put_apps_app_name_volumes_volume_id_extend_execute(
+pub fn volumes_extend_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExtendVolumeResponse>, ApiError>, P = ApiPending>
@@ -10863,61 +10954,59 @@ pub fn put_apps_app_name_volumes_volume_id_extend_execute(
         + 'static,
     ApiError,
 > {
-    let task = put_apps_app_name_volumes_volume_id_extend_task(builder)?;
+    let task = volumes_extend_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`put_apps_app_name_volumes_volume_id_extend`].
+/// Arguments for [`volumes_extend`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PutAppsAppNameVolumesVolumeIdExtendArgs {
+pub struct VolumesExtendArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: volume_id
     pub volume_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ExtendVolumeRequest,
 }
 
 /// PUT /apps/{app_name}/volumes/{volume_id}/extend
 /// Extend Volume
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `put_apps_app_name_volumes_volume_id_extend_builder()` + `put_apps_app_name_volumes_volume_id_extend_execute()`.
-/// For task-level control, use `put_apps_app_name_volumes_volume_id_extend_task()`.
+/// For customization, use `volumes_extend_builder()` + `volumes_extend_execute()`.
+/// For task-level control, use `volumes_extend_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_volumes_volume_id_extend(
+pub fn volumes_extend(
     client: &SimpleHttpClient,
-    args: &PutAppsAppNameVolumesVolumeIdExtendArgs,
+    args: &VolumesExtendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExtendVolumeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_apps_app_name_volumes_volume_id_extend_builder(
-        client,
-        &args.app_name,
-        &args.volume_id,
-        &args.body,
-    )?;
-    put_apps_app_name_volumes_volume_id_extend_execute(builder)
+    let builder = volumes_extend_builder(client, &args.app_name, &args.volume_id, &args.body)?;
+    volumes_extend_execute(builder)
 }
 
 /// GET /apps/{app_name}/volumes/{volume_id}/snapshots
 /// List Snapshots
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_apps_app_name_volumes_volume_id_snapshots_execute()` to send, or `get_apps_app_name_volumes_volume_id_snapshots` for simplest API.
+/// Use `volumes_list_snapshots_execute()` to send, or `volumes_list_snapshots` for simplest API.
 
-pub fn get_apps_app_name_volumes_volume_id_snapshots_builder(
-    client: &SimpleHttpClient,
+pub fn volumes_list_snapshots_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     volume_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}/snapshots",
@@ -10943,21 +11032,21 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_apps_app_name_volumes_volume_id_snapshots_execute()` or `get_apps_app_name_volumes_volume_id_snapshots`.
+/// For direct execution, use `volumes_list_snapshots_execute()` or `volumes_list_snapshots`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_snapshots_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_list_snapshots_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_volume_id_snapshots_task(
+pub fn volumes_list_snapshots_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -10992,10 +11081,13 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -11009,33 +11101,35 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_apps_app_name_volumes_volume_id_snapshots_builder()` to create the builder,
+/// For full customization, use `volumes_list_snapshots_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_apps_app_name_volumes_volume_id_snapshots_task()`.
-/// For the simplest API, use `get_apps_app_name_volumes_volume_id_snapshots()`.
+/// For task-level control, use `volumes_list_snapshots_task()`.
+/// For the simplest API, use `volumes_list_snapshots()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_snapshots_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_list_snapshots_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_apps_app_name_volumes_volume_id_snapshots_execute(
+pub fn volumes_list_snapshots_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_apps_app_name_volumes_volume_id_snapshots_task(builder)?;
+    let task = volumes_list_snapshots_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_apps_app_name_volumes_volume_id_snapshots`].
+/// Arguments for [`volumes_list_snapshots`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetAppsAppNameVolumesVolumeIdSnapshotsArgs {
+pub struct VolumesListSnapshotsArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: volume_id
@@ -11046,39 +11140,40 @@ pub struct GetAppsAppNameVolumesVolumeIdSnapshotsArgs {
 /// List Snapshots
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_apps_app_name_volumes_volume_id_snapshots_builder()` + `get_apps_app_name_volumes_volume_id_snapshots_execute()`.
-/// For task-level control, use `get_apps_app_name_volumes_volume_id_snapshots_task()`.
+/// For customization, use `volumes_list_snapshots_builder()` + `volumes_list_snapshots_execute()`.
+/// For task-level control, use `volumes_list_snapshots_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_volume_id_snapshots(
+pub fn volumes_list_snapshots(
     client: &SimpleHttpClient,
-    args: &GetAppsAppNameVolumesVolumeIdSnapshotsArgs,
+    args: &VolumesListSnapshotsArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_volumes_volume_id_snapshots_builder(
-        client,
-        &args.app_name,
-        &args.volume_id,
-    )?;
-    get_apps_app_name_volumes_volume_id_snapshots_execute(builder)
+    let builder = volumes_list_snapshots_builder(client, &args.app_name, &args.volume_id)?;
+    volumes_list_snapshots_execute(builder)
 }
 
 /// POST /apps/{app_name}/volumes/{volume_id}/snapshots
 /// Create Snapshot
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_apps_app_name_volumes_volume_id_snapshots_execute()` to send, or `post_apps_app_name_volumes_volume_id_snapshots` for simplest API.
+/// Use `create_volume_snapshot_execute()` to send, or `create_volume_snapshot` for simplest API.
 
-pub fn post_apps_app_name_volumes_volume_id_snapshots_builder(
-    client: &SimpleHttpClient,
+pub fn create_volume_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     app_name: &String,
     volume_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}/snapshots",
@@ -11104,17 +11199,17 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_apps_app_name_volumes_volume_id_snapshots_execute()` or `post_apps_app_name_volumes_volume_id_snapshots`.
+/// For direct execution, use `create_volume_snapshot_execute()` or `create_volume_snapshot`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_volume_id_snapshots_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_volume_snapshot_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_volumes_volume_id_snapshots_task(
+pub fn create_volume_snapshot_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -11170,33 +11265,33 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_apps_app_name_volumes_volume_id_snapshots_builder()` to create the builder,
+/// For full customization, use `create_volume_snapshot_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_apps_app_name_volumes_volume_id_snapshots_task()`.
-/// For the simplest API, use `post_apps_app_name_volumes_volume_id_snapshots()`.
+/// For task-level control, use `create_volume_snapshot_task()`.
+/// For the simplest API, use `create_volume_snapshot()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_volume_id_snapshots_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_volume_snapshot_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_apps_app_name_volumes_volume_id_snapshots_execute(
+pub fn create_volume_snapshot_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_apps_app_name_volumes_volume_id_snapshots_task(builder)?;
+    let task = create_volume_snapshot_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_apps_app_name_volumes_volume_id_snapshots`].
+/// Arguments for [`create_volume_snapshot`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostAppsAppNameVolumesVolumeIdSnapshotsArgs {
+pub struct CreateVolumeSnapshotArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Path parameter: volume_id
@@ -11207,45 +11302,44 @@ pub struct PostAppsAppNameVolumesVolumeIdSnapshotsArgs {
 /// Create Snapshot
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_apps_app_name_volumes_volume_id_snapshots_builder()` + `post_apps_app_name_volumes_volume_id_snapshots_execute()`.
-/// For task-level control, use `post_apps_app_name_volumes_volume_id_snapshots_task()`.
+/// For customization, use `create_volume_snapshot_builder()` + `create_volume_snapshot_execute()`.
+/// For task-level control, use `create_volume_snapshot_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_volumes_volume_id_snapshots(
+pub fn create_volume_snapshot(
     client: &SimpleHttpClient,
-    args: &PostAppsAppNameVolumesVolumeIdSnapshotsArgs,
+    args: &CreateVolumeSnapshotArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_volumes_volume_id_snapshots_builder(
-        client,
-        &args.app_name,
-        &args.volume_id,
-    )?;
-    post_apps_app_name_volumes_volume_id_snapshots_execute(builder)
+    let builder = create_volume_snapshot_builder(client, &args.app_name, &args.volume_id)?;
+    create_volume_snapshot_execute(builder)
 }
 
 /// GET /orgs/{org_slug}/machines
 /// List All Machines
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_orgs_org_slug_machines_execute()` to send, or `get_orgs_org_slug_machines` for simplest API.
+/// Use `machines_org_list_execute()` to send, or `machines_org_list` for simplest API.
 
-pub fn get_orgs_org_slug_machines_builder(
-    client: &SimpleHttpClient,
+pub fn machines_org_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     org_slug: &String,
-    include_deleted: &Option<bool>,
-    region: &Option<String>,
-    state: &Option<String>,
-    summary: &Option<bool>,
-    updated_after: &Option<String>,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    include_deleted: &Option<Option<String>>,
+    region: &Option<Option<String>>,
+    state: &Option<Option<String>>,
+    summary: &Option<Option<String>>,
+    updated_after: &Option<Option<String>>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/orgs/{}/machines", org_slug,);
 
@@ -11297,17 +11391,17 @@ pub fn get_orgs_org_slug_machines_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_orgs_org_slug_machines_execute()` or `get_orgs_org_slug_machines`.
+/// For direct execution, use `machines_org_list_execute()` or `machines_org_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_machines_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_org_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_orgs_org_slug_machines_task(
+pub fn machines_org_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -11366,21 +11460,21 @@ pub fn get_orgs_org_slug_machines_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_orgs_org_slug_machines_builder()` to create the builder,
+/// For full customization, use `machines_org_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_orgs_org_slug_machines_task()`.
-/// For the simplest API, use `get_orgs_org_slug_machines()`.
+/// For task-level control, use `machines_org_list_task()`.
+/// For the simplest API, use `machines_org_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_machines_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `machines_org_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_orgs_org_slug_machines_execute(
+pub fn machines_org_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgMachinesResponse>, ApiError>, P = ApiPending>
@@ -11388,52 +11482,52 @@ pub fn get_orgs_org_slug_machines_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_orgs_org_slug_machines_task(builder)?;
+    let task = machines_org_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_orgs_org_slug_machines`].
+/// Arguments for [`machines_org_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetOrgsOrgSlugMachinesArgs {
+pub struct MachinesOrgListArgs {
     /// Path parameter: org_slug
     pub org_slug: String,
     /// Query parameter: include_deleted
-    pub include_deleted: Option<bool>,
+    pub include_deleted: Option<Option<String>>,
     /// Query parameter: region
-    pub region: Option<String>,
+    pub region: Option<Option<String>>,
     /// Query parameter: state
-    pub state: Option<String>,
+    pub state: Option<Option<String>>,
     /// Query parameter: summary
-    pub summary: Option<bool>,
+    pub summary: Option<Option<String>>,
     /// Query parameter: updated_after
-    pub updated_after: Option<String>,
+    pub updated_after: Option<Option<String>>,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /orgs/{org_slug}/machines
 /// List All Machines
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_orgs_org_slug_machines_builder()` + `get_orgs_org_slug_machines_execute()`.
-/// For task-level control, use `get_orgs_org_slug_machines_task()`.
+/// For customization, use `machines_org_list_builder()` + `machines_org_list_execute()`.
+/// For task-level control, use `machines_org_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_orgs_org_slug_machines(
+pub fn machines_org_list(
     client: &SimpleHttpClient,
-    args: &GetOrgsOrgSlugMachinesArgs,
+    args: &MachinesOrgListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgMachinesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_orgs_org_slug_machines_builder(
+    let builder = machines_org_list_builder(
         client,
         &args.org_slug,
         &args.include_deleted,
@@ -11444,26 +11538,29 @@ pub fn get_orgs_org_slug_machines(
         &args.cursor,
         &args.limit,
     )?;
-    get_orgs_org_slug_machines_execute(builder)
+    machines_org_list_execute(builder)
 }
 
 /// GET /orgs/{org_slug}/volumes
 /// List All Volumes
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_orgs_org_slug_volumes_execute()` to send, or `get_orgs_org_slug_volumes` for simplest API.
+/// Use `volumes_org_list_execute()` to send, or `volumes_org_list` for simplest API.
 
-pub fn get_orgs_org_slug_volumes_builder(
-    client: &SimpleHttpClient,
+pub fn volumes_org_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     org_slug: &String,
-    include_deleted: &Option<bool>,
-    region: &Option<String>,
-    state: &Option<String>,
-    summary: &Option<bool>,
-    updated_after: &Option<String>,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    include_deleted: &Option<Option<String>>,
+    region: &Option<Option<String>>,
+    state: &Option<Option<String>>,
+    summary: &Option<Option<String>>,
+    updated_after: &Option<Option<String>>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/orgs/{}/volumes", org_slug,);
 
@@ -11515,17 +11612,17 @@ pub fn get_orgs_org_slug_volumes_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_orgs_org_slug_volumes_execute()` or `get_orgs_org_slug_volumes`.
+/// For direct execution, use `volumes_org_list_execute()` or `volumes_org_list`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_volumes_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_org_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_orgs_org_slug_volumes_task(
+pub fn volumes_org_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -11584,21 +11681,21 @@ pub fn get_orgs_org_slug_volumes_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_orgs_org_slug_volumes_builder()` to create the builder,
+/// For full customization, use `volumes_org_list_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_orgs_org_slug_volumes_task()`.
-/// For the simplest API, use `get_orgs_org_slug_volumes()`.
+/// For task-level control, use `volumes_org_list_task()`.
+/// For the simplest API, use `volumes_org_list()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_volumes_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `volumes_org_list_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_orgs_org_slug_volumes_execute(
+pub fn volumes_org_list_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgVolumesResponse>, ApiError>, P = ApiPending>
@@ -11606,52 +11703,52 @@ pub fn get_orgs_org_slug_volumes_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_orgs_org_slug_volumes_task(builder)?;
+    let task = volumes_org_list_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_orgs_org_slug_volumes`].
+/// Arguments for [`volumes_org_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetOrgsOrgSlugVolumesArgs {
+pub struct VolumesOrgListArgs {
     /// Path parameter: org_slug
     pub org_slug: String,
     /// Query parameter: include_deleted
-    pub include_deleted: Option<bool>,
+    pub include_deleted: Option<Option<String>>,
     /// Query parameter: region
-    pub region: Option<String>,
+    pub region: Option<Option<String>>,
     /// Query parameter: state
-    pub state: Option<String>,
+    pub state: Option<Option<String>>,
     /// Query parameter: summary
-    pub summary: Option<bool>,
+    pub summary: Option<Option<String>>,
     /// Query parameter: updated_after
-    pub updated_after: Option<String>,
+    pub updated_after: Option<Option<String>>,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /orgs/{org_slug}/volumes
 /// List All Volumes
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_orgs_org_slug_volumes_builder()` + `get_orgs_org_slug_volumes_execute()`.
-/// For task-level control, use `get_orgs_org_slug_volumes_task()`.
+/// For customization, use `volumes_org_list_builder()` + `volumes_org_list_execute()`.
+/// For task-level control, use `volumes_org_list_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_orgs_org_slug_volumes(
+pub fn volumes_org_list(
     client: &SimpleHttpClient,
-    args: &GetOrgsOrgSlugVolumesArgs,
+    args: &VolumesOrgListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgVolumesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_orgs_org_slug_volumes_builder(
+    let builder = volumes_org_list_builder(
         client,
         &args.org_slug,
         &args.include_deleted,
@@ -11662,19 +11759,22 @@ pub fn get_orgs_org_slug_volumes(
         &args.cursor,
         &args.limit,
     )?;
-    get_orgs_org_slug_volumes_execute(builder)
+    volumes_org_list_execute(builder)
 }
 
 /// POST /platform/placements
 /// Get Placements
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_platform_placements_execute()` to send, or `post_platform_placements` for simplest API.
+/// Use `platform_placements_post_execute()` to send, or `platform_placements_post` for simplest API.
 
-pub fn post_platform_placements_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn platform_placements_post_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &MainGetPlacementsRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/platform/placements",);
 
@@ -11699,17 +11799,17 @@ pub fn post_platform_placements_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_platform_placements_execute()` or `post_platform_placements`.
+/// For direct execution, use `platform_placements_post_execute()` or `platform_placements_post`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_platform_placements_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `platform_placements_post_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_platform_placements_task(
+pub fn platform_placements_post_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -11768,21 +11868,21 @@ pub fn post_platform_placements_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_platform_placements_builder()` to create the builder,
+/// For full customization, use `platform_placements_post_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_platform_placements_task()`.
-/// For the simplest API, use `post_platform_placements()`.
+/// For task-level control, use `platform_placements_post_task()`.
+/// For the simplest API, use `platform_placements_post()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_platform_placements_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `platform_placements_post_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_platform_placements_execute(
+pub fn platform_placements_post_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainGetPlacementsResponse>, ApiError>, P = ApiPending>
@@ -11790,50 +11890,53 @@ pub fn post_platform_placements_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_platform_placements_task(builder)?;
+    let task = platform_placements_post_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_platform_placements`].
+/// Arguments for [`platform_placements_post`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostPlatformPlacementsArgs {
+pub struct PlatformPlacementsPostArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: MainGetPlacementsRequest,
 }
 
 /// POST /platform/placements
 /// Get Placements
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_platform_placements_builder()` + `post_platform_placements_execute()`.
-/// For task-level control, use `post_platform_placements_task()`.
+/// For customization, use `platform_placements_post_builder()` + `platform_placements_post_execute()`.
+/// For task-level control, use `platform_placements_post_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_platform_placements(
+pub fn platform_placements_post(
     client: &SimpleHttpClient,
-    args: &PostPlatformPlacementsArgs,
+    args: &PlatformPlacementsPostArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainGetPlacementsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_platform_placements_builder(client, &args.body)?;
-    post_platform_placements_execute(builder)
+    let builder = platform_placements_post_builder(client, &args.body)?;
+    platform_placements_post_execute(builder)
 }
 
 /// GET /platform/regions
 /// Get Regions
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_platform_regions_execute()` to send, or `get_platform_regions` for simplest API.
+/// Use `platform_regions_get_execute()` to send, or `platform_regions_get` for simplest API.
 
-pub fn get_platform_regions_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn platform_regions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/platform/regions",);
 
@@ -11856,17 +11959,17 @@ pub fn get_platform_regions_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_platform_regions_execute()` or `get_platform_regions`.
+/// For direct execution, use `platform_regions_get_execute()` or `platform_regions_get`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_platform_regions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `platform_regions_get_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_platform_regions_task(
+pub fn platform_regions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -11925,21 +12028,21 @@ pub fn get_platform_regions_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_platform_regions_builder()` to create the builder,
+/// For full customization, use `platform_regions_get_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_platform_regions_task()`.
-/// For the simplest API, use `get_platform_regions()`.
+/// For task-level control, use `platform_regions_get_task()`.
+/// For the simplest API, use `platform_regions_get()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_platform_regions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `platform_regions_get_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_platform_regions_execute(
+pub fn platform_regions_get_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainRegionResponse>, ApiError>, P = ApiPending>
@@ -11947,7 +12050,7 @@ pub fn get_platform_regions_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_platform_regions_task(builder)?;
+    let task = platform_regions_get_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11955,14 +12058,14 @@ pub fn get_platform_regions_execute(
 /// Get Regions
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_platform_regions_builder()` + `get_platform_regions_execute()`.
-/// For task-level control, use `get_platform_regions_task()`.
+/// For customization, use `platform_regions_get_builder()` + `platform_regions_get_execute()`.
+/// For task-level control, use `platform_regions_get_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_platform_regions(
+pub fn platform_regions_get(
     client: &SimpleHttpClient,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainRegionResponse>, ApiError>, P = ApiPending>
@@ -11970,19 +12073,22 @@ pub fn get_platform_regions(
         + 'static,
     ApiError,
 > {
-    let builder = get_platform_regions_builder(client)?;
-    get_platform_regions_execute(builder)
+    let builder = platform_regions_get_builder(client)?;
+    platform_regions_get_execute(builder)
 }
 
 /// POST /tokens/kms
 /// Request a Petsem token for accessing KMS
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_tokens_kms_execute()` to send, or `post_tokens_kms` for simplest API.
+/// Use `tokens_request_kms_execute()` to send, or `tokens_request_kms` for simplest API.
 
-pub fn post_tokens_kms_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn tokens_request_kms_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/tokens/kms",);
 
@@ -12005,21 +12111,21 @@ pub fn post_tokens_kms_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_tokens_kms_execute()` or `post_tokens_kms`.
+/// For direct execution, use `tokens_request_kms_execute()` or `tokens_request_kms`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_kms_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `tokens_request_kms_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_tokens_kms_task(
+pub fn tokens_request_kms_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -12054,10 +12160,13 @@ pub fn post_tokens_kms_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -12071,27 +12180,29 @@ pub fn post_tokens_kms_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_tokens_kms_builder()` to create the builder,
+/// For full customization, use `tokens_request_kms_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_tokens_kms_task()`.
-/// For the simplest API, use `post_tokens_kms()`.
+/// For task-level control, use `tokens_request_kms_task()`.
+/// For the simplest API, use `tokens_request_kms()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_kms_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `tokens_request_kms_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_tokens_kms_execute(
+pub fn tokens_request_kms_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = post_tokens_kms_task(builder)?;
+    let task = tokens_request_kms_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12099,33 +12210,38 @@ pub fn post_tokens_kms_execute(
 /// Request a Petsem token for accessing KMS
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_tokens_kms_builder()` + `post_tokens_kms_execute()`.
-/// For task-level control, use `post_tokens_kms_task()`.
+/// For customization, use `tokens_request_kms_builder()` + `tokens_request_kms_execute()`.
+/// For task-level control, use `tokens_request_kms_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_tokens_kms(
+pub fn tokens_request_kms(
     client: &SimpleHttpClient,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = post_tokens_kms_builder(client)?;
-    post_tokens_kms_execute(builder)
+    let builder = tokens_request_kms_builder(client)?;
+    tokens_request_kms_execute(builder)
 }
 
 /// POST /tokens/oidc
 /// Request an OIDC token
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_tokens_oidc_execute()` to send, or `post_tokens_oidc` for simplest API.
+/// Use `tokens_request_oidc_execute()` to send, or `tokens_request_oidc` for simplest API.
 
-pub fn post_tokens_oidc_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn tokens_request_oidc_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &CreateOIDCTokenRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/tokens/oidc",);
 
@@ -12150,21 +12266,21 @@ pub fn post_tokens_oidc_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_tokens_oidc_execute()` or `post_tokens_oidc`.
+/// For direct execution, use `tokens_request_oidc_execute()` or `tokens_request_oidc`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_oidc_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `tokens_request_oidc_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_tokens_oidc_task(
+pub fn tokens_request_oidc_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -12199,10 +12315,13 @@ pub fn post_tokens_oidc_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -12216,68 +12335,75 @@ pub fn post_tokens_oidc_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_tokens_oidc_builder()` to create the builder,
+/// For full customization, use `tokens_request_oidc_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_tokens_oidc_task()`.
-/// For the simplest API, use `post_tokens_oidc()`.
+/// For task-level control, use `tokens_request_oidc_task()`.
+/// For the simplest API, use `tokens_request_oidc()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_oidc_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `tokens_request_oidc_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_tokens_oidc_execute(
+pub fn tokens_request_oidc_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = post_tokens_oidc_task(builder)?;
+    let task = tokens_request_oidc_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_tokens_oidc`].
+/// Arguments for [`tokens_request_oidc`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostTokensOidcArgs {
+pub struct TokensRequestOidcArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: CreateOIDCTokenRequest,
 }
 
 /// POST /tokens/oidc
 /// Request an OIDC token
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_tokens_oidc_builder()` + `post_tokens_oidc_execute()`.
-/// For task-level control, use `post_tokens_oidc_task()`.
+/// For customization, use `tokens_request_oidc_builder()` + `tokens_request_oidc_execute()`.
+/// For task-level control, use `tokens_request_oidc_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_tokens_oidc(
+pub fn tokens_request_oidc(
     client: &SimpleHttpClient,
-    args: &PostTokensOidcArgs,
+    args: &TokensRequestOidcArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = post_tokens_oidc_builder(client, &args.body)?;
-    post_tokens_oidc_execute(builder)
+    let builder = tokens_request_oidc_builder(client, &args.body)?;
+    tokens_request_oidc_execute(builder)
 }
 
 /// GET /v1/tokens/current
 /// Get Current Token Information
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_v1_tokens_current_execute()` to send, or `get_v1_tokens_current` for simplest API.
+/// Use `current_token_show_execute()` to send, or `current_token_show` for simplest API.
 
-pub fn get_v1_tokens_current_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn current_token_show_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/v1/tokens/current",);
 
@@ -12300,17 +12426,17 @@ pub fn get_v1_tokens_current_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_v1_tokens_current_execute()` or `get_v1_tokens_current`.
+/// For direct execution, use `current_token_show_execute()` or `current_token_show`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_tokens_current_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `current_token_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_tokens_current_task(
+pub fn current_token_show_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -12369,21 +12495,21 @@ pub fn get_v1_tokens_current_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_v1_tokens_current_builder()` to create the builder,
+/// For full customization, use `current_token_show_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_v1_tokens_current_task()`.
-/// For the simplest API, use `get_v1_tokens_current()`.
+/// For task-level control, use `current_token_show_task()`.
+/// For the simplest API, use `current_token_show()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_tokens_current_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `current_token_show_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_v1_tokens_current_execute(
+pub fn current_token_show_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CurrentTokenResponse>, ApiError>, P = ApiPending>
@@ -12391,7 +12517,7 @@ pub fn get_v1_tokens_current_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_v1_tokens_current_task(builder)?;
+    let task = current_token_show_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12399,14 +12525,14 @@ pub fn get_v1_tokens_current_execute(
 /// Get Current Token Information
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_v1_tokens_current_builder()` + `get_v1_tokens_current_execute()`.
-/// For task-level control, use `get_v1_tokens_current_task()`.
+/// For customization, use `current_token_show_builder()` + `current_token_show_execute()`.
+/// For task-level control, use `current_token_show_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_tokens_current(
+pub fn current_token_show(
     client: &SimpleHttpClient,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CurrentTokenResponse>, ApiError>, P = ApiPending>
@@ -12414,6 +12540,1487 @@ pub fn get_v1_tokens_current(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_tokens_current_builder(client)?;
-    get_v1_tokens_current_execute(builder)
+    let builder = current_token_show_builder(client)?;
+    current_token_show_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAppsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppsResponse with AppsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsListArgs> for ListAppsResponse {
+    fn generate_resource_id(&self, input: &AppsListArgs) -> String {
+        "fly_io::ListAppsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for App
+// =============================================================================
+
+/// ResourceIdentifier implementation for App with AppsShowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsShowArgs> for App {
+    fn generate_resource_id(&self, input: &AppsShowArgs) -> String {
+        format!("fly_io::App/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCertificatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCertificatesResponse with AppCertificatesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesListArgs> for ListCertificatesResponse {
+    fn generate_resource_id(&self, input: &AppCertificatesListArgs) -> String {
+        format!("fly_io::ListCertificatesResponse/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ListCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CertificateDetail
+// =============================================================================
+
+/// ResourceIdentifier implementation for CertificateDetail with AppCertificatesAcmeCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesAcmeCreateArgs> for CertificateDetail {
+    fn generate_resource_id(&self, input: &AppCertificatesAcmeCreateArgs) -> String {
+        format!("fly_io::CertificateDetail/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CertificateDetail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CertificateDetail
+// =============================================================================
+
+/// ResourceIdentifier implementation for CertificateDetail with AppCertificatesCustomCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesCustomCreateArgs> for CertificateDetail {
+    fn generate_resource_id(&self, input: &AppCertificatesCustomCreateArgs) -> String {
+        format!("fly_io::CertificateDetail/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CertificateDetail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CertificateDetail
+// =============================================================================
+
+/// ResourceIdentifier implementation for CertificateDetail with AppCertificatesShowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesShowArgs> for CertificateDetail {
+    fn generate_resource_id(&self, input: &AppCertificatesShowArgs) -> String {
+        format!(
+            "fly_io::CertificateDetail/{}/{}",
+            input.app_name, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CertificateDetail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with AppCertificatesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesDeleteArgs> for () {
+    fn generate_resource_id(&self, input: &AppCertificatesDeleteArgs) -> String {
+        format!("fly_io::()/{}/{}", input.app_name, input.hostname)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CertificateDetail
+// =============================================================================
+
+/// ResourceIdentifier implementation for CertificateDetail with AppCertificatesAcmeDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesAcmeDeleteArgs> for CertificateDetail {
+    fn generate_resource_id(&self, input: &AppCertificatesAcmeDeleteArgs) -> String {
+        format!(
+            "fly_io::CertificateDetail/{}/{}",
+            input.app_name, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CertificateDetail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CertificateCheckResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CertificateCheckResponse with AppCertificatesCheckArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesCheckArgs> for CertificateCheckResponse {
+    fn generate_resource_id(&self, input: &AppCertificatesCheckArgs) -> String {
+        format!(
+            "fly_io::CertificateCheckResponse/{}/{}",
+            input.app_name, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CertificateCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DestroyCustomCertificateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DestroyCustomCertificateResponse with AppCertificatesCustomDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesCustomDeleteArgs> for DestroyCustomCertificateResponse {
+    fn generate_resource_id(&self, input: &AppCertificatesCustomDeleteArgs) -> String {
+        format!(
+            "fly_io::DestroyCustomCertificateResponse/{}/{}",
+            input.app_name, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DestroyCustomCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateAppResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateAppResponse with AppCreateDeployTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCreateDeployTokenArgs> for CreateAppResponse {
+    fn generate_resource_id(&self, input: &AppCreateDeployTokenArgs) -> String {
+        format!("fly_io::CreateAppResponse/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CreateAppResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListIPAssignmentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListIPAssignmentsResponse with AppIpassignmentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppIpassignmentsListArgs> for ListIPAssignmentsResponse {
+    fn generate_resource_id(&self, input: &AppIpassignmentsListArgs) -> String {
+        format!("fly_io::ListIPAssignmentsResponse/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ListIPAssignmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IPAssignment
+// =============================================================================
+
+/// ResourceIdentifier implementation for IPAssignment with AppIpassignmentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppIpassignmentsCreateArgs> for IPAssignment {
+    fn generate_resource_id(&self, input: &AppIpassignmentsCreateArgs) -> String {
+        format!("fly_io::IPAssignment/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::IPAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with AppIpassignmentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppIpassignmentsDeleteArgs> for () {
+    fn generate_resource_id(&self, input: &AppIpassignmentsDeleteArgs) -> String {
+        format!("fly_io::()/{}/{}", input.app_name, input.ip)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with MachinesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesListArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &MachinesListArgs) -> String {
+        format!("fly_io::serde_json::Value/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Machine
+// =============================================================================
+
+/// ResourceIdentifier implementation for Machine with MachinesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesCreateArgs> for Machine {
+    fn generate_resource_id(&self, input: &MachinesCreateArgs) -> String {
+        format!("fly_io::Machine/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Machine"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Machine
+// =============================================================================
+
+/// ResourceIdentifier implementation for Machine with MachinesShowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesShowArgs> for Machine {
+    fn generate_resource_id(&self, input: &MachinesShowArgs) -> String {
+        format!("fly_io::Machine/{}/{}", input.app_name, input.machine_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Machine"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Machine
+// =============================================================================
+
+/// ResourceIdentifier implementation for Machine with MachinesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesUpdateArgs> for Machine {
+    fn generate_resource_id(&self, input: &MachinesUpdateArgs) -> String {
+        format!("fly_io::Machine/{}/{}", input.app_name, input.machine_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Machine"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with MachinesListEventsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesListEventsArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &MachinesListEventsArgs) -> String {
+        format!(
+            "fly_io::serde_json::Value/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Flydv1ExecResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for Flydv1ExecResponse with MachinesExecArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesExecArgs> for Flydv1ExecResponse {
+    fn generate_resource_id(&self, input: &MachinesExecArgs) -> String {
+        format!(
+            "fly_io::Flydv1ExecResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Flydv1ExecResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Lease
+// =============================================================================
+
+/// ResourceIdentifier implementation for Lease with MachinesShowLeaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesShowLeaseArgs> for Lease {
+    fn generate_resource_id(&self, input: &MachinesShowLeaseArgs) -> String {
+        format!("fly_io::Lease/{}/{}", input.app_name, input.machine_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Lease"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Lease
+// =============================================================================
+
+/// ResourceIdentifier implementation for Lease with MachinesCreateLeaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesCreateLeaseArgs> for Lease {
+    fn generate_resource_id(&self, input: &MachinesCreateLeaseArgs) -> String {
+        format!("fly_io::Lease/{}/{}", input.app_name, input.machine_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Lease"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MainMemoryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MainMemoryResponse with MachinesGetMemoryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesGetMemoryArgs> for MainMemoryResponse {
+    fn generate_resource_id(&self, input: &MachinesGetMemoryArgs) -> String {
+        format!(
+            "fly_io::MainMemoryResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainMemoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MainMemoryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MainMemoryResponse with MachinesSetMemoryLimitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesSetMemoryLimitArgs> for MainMemoryResponse {
+    fn generate_resource_id(&self, input: &MachinesSetMemoryLimitArgs) -> String {
+        format!(
+            "fly_io::MainMemoryResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainMemoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MainReclaimMemoryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MainReclaimMemoryResponse with MachinesReclaimMemoryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesReclaimMemoryArgs> for MainReclaimMemoryResponse {
+    fn generate_resource_id(&self, input: &MachinesReclaimMemoryArgs) -> String {
+        format!(
+            "fly_io::MainReclaimMemoryResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainReclaimMemoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with MachinesShowMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesShowMetadataArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &MachinesShowMetadataArgs) -> String {
+        format!(
+            "fly_io::serde_json::Value/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with MachinesUpdateMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesUpdateMetadataArgs> for () {
+    fn generate_resource_id(&self, input: &MachinesUpdateMetadataArgs) -> String {
+        format!("fly_io::()/{}/{}", input.app_name, input.machine_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MetadataValueResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MetadataValueResponse with MachinesGetMetadataKeyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesGetMetadataKeyArgs> for MetadataValueResponse {
+    fn generate_resource_id(&self, input: &MachinesGetMetadataKeyArgs) -> String {
+        format!(
+            "fly_io::MetadataValueResponse/{}/{}/{}",
+            input.app_name, input.machine_id, input.key
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MetadataValueResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with MachinesUpsertMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesUpsertMetadataArgs> for () {
+    fn generate_resource_id(&self, input: &MachinesUpsertMetadataArgs) -> String {
+        format!(
+            "fly_io::()/{}/{}/{}",
+            input.app_name, input.machine_id, input.key
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with MachinesDeleteMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesDeleteMetadataArgs> for () {
+    fn generate_resource_id(&self, input: &MachinesDeleteMetadataArgs) -> String {
+        format!(
+            "fly_io::()/{}/{}/{}",
+            input.app_name, input.machine_id, input.key
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with MachinesListProcessesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesListProcessesArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &MachinesListProcessesArgs) -> String {
+        format!(
+            "fly_io::serde_json::Value/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with MachinesListVersionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesListVersionsArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &MachinesListVersionsArgs) -> String {
+        format!(
+            "fly_io::serde_json::Value/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WaitMachineResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WaitMachineResponse with MachinesWaitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesWaitArgs> for WaitMachineResponse {
+    fn generate_resource_id(&self, input: &MachinesWaitArgs) -> String {
+        format!(
+            "fly_io::WaitMachineResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::WaitMachineResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretKeys
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretKeys with SecretkeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeysListArgs> for SecretKeys {
+    fn generate_resource_id(&self, input: &SecretkeysListArgs) -> String {
+        format!("fly_io::SecretKeys/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SecretKeys"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretKey
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretKey with SecretkeyGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyGetArgs> for SecretKey {
+    fn generate_resource_id(&self, input: &SecretkeyGetArgs) -> String {
+        format!("fly_io::SecretKey/{}/{}", input.app_name, input.secret_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SecretKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetSecretkeyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetSecretkeyResponse with SecretkeySetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeySetArgs> for SetSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeySetArgs) -> String {
+        format!(
+            "fly_io::SetSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SetSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteSecretkeyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteSecretkeyResponse with SecretkeyDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyDeleteArgs> for DeleteSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeyDeleteArgs) -> String {
+        format!(
+            "fly_io::DeleteSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DeleteSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DecryptSecretkeyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DecryptSecretkeyResponse with SecretkeyDecryptArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyDecryptArgs> for DecryptSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeyDecryptArgs) -> String {
+        format!(
+            "fly_io::DecryptSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DecryptSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EncryptSecretkeyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EncryptSecretkeyResponse with SecretkeyEncryptArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyEncryptArgs> for EncryptSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeyEncryptArgs) -> String {
+        format!(
+            "fly_io::EncryptSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::EncryptSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetSecretkeyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetSecretkeyResponse with SecretkeyGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyGenerateArgs> for SetSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeyGenerateArgs) -> String {
+        format!(
+            "fly_io::SetSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SetSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SignSecretkeyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SignSecretkeyResponse with SecretkeySignArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeySignArgs> for SignSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeySignArgs) -> String {
+        format!(
+            "fly_io::SignSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SignSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with SecretkeyVerifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyVerifyArgs> for () {
+    fn generate_resource_id(&self, input: &SecretkeyVerifyArgs) -> String {
+        format!("fly_io::()/{}/{}", input.app_name, input.secret_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppSecrets
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppSecrets with SecretsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsListArgs> for AppSecrets {
+    fn generate_resource_id(&self, input: &SecretsListArgs) -> String {
+        format!("fly_io::AppSecrets/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::AppSecrets"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppSecretsUpdateResp
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppSecretsUpdateResp with SecretsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsUpdateArgs> for AppSecretsUpdateResp {
+    fn generate_resource_id(&self, input: &SecretsUpdateArgs) -> String {
+        format!("fly_io::AppSecretsUpdateResp/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::AppSecretsUpdateResp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppSecret
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppSecret with SecretGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretGetArgs> for AppSecret {
+    fn generate_resource_id(&self, input: &SecretGetArgs) -> String {
+        format!("fly_io::AppSecret/{}/{}", input.app_name, input.secret_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::AppSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetAppSecretResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetAppSecretResponse with SecretCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretCreateArgs> for SetAppSecretResponse {
+    fn generate_resource_id(&self, input: &SecretCreateArgs) -> String {
+        format!(
+            "fly_io::SetAppSecretResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SetAppSecretResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteAppSecretResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteAppSecretResponse with SecretDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretDeleteArgs> for DeleteAppSecretResponse {
+    fn generate_resource_id(&self, input: &SecretDeleteArgs) -> String {
+        format!(
+            "fly_io::DeleteAppSecretResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DeleteAppSecretResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with VolumesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesListArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &VolumesListArgs) -> String {
+        format!("fly_io::serde_json::Value/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Volume
+// =============================================================================
+
+/// ResourceIdentifier implementation for Volume with VolumesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesCreateArgs> for Volume {
+    fn generate_resource_id(&self, input: &VolumesCreateArgs) -> String {
+        format!("fly_io::Volume/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Volume
+// =============================================================================
+
+/// ResourceIdentifier implementation for Volume with VolumesGetByIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesGetByIdArgs> for Volume {
+    fn generate_resource_id(&self, input: &VolumesGetByIdArgs) -> String {
+        format!("fly_io::Volume/{}/{}", input.app_name, input.volume_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Volume
+// =============================================================================
+
+/// ResourceIdentifier implementation for Volume with VolumesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesUpdateArgs> for Volume {
+    fn generate_resource_id(&self, input: &VolumesUpdateArgs) -> String {
+        format!("fly_io::Volume/{}/{}", input.app_name, input.volume_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Volume
+// =============================================================================
+
+/// ResourceIdentifier implementation for Volume with VolumeDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumeDeleteArgs> for Volume {
+    fn generate_resource_id(&self, input: &VolumeDeleteArgs) -> String {
+        format!("fly_io::Volume/{}/{}", input.app_name, input.volume_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExtendVolumeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExtendVolumeResponse with VolumesExtendArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesExtendArgs> for ExtendVolumeResponse {
+    fn generate_resource_id(&self, input: &VolumesExtendArgs) -> String {
+        format!(
+            "fly_io::ExtendVolumeResponse/{}/{}",
+            input.app_name, input.volume_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ExtendVolumeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with VolumesListSnapshotsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesListSnapshotsArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &VolumesListSnapshotsArgs) -> String {
+        format!(
+            "fly_io::serde_json::Value/{}/{}",
+            input.app_name, input.volume_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrgMachinesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrgMachinesResponse with MachinesOrgListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesOrgListArgs> for OrgMachinesResponse {
+    fn generate_resource_id(&self, input: &MachinesOrgListArgs) -> String {
+        format!("fly_io::OrgMachinesResponse/{}", input.org_slug)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::OrgMachinesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrgVolumesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrgVolumesResponse with VolumesOrgListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesOrgListArgs> for OrgVolumesResponse {
+    fn generate_resource_id(&self, input: &VolumesOrgListArgs) -> String {
+        format!("fly_io::OrgVolumesResponse/{}", input.org_slug)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::OrgVolumesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MainGetPlacementsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MainGetPlacementsResponse with PlatformPlacementsPostArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlatformPlacementsPostArgs> for MainGetPlacementsResponse {
+    fn generate_resource_id(&self, input: &PlatformPlacementsPostArgs) -> String {
+        "fly_io::MainGetPlacementsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainGetPlacementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MainRegionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MainRegionResponse with PlatformRegionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlatformRegionsGetArgs> for MainRegionResponse {
+    fn generate_resource_id(&self, input: &PlatformRegionsGetArgs) -> String {
+        "fly_io::MainRegionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainRegionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with TokensRequestKmsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TokensRequestKmsArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &TokensRequestKmsArgs) -> String {
+        "fly_io::serde_json::Value".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with TokensRequestOidcArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TokensRequestOidcArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &TokensRequestOidcArgs) -> String {
+        "fly_io::serde_json::Value".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CurrentTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CurrentTokenResponse with CurrentTokenShowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CurrentTokenShowArgs> for CurrentTokenResponse {
+    fn generate_resource_id(&self, input: &CurrentTokenShowArgs) -> String {
+        "fly_io::CurrentTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CurrentTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
 }

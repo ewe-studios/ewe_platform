@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_create_execute()` to send, or `drivelabels_labels_create` for simplest API.
 
-pub fn drivelabels_labels_create_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     languageCode: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels",);
 
@@ -206,12 +210,15 @@ pub fn drivelabels_labels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_delete_execute()` to send, or `drivelabels_labels_delete` for simplest API.
 
-pub fn drivelabels_labels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     useAdminAccess: &Option<Option<String>>,
     writeControl_requiredRevisionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}", name,);
 
@@ -389,10 +396,13 @@ pub fn drivelabels_labels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_delta_execute()` to send, or `drivelabels_labels_delta` for simplest API.
 
-pub fn drivelabels_labels_delta_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_delta_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}:delta",
@@ -555,10 +565,13 @@ pub fn drivelabels_labels_delta(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_disable_execute()` to send, or `drivelabels_labels_disable` for simplest API.
 
-pub fn drivelabels_labels_disable_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}:disable",
@@ -720,10 +733,13 @@ pub fn drivelabels_labels_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_enable_execute()` to send, or `drivelabels_labels_enable` for simplest API.
 
-pub fn drivelabels_labels_enable_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}:enable",
@@ -885,13 +901,16 @@ pub fn drivelabels_labels_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_get_execute()` to send, or `drivelabels_labels_get` for simplest API.
 
-pub fn drivelabels_labels_get_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}", name,);
 
@@ -1079,8 +1098,8 @@ pub fn drivelabels_labels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_list_execute()` to send, or `drivelabels_labels_list` for simplest API.
 
-pub fn drivelabels_labels_list_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     minimumRole: &Option<Option<String>>,
@@ -1089,7 +1108,10 @@ pub fn drivelabels_labels_list_builder(
     publishedOnly: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels",);
 
@@ -1304,10 +1326,13 @@ pub fn drivelabels_labels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_publish_execute()` to send, or `drivelabels_labels_publish` for simplest API.
 
-pub fn drivelabels_labels_publish_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}:publish",
@@ -1469,10 +1494,13 @@ pub fn drivelabels_labels_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_update_label_copy_mode_execute()` to send, or `drivelabels_labels_update_label_copy_mode` for simplest API.
 
-pub fn drivelabels_labels_update_label_copy_mode_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_update_label_copy_mode_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}:updateLabelCopyMode",
@@ -1634,10 +1662,13 @@ pub fn drivelabels_labels_update_label_copy_mode(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_update_label_enabled_app_settings_execute()` to send, or `drivelabels_labels_update_label_enabled_app_settings` for simplest API.
 
-pub fn drivelabels_labels_update_label_enabled_app_settings_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_update_label_enabled_app_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}:updateLabelEnabledAppSettings",
@@ -1799,11 +1830,14 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_update_permissions_execute()` to send, or `drivelabels_labels_update_permissions` for simplest API.
 
-pub fn drivelabels_labels_update_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_update_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/permissions",
@@ -1979,12 +2013,15 @@ pub fn drivelabels_labels_update_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_locks_list_execute()` to send, or `drivelabels_labels_locks_list` for simplest API.
 
-pub fn drivelabels_labels_locks_list_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_locks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/locks",
@@ -2170,10 +2207,13 @@ pub fn drivelabels_labels_locks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_batch_delete_execute()` to send, or `drivelabels_labels_permissions_batch_delete` for simplest API.
 
-pub fn drivelabels_labels_permissions_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_permissions_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/permissions:batchDelete",
@@ -2331,10 +2371,13 @@ pub fn drivelabels_labels_permissions_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_batch_update_execute()` to send, or `drivelabels_labels_permissions_batch_update` for simplest API.
 
-pub fn drivelabels_labels_permissions_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_permissions_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/permissions:batchUpdate",
@@ -2506,11 +2549,14 @@ pub fn drivelabels_labels_permissions_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_create_execute()` to send, or `drivelabels_labels_permissions_create` for simplest API.
 
-pub fn drivelabels_labels_permissions_create_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_permissions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/permissions",
@@ -2686,11 +2732,14 @@ pub fn drivelabels_labels_permissions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_delete_execute()` to send, or `drivelabels_labels_permissions_delete` for simplest API.
 
-pub fn drivelabels_labels_permissions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_permissions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/permissions/{permissionsId}",
@@ -2862,13 +2911,16 @@ pub fn drivelabels_labels_permissions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_list_execute()` to send, or `drivelabels_labels_permissions_list` for simplest API.
 
-pub fn drivelabels_labels_permissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_permissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/permissions",
@@ -3063,11 +3115,14 @@ pub fn drivelabels_labels_permissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_update_permissions_execute()` to send, or `drivelabels_labels_revisions_update_permissions` for simplest API.
 
-pub fn drivelabels_labels_revisions_update_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_revisions_update_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{revisionsId}/permissions",
@@ -3246,12 +3301,15 @@ pub fn drivelabels_labels_revisions_update_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_locks_list_execute()` to send, or `drivelabels_labels_revisions_locks_list` for simplest API.
 
-pub fn drivelabels_labels_revisions_locks_list_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_revisions_locks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{revisionsId}/locks",
@@ -3437,10 +3495,13 @@ pub fn drivelabels_labels_revisions_locks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_batch_delete_execute()` to send, or `drivelabels_labels_revisions_permissions_batch_delete` for simplest API.
 
-pub fn drivelabels_labels_revisions_permissions_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_revisions_permissions_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{revisionsId}/permissions:batchDelete",
@@ -3599,10 +3660,13 @@ pub fn drivelabels_labels_revisions_permissions_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_batch_update_execute()` to send, or `drivelabels_labels_revisions_permissions_batch_update` for simplest API.
 
-pub fn drivelabels_labels_revisions_permissions_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_revisions_permissions_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{revisionsId}/permissions:batchUpdate",
@@ -3775,11 +3839,14 @@ pub fn drivelabels_labels_revisions_permissions_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_create_execute()` to send, or `drivelabels_labels_revisions_permissions_create` for simplest API.
 
-pub fn drivelabels_labels_revisions_permissions_create_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_revisions_permissions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{revisionsId}/permissions",
@@ -3958,11 +4025,14 @@ pub fn drivelabels_labels_revisions_permissions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_delete_execute()` to send, or `drivelabels_labels_revisions_permissions_delete` for simplest API.
 
-pub fn drivelabels_labels_revisions_permissions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_revisions_permissions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{revisionsId}/permissions/{permissionsId}",
@@ -4137,13 +4207,16 @@ pub fn drivelabels_labels_revisions_permissions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_list_execute()` to send, or `drivelabels_labels_revisions_permissions_list` for simplest API.
 
-pub fn drivelabels_labels_revisions_permissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_labels_revisions_permissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{revisionsId}/permissions",
@@ -4338,10 +4411,13 @@ pub fn drivelabels_labels_revisions_permissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_limits_get_label_execute()` to send, or `drivelabels_limits_get_label` for simplest API.
 
-pub fn drivelabels_limits_get_label_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_limits_get_label_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/limits/label",);
 
@@ -4511,11 +4587,14 @@ pub fn drivelabels_limits_get_label(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_users_get_capabilities_execute()` to send, or `drivelabels_users_get_capabilities` for simplest API.
 
-pub fn drivelabels_users_get_capabilities_builder(
-    client: &SimpleHttpClient,
+pub fn drivelabels_users_get_capabilities_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     customer: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://drivelabels.googleapis.com/v2/users/{}/capabilities",

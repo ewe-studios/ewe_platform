@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_create_execute()` to send, or `websecurityscanner_projects_scan_configs_create` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs",
@@ -183,10 +187,13 @@ pub fn websecurityscanner_projects_scan_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_delete_execute()` to send, or `websecurityscanner_projects_scan_configs_delete` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}",
@@ -340,10 +347,13 @@ pub fn websecurityscanner_projects_scan_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_get_execute()` to send, or `websecurityscanner_projects_scan_configs_get` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}",
@@ -497,12 +507,15 @@ pub fn websecurityscanner_projects_scan_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_list_execute()` to send, or `websecurityscanner_projects_scan_configs_list` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs",
@@ -683,11 +696,14 @@ pub fn websecurityscanner_projects_scan_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_patch_execute()` to send, or `websecurityscanner_projects_scan_configs_patch` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}",
@@ -858,10 +874,13 @@ pub fn websecurityscanner_projects_scan_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_start_execute()` to send, or `websecurityscanner_projects_scan_configs_start` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_start_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}:start",
@@ -1015,10 +1034,13 @@ pub fn websecurityscanner_projects_scan_configs_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_scan_runs_get_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_get` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_scan_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_scan_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}",
@@ -1173,12 +1195,15 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_scan_runs_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_list` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_scan_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_scan_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns",
@@ -1359,10 +1384,13 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_scan_runs_stop_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_stop` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}:stop",
@@ -1517,12 +1545,15 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/crawledUrls",
@@ -1703,10 +1734,13 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findingTypeStats",
@@ -1873,10 +1907,13 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_findings_get` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings/{findingsId}",
@@ -2032,13 +2069,16 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_findings_list` for simplest API.
 
-pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder(
-    client: &SimpleHttpClient,
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings",

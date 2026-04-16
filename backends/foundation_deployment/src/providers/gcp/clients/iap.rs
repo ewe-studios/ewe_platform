@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_create_execute()` to send, or `iap_projects_brands_create` for simplest API.
 
-pub fn iap_projects_brands_create_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/projects/{}/brands", parent,);
 
@@ -180,10 +184,13 @@ pub fn iap_projects_brands_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_get_execute()` to send, or `iap_projects_brands_get` for simplest API.
 
-pub fn iap_projects_brands_get_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}",
@@ -337,10 +344,13 @@ pub fn iap_projects_brands_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_list_execute()` to send, or `iap_projects_brands_list` for simplest API.
 
-pub fn iap_projects_brands_list_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/projects/{}/brands", parent,);
 
@@ -495,10 +505,13 @@ pub fn iap_projects_brands_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_identity_aware_proxy_clients_create_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_create` for simplest API.
 
-pub fn iap_projects_brands_identity_aware_proxy_clients_create_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_identity_aware_proxy_clients_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients",
@@ -657,10 +670,13 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_identity_aware_proxy_clients_delete_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_delete` for simplest API.
 
-pub fn iap_projects_brands_identity_aware_proxy_clients_delete_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_identity_aware_proxy_clients_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}",
@@ -815,10 +831,13 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_identity_aware_proxy_clients_get_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_get` for simplest API.
 
-pub fn iap_projects_brands_identity_aware_proxy_clients_get_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_identity_aware_proxy_clients_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}",
@@ -976,12 +995,15 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_identity_aware_proxy_clients_list_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_list` for simplest API.
 
-pub fn iap_projects_brands_identity_aware_proxy_clients_list_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_identity_aware_proxy_clients_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients",
@@ -1166,10 +1188,13 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_reset_secret` for simplest API.
 
-pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}:resetSecret",
@@ -1328,11 +1353,14 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_iap_tunnel_locations_dest_groups_create_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_create` for simplest API.
 
-pub fn iap_projects_iap_tunnel_locations_dest_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_iap_tunnel_locations_dest_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tunnelDestGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups",
@@ -1507,10 +1535,13 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_iap_tunnel_locations_dest_groups_delete_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_delete` for simplest API.
 
-pub fn iap_projects_iap_tunnel_locations_dest_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_iap_tunnel_locations_dest_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}",
@@ -1664,10 +1695,13 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_iap_tunnel_locations_dest_groups_get_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_get` for simplest API.
 
-pub fn iap_projects_iap_tunnel_locations_dest_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_iap_tunnel_locations_dest_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}",
@@ -1825,12 +1859,15 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_iap_tunnel_locations_dest_groups_list_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_list` for simplest API.
 
-pub fn iap_projects_iap_tunnel_locations_dest_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_iap_tunnel_locations_dest_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups",
@@ -2015,11 +2052,14 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_projects_iap_tunnel_locations_dest_groups_patch_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_patch` for simplest API.
 
-pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}",
@@ -2194,10 +2234,13 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_get_iam_policy_execute()` to send, or `iap_get_iam_policy` for simplest API.
 
-pub fn iap_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn iap_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/{}:getIamPolicy", resource,);
 
@@ -2348,10 +2391,13 @@ pub fn iap_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_get_iap_settings_execute()` to send, or `iap_get_iap_settings` for simplest API.
 
-pub fn iap_get_iap_settings_builder(
-    client: &SimpleHttpClient,
+pub fn iap_get_iap_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/{}:iapSettings", name,);
 
@@ -2502,10 +2548,13 @@ pub fn iap_get_iap_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_set_iam_policy_execute()` to send, or `iap_set_iam_policy` for simplest API.
 
-pub fn iap_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn iap_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/{}:setIamPolicy", resource,);
 
@@ -2656,10 +2705,13 @@ pub fn iap_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_test_iam_permissions_execute()` to send, or `iap_test_iam_permissions` for simplest API.
 
-pub fn iap_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn iap_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/{}:testIamPermissions",
@@ -2821,11 +2873,14 @@ pub fn iap_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_update_iap_settings_execute()` to send, or `iap_update_iap_settings` for simplest API.
 
-pub fn iap_update_iap_settings_builder(
-    client: &SimpleHttpClient,
+pub fn iap_update_iap_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/{}:iapSettings", name,);
 
@@ -2989,11 +3044,14 @@ pub fn iap_update_iap_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iap_validate_attribute_expression_execute()` to send, or `iap_validate_attribute_expression` for simplest API.
 
-pub fn iap_validate_attribute_expression_builder(
-    client: &SimpleHttpClient,
+pub fn iap_validate_attribute_expression_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     expression: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iap.googleapis.com/v1/{}:validateAttributeExpression",

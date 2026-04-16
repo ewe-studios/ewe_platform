@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_create_execute()` to send, or `cloudbilling_billing_accounts_create` for simplest API.
 
-pub fn cloudbilling_billing_accounts_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/billingAccounts",);
 
@@ -195,10 +199,13 @@ pub fn cloudbilling_billing_accounts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_get_execute()` to send, or `cloudbilling_billing_accounts_get` for simplest API.
 
-pub fn cloudbilling_billing_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}",
@@ -356,11 +363,14 @@ pub fn cloudbilling_billing_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_get_iam_policy_execute()` to send, or `cloudbilling_billing_accounts_get_iam_policy` for simplest API.
 
-pub fn cloudbilling_billing_accounts_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:getIamPolicy",
@@ -531,13 +541,16 @@ pub fn cloudbilling_billing_accounts_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_list_execute()` to send, or `cloudbilling_billing_accounts_list` for simplest API.
 
-pub fn cloudbilling_billing_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/billingAccounts",);
 
@@ -728,10 +741,13 @@ pub fn cloudbilling_billing_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_move_execute()` to send, or `cloudbilling_billing_accounts_move` for simplest API.
 
-pub fn cloudbilling_billing_accounts_move_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:move",
@@ -889,11 +905,14 @@ pub fn cloudbilling_billing_accounts_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_patch_execute()` to send, or `cloudbilling_billing_accounts_patch` for simplest API.
 
-pub fn cloudbilling_billing_accounts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}",
@@ -1065,10 +1084,13 @@ pub fn cloudbilling_billing_accounts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_set_iam_policy_execute()` to send, or `cloudbilling_billing_accounts_set_iam_policy` for simplest API.
 
-pub fn cloudbilling_billing_accounts_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:setIamPolicy",
@@ -1222,10 +1244,13 @@ pub fn cloudbilling_billing_accounts_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_test_iam_permissions_execute()` to send, or `cloudbilling_billing_accounts_test_iam_permissions` for simplest API.
 
-pub fn cloudbilling_billing_accounts_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:testIamPermissions",
@@ -1388,12 +1413,15 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_projects_list_execute()` to send, or `cloudbilling_billing_accounts_projects_list` for simplest API.
 
-pub fn cloudbilling_billing_accounts_projects_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_projects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}/projects",
@@ -1578,10 +1606,13 @@ pub fn cloudbilling_billing_accounts_projects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_sub_accounts_create_execute()` to send, or `cloudbilling_billing_accounts_sub_accounts_create` for simplest API.
 
-pub fn cloudbilling_billing_accounts_sub_accounts_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_sub_accounts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}/subAccounts",
@@ -1739,13 +1770,16 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_sub_accounts_list_execute()` to send, or `cloudbilling_billing_accounts_sub_accounts_list` for simplest API.
 
-pub fn cloudbilling_billing_accounts_sub_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_billing_accounts_sub_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/billingAccounts/{}/subAccounts",
@@ -1936,10 +1970,13 @@ pub fn cloudbilling_billing_accounts_sub_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_organizations_billing_accounts_create_execute()` to send, or `cloudbilling_organizations_billing_accounts_create` for simplest API.
 
-pub fn cloudbilling_organizations_billing_accounts_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_organizations_billing_accounts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts",
@@ -2097,13 +2134,16 @@ pub fn cloudbilling_organizations_billing_accounts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_organizations_billing_accounts_list_execute()` to send, or `cloudbilling_organizations_billing_accounts_list` for simplest API.
 
-pub fn cloudbilling_organizations_billing_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_organizations_billing_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts",
@@ -2294,11 +2334,14 @@ pub fn cloudbilling_organizations_billing_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_organizations_billing_accounts_move_execute()` to send, or `cloudbilling_organizations_billing_accounts_move` for simplest API.
 
-pub fn cloudbilling_organizations_billing_accounts_move_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_organizations_billing_accounts_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     destinationParent: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts/{}:move",
@@ -2462,10 +2505,13 @@ pub fn cloudbilling_organizations_billing_accounts_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_projects_get_billing_info_execute()` to send, or `cloudbilling_projects_get_billing_info` for simplest API.
 
-pub fn cloudbilling_projects_get_billing_info_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_projects_get_billing_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/projects/{}/billingInfo",
@@ -2623,10 +2669,13 @@ pub fn cloudbilling_projects_get_billing_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_projects_update_billing_info_execute()` to send, or `cloudbilling_projects_update_billing_info` for simplest API.
 
-pub fn cloudbilling_projects_update_billing_info_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_projects_update_billing_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/projects/{}/billingInfo",
@@ -2784,11 +2833,14 @@ pub fn cloudbilling_projects_update_billing_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_services_list_execute()` to send, or `cloudbilling_services_list` for simplest API.
 
-pub fn cloudbilling_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/services",);
 
@@ -2959,15 +3011,18 @@ pub fn cloudbilling_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_services_skus_list_execute()` to send, or `cloudbilling_services_skus_list` for simplest API.
 
-pub fn cloudbilling_services_skus_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbilling_services_skus_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     currencyCode: &Option<Option<String>>,
     endTime: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbilling.googleapis.com/v1/services/{}/skus",

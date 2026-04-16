@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_get_cmek_settings_execute()` to send, or `logging_billing_accounts_get_cmek_settings` for simplest API.
 
-pub fn logging_billing_accounts_get_cmek_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_get_cmek_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/cmekSettings",
@@ -187,10 +191,13 @@ pub fn logging_billing_accounts_get_cmek_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_get_settings_execute()` to send, or `logging_billing_accounts_get_settings` for simplest API.
 
-pub fn logging_billing_accounts_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/settings",
@@ -344,10 +351,13 @@ pub fn logging_billing_accounts_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_exclusions_create_execute()` to send, or `logging_billing_accounts_exclusions_create` for simplest API.
 
-pub fn logging_billing_accounts_exclusions_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_exclusions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/exclusions",
@@ -505,10 +515,13 @@ pub fn logging_billing_accounts_exclusions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_exclusions_delete_execute()` to send, or `logging_billing_accounts_exclusions_delete` for simplest API.
 
-pub fn logging_billing_accounts_exclusions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_exclusions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/exclusions/{exclusionsId}",
@@ -662,10 +675,13 @@ pub fn logging_billing_accounts_exclusions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_exclusions_get_execute()` to send, or `logging_billing_accounts_exclusions_get` for simplest API.
 
-pub fn logging_billing_accounts_exclusions_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_exclusions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/exclusions/{exclusionsId}",
@@ -823,12 +839,15 @@ pub fn logging_billing_accounts_exclusions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_exclusions_list_execute()` to send, or `logging_billing_accounts_exclusions_list` for simplest API.
 
-pub fn logging_billing_accounts_exclusions_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_exclusions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/exclusions",
@@ -1009,11 +1028,14 @@ pub fn logging_billing_accounts_exclusions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_exclusions_patch_execute()` to send, or `logging_billing_accounts_exclusions_patch` for simplest API.
 
-pub fn logging_billing_accounts_exclusions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_exclusions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/exclusions/{exclusionsId}",
@@ -1185,10 +1207,13 @@ pub fn logging_billing_accounts_exclusions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_get_execute()` to send, or `logging_billing_accounts_locations_get` for simplest API.
 
-pub fn logging_billing_accounts_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}",
@@ -1342,14 +1367,17 @@ pub fn logging_billing_accounts_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_list_execute()` to send, or `logging_billing_accounts_locations_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations",
@@ -1542,11 +1570,14 @@ pub fn logging_billing_accounts_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_create_execute()` to send, or `logging_billing_accounts_locations_buckets_create` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets",
@@ -1717,11 +1748,14 @@ pub fn logging_billing_accounts_locations_buckets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_create_async_execute()` to send, or `logging_billing_accounts_locations_buckets_create_async` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_create_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_create_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets:createAsync",
@@ -1892,10 +1926,13 @@ pub fn logging_billing_accounts_locations_buckets_create_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_delete_execute()` to send, or `logging_billing_accounts_locations_buckets_delete` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -2049,10 +2086,13 @@ pub fn logging_billing_accounts_locations_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_get_execute()` to send, or `logging_billing_accounts_locations_buckets_get` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -2206,12 +2246,15 @@ pub fn logging_billing_accounts_locations_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_list_execute()` to send, or `logging_billing_accounts_locations_buckets_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets",
@@ -2392,11 +2435,14 @@ pub fn logging_billing_accounts_locations_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_patch_execute()` to send, or `logging_billing_accounts_locations_buckets_patch` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -2567,10 +2613,13 @@ pub fn logging_billing_accounts_locations_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_undelete_execute()` to send, or `logging_billing_accounts_locations_buckets_undelete` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}:undelete",
@@ -2724,11 +2773,14 @@ pub fn logging_billing_accounts_locations_buckets_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_update_async_execute()` to send, or `logging_billing_accounts_locations_buckets_update_async` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_update_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_update_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}:updateAsync",
@@ -2899,11 +2951,14 @@ pub fn logging_billing_accounts_locations_buckets_update_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_links_create_execute()` to send, or `logging_billing_accounts_locations_buckets_links_create` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     linkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -3074,10 +3129,13 @@ pub fn logging_billing_accounts_locations_buckets_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_links_delete_execute()` to send, or `logging_billing_accounts_locations_buckets_links_delete` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -3232,10 +3290,13 @@ pub fn logging_billing_accounts_locations_buckets_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_links_get_execute()` to send, or `logging_billing_accounts_locations_buckets_links_get` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -3389,12 +3450,15 @@ pub fn logging_billing_accounts_locations_buckets_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_links_list_execute()` to send, or `logging_billing_accounts_locations_buckets_links_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -3575,11 +3639,14 @@ pub fn logging_billing_accounts_locations_buckets_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_views_create_execute()` to send, or `logging_billing_accounts_locations_buckets_views_create` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     viewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -3750,10 +3817,13 @@ pub fn logging_billing_accounts_locations_buckets_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_views_delete_execute()` to send, or `logging_billing_accounts_locations_buckets_views_delete` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -3908,10 +3978,13 @@ pub fn logging_billing_accounts_locations_buckets_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_views_get_execute()` to send, or `logging_billing_accounts_locations_buckets_views_get` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -4065,12 +4138,15 @@ pub fn logging_billing_accounts_locations_buckets_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_views_list_execute()` to send, or `logging_billing_accounts_locations_buckets_views_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -4251,11 +4327,14 @@ pub fn logging_billing_accounts_locations_buckets_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_views_patch_execute()` to send, or `logging_billing_accounts_locations_buckets_views_patch` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -4426,13 +4505,16 @@ pub fn logging_billing_accounts_locations_buckets_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_views_logs_list_execute()` to send, or `logging_billing_accounts_locations_buckets_views_logs_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_buckets_views_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_buckets_views_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs",
@@ -4619,10 +4701,13 @@ pub fn logging_billing_accounts_locations_buckets_views_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_operations_cancel_execute()` to send, or `logging_billing_accounts_locations_operations_cancel` for simplest API.
 
-pub fn logging_billing_accounts_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -4776,10 +4861,13 @@ pub fn logging_billing_accounts_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_operations_get_execute()` to send, or `logging_billing_accounts_locations_operations_get` for simplest API.
 
-pub fn logging_billing_accounts_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4933,14 +5021,17 @@ pub fn logging_billing_accounts_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_operations_list_execute()` to send, or `logging_billing_accounts_locations_operations_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/operations",
@@ -5133,13 +5224,16 @@ pub fn logging_billing_accounts_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_recent_queries_list_execute()` to send, or `logging_billing_accounts_locations_recent_queries_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_recent_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_recent_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/recentQueries",
@@ -5326,11 +5420,14 @@ pub fn logging_billing_accounts_locations_recent_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_saved_queries_create_execute()` to send, or `logging_billing_accounts_locations_saved_queries_create` for simplest API.
 
-pub fn logging_billing_accounts_locations_saved_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_saved_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     savedQueryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/savedQueries",
@@ -5501,10 +5598,13 @@ pub fn logging_billing_accounts_locations_saved_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_saved_queries_delete_execute()` to send, or `logging_billing_accounts_locations_saved_queries_delete` for simplest API.
 
-pub fn logging_billing_accounts_locations_saved_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_saved_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -5659,10 +5759,13 @@ pub fn logging_billing_accounts_locations_saved_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_saved_queries_get_execute()` to send, or `logging_billing_accounts_locations_saved_queries_get` for simplest API.
 
-pub fn logging_billing_accounts_locations_saved_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_saved_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -5816,13 +5919,16 @@ pub fn logging_billing_accounts_locations_saved_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_saved_queries_list_execute()` to send, or `logging_billing_accounts_locations_saved_queries_list` for simplest API.
 
-pub fn logging_billing_accounts_locations_saved_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_saved_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/savedQueries",
@@ -6009,11 +6115,14 @@ pub fn logging_billing_accounts_locations_saved_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_saved_queries_patch_execute()` to send, or `logging_billing_accounts_locations_saved_queries_patch` for simplest API.
 
-pub fn logging_billing_accounts_locations_saved_queries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_locations_saved_queries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -6184,10 +6293,13 @@ pub fn logging_billing_accounts_locations_saved_queries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_logs_delete_execute()` to send, or `logging_billing_accounts_logs_delete` for simplest API.
 
-pub fn logging_billing_accounts_logs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_logs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     logName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/logs/{logsId}",
@@ -6341,13 +6453,16 @@ pub fn logging_billing_accounts_logs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_logs_list_execute()` to send, or `logging_billing_accounts_logs_list` for simplest API.
 
-pub fn logging_billing_accounts_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/logs",
@@ -6534,12 +6649,15 @@ pub fn logging_billing_accounts_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_sinks_create_execute()` to send, or `logging_billing_accounts_sinks_create` for simplest API.
 
-pub fn logging_billing_accounts_sinks_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_sinks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/sinks",
@@ -6716,10 +6834,13 @@ pub fn logging_billing_accounts_sinks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_sinks_delete_execute()` to send, or `logging_billing_accounts_sinks_delete` for simplest API.
 
-pub fn logging_billing_accounts_sinks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_sinks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/sinks/{sinksId}",
@@ -6873,10 +6994,13 @@ pub fn logging_billing_accounts_sinks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_sinks_get_execute()` to send, or `logging_billing_accounts_sinks_get` for simplest API.
 
-pub fn logging_billing_accounts_sinks_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_sinks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/sinks/{sinksId}",
@@ -7030,13 +7154,16 @@ pub fn logging_billing_accounts_sinks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_sinks_list_execute()` to send, or `logging_billing_accounts_sinks_list` for simplest API.
 
-pub fn logging_billing_accounts_sinks_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_sinks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/sinks",
@@ -7223,13 +7350,16 @@ pub fn logging_billing_accounts_sinks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_sinks_patch_execute()` to send, or `logging_billing_accounts_sinks_patch` for simplest API.
 
-pub fn logging_billing_accounts_sinks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_sinks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/sinks/{sinksId}",
@@ -7412,13 +7542,16 @@ pub fn logging_billing_accounts_sinks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_sinks_update_execute()` to send, or `logging_billing_accounts_sinks_update` for simplest API.
 
-pub fn logging_billing_accounts_sinks_update_builder(
-    client: &SimpleHttpClient,
+pub fn logging_billing_accounts_sinks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/billingAccounts/{}/sinks/{sinksId}",
@@ -7601,9 +7734,12 @@ pub fn logging_billing_accounts_sinks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_entries_copy_execute()` to send, or `logging_entries_copy` for simplest API.
 
-pub fn logging_entries_copy_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn logging_entries_copy_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/entries:copy",);
 
@@ -7746,9 +7882,12 @@ pub fn logging_entries_copy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_entries_list_execute()` to send, or `logging_entries_list` for simplest API.
 
-pub fn logging_entries_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn logging_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/entries:list",);
 
@@ -7895,9 +8034,12 @@ pub fn logging_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_entries_tail_execute()` to send, or `logging_entries_tail` for simplest API.
 
-pub fn logging_entries_tail_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn logging_entries_tail_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/entries:tail",);
 
@@ -8044,9 +8186,12 @@ pub fn logging_entries_tail(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_entries_write_execute()` to send, or `logging_entries_write` for simplest API.
 
-pub fn logging_entries_write_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn logging_entries_write_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/entries:write",);
 
@@ -8193,10 +8338,13 @@ pub fn logging_entries_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_exclusions_create_execute()` to send, or `logging_exclusions_create` for simplest API.
 
-pub fn logging_exclusions_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_exclusions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/exclusions",
@@ -8354,10 +8502,13 @@ pub fn logging_exclusions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_exclusions_delete_execute()` to send, or `logging_exclusions_delete` for simplest API.
 
-pub fn logging_exclusions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_exclusions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/exclusions/{exclusionsId}",
@@ -8511,10 +8662,13 @@ pub fn logging_exclusions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_exclusions_get_execute()` to send, or `logging_exclusions_get` for simplest API.
 
-pub fn logging_exclusions_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_exclusions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/exclusions/{exclusionsId}",
@@ -8672,12 +8826,15 @@ pub fn logging_exclusions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_exclusions_list_execute()` to send, or `logging_exclusions_list` for simplest API.
 
-pub fn logging_exclusions_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_exclusions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/exclusions",
@@ -8854,11 +9011,14 @@ pub fn logging_exclusions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_exclusions_patch_execute()` to send, or `logging_exclusions_patch` for simplest API.
 
-pub fn logging_exclusions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_exclusions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/exclusions/{exclusionsId}",
@@ -9029,10 +9189,13 @@ pub fn logging_exclusions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_get_cmek_settings_execute()` to send, or `logging_folders_get_cmek_settings` for simplest API.
 
-pub fn logging_folders_get_cmek_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_get_cmek_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/cmekSettings",
@@ -9190,10 +9353,13 @@ pub fn logging_folders_get_cmek_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_get_settings_execute()` to send, or `logging_folders_get_settings` for simplest API.
 
-pub fn logging_folders_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/settings",
@@ -9347,11 +9513,14 @@ pub fn logging_folders_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_update_settings_execute()` to send, or `logging_folders_update_settings` for simplest API.
 
-pub fn logging_folders_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/settings",
@@ -9518,10 +9687,13 @@ pub fn logging_folders_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_exclusions_create_execute()` to send, or `logging_folders_exclusions_create` for simplest API.
 
-pub fn logging_folders_exclusions_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_exclusions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/exclusions",
@@ -9679,10 +9851,13 @@ pub fn logging_folders_exclusions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_exclusions_delete_execute()` to send, or `logging_folders_exclusions_delete` for simplest API.
 
-pub fn logging_folders_exclusions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_exclusions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/exclusions/{exclusionsId}",
@@ -9836,10 +10011,13 @@ pub fn logging_folders_exclusions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_exclusions_get_execute()` to send, or `logging_folders_exclusions_get` for simplest API.
 
-pub fn logging_folders_exclusions_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_exclusions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/exclusions/{exclusionsId}",
@@ -9997,12 +10175,15 @@ pub fn logging_folders_exclusions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_exclusions_list_execute()` to send, or `logging_folders_exclusions_list` for simplest API.
 
-pub fn logging_folders_exclusions_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_exclusions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/exclusions",
@@ -10183,11 +10364,14 @@ pub fn logging_folders_exclusions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_exclusions_patch_execute()` to send, or `logging_folders_exclusions_patch` for simplest API.
 
-pub fn logging_folders_exclusions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_exclusions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/exclusions/{exclusionsId}",
@@ -10358,10 +10542,13 @@ pub fn logging_folders_exclusions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_get_execute()` to send, or `logging_folders_locations_get` for simplest API.
 
-pub fn logging_folders_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}",
@@ -10515,14 +10702,17 @@ pub fn logging_folders_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_list_execute()` to send, or `logging_folders_locations_list` for simplest API.
 
-pub fn logging_folders_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations",
@@ -10715,11 +10905,14 @@ pub fn logging_folders_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_create_execute()` to send, or `logging_folders_locations_buckets_create` for simplest API.
 
-pub fn logging_folders_locations_buckets_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets",
@@ -10887,11 +11080,14 @@ pub fn logging_folders_locations_buckets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_create_async_execute()` to send, or `logging_folders_locations_buckets_create_async` for simplest API.
 
-pub fn logging_folders_locations_buckets_create_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_create_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets:createAsync",
@@ -11062,10 +11258,13 @@ pub fn logging_folders_locations_buckets_create_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_delete_execute()` to send, or `logging_folders_locations_buckets_delete` for simplest API.
 
-pub fn logging_folders_locations_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -11219,10 +11418,13 @@ pub fn logging_folders_locations_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_get_execute()` to send, or `logging_folders_locations_buckets_get` for simplest API.
 
-pub fn logging_folders_locations_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -11376,12 +11578,15 @@ pub fn logging_folders_locations_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_list_execute()` to send, or `logging_folders_locations_buckets_list` for simplest API.
 
-pub fn logging_folders_locations_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets",
@@ -11562,11 +11767,14 @@ pub fn logging_folders_locations_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_patch_execute()` to send, or `logging_folders_locations_buckets_patch` for simplest API.
 
-pub fn logging_folders_locations_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -11734,10 +11942,13 @@ pub fn logging_folders_locations_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_undelete_execute()` to send, or `logging_folders_locations_buckets_undelete` for simplest API.
 
-pub fn logging_folders_locations_buckets_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}:undelete",
@@ -11891,11 +12102,14 @@ pub fn logging_folders_locations_buckets_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_update_async_execute()` to send, or `logging_folders_locations_buckets_update_async` for simplest API.
 
-pub fn logging_folders_locations_buckets_update_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_update_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}:updateAsync",
@@ -12066,11 +12280,14 @@ pub fn logging_folders_locations_buckets_update_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_links_create_execute()` to send, or `logging_folders_locations_buckets_links_create` for simplest API.
 
-pub fn logging_folders_locations_buckets_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     linkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -12238,10 +12455,13 @@ pub fn logging_folders_locations_buckets_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_links_delete_execute()` to send, or `logging_folders_locations_buckets_links_delete` for simplest API.
 
-pub fn logging_folders_locations_buckets_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -12395,10 +12615,13 @@ pub fn logging_folders_locations_buckets_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_links_get_execute()` to send, or `logging_folders_locations_buckets_links_get` for simplest API.
 
-pub fn logging_folders_locations_buckets_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -12552,12 +12775,15 @@ pub fn logging_folders_locations_buckets_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_links_list_execute()` to send, or `logging_folders_locations_buckets_links_list` for simplest API.
 
-pub fn logging_folders_locations_buckets_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -12738,11 +12964,14 @@ pub fn logging_folders_locations_buckets_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_create_execute()` to send, or `logging_folders_locations_buckets_views_create` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     viewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -12910,10 +13139,13 @@ pub fn logging_folders_locations_buckets_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_delete_execute()` to send, or `logging_folders_locations_buckets_views_delete` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -13067,10 +13299,13 @@ pub fn logging_folders_locations_buckets_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_get_execute()` to send, or `logging_folders_locations_buckets_views_get` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -13224,10 +13459,13 @@ pub fn logging_folders_locations_buckets_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_get_iam_policy_execute()` to send, or `logging_folders_locations_buckets_views_get_iam_policy` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy",
@@ -13382,12 +13620,15 @@ pub fn logging_folders_locations_buckets_views_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_list_execute()` to send, or `logging_folders_locations_buckets_views_list` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -13568,11 +13809,14 @@ pub fn logging_folders_locations_buckets_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_patch_execute()` to send, or `logging_folders_locations_buckets_views_patch` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -13743,10 +13987,13 @@ pub fn logging_folders_locations_buckets_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_set_iam_policy_execute()` to send, or `logging_folders_locations_buckets_views_set_iam_policy` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy",
@@ -13901,10 +14148,13 @@ pub fn logging_folders_locations_buckets_views_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_test_iam_permissions_execute()` to send, or `logging_folders_locations_buckets_views_test_iam_permissions` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions",
@@ -14069,13 +14319,16 @@ pub fn logging_folders_locations_buckets_views_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_views_logs_list_execute()` to send, or `logging_folders_locations_buckets_views_logs_list` for simplest API.
 
-pub fn logging_folders_locations_buckets_views_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_buckets_views_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs",
@@ -14262,11 +14515,14 @@ pub fn logging_folders_locations_buckets_views_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_log_scopes_create_execute()` to send, or `logging_folders_locations_log_scopes_create` for simplest API.
 
-pub fn logging_folders_locations_log_scopes_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_log_scopes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     logScopeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/logScopes",
@@ -14437,10 +14693,13 @@ pub fn logging_folders_locations_log_scopes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_log_scopes_delete_execute()` to send, or `logging_folders_locations_log_scopes_delete` for simplest API.
 
-pub fn logging_folders_locations_log_scopes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_log_scopes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -14594,10 +14853,13 @@ pub fn logging_folders_locations_log_scopes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_log_scopes_get_execute()` to send, or `logging_folders_locations_log_scopes_get` for simplest API.
 
-pub fn logging_folders_locations_log_scopes_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_log_scopes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -14751,12 +15013,15 @@ pub fn logging_folders_locations_log_scopes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_log_scopes_list_execute()` to send, or `logging_folders_locations_log_scopes_list` for simplest API.
 
-pub fn logging_folders_locations_log_scopes_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_log_scopes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/logScopes",
@@ -14937,11 +15202,14 @@ pub fn logging_folders_locations_log_scopes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_log_scopes_patch_execute()` to send, or `logging_folders_locations_log_scopes_patch` for simplest API.
 
-pub fn logging_folders_locations_log_scopes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_log_scopes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -15109,10 +15377,13 @@ pub fn logging_folders_locations_log_scopes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_operations_cancel_execute()` to send, or `logging_folders_locations_operations_cancel` for simplest API.
 
-pub fn logging_folders_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -15266,10 +15537,13 @@ pub fn logging_folders_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_operations_get_execute()` to send, or `logging_folders_locations_operations_get` for simplest API.
 
-pub fn logging_folders_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}",
@@ -15423,14 +15697,17 @@ pub fn logging_folders_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_operations_list_execute()` to send, or `logging_folders_locations_operations_list` for simplest API.
 
-pub fn logging_folders_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/operations",
@@ -15623,13 +15900,16 @@ pub fn logging_folders_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_recent_queries_list_execute()` to send, or `logging_folders_locations_recent_queries_list` for simplest API.
 
-pub fn logging_folders_locations_recent_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_recent_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/recentQueries",
@@ -15816,11 +16096,14 @@ pub fn logging_folders_locations_recent_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_saved_queries_create_execute()` to send, or `logging_folders_locations_saved_queries_create` for simplest API.
 
-pub fn logging_folders_locations_saved_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_saved_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     savedQueryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/savedQueries",
@@ -15991,10 +16274,13 @@ pub fn logging_folders_locations_saved_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_saved_queries_delete_execute()` to send, or `logging_folders_locations_saved_queries_delete` for simplest API.
 
-pub fn logging_folders_locations_saved_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_saved_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -16148,10 +16434,13 @@ pub fn logging_folders_locations_saved_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_saved_queries_get_execute()` to send, or `logging_folders_locations_saved_queries_get` for simplest API.
 
-pub fn logging_folders_locations_saved_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_saved_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -16305,13 +16594,16 @@ pub fn logging_folders_locations_saved_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_saved_queries_list_execute()` to send, or `logging_folders_locations_saved_queries_list` for simplest API.
 
-pub fn logging_folders_locations_saved_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_saved_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/savedQueries",
@@ -16498,11 +16790,14 @@ pub fn logging_folders_locations_saved_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_saved_queries_patch_execute()` to send, or `logging_folders_locations_saved_queries_patch` for simplest API.
 
-pub fn logging_folders_locations_saved_queries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_locations_saved_queries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -16673,10 +16968,13 @@ pub fn logging_folders_locations_saved_queries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_logs_delete_execute()` to send, or `logging_folders_logs_delete` for simplest API.
 
-pub fn logging_folders_logs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_logs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     logName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/logs/{logsId}",
@@ -16830,13 +17128,16 @@ pub fn logging_folders_logs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_logs_list_execute()` to send, or `logging_folders_logs_list` for simplest API.
 
-pub fn logging_folders_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/folders/{}/logs", parent,);
 
@@ -17020,12 +17321,15 @@ pub fn logging_folders_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_sinks_create_execute()` to send, or `logging_folders_sinks_create` for simplest API.
 
-pub fn logging_folders_sinks_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_sinks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/folders/{}/sinks", parent,);
 
@@ -17199,10 +17503,13 @@ pub fn logging_folders_sinks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_sinks_delete_execute()` to send, or `logging_folders_sinks_delete` for simplest API.
 
-pub fn logging_folders_sinks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_sinks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/sinks/{sinksId}",
@@ -17356,10 +17663,13 @@ pub fn logging_folders_sinks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_sinks_get_execute()` to send, or `logging_folders_sinks_get` for simplest API.
 
-pub fn logging_folders_sinks_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_sinks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/sinks/{sinksId}",
@@ -17513,13 +17823,16 @@ pub fn logging_folders_sinks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_sinks_list_execute()` to send, or `logging_folders_sinks_list` for simplest API.
 
-pub fn logging_folders_sinks_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_sinks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/folders/{}/sinks", parent,);
 
@@ -17703,13 +18016,16 @@ pub fn logging_folders_sinks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_sinks_patch_execute()` to send, or `logging_folders_sinks_patch` for simplest API.
 
-pub fn logging_folders_sinks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_sinks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/sinks/{sinksId}",
@@ -17892,13 +18208,16 @@ pub fn logging_folders_sinks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_sinks_update_execute()` to send, or `logging_folders_sinks_update` for simplest API.
 
-pub fn logging_folders_sinks_update_builder(
-    client: &SimpleHttpClient,
+pub fn logging_folders_sinks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/folders/{}/sinks/{sinksId}",
@@ -18081,10 +18400,13 @@ pub fn logging_folders_sinks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_get_execute()` to send, or `logging_locations_get` for simplest API.
 
-pub fn logging_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}",
@@ -18238,14 +18560,17 @@ pub fn logging_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_list_execute()` to send, or `logging_locations_list` for simplest API.
 
-pub fn logging_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations",
@@ -18438,11 +18763,14 @@ pub fn logging_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_create_execute()` to send, or `logging_locations_buckets_create` for simplest API.
 
-pub fn logging_locations_buckets_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets",
@@ -18609,11 +18937,14 @@ pub fn logging_locations_buckets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_create_async_execute()` to send, or `logging_locations_buckets_create_async` for simplest API.
 
-pub fn logging_locations_buckets_create_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_create_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets:createAsync",
@@ -18781,10 +19112,13 @@ pub fn logging_locations_buckets_create_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_delete_execute()` to send, or `logging_locations_buckets_delete` for simplest API.
 
-pub fn logging_locations_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}",
@@ -18938,10 +19272,13 @@ pub fn logging_locations_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_get_execute()` to send, or `logging_locations_buckets_get` for simplest API.
 
-pub fn logging_locations_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}",
@@ -19095,12 +19432,15 @@ pub fn logging_locations_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_list_execute()` to send, or `logging_locations_buckets_list` for simplest API.
 
-pub fn logging_locations_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets",
@@ -19281,11 +19621,14 @@ pub fn logging_locations_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_patch_execute()` to send, or `logging_locations_buckets_patch` for simplest API.
 
-pub fn logging_locations_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}",
@@ -19452,10 +19795,13 @@ pub fn logging_locations_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_undelete_execute()` to send, or `logging_locations_buckets_undelete` for simplest API.
 
-pub fn logging_locations_buckets_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:undelete",
@@ -19609,11 +19955,14 @@ pub fn logging_locations_buckets_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_update_async_execute()` to send, or `logging_locations_buckets_update_async` for simplest API.
 
-pub fn logging_locations_buckets_update_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_update_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:updateAsync",
@@ -19781,11 +20130,14 @@ pub fn logging_locations_buckets_update_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_links_create_execute()` to send, or `logging_locations_buckets_links_create` for simplest API.
 
-pub fn logging_locations_buckets_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     linkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -19953,10 +20305,13 @@ pub fn logging_locations_buckets_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_links_delete_execute()` to send, or `logging_locations_buckets_links_delete` for simplest API.
 
-pub fn logging_locations_buckets_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -20110,10 +20465,13 @@ pub fn logging_locations_buckets_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_links_get_execute()` to send, or `logging_locations_buckets_links_get` for simplest API.
 
-pub fn logging_locations_buckets_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -20267,12 +20625,15 @@ pub fn logging_locations_buckets_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_links_list_execute()` to send, or `logging_locations_buckets_links_list` for simplest API.
 
-pub fn logging_locations_buckets_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -20453,11 +20814,14 @@ pub fn logging_locations_buckets_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_create_execute()` to send, or `logging_locations_buckets_views_create` for simplest API.
 
-pub fn logging_locations_buckets_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     viewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -20625,10 +20989,13 @@ pub fn logging_locations_buckets_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_delete_execute()` to send, or `logging_locations_buckets_views_delete` for simplest API.
 
-pub fn logging_locations_buckets_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -20782,10 +21149,13 @@ pub fn logging_locations_buckets_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_get_execute()` to send, or `logging_locations_buckets_views_get` for simplest API.
 
-pub fn logging_locations_buckets_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -20939,10 +21309,13 @@ pub fn logging_locations_buckets_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_get_iam_policy_execute()` to send, or `logging_locations_buckets_views_get_iam_policy` for simplest API.
 
-pub fn logging_locations_buckets_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy",
@@ -21096,12 +21469,15 @@ pub fn logging_locations_buckets_views_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_list_execute()` to send, or `logging_locations_buckets_views_list` for simplest API.
 
-pub fn logging_locations_buckets_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -21282,11 +21658,14 @@ pub fn logging_locations_buckets_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_patch_execute()` to send, or `logging_locations_buckets_views_patch` for simplest API.
 
-pub fn logging_locations_buckets_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -21454,10 +21833,13 @@ pub fn logging_locations_buckets_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_set_iam_policy_execute()` to send, or `logging_locations_buckets_views_set_iam_policy` for simplest API.
 
-pub fn logging_locations_buckets_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy",
@@ -21611,10 +21993,13 @@ pub fn logging_locations_buckets_views_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_views_test_iam_permissions_execute()` to send, or `logging_locations_buckets_views_test_iam_permissions` for simplest API.
 
-pub fn logging_locations_buckets_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_buckets_views_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions",
@@ -21777,10 +22162,13 @@ pub fn logging_locations_buckets_views_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_operations_cancel_execute()` to send, or `logging_locations_operations_cancel` for simplest API.
 
-pub fn logging_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -21934,10 +22322,13 @@ pub fn logging_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_operations_get_execute()` to send, or `logging_locations_operations_get` for simplest API.
 
-pub fn logging_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/operations/{operationsId}",
@@ -22091,14 +22482,17 @@ pub fn logging_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_operations_list_execute()` to send, or `logging_locations_operations_list` for simplest API.
 
-pub fn logging_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/locations/{locationsId}/operations",
@@ -22291,10 +22685,13 @@ pub fn logging_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_logs_delete_execute()` to send, or `logging_logs_delete` for simplest API.
 
-pub fn logging_logs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_logs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     logName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/logs/{logsId}",
@@ -22448,13 +22845,16 @@ pub fn logging_logs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_logs_list_execute()` to send, or `logging_logs_list` for simplest API.
 
-pub fn logging_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/{}/{v2Id1}/logs", parent,);
 
@@ -22638,11 +23038,14 @@ pub fn logging_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_monitored_resource_descriptors_list_execute()` to send, or `logging_monitored_resource_descriptors_list` for simplest API.
 
-pub fn logging_monitored_resource_descriptors_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_monitored_resource_descriptors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/monitoredResourceDescriptors",);
 
@@ -22821,10 +23224,13 @@ pub fn logging_monitored_resource_descriptors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_get_cmek_settings_execute()` to send, or `logging_organizations_get_cmek_settings` for simplest API.
 
-pub fn logging_organizations_get_cmek_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_get_cmek_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/cmekSettings",
@@ -22982,10 +23388,13 @@ pub fn logging_organizations_get_cmek_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_get_settings_execute()` to send, or `logging_organizations_get_settings` for simplest API.
 
-pub fn logging_organizations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/settings",
@@ -23139,11 +23548,14 @@ pub fn logging_organizations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_update_cmek_settings_execute()` to send, or `logging_organizations_update_cmek_settings` for simplest API.
 
-pub fn logging_organizations_update_cmek_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_update_cmek_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/cmekSettings",
@@ -23315,11 +23727,14 @@ pub fn logging_organizations_update_cmek_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_update_settings_execute()` to send, or `logging_organizations_update_settings` for simplest API.
 
-pub fn logging_organizations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/settings",
@@ -23487,10 +23902,13 @@ pub fn logging_organizations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_exclusions_create_execute()` to send, or `logging_organizations_exclusions_create` for simplest API.
 
-pub fn logging_organizations_exclusions_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_exclusions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/exclusions",
@@ -23648,10 +24066,13 @@ pub fn logging_organizations_exclusions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_exclusions_delete_execute()` to send, or `logging_organizations_exclusions_delete` for simplest API.
 
-pub fn logging_organizations_exclusions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_exclusions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/exclusions/{exclusionsId}",
@@ -23805,10 +24226,13 @@ pub fn logging_organizations_exclusions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_exclusions_get_execute()` to send, or `logging_organizations_exclusions_get` for simplest API.
 
-pub fn logging_organizations_exclusions_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_exclusions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/exclusions/{exclusionsId}",
@@ -23966,12 +24390,15 @@ pub fn logging_organizations_exclusions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_exclusions_list_execute()` to send, or `logging_organizations_exclusions_list` for simplest API.
 
-pub fn logging_organizations_exclusions_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_exclusions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/exclusions",
@@ -24152,11 +24579,14 @@ pub fn logging_organizations_exclusions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_exclusions_patch_execute()` to send, or `logging_organizations_exclusions_patch` for simplest API.
 
-pub fn logging_organizations_exclusions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_exclusions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/exclusions/{exclusionsId}",
@@ -24328,10 +24758,13 @@ pub fn logging_organizations_exclusions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_get_execute()` to send, or `logging_organizations_locations_get` for simplest API.
 
-pub fn logging_organizations_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}",
@@ -24485,14 +24918,17 @@ pub fn logging_organizations_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_list_execute()` to send, or `logging_organizations_locations_list` for simplest API.
 
-pub fn logging_organizations_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations",
@@ -24685,11 +25121,14 @@ pub fn logging_organizations_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_create_execute()` to send, or `logging_organizations_locations_buckets_create` for simplest API.
 
-pub fn logging_organizations_locations_buckets_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets",
@@ -24860,11 +25299,14 @@ pub fn logging_organizations_locations_buckets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_create_async_execute()` to send, or `logging_organizations_locations_buckets_create_async` for simplest API.
 
-pub fn logging_organizations_locations_buckets_create_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_create_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets:createAsync",
@@ -25035,10 +25477,13 @@ pub fn logging_organizations_locations_buckets_create_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_delete_execute()` to send, or `logging_organizations_locations_buckets_delete` for simplest API.
 
-pub fn logging_organizations_locations_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -25192,10 +25637,13 @@ pub fn logging_organizations_locations_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_get_execute()` to send, or `logging_organizations_locations_buckets_get` for simplest API.
 
-pub fn logging_organizations_locations_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -25349,12 +25797,15 @@ pub fn logging_organizations_locations_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_list_execute()` to send, or `logging_organizations_locations_buckets_list` for simplest API.
 
-pub fn logging_organizations_locations_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets",
@@ -25535,11 +25986,14 @@ pub fn logging_organizations_locations_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_patch_execute()` to send, or `logging_organizations_locations_buckets_patch` for simplest API.
 
-pub fn logging_organizations_locations_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -25710,10 +26164,13 @@ pub fn logging_organizations_locations_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_undelete_execute()` to send, or `logging_organizations_locations_buckets_undelete` for simplest API.
 
-pub fn logging_organizations_locations_buckets_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}:undelete",
@@ -25867,11 +26324,14 @@ pub fn logging_organizations_locations_buckets_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_update_async_execute()` to send, or `logging_organizations_locations_buckets_update_async` for simplest API.
 
-pub fn logging_organizations_locations_buckets_update_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_update_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}:updateAsync",
@@ -26042,11 +26502,14 @@ pub fn logging_organizations_locations_buckets_update_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_links_create_execute()` to send, or `logging_organizations_locations_buckets_links_create` for simplest API.
 
-pub fn logging_organizations_locations_buckets_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     linkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -26217,10 +26680,13 @@ pub fn logging_organizations_locations_buckets_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_links_delete_execute()` to send, or `logging_organizations_locations_buckets_links_delete` for simplest API.
 
-pub fn logging_organizations_locations_buckets_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -26374,10 +26840,13 @@ pub fn logging_organizations_locations_buckets_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_links_get_execute()` to send, or `logging_organizations_locations_buckets_links_get` for simplest API.
 
-pub fn logging_organizations_locations_buckets_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -26531,12 +27000,15 @@ pub fn logging_organizations_locations_buckets_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_links_list_execute()` to send, or `logging_organizations_locations_buckets_links_list` for simplest API.
 
-pub fn logging_organizations_locations_buckets_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -26717,11 +27189,14 @@ pub fn logging_organizations_locations_buckets_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_create_execute()` to send, or `logging_organizations_locations_buckets_views_create` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     viewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -26892,10 +27367,13 @@ pub fn logging_organizations_locations_buckets_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_delete_execute()` to send, or `logging_organizations_locations_buckets_views_delete` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -27049,10 +27527,13 @@ pub fn logging_organizations_locations_buckets_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_get_execute()` to send, or `logging_organizations_locations_buckets_views_get` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -27206,10 +27687,13 @@ pub fn logging_organizations_locations_buckets_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_get_iam_policy_execute()` to send, or `logging_organizations_locations_buckets_views_get_iam_policy` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy",
@@ -27366,12 +27850,15 @@ pub fn logging_organizations_locations_buckets_views_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_list_execute()` to send, or `logging_organizations_locations_buckets_views_list` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -27552,11 +28039,14 @@ pub fn logging_organizations_locations_buckets_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_patch_execute()` to send, or `logging_organizations_locations_buckets_views_patch` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -27727,10 +28217,13 @@ pub fn logging_organizations_locations_buckets_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_set_iam_policy_execute()` to send, or `logging_organizations_locations_buckets_views_set_iam_policy` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy",
@@ -27887,10 +28380,13 @@ pub fn logging_organizations_locations_buckets_views_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_test_iam_permissions_execute()` to send, or `logging_organizations_locations_buckets_views_test_iam_permissions` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions",
@@ -28055,13 +28551,16 @@ pub fn logging_organizations_locations_buckets_views_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_views_logs_list_execute()` to send, or `logging_organizations_locations_buckets_views_logs_list` for simplest API.
 
-pub fn logging_organizations_locations_buckets_views_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_buckets_views_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs",
@@ -28248,11 +28747,14 @@ pub fn logging_organizations_locations_buckets_views_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_log_scopes_create_execute()` to send, or `logging_organizations_locations_log_scopes_create` for simplest API.
 
-pub fn logging_organizations_locations_log_scopes_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_log_scopes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     logScopeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/logScopes",
@@ -28423,10 +28925,13 @@ pub fn logging_organizations_locations_log_scopes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_log_scopes_delete_execute()` to send, or `logging_organizations_locations_log_scopes_delete` for simplest API.
 
-pub fn logging_organizations_locations_log_scopes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_log_scopes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -28580,10 +29085,13 @@ pub fn logging_organizations_locations_log_scopes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_log_scopes_get_execute()` to send, or `logging_organizations_locations_log_scopes_get` for simplest API.
 
-pub fn logging_organizations_locations_log_scopes_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_log_scopes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -28737,12 +29245,15 @@ pub fn logging_organizations_locations_log_scopes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_log_scopes_list_execute()` to send, or `logging_organizations_locations_log_scopes_list` for simplest API.
 
-pub fn logging_organizations_locations_log_scopes_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_log_scopes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/logScopes",
@@ -28923,11 +29434,14 @@ pub fn logging_organizations_locations_log_scopes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_log_scopes_patch_execute()` to send, or `logging_organizations_locations_log_scopes_patch` for simplest API.
 
-pub fn logging_organizations_locations_log_scopes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_log_scopes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -29098,10 +29612,13 @@ pub fn logging_organizations_locations_log_scopes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_operations_cancel_execute()` to send, or `logging_organizations_locations_operations_cancel` for simplest API.
 
-pub fn logging_organizations_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -29255,10 +29772,13 @@ pub fn logging_organizations_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_operations_get_execute()` to send, or `logging_organizations_locations_operations_get` for simplest API.
 
-pub fn logging_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -29412,14 +29932,17 @@ pub fn logging_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_operations_list_execute()` to send, or `logging_organizations_locations_operations_list` for simplest API.
 
-pub fn logging_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations",
@@ -29612,13 +30135,16 @@ pub fn logging_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_recent_queries_list_execute()` to send, or `logging_organizations_locations_recent_queries_list` for simplest API.
 
-pub fn logging_organizations_locations_recent_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_recent_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/recentQueries",
@@ -29805,11 +30331,14 @@ pub fn logging_organizations_locations_recent_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_saved_queries_create_execute()` to send, or `logging_organizations_locations_saved_queries_create` for simplest API.
 
-pub fn logging_organizations_locations_saved_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_saved_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     savedQueryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/savedQueries",
@@ -29980,10 +30509,13 @@ pub fn logging_organizations_locations_saved_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_saved_queries_delete_execute()` to send, or `logging_organizations_locations_saved_queries_delete` for simplest API.
 
-pub fn logging_organizations_locations_saved_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_saved_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -30137,10 +30669,13 @@ pub fn logging_organizations_locations_saved_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_saved_queries_get_execute()` to send, or `logging_organizations_locations_saved_queries_get` for simplest API.
 
-pub fn logging_organizations_locations_saved_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_saved_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -30294,13 +30829,16 @@ pub fn logging_organizations_locations_saved_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_saved_queries_list_execute()` to send, or `logging_organizations_locations_saved_queries_list` for simplest API.
 
-pub fn logging_organizations_locations_saved_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_saved_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/savedQueries",
@@ -30487,11 +31025,14 @@ pub fn logging_organizations_locations_saved_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_saved_queries_patch_execute()` to send, or `logging_organizations_locations_saved_queries_patch` for simplest API.
 
-pub fn logging_organizations_locations_saved_queries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_locations_saved_queries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -30662,10 +31203,13 @@ pub fn logging_organizations_locations_saved_queries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_logs_delete_execute()` to send, or `logging_organizations_logs_delete` for simplest API.
 
-pub fn logging_organizations_logs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_logs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     logName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/logs/{logsId}",
@@ -30819,13 +31363,16 @@ pub fn logging_organizations_logs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_logs_list_execute()` to send, or `logging_organizations_logs_list` for simplest API.
 
-pub fn logging_organizations_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/logs",
@@ -31012,12 +31559,15 @@ pub fn logging_organizations_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_sinks_create_execute()` to send, or `logging_organizations_sinks_create` for simplest API.
 
-pub fn logging_organizations_sinks_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_sinks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/sinks",
@@ -31194,10 +31744,13 @@ pub fn logging_organizations_sinks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_sinks_delete_execute()` to send, or `logging_organizations_sinks_delete` for simplest API.
 
-pub fn logging_organizations_sinks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_sinks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/sinks/{sinksId}",
@@ -31351,10 +31904,13 @@ pub fn logging_organizations_sinks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_sinks_get_execute()` to send, or `logging_organizations_sinks_get` for simplest API.
 
-pub fn logging_organizations_sinks_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_sinks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/sinks/{sinksId}",
@@ -31508,13 +32064,16 @@ pub fn logging_organizations_sinks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_sinks_list_execute()` to send, or `logging_organizations_sinks_list` for simplest API.
 
-pub fn logging_organizations_sinks_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_sinks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/sinks",
@@ -31701,13 +32260,16 @@ pub fn logging_organizations_sinks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_sinks_patch_execute()` to send, or `logging_organizations_sinks_patch` for simplest API.
 
-pub fn logging_organizations_sinks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_sinks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/sinks/{sinksId}",
@@ -31890,13 +32452,16 @@ pub fn logging_organizations_sinks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_sinks_update_execute()` to send, or `logging_organizations_sinks_update` for simplest API.
 
-pub fn logging_organizations_sinks_update_builder(
-    client: &SimpleHttpClient,
+pub fn logging_organizations_sinks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/organizations/{}/sinks/{sinksId}",
@@ -32079,10 +32644,13 @@ pub fn logging_organizations_sinks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_get_cmek_settings_execute()` to send, or `logging_projects_get_cmek_settings` for simplest API.
 
-pub fn logging_projects_get_cmek_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_get_cmek_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/cmekSettings",
@@ -32240,10 +32808,13 @@ pub fn logging_projects_get_cmek_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_get_settings_execute()` to send, or `logging_projects_get_settings` for simplest API.
 
-pub fn logging_projects_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/settings",
@@ -32397,10 +32968,13 @@ pub fn logging_projects_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_exclusions_create_execute()` to send, or `logging_projects_exclusions_create` for simplest API.
 
-pub fn logging_projects_exclusions_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_exclusions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/exclusions",
@@ -32558,10 +33132,13 @@ pub fn logging_projects_exclusions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_exclusions_delete_execute()` to send, or `logging_projects_exclusions_delete` for simplest API.
 
-pub fn logging_projects_exclusions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_exclusions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/exclusions/{exclusionsId}",
@@ -32715,10 +33292,13 @@ pub fn logging_projects_exclusions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_exclusions_get_execute()` to send, or `logging_projects_exclusions_get` for simplest API.
 
-pub fn logging_projects_exclusions_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_exclusions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/exclusions/{exclusionsId}",
@@ -32876,12 +33456,15 @@ pub fn logging_projects_exclusions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_exclusions_list_execute()` to send, or `logging_projects_exclusions_list` for simplest API.
 
-pub fn logging_projects_exclusions_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_exclusions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/exclusions",
@@ -33062,11 +33645,14 @@ pub fn logging_projects_exclusions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_exclusions_patch_execute()` to send, or `logging_projects_exclusions_patch` for simplest API.
 
-pub fn logging_projects_exclusions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_exclusions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/exclusions/{exclusionsId}",
@@ -33237,10 +33823,13 @@ pub fn logging_projects_exclusions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_get_execute()` to send, or `logging_projects_locations_get` for simplest API.
 
-pub fn logging_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}",
@@ -33394,14 +33983,17 @@ pub fn logging_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_list_execute()` to send, or `logging_projects_locations_list` for simplest API.
 
-pub fn logging_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations",
@@ -33594,11 +34186,14 @@ pub fn logging_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_create_execute()` to send, or `logging_projects_locations_buckets_create` for simplest API.
 
-pub fn logging_projects_locations_buckets_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets",
@@ -33766,11 +34361,14 @@ pub fn logging_projects_locations_buckets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_create_async_execute()` to send, or `logging_projects_locations_buckets_create_async` for simplest API.
 
-pub fn logging_projects_locations_buckets_create_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_create_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bucketId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets:createAsync",
@@ -33941,10 +34539,13 @@ pub fn logging_projects_locations_buckets_create_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_delete_execute()` to send, or `logging_projects_locations_buckets_delete` for simplest API.
 
-pub fn logging_projects_locations_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -34098,10 +34699,13 @@ pub fn logging_projects_locations_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_get_execute()` to send, or `logging_projects_locations_buckets_get` for simplest API.
 
-pub fn logging_projects_locations_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -34255,12 +34859,15 @@ pub fn logging_projects_locations_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_list_execute()` to send, or `logging_projects_locations_buckets_list` for simplest API.
 
-pub fn logging_projects_locations_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets",
@@ -34441,11 +35048,14 @@ pub fn logging_projects_locations_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_patch_execute()` to send, or `logging_projects_locations_buckets_patch` for simplest API.
 
-pub fn logging_projects_locations_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}",
@@ -34613,10 +35223,13 @@ pub fn logging_projects_locations_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_undelete_execute()` to send, or `logging_projects_locations_buckets_undelete` for simplest API.
 
-pub fn logging_projects_locations_buckets_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}:undelete",
@@ -34770,11 +35383,14 @@ pub fn logging_projects_locations_buckets_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_update_async_execute()` to send, or `logging_projects_locations_buckets_update_async` for simplest API.
 
-pub fn logging_projects_locations_buckets_update_async_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_update_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}:updateAsync",
@@ -34945,11 +35561,14 @@ pub fn logging_projects_locations_buckets_update_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_links_create_execute()` to send, or `logging_projects_locations_buckets_links_create` for simplest API.
 
-pub fn logging_projects_locations_buckets_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     linkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -35120,10 +35739,13 @@ pub fn logging_projects_locations_buckets_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_links_delete_execute()` to send, or `logging_projects_locations_buckets_links_delete` for simplest API.
 
-pub fn logging_projects_locations_buckets_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -35277,10 +35899,13 @@ pub fn logging_projects_locations_buckets_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_links_get_execute()` to send, or `logging_projects_locations_buckets_links_get` for simplest API.
 
-pub fn logging_projects_locations_buckets_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}",
@@ -35434,12 +36059,15 @@ pub fn logging_projects_locations_buckets_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_links_list_execute()` to send, or `logging_projects_locations_buckets_links_list` for simplest API.
 
-pub fn logging_projects_locations_buckets_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/links",
@@ -35620,11 +36248,14 @@ pub fn logging_projects_locations_buckets_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_create_execute()` to send, or `logging_projects_locations_buckets_views_create` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     viewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -35795,10 +36426,13 @@ pub fn logging_projects_locations_buckets_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_delete_execute()` to send, or `logging_projects_locations_buckets_views_delete` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -35952,10 +36586,13 @@ pub fn logging_projects_locations_buckets_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_get_execute()` to send, or `logging_projects_locations_buckets_views_get` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -36109,10 +36746,13 @@ pub fn logging_projects_locations_buckets_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_get_iam_policy_execute()` to send, or `logging_projects_locations_buckets_views_get_iam_policy` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy",
@@ -36267,12 +36907,15 @@ pub fn logging_projects_locations_buckets_views_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_list_execute()` to send, or `logging_projects_locations_buckets_views_list` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views",
@@ -36453,11 +37096,14 @@ pub fn logging_projects_locations_buckets_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_patch_execute()` to send, or `logging_projects_locations_buckets_views_patch` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}",
@@ -36628,10 +37274,13 @@ pub fn logging_projects_locations_buckets_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_set_iam_policy_execute()` to send, or `logging_projects_locations_buckets_views_set_iam_policy` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy",
@@ -36786,10 +37435,13 @@ pub fn logging_projects_locations_buckets_views_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_test_iam_permissions_execute()` to send, or `logging_projects_locations_buckets_views_test_iam_permissions` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions",
@@ -36954,13 +37606,16 @@ pub fn logging_projects_locations_buckets_views_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_views_logs_list_execute()` to send, or `logging_projects_locations_buckets_views_logs_list` for simplest API.
 
-pub fn logging_projects_locations_buckets_views_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_buckets_views_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs",
@@ -37147,11 +37802,14 @@ pub fn logging_projects_locations_buckets_views_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_log_scopes_create_execute()` to send, or `logging_projects_locations_log_scopes_create` for simplest API.
 
-pub fn logging_projects_locations_log_scopes_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_log_scopes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     logScopeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/logScopes",
@@ -37322,10 +37980,13 @@ pub fn logging_projects_locations_log_scopes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_log_scopes_delete_execute()` to send, or `logging_projects_locations_log_scopes_delete` for simplest API.
 
-pub fn logging_projects_locations_log_scopes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_log_scopes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -37479,10 +38140,13 @@ pub fn logging_projects_locations_log_scopes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_log_scopes_get_execute()` to send, or `logging_projects_locations_log_scopes_get` for simplest API.
 
-pub fn logging_projects_locations_log_scopes_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_log_scopes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -37636,12 +38300,15 @@ pub fn logging_projects_locations_log_scopes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_log_scopes_list_execute()` to send, or `logging_projects_locations_log_scopes_list` for simplest API.
 
-pub fn logging_projects_locations_log_scopes_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_log_scopes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/logScopes",
@@ -37822,11 +38489,14 @@ pub fn logging_projects_locations_log_scopes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_log_scopes_patch_execute()` to send, or `logging_projects_locations_log_scopes_patch` for simplest API.
 
-pub fn logging_projects_locations_log_scopes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_log_scopes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/logScopes/{logScopesId}",
@@ -37994,10 +38664,13 @@ pub fn logging_projects_locations_log_scopes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_operations_cancel_execute()` to send, or `logging_projects_locations_operations_cancel` for simplest API.
 
-pub fn logging_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -38151,10 +38824,13 @@ pub fn logging_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_operations_get_execute()` to send, or `logging_projects_locations_operations_get` for simplest API.
 
-pub fn logging_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -38308,14 +38984,17 @@ pub fn logging_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_operations_list_execute()` to send, or `logging_projects_locations_operations_list` for simplest API.
 
-pub fn logging_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",
@@ -38508,13 +39187,16 @@ pub fn logging_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_recent_queries_list_execute()` to send, or `logging_projects_locations_recent_queries_list` for simplest API.
 
-pub fn logging_projects_locations_recent_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_recent_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/recentQueries",
@@ -38701,11 +39383,14 @@ pub fn logging_projects_locations_recent_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_saved_queries_create_execute()` to send, or `logging_projects_locations_saved_queries_create` for simplest API.
 
-pub fn logging_projects_locations_saved_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_saved_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     savedQueryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/savedQueries",
@@ -38876,10 +39561,13 @@ pub fn logging_projects_locations_saved_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_saved_queries_delete_execute()` to send, or `logging_projects_locations_saved_queries_delete` for simplest API.
 
-pub fn logging_projects_locations_saved_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_saved_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -39033,10 +39721,13 @@ pub fn logging_projects_locations_saved_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_saved_queries_get_execute()` to send, or `logging_projects_locations_saved_queries_get` for simplest API.
 
-pub fn logging_projects_locations_saved_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_saved_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -39190,13 +39881,16 @@ pub fn logging_projects_locations_saved_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_saved_queries_list_execute()` to send, or `logging_projects_locations_saved_queries_list` for simplest API.
 
-pub fn logging_projects_locations_saved_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_saved_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/savedQueries",
@@ -39383,11 +40077,14 @@ pub fn logging_projects_locations_saved_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_saved_queries_patch_execute()` to send, or `logging_projects_locations_saved_queries_patch` for simplest API.
 
-pub fn logging_projects_locations_saved_queries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_locations_saved_queries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/locations/{locationsId}/savedQueries/{savedQueriesId}",
@@ -39558,10 +40255,13 @@ pub fn logging_projects_locations_saved_queries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_logs_delete_execute()` to send, or `logging_projects_logs_delete` for simplest API.
 
-pub fn logging_projects_logs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_logs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     logName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/logs/{logsId}",
@@ -39715,13 +40415,16 @@ pub fn logging_projects_logs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_logs_list_execute()` to send, or `logging_projects_logs_list` for simplest API.
 
-pub fn logging_projects_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/projects/{}/logs", parent,);
 
@@ -39905,10 +40608,13 @@ pub fn logging_projects_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_metrics_create_execute()` to send, or `logging_projects_metrics_create` for simplest API.
 
-pub fn logging_projects_metrics_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_metrics_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/metrics",
@@ -40062,10 +40768,13 @@ pub fn logging_projects_metrics_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_metrics_delete_execute()` to send, or `logging_projects_metrics_delete` for simplest API.
 
-pub fn logging_projects_metrics_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_metrics_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     metricName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/metrics/{metricsId}",
@@ -40219,10 +40928,13 @@ pub fn logging_projects_metrics_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_metrics_get_execute()` to send, or `logging_projects_metrics_get` for simplest API.
 
-pub fn logging_projects_metrics_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_metrics_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     metricName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/metrics/{metricsId}",
@@ -40376,12 +41088,15 @@ pub fn logging_projects_metrics_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_metrics_list_execute()` to send, or `logging_projects_metrics_list` for simplest API.
 
-pub fn logging_projects_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/metrics",
@@ -40562,10 +41277,13 @@ pub fn logging_projects_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_metrics_update_execute()` to send, or `logging_projects_metrics_update` for simplest API.
 
-pub fn logging_projects_metrics_update_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_metrics_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     metricName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/metrics/{metricsId}",
@@ -40719,12 +41437,15 @@ pub fn logging_projects_metrics_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_sinks_create_execute()` to send, or `logging_projects_sinks_create` for simplest API.
 
-pub fn logging_projects_sinks_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_sinks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/sinks",
@@ -40901,10 +41622,13 @@ pub fn logging_projects_sinks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_sinks_delete_execute()` to send, or `logging_projects_sinks_delete` for simplest API.
 
-pub fn logging_projects_sinks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_sinks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/sinks/{sinksId}",
@@ -41058,10 +41782,13 @@ pub fn logging_projects_sinks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_sinks_get_execute()` to send, or `logging_projects_sinks_get` for simplest API.
 
-pub fn logging_projects_sinks_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_sinks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/sinks/{sinksId}",
@@ -41215,13 +41942,16 @@ pub fn logging_projects_sinks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_sinks_list_execute()` to send, or `logging_projects_sinks_list` for simplest API.
 
-pub fn logging_projects_sinks_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_sinks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/sinks",
@@ -41408,13 +42138,16 @@ pub fn logging_projects_sinks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_sinks_patch_execute()` to send, or `logging_projects_sinks_patch` for simplest API.
 
-pub fn logging_projects_sinks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_sinks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/sinks/{sinksId}",
@@ -41597,13 +42330,16 @@ pub fn logging_projects_sinks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_sinks_update_execute()` to send, or `logging_projects_sinks_update` for simplest API.
 
-pub fn logging_projects_sinks_update_builder(
-    client: &SimpleHttpClient,
+pub fn logging_projects_sinks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/projects/{}/sinks/{sinksId}",
@@ -41786,12 +42522,15 @@ pub fn logging_projects_sinks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_sinks_create_execute()` to send, or `logging_sinks_create` for simplest API.
 
-pub fn logging_sinks_create_builder(
-    client: &SimpleHttpClient,
+pub fn logging_sinks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/{}/{v2Id1}/sinks", parent,);
 
@@ -41965,10 +42704,13 @@ pub fn logging_sinks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_sinks_delete_execute()` to send, or `logging_sinks_delete` for simplest API.
 
-pub fn logging_sinks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn logging_sinks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/sinks/{sinksId}",
@@ -42122,10 +42864,13 @@ pub fn logging_sinks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_sinks_get_execute()` to send, or `logging_sinks_get` for simplest API.
 
-pub fn logging_sinks_get_builder(
-    client: &SimpleHttpClient,
+pub fn logging_sinks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/sinks/{sinksId}",
@@ -42279,13 +43024,16 @@ pub fn logging_sinks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_sinks_list_execute()` to send, or `logging_sinks_list` for simplest API.
 
-pub fn logging_sinks_list_builder(
-    client: &SimpleHttpClient,
+pub fn logging_sinks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/{}/{v2Id1}/sinks", parent,);
 
@@ -42469,13 +43217,16 @@ pub fn logging_sinks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_sinks_update_execute()` to send, or `logging_sinks_update` for simplest API.
 
-pub fn logging_sinks_update_builder(
-    client: &SimpleHttpClient,
+pub fn logging_sinks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     sinkName: &String,
     customWriterIdentity: &Option<Option<String>>,
     uniqueWriterIdentity: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/sinks/{sinksId}",
@@ -42658,10 +43409,13 @@ pub fn logging_sinks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_get_cmek_settings_execute()` to send, or `logging_get_cmek_settings` for simplest API.
 
-pub fn logging_get_cmek_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_get_cmek_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/cmekSettings",
@@ -42819,10 +43573,13 @@ pub fn logging_get_cmek_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_get_settings_execute()` to send, or `logging_get_settings` for simplest API.
 
-pub fn logging_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/settings",
@@ -42976,11 +43733,14 @@ pub fn logging_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_update_cmek_settings_execute()` to send, or `logging_update_cmek_settings` for simplest API.
 
-pub fn logging_update_cmek_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_update_cmek_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/cmekSettings",
@@ -43151,11 +43911,14 @@ pub fn logging_update_cmek_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_update_settings_execute()` to send, or `logging_update_settings` for simplest API.
 
-pub fn logging_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn logging_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://logging.googleapis.com/v2/{}/{v2Id1}/settings",

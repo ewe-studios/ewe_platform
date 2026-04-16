@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `readerrevenuesubscriptionlinking_publications_readers_delete_execute()` to send, or `readerrevenuesubscriptionlinking_publications_readers_delete` for simplest API.
 
-pub fn readerrevenuesubscriptionlinking_publications_readers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn readerrevenuesubscriptionlinking_publications_readers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://readerrevenuesubscriptionlinking.googleapis.com/v1/publications/{}/readers/{readersId}",
@@ -205,10 +209,13 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `readerrevenuesubscriptionlinking_publications_readers_get_execute()` to send, or `readerrevenuesubscriptionlinking_publications_readers_get` for simplest API.
 
-pub fn readerrevenuesubscriptionlinking_publications_readers_get_builder(
-    client: &SimpleHttpClient,
+pub fn readerrevenuesubscriptionlinking_publications_readers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://readerrevenuesubscriptionlinking.googleapis.com/v1/publications/{}/readers/{readersId}",
@@ -363,10 +370,13 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `readerrevenuesubscriptionlinking_publications_readers_get_entitlements_execute()` to send, or `readerrevenuesubscriptionlinking_publications_readers_get_entitlements` for simplest API.
 
-pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements_builder(
-    client: &SimpleHttpClient,
+pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://readerrevenuesubscriptionlinking.googleapis.com/v1/publications/{}/readers/{readersId}/entitlements",
@@ -527,11 +537,14 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `readerrevenuesubscriptionlinking_publications_readers_update_entitlements_execute()` to send, or `readerrevenuesubscriptionlinking_publications_readers_update_entitlements` for simplest API.
 
-pub fn readerrevenuesubscriptionlinking_publications_readers_update_entitlements_builder(
-    client: &SimpleHttpClient,
+pub fn readerrevenuesubscriptionlinking_publications_readers_update_entitlements_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://readerrevenuesubscriptionlinking.googleapis.com/v1/publications/{}/readers/{readersId}/entitlements",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `acceleratedmobilepageurl_amp_urls_batch_get_execute()` to send, or `acceleratedmobilepageurl_amp_urls_batch_get` for simplest API.
 
-pub fn acceleratedmobilepageurl_amp_urls_batch_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn acceleratedmobilepageurl_amp_urls_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet",);

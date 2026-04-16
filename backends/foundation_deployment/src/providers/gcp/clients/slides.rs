@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `slides_presentations_batch_update_execute()` to send, or `slides_presentations_batch_update` for simplest API.
 
-pub fn slides_presentations_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn slides_presentations_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     presentationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}:batchUpdate",
@@ -191,9 +195,12 @@ pub fn slides_presentations_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `slides_presentations_create_execute()` to send, or `slides_presentations_create` for simplest API.
 
-pub fn slides_presentations_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn slides_presentations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://slides.googleapis.com/v1/presentations",);
 
@@ -340,10 +347,13 @@ pub fn slides_presentations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `slides_presentations_get_execute()` to send, or `slides_presentations_get` for simplest API.
 
-pub fn slides_presentations_get_builder(
-    client: &SimpleHttpClient,
+pub fn slides_presentations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     presentationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}",
@@ -501,11 +511,14 @@ pub fn slides_presentations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `slides_presentations_pages_get_execute()` to send, or `slides_presentations_pages_get` for simplest API.
 
-pub fn slides_presentations_pages_get_builder(
-    client: &SimpleHttpClient,
+pub fn slides_presentations_pages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     presentationId: &String,
     pageObjectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}/pages/{}",
@@ -662,13 +675,16 @@ pub fn slides_presentations_pages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `slides_presentations_pages_get_thumbnail_execute()` to send, or `slides_presentations_pages_get_thumbnail` for simplest API.
 
-pub fn slides_presentations_pages_get_thumbnail_builder(
-    client: &SimpleHttpClient,
+pub fn slides_presentations_pages_get_thumbnail_builder<R>(
+    client: &SimpleHttpClient<R>,
     presentationId: &String,
     pageObjectId: &String,
     thumbnailProperties_mimeType: &Option<Option<String>>,
     thumbnailProperties_thumbnailSize: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}/pages/{}/thumbnail",

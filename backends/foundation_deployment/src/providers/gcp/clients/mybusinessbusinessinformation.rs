@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_accounts_locations_create_execute()` to send, or `mybusinessbusinessinformation_accounts_locations_create` for simplest API.
 
-pub fn mybusinessbusinessinformation_accounts_locations_create_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_accounts_locations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{}/locations",
@@ -208,15 +212,18 @@ pub fn mybusinessbusinessinformation_accounts_locations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_accounts_locations_list_execute()` to send, or `mybusinessbusinessinformation_accounts_locations_list` for simplest API.
 
-pub fn mybusinessbusinessinformation_accounts_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_accounts_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{}/locations",
@@ -415,8 +422,8 @@ pub fn mybusinessbusinessinformation_accounts_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_attributes_list_execute()` to send, or `mybusinessbusinessinformation_attributes_list` for simplest API.
 
-pub fn mybusinessbusinessinformation_attributes_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_attributes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     categoryName: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
@@ -424,7 +431,10 @@ pub fn mybusinessbusinessinformation_attributes_list_builder(
     parent: &Option<Option<String>>,
     regionCode: &Option<Option<String>>,
     showAll: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://mybusinessbusinessinformation.googleapis.com/v1/attributes",);
@@ -634,13 +644,16 @@ pub fn mybusinessbusinessinformation_attributes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_categories_batch_get_execute()` to send, or `mybusinessbusinessinformation_categories_batch_get` for simplest API.
 
-pub fn mybusinessbusinessinformation_categories_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_categories_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     languageCode: &Option<Option<String>>,
     names: &Option<Option<String>>,
     regionCode: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://mybusinessbusinessinformation.googleapis.com/v1/categories:batchGet",);
@@ -832,15 +845,18 @@ pub fn mybusinessbusinessinformation_categories_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_categories_list_execute()` to send, or `mybusinessbusinessinformation_categories_list` for simplest API.
 
-pub fn mybusinessbusinessinformation_categories_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_categories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     regionCode: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://mybusinessbusinessinformation.googleapis.com/v1/categories",);
@@ -1040,10 +1056,13 @@ pub fn mybusinessbusinessinformation_categories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_chains_get_execute()` to send, or `mybusinessbusinessinformation_chains_get` for simplest API.
 
-pub fn mybusinessbusinessinformation_chains_get_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_chains_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/chains/{}",
@@ -1197,11 +1216,14 @@ pub fn mybusinessbusinessinformation_chains_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_chains_search_execute()` to send, or `mybusinessbusinessinformation_chains_search` for simplest API.
 
-pub fn mybusinessbusinessinformation_chains_search_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_chains_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     chainName: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://mybusinessbusinessinformation.googleapis.com/v1/chains:search",);
@@ -1377,9 +1399,12 @@ pub fn mybusinessbusinessinformation_chains_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_google_locations_search_execute()` to send, or `mybusinessbusinessinformation_google_locations_search` for simplest API.
 
-pub fn mybusinessbusinessinformation_google_locations_search_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn mybusinessbusinessinformation_google_locations_search_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://mybusinessbusinessinformation.googleapis.com/v1/googleLocations:search",);
@@ -1531,10 +1556,13 @@ pub fn mybusinessbusinessinformation_google_locations_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_locations_delete_execute()` to send, or `mybusinessbusinessinformation_locations_delete` for simplest API.
 
-pub fn mybusinessbusinessinformation_locations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_locations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}",
@@ -1688,11 +1716,14 @@ pub fn mybusinessbusinessinformation_locations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_locations_get_execute()` to send, or `mybusinessbusinessinformation_locations_get` for simplest API.
 
-pub fn mybusinessbusinessinformation_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}",
@@ -1860,10 +1891,13 @@ pub fn mybusinessbusinessinformation_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_locations_get_attributes_execute()` to send, or `mybusinessbusinessinformation_locations_get_attributes` for simplest API.
 
-pub fn mybusinessbusinessinformation_locations_get_attributes_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_locations_get_attributes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}/attributes",
@@ -2018,11 +2052,14 @@ pub fn mybusinessbusinessinformation_locations_get_attributes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_locations_get_google_updated_execute()` to send, or `mybusinessbusinessinformation_locations_get_google_updated` for simplest API.
 
-pub fn mybusinessbusinessinformation_locations_get_google_updated_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_locations_get_google_updated_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}:getGoogleUpdated",
@@ -2197,12 +2234,15 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_locations_patch_execute()` to send, or `mybusinessbusinessinformation_locations_patch` for simplest API.
 
-pub fn mybusinessbusinessinformation_locations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_locations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}",
@@ -2379,11 +2419,14 @@ pub fn mybusinessbusinessinformation_locations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_locations_update_attributes_execute()` to send, or `mybusinessbusinessinformation_locations_update_attributes` for simplest API.
 
-pub fn mybusinessbusinessinformation_locations_update_attributes_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_locations_update_attributes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     attributeMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}/attributes",
@@ -2554,10 +2597,13 @@ pub fn mybusinessbusinessinformation_locations_update_attributes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_locations_attributes_get_google_updated_execute()` to send, or `mybusinessbusinessinformation_locations_attributes_get_google_updated` for simplest API.
 
-pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}/attributes:getGoogleUpdated",

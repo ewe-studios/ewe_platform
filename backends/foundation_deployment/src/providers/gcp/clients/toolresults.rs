@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_get_settings_execute()` to send, or `toolresults_projects_get_settings` for simplest API.
 
-pub fn toolresults_projects_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/settings",
@@ -187,10 +191,13 @@ pub fn toolresults_projects_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_initialize_settings_execute()` to send, or `toolresults_projects_initialize_settings` for simplest API.
 
-pub fn toolresults_projects_initialize_settings_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_initialize_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}:initializeSettings",
@@ -348,11 +355,14 @@ pub fn toolresults_projects_initialize_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_create_execute()` to send, or `toolresults_projects_histories_create` for simplest API.
 
-pub fn toolresults_projects_histories_create_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories",
@@ -520,11 +530,14 @@ pub fn toolresults_projects_histories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_get_execute()` to send, or `toolresults_projects_histories_get` for simplest API.
 
-pub fn toolresults_projects_histories_get_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}",
@@ -681,13 +694,16 @@ pub fn toolresults_projects_histories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_list_execute()` to send, or `toolresults_projects_histories_list` for simplest API.
 
-pub fn toolresults_projects_histories_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     filterByName: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories",
@@ -874,12 +890,15 @@ pub fn toolresults_projects_histories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_create_execute()` to send, or `toolresults_projects_histories_executions_create` for simplest API.
 
-pub fn toolresults_projects_histories_executions_create_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions",
@@ -1054,12 +1073,15 @@ pub fn toolresults_projects_histories_executions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_get_execute()` to send, or `toolresults_projects_histories_executions_get` for simplest API.
 
-pub fn toolresults_projects_histories_executions_get_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}",
@@ -1224,13 +1246,16 @@ pub fn toolresults_projects_histories_executions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_list_execute()` to send, or `toolresults_projects_histories_executions_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions",
@@ -1415,13 +1440,16 @@ pub fn toolresults_projects_histories_executions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_patch_execute()` to send, or `toolresults_projects_histories_executions_patch` for simplest API.
 
-pub fn toolresults_projects_histories_executions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}",
@@ -1600,13 +1628,16 @@ pub fn toolresults_projects_histories_executions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_clusters_get_execute()` to send, or `toolresults_projects_histories_executions_clusters_get` for simplest API.
 
-pub fn toolresults_projects_histories_executions_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/clusters/{}",
@@ -1779,12 +1810,15 @@ pub fn toolresults_projects_histories_executions_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_clusters_list_execute()` to send, or `toolresults_projects_histories_executions_clusters_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/clusters",
@@ -1957,13 +1991,16 @@ pub fn toolresults_projects_histories_executions_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_environments_get_execute()` to send, or `toolresults_projects_histories_executions_environments_get` for simplest API.
 
-pub fn toolresults_projects_histories_executions_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     environmentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/environments/{}",
@@ -2132,14 +2169,17 @@ pub fn toolresults_projects_histories_executions_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_environments_list_execute()` to send, or `toolresults_projects_histories_executions_environments_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_environments_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_environments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/environments",
@@ -2328,11 +2368,14 @@ pub fn toolresults_projects_histories_executions_environments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_accessibility_clusters_execute()` to send, or `toolresults_projects_histories_executions_steps_accessibility_clusters` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     locale: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters",
@@ -2512,13 +2555,16 @@ pub fn toolresults_projects_histories_executions_steps_accessibility_clusters(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_create_execute()` to send, or `toolresults_projects_histories_executions_steps_create` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_create_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps",
@@ -2697,13 +2743,16 @@ pub fn toolresults_projects_histories_executions_steps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_get_execute()` to send, or `toolresults_projects_histories_executions_steps_get` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_get_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}",
@@ -2872,13 +2921,16 @@ pub fn toolresults_projects_histories_executions_steps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_get_perf_metrics_summary_execute()` to send, or `toolresults_projects_histories_executions_steps_get_perf_metrics_summary` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfMetricsSummary",
@@ -3052,14 +3104,17 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_list_execute()` to send, or `toolresults_projects_histories_executions_steps_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps",
@@ -3248,14 +3303,17 @@ pub fn toolresults_projects_histories_executions_steps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_patch_execute()` to send, or `toolresults_projects_histories_executions_steps_patch` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}",
@@ -3438,13 +3496,16 @@ pub fn toolresults_projects_histories_executions_steps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_publish_xunit_xml_files_execute()` to send, or `toolresults_projects_histories_executions_steps_publish_xunit_xml_files` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}:publishXunitXmlFiles",
@@ -3614,13 +3675,16 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_metrics_summary_create` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfMetricsSummary",
@@ -3795,13 +3859,16 @@ pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_crea
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_perf_sample_series_create_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_sample_series_create` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries",
@@ -3976,14 +4043,17 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_perf_sample_series_get_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_sample_series_get` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
     sampleSeriesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}",
@@ -4161,14 +4231,17 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_perf_sample_series_list_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_sample_series_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries",
@@ -4360,14 +4433,19 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
     sampleSeriesId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}/samples:batchCreate",
@@ -4543,8 +4621,8 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_sample_series_samples_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
@@ -4552,7 +4630,10 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     sampleSeriesId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}/samples",
@@ -4753,14 +4834,17 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_test_cases_get_execute()` to send, or `toolresults_projects_histories_executions_steps_test_cases_get` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_test_cases_get_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_test_cases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
     testCaseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/testCases/{}",
@@ -4933,15 +5017,18 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_test_cases_list_execute()` to send, or `toolresults_projects_histories_executions_steps_test_cases_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/testCases",
@@ -5134,15 +5221,18 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `toolresults_projects_histories_executions_steps_thumbnails_list_execute()` to send, or `toolresults_projects_histories_executions_steps_thumbnails_list` for simplest API.
 
-pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder(
-    client: &SimpleHttpClient,
+pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
     executionId: &String,
     stepId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/thumbnails",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_get_execute()` to send, or `apigateway_projects_locations_get` for simplest API.
 
-pub fn apigateway_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -187,14 +191,17 @@ pub fn apigateway_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_list_execute()` to send, or `apigateway_projects_locations_list` for simplest API.
 
-pub fn apigateway_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations",
@@ -391,11 +398,14 @@ pub fn apigateway_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_create_execute()` to send, or `apigateway_projects_locations_apis_create` for simplest API.
 
-pub fn apigateway_projects_locations_apis_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apiId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis",
@@ -567,10 +577,13 @@ pub fn apigateway_projects_locations_apis_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_delete_execute()` to send, or `apigateway_projects_locations_apis_delete` for simplest API.
 
-pub fn apigateway_projects_locations_apis_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
@@ -728,10 +741,13 @@ pub fn apigateway_projects_locations_apis_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_get_execute()` to send, or `apigateway_projects_locations_apis_get` for simplest API.
 
-pub fn apigateway_projects_locations_apis_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
@@ -889,11 +905,14 @@ pub fn apigateway_projects_locations_apis_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_get_iam_policy_execute()` to send, or `apigateway_projects_locations_apis_get_iam_policy` for simplest API.
 
-pub fn apigateway_projects_locations_apis_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}:getIamPolicy",
@@ -1068,14 +1087,17 @@ pub fn apigateway_projects_locations_apis_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_list_execute()` to send, or `apigateway_projects_locations_apis_list` for simplest API.
 
-pub fn apigateway_projects_locations_apis_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis",
@@ -1272,11 +1294,14 @@ pub fn apigateway_projects_locations_apis_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_patch_execute()` to send, or `apigateway_projects_locations_apis_patch` for simplest API.
 
-pub fn apigateway_projects_locations_apis_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
@@ -1448,10 +1473,13 @@ pub fn apigateway_projects_locations_apis_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_set_iam_policy_execute()` to send, or `apigateway_projects_locations_apis_set_iam_policy` for simplest API.
 
-pub fn apigateway_projects_locations_apis_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}:setIamPolicy",
@@ -1610,10 +1638,13 @@ pub fn apigateway_projects_locations_apis_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_test_iam_permissions_execute()` to send, or `apigateway_projects_locations_apis_test_iam_permissions` for simplest API.
 
-pub fn apigateway_projects_locations_apis_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}:testIamPermissions",
@@ -1776,11 +1807,14 @@ pub fn apigateway_projects_locations_apis_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_create_execute()` to send, or `apigateway_projects_locations_apis_configs_create` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apiConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs",
@@ -1955,10 +1989,13 @@ pub fn apigateway_projects_locations_apis_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_delete_execute()` to send, or `apigateway_projects_locations_apis_configs_delete` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs/{configsId}",
@@ -2116,11 +2153,14 @@ pub fn apigateway_projects_locations_apis_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_get_execute()` to send, or `apigateway_projects_locations_apis_configs_get` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs/{configsId}",
@@ -2292,11 +2332,14 @@ pub fn apigateway_projects_locations_apis_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_get_iam_policy_execute()` to send, or `apigateway_projects_locations_apis_configs_get_iam_policy` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs/{configsId}:getIamPolicy",
@@ -2471,14 +2514,17 @@ pub fn apigateway_projects_locations_apis_configs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_list_execute()` to send, or `apigateway_projects_locations_apis_configs_list` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs",
@@ -2675,11 +2721,14 @@ pub fn apigateway_projects_locations_apis_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_patch_execute()` to send, or `apigateway_projects_locations_apis_configs_patch` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs/{configsId}",
@@ -2854,10 +2903,13 @@ pub fn apigateway_projects_locations_apis_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_set_iam_policy_execute()` to send, or `apigateway_projects_locations_apis_configs_set_iam_policy` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs/{configsId}:setIamPolicy",
@@ -3016,10 +3068,13 @@ pub fn apigateway_projects_locations_apis_configs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_apis_configs_test_iam_permissions_execute()` to send, or `apigateway_projects_locations_apis_configs_test_iam_permissions` for simplest API.
 
-pub fn apigateway_projects_locations_apis_configs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_apis_configs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/configs/{configsId}:testIamPermissions",
@@ -3184,11 +3239,14 @@ pub fn apigateway_projects_locations_apis_configs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_create_execute()` to send, or `apigateway_projects_locations_gateways_create` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     gatewayId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways",
@@ -3363,10 +3421,13 @@ pub fn apigateway_projects_locations_gateways_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_delete_execute()` to send, or `apigateway_projects_locations_gateways_delete` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
@@ -3524,10 +3585,13 @@ pub fn apigateway_projects_locations_gateways_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_get_execute()` to send, or `apigateway_projects_locations_gateways_get` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
@@ -3685,11 +3749,14 @@ pub fn apigateway_projects_locations_gateways_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_get_iam_policy_execute()` to send, or `apigateway_projects_locations_gateways_get_iam_policy` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}:getIamPolicy",
@@ -3864,14 +3931,17 @@ pub fn apigateway_projects_locations_gateways_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_list_execute()` to send, or `apigateway_projects_locations_gateways_list` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways",
@@ -4068,11 +4138,14 @@ pub fn apigateway_projects_locations_gateways_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_patch_execute()` to send, or `apigateway_projects_locations_gateways_patch` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
@@ -4244,10 +4317,13 @@ pub fn apigateway_projects_locations_gateways_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_set_iam_policy_execute()` to send, or `apigateway_projects_locations_gateways_set_iam_policy` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}:setIamPolicy",
@@ -4406,10 +4482,13 @@ pub fn apigateway_projects_locations_gateways_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_gateways_test_iam_permissions_execute()` to send, or `apigateway_projects_locations_gateways_test_iam_permissions` for simplest API.
 
-pub fn apigateway_projects_locations_gateways_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_gateways_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}:testIamPermissions",
@@ -4574,10 +4653,13 @@ pub fn apigateway_projects_locations_gateways_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_operations_cancel_execute()` to send, or `apigateway_projects_locations_operations_cancel` for simplest API.
 
-pub fn apigateway_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -4731,10 +4813,13 @@ pub fn apigateway_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_operations_delete_execute()` to send, or `apigateway_projects_locations_operations_delete` for simplest API.
 
-pub fn apigateway_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4888,10 +4973,13 @@ pub fn apigateway_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_operations_get_execute()` to send, or `apigateway_projects_locations_operations_get` for simplest API.
 
-pub fn apigateway_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5049,14 +5137,17 @@ pub fn apigateway_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigateway_projects_locations_operations_list_execute()` to send, or `apigateway_projects_locations_operations_list` for simplest API.
 
-pub fn apigateway_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigateway_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigateway.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

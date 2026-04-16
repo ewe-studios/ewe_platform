@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `digitalassetlinks_assetlinks_bulk_check_execute()` to send, or `digitalassetlinks_assetlinks_bulk_check` for simplest API.
 
-pub fn digitalassetlinks_assetlinks_bulk_check_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn digitalassetlinks_assetlinks_bulk_check_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/assetlinks:bulkCheck",);
 
@@ -175,8 +179,8 @@ pub fn digitalassetlinks_assetlinks_bulk_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `digitalassetlinks_assetlinks_check_execute()` to send, or `digitalassetlinks_assetlinks_check` for simplest API.
 
-pub fn digitalassetlinks_assetlinks_check_builder(
-    client: &SimpleHttpClient,
+pub fn digitalassetlinks_assetlinks_check_builder<R>(
+    client: &SimpleHttpClient<R>,
     relation: &Option<Option<String>>,
     returnRelationExtensions: &Option<Option<String>>,
     source_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
@@ -185,7 +189,10 @@ pub fn digitalassetlinks_assetlinks_check_builder(
     target_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
     target_androidApp_packageName: &Option<Option<String>>,
     target_web_site: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/assetlinks:check",);
 
@@ -402,14 +409,17 @@ pub fn digitalassetlinks_assetlinks_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `digitalassetlinks_statements_list_execute()` to send, or `digitalassetlinks_statements_list` for simplest API.
 
-pub fn digitalassetlinks_statements_list_builder(
-    client: &SimpleHttpClient,
+pub fn digitalassetlinks_statements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     relation: &Option<Option<String>>,
     returnRelationExtensions: &Option<Option<String>>,
     source_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
     source_androidApp_packageName: &Option<Option<String>>,
     source_web_site: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/statements:list",);
 

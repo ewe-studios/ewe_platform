@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_create_execute()` to send, or `accesscontextmanager_access_policies_create` for simplest API.
 
-pub fn accesscontextmanager_access_policies_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn accesscontextmanager_access_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies",);
 
@@ -171,10 +175,13 @@ pub fn accesscontextmanager_access_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_delete_execute()` to send, or `accesscontextmanager_access_policies_delete` for simplest API.
 
-pub fn accesscontextmanager_access_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",
@@ -328,10 +335,13 @@ pub fn accesscontextmanager_access_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_get_execute()` to send, or `accesscontextmanager_access_policies_get` for simplest API.
 
-pub fn accesscontextmanager_access_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",
@@ -489,10 +499,13 @@ pub fn accesscontextmanager_access_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_get_iam_policy_execute()` to send, or `accesscontextmanager_access_policies_get_iam_policy` for simplest API.
 
-pub fn accesscontextmanager_access_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:getIamPolicy",
@@ -647,12 +660,15 @@ pub fn accesscontextmanager_access_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_list_execute()` to send, or `accesscontextmanager_access_policies_list` for simplest API.
 
-pub fn accesscontextmanager_access_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies",);
 
@@ -837,11 +853,14 @@ pub fn accesscontextmanager_access_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_patch_execute()` to send, or `accesscontextmanager_access_policies_patch` for simplest API.
 
-pub fn accesscontextmanager_access_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",
@@ -1009,10 +1028,13 @@ pub fn accesscontextmanager_access_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_set_iam_policy_execute()` to send, or `accesscontextmanager_access_policies_set_iam_policy` for simplest API.
 
-pub fn accesscontextmanager_access_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:setIamPolicy",
@@ -1167,10 +1189,13 @@ pub fn accesscontextmanager_access_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_test_iam_permissions_execute()` to send, or `accesscontextmanager_access_policies_test_iam_permissions` for simplest API.
 
-pub fn accesscontextmanager_access_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:testIamPermissions",
@@ -1333,10 +1358,13 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_access_levels_create_execute()` to send, or `accesscontextmanager_access_policies_access_levels_create` for simplest API.
 
-pub fn accesscontextmanager_access_policies_access_levels_create_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_access_levels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels",
@@ -1491,10 +1519,13 @@ pub fn accesscontextmanager_access_policies_access_levels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_access_levels_delete_execute()` to send, or `accesscontextmanager_access_policies_access_levels_delete` for simplest API.
 
-pub fn accesscontextmanager_access_policies_access_levels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_access_levels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}",
@@ -1649,11 +1680,14 @@ pub fn accesscontextmanager_access_policies_access_levels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_access_levels_get_execute()` to send, or `accesscontextmanager_access_policies_access_levels_get` for simplest API.
 
-pub fn accesscontextmanager_access_policies_access_levels_get_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_access_levels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     accessLevelFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}",
@@ -1824,13 +1858,16 @@ pub fn accesscontextmanager_access_policies_access_levels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_access_levels_list_execute()` to send, or `accesscontextmanager_access_policies_access_levels_list` for simplest API.
 
-pub fn accesscontextmanager_access_policies_access_levels_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_access_levels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     accessLevelFormat: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels",
@@ -2017,11 +2054,14 @@ pub fn accesscontextmanager_access_policies_access_levels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_access_levels_patch_execute()` to send, or `accesscontextmanager_access_policies_access_levels_patch` for simplest API.
 
-pub fn accesscontextmanager_access_policies_access_levels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_access_levels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}",
@@ -2192,10 +2232,13 @@ pub fn accesscontextmanager_access_policies_access_levels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_access_levels_replace_all_execute()` to send, or `accesscontextmanager_access_policies_access_levels_replace_all` for simplest API.
 
-pub fn accesscontextmanager_access_policies_access_levels_replace_all_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_access_levels_replace_all_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels:replaceAll",
@@ -2352,10 +2395,13 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_access_levels_test_iam_permissions_execute()` to send, or `accesscontextmanager_access_policies_access_levels_test_iam_permissions` for simplest API.
 
-pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}:testIamPermissions",
@@ -2521,10 +2567,13 @@ pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_authorized_orgs_descs_create_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_create` for simplest API.
 
-pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs",
@@ -2681,10 +2730,13 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_delete` for simplest API.
 
-pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs/{authorizedOrgsDescsId}",
@@ -2840,10 +2892,13 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_authorized_orgs_descs_get_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_get` for simplest API.
 
-pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs/{authorizedOrgsDescsId}",
@@ -3002,12 +3057,15 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_authorized_orgs_descs_list_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_list` for simplest API.
 
-pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs",
@@ -3192,11 +3250,14 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_patch` for simplest API.
 
-pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs/{authorizedOrgsDescsId}",
@@ -3367,10 +3428,13 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_commit_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_commit` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_commit_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters:commit",
@@ -3527,10 +3591,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_create_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_create` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_create_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters",
@@ -3687,10 +3754,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_delete_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_delete` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}",
@@ -3845,10 +3915,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_get_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_get` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_get_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}",
@@ -4007,12 +4080,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_list_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_list` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters",
@@ -4197,11 +4273,14 @@ pub fn accesscontextmanager_access_policies_service_perimeters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_patch_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_patch` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}",
@@ -4372,10 +4451,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_replace_all_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_replace_all` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters:replaceAll",
@@ -4532,10 +4614,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions` for simplest API.
 
-pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}:testIamPermissions",
@@ -4702,10 +4787,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_operations_cancel_execute()` to send, or `accesscontextmanager_operations_cancel` for simplest API.
 
-pub fn accesscontextmanager_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/operations/{}:cancel",
@@ -4859,10 +4947,13 @@ pub fn accesscontextmanager_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_operations_delete_execute()` to send, or `accesscontextmanager_operations_delete` for simplest API.
 
-pub fn accesscontextmanager_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/operations/{}",
@@ -5016,10 +5107,13 @@ pub fn accesscontextmanager_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_operations_get_execute()` to send, or `accesscontextmanager_operations_get` for simplest API.
 
-pub fn accesscontextmanager_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/operations/{}",
@@ -5173,13 +5267,16 @@ pub fn accesscontextmanager_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_operations_list_execute()` to send, or `accesscontextmanager_operations_list` for simplest API.
 
-pub fn accesscontextmanager_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/operations",);
 
@@ -5366,10 +5463,13 @@ pub fn accesscontextmanager_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_organizations_gcp_user_access_bindings_create_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_create` for simplest API.
 
-pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings",
@@ -5526,10 +5626,13 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_organizations_gcp_user_access_bindings_delete_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_delete` for simplest API.
 
-pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings/{gcpUserAccessBindingsId}",
@@ -5685,10 +5788,13 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_organizations_gcp_user_access_bindings_get_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_get` for simplest API.
 
-pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings/{gcpUserAccessBindingsId}",
@@ -5848,12 +5954,15 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_organizations_gcp_user_access_bindings_list_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_list` for simplest API.
 
-pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings",
@@ -6038,12 +6147,15 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_patch` for simplest API.
 
-pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     append: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings/{gcpUserAccessBindingsId}",
@@ -6220,11 +6332,14 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_permissions_list_execute()` to send, or `accesscontextmanager_permissions_list` for simplest API.
 
-pub fn accesscontextmanager_permissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_permissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/permissions",);
 
@@ -6400,10 +6515,13 @@ pub fn accesscontextmanager_permissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_services_get_execute()` to send, or `accesscontextmanager_services_get` for simplest API.
 
-pub fn accesscontextmanager_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/services/{}",
@@ -6561,11 +6679,14 @@ pub fn accesscontextmanager_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accesscontextmanager_services_list_execute()` to send, or `accesscontextmanager_services_list` for simplest API.
 
-pub fn accesscontextmanager_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn accesscontextmanager_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/services",);
 

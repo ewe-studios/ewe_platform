@@ -37,23 +37,18 @@ use crate::providers::gcp::clients::streetviewpublish::ListPhotosResponse;
 use crate::providers::gcp::clients::streetviewpublish::Operation;
 use crate::providers::gcp::clients::streetviewpublish::Photo;
 use crate::providers::gcp::clients::streetviewpublish::UploadRef;
-use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoCreateArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoDeleteArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoGetArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceCreateArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceDeleteArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceGetArgs;
-use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceStartUploadArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequencesListArgs;
-use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoStartUploadArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoUpdateArgs;
-use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosBatchDeleteArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosBatchGetArgs;
-use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosBatchUpdateArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -62,34 +57,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = StreetviewpublishProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = StreetviewpublishProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct StreetviewpublishProvider<S>
+pub struct StreetviewpublishProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> StreetviewpublishProvider<S>
+impl<S, R> StreetviewpublishProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new StreetviewpublishProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new StreetviewpublishProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Streetviewpublish photo create.

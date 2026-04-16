@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_get_execute()` to send, or `clouddeploy_projects_locations_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn clouddeploy_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_get_config_execute()` to send, or `clouddeploy_projects_locations_get_config` for simplest API.
 
-pub fn clouddeploy_projects_locations_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/config",
@@ -340,14 +347,17 @@ pub fn clouddeploy_projects_locations_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_list_execute()` to send, or `clouddeploy_projects_locations_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations",
@@ -540,13 +550,16 @@ pub fn clouddeploy_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_custom_target_types_create_execute()` to send, or `clouddeploy_projects_locations_custom_target_types_create` for simplest API.
 
-pub fn clouddeploy_projects_locations_custom_target_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_custom_target_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customTargetTypeId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/customTargetTypes",
@@ -729,14 +742,17 @@ pub fn clouddeploy_projects_locations_custom_target_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_custom_target_types_delete_execute()` to send, or `clouddeploy_projects_locations_custom_target_types_delete` for simplest API.
 
-pub fn clouddeploy_projects_locations_custom_target_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_custom_target_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}",
@@ -925,10 +941,13 @@ pub fn clouddeploy_projects_locations_custom_target_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_custom_target_types_get_execute()` to send, or `clouddeploy_projects_locations_custom_target_types_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_custom_target_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_custom_target_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}",
@@ -1087,11 +1106,14 @@ pub fn clouddeploy_projects_locations_custom_target_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_custom_target_types_get_iam_policy_execute()` to send, or `clouddeploy_projects_locations_custom_target_types_get_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_custom_target_types_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_custom_target_types_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}:getIamPolicy",
@@ -1262,14 +1284,17 @@ pub fn clouddeploy_projects_locations_custom_target_types_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_custom_target_types_list_execute()` to send, or `clouddeploy_projects_locations_custom_target_types_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_custom_target_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_custom_target_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/customTargetTypes",
@@ -1466,14 +1491,17 @@ pub fn clouddeploy_projects_locations_custom_target_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_custom_target_types_patch_execute()` to send, or `clouddeploy_projects_locations_custom_target_types_patch` for simplest API.
 
-pub fn clouddeploy_projects_locations_custom_target_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_custom_target_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}",
@@ -1662,10 +1690,13 @@ pub fn clouddeploy_projects_locations_custom_target_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_custom_target_types_set_iam_policy_execute()` to send, or `clouddeploy_projects_locations_custom_target_types_set_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_custom_target_types_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_custom_target_types_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}:setIamPolicy",
@@ -1822,13 +1853,16 @@ pub fn clouddeploy_projects_locations_custom_target_types_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_create_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_create` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_create_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deliveryPipelineId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines",
@@ -2011,15 +2045,18 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_delete_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_delete` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}",
@@ -2214,10 +2251,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_get_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}",
@@ -2376,11 +2416,14 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_get_iam_policy_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_get_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:getIamPolicy",
@@ -2551,14 +2594,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_list_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines",
@@ -2755,14 +2801,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_patch_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_patch` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_patch_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}",
@@ -2951,10 +3000,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_rollback_target_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_rollback_target` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_rollback_target_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_rollback_target_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:rollbackTarget",
@@ -3114,10 +3166,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_rollback_target(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_set_iam_policy_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_set_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:setIamPolicy",
@@ -3274,10 +3329,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:testIamPermissions",
@@ -3443,10 +3501,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automationRuns/{automationRunsId}:cancel",
@@ -3611,10 +3672,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automation_runs_get_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automation_runs_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automationRuns/{automationRunsId}",
@@ -3774,14 +3838,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automation_runs_list_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automation_runs_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automationRuns",
@@ -3979,13 +4046,16 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automations_create_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automations_create` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automations_create_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     automationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations",
@@ -4168,14 +4238,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automations_delete_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automations_delete` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations/{automationsId}",
@@ -4364,10 +4437,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automations_get_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automations_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automations_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations/{automationsId}",
@@ -4523,14 +4599,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automations_list_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automations_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automations_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations",
@@ -4723,14 +4802,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_automations_patch_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_automations_patch` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_automations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_automations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations/{automationsId}",
@@ -4919,10 +5001,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_abandon_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_abandon` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_abandon_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_abandon_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}:abandon",
@@ -5082,14 +5167,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_abandon(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_create_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_create` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_create_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     overrideDeployPolicy: &Option<Option<String>>,
     releaseId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases",
@@ -5278,10 +5366,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_get_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}",
@@ -5436,14 +5527,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_list_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases",
@@ -5636,10 +5730,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:advance",
@@ -5801,10 +5898,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:approve",
@@ -5966,10 +6066,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_appro
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:cancel",
@@ -6131,15 +6234,18 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cance
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     overrideDeployPolicy: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     rolloutId: &Option<Option<String>>,
     startingPhaseId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts",
@@ -6336,10 +6442,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_creat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}",
@@ -6496,10 +6605,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job_builder<R>(
+    client: &SimpleHttpClient<R>,
     rollout: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:ignoreJob",
@@ -6663,14 +6775,17 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignor
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts",
@@ -6864,10 +6979,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job_builder<R>(
+    client: &SimpleHttpClient<R>,
     rollout: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:retryJob",
@@ -7031,10 +7149,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}/jobRuns/{jobRunsId}",
@@ -7196,14 +7317,19 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}/jobRuns",
@@ -7402,10 +7528,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate_execute()` to send, or `clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate` for simplest API.
 
-pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}/jobRuns/{jobRunsId}:terminate",
@@ -7565,13 +7696,16 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_deploy_policies_create_execute()` to send, or `clouddeploy_projects_locations_deploy_policies_create` for simplest API.
 
-pub fn clouddeploy_projects_locations_deploy_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_deploy_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deployPolicyId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deployPolicies",
@@ -7754,14 +7888,17 @@ pub fn clouddeploy_projects_locations_deploy_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_deploy_policies_delete_execute()` to send, or `clouddeploy_projects_locations_deploy_policies_delete` for simplest API.
 
-pub fn clouddeploy_projects_locations_deploy_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_deploy_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deployPolicies/{deployPoliciesId}",
@@ -7950,10 +8087,13 @@ pub fn clouddeploy_projects_locations_deploy_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_deploy_policies_get_execute()` to send, or `clouddeploy_projects_locations_deploy_policies_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_deploy_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_deploy_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deployPolicies/{deployPoliciesId}",
@@ -8111,11 +8251,14 @@ pub fn clouddeploy_projects_locations_deploy_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_deploy_policies_get_iam_policy_execute()` to send, or `clouddeploy_projects_locations_deploy_policies_get_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_deploy_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_deploy_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deployPolicies/{deployPoliciesId}:getIamPolicy",
@@ -8286,14 +8429,17 @@ pub fn clouddeploy_projects_locations_deploy_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_deploy_policies_list_execute()` to send, or `clouddeploy_projects_locations_deploy_policies_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_deploy_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_deploy_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deployPolicies",
@@ -8490,14 +8636,17 @@ pub fn clouddeploy_projects_locations_deploy_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_deploy_policies_patch_execute()` to send, or `clouddeploy_projects_locations_deploy_policies_patch` for simplest API.
 
-pub fn clouddeploy_projects_locations_deploy_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_deploy_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deployPolicies/{deployPoliciesId}",
@@ -8686,10 +8835,13 @@ pub fn clouddeploy_projects_locations_deploy_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_deploy_policies_set_iam_policy_execute()` to send, or `clouddeploy_projects_locations_deploy_policies_set_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_deploy_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_deploy_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/deployPolicies/{deployPoliciesId}:setIamPolicy",
@@ -8846,10 +8998,13 @@ pub fn clouddeploy_projects_locations_deploy_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_operations_cancel_execute()` to send, or `clouddeploy_projects_locations_operations_cancel` for simplest API.
 
-pub fn clouddeploy_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -9003,10 +9158,13 @@ pub fn clouddeploy_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_operations_delete_execute()` to send, or `clouddeploy_projects_locations_operations_delete` for simplest API.
 
-pub fn clouddeploy_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -9160,10 +9318,13 @@ pub fn clouddeploy_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_operations_get_execute()` to send, or `clouddeploy_projects_locations_operations_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -9317,14 +9478,17 @@ pub fn clouddeploy_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_operations_list_execute()` to send, or `clouddeploy_projects_locations_operations_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -9517,13 +9681,16 @@ pub fn clouddeploy_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_create_execute()` to send, or `clouddeploy_projects_locations_targets_create` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_create_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     targetId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets",
@@ -9706,14 +9873,17 @@ pub fn clouddeploy_projects_locations_targets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_delete_execute()` to send, or `clouddeploy_projects_locations_targets_delete` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets/{targetsId}",
@@ -9902,10 +10072,13 @@ pub fn clouddeploy_projects_locations_targets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_get_execute()` to send, or `clouddeploy_projects_locations_targets_get` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets/{targetsId}",
@@ -10059,11 +10232,14 @@ pub fn clouddeploy_projects_locations_targets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_get_iam_policy_execute()` to send, or `clouddeploy_projects_locations_targets_get_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets/{targetsId}:getIamPolicy",
@@ -10234,14 +10410,17 @@ pub fn clouddeploy_projects_locations_targets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_list_execute()` to send, or `clouddeploy_projects_locations_targets_list` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets",
@@ -10434,14 +10613,17 @@ pub fn clouddeploy_projects_locations_targets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_patch_execute()` to send, or `clouddeploy_projects_locations_targets_patch` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets/{targetsId}",
@@ -10630,10 +10812,13 @@ pub fn clouddeploy_projects_locations_targets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_set_iam_policy_execute()` to send, or `clouddeploy_projects_locations_targets_set_iam_policy` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets/{targetsId}:setIamPolicy",
@@ -10788,10 +10973,13 @@ pub fn clouddeploy_projects_locations_targets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouddeploy_projects_locations_targets_test_iam_permissions_execute()` to send, or `clouddeploy_projects_locations_targets_test_iam_permissions` for simplest API.
 
-pub fn clouddeploy_projects_locations_targets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn clouddeploy_projects_locations_targets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouddeploy.googleapis.com/v1/projects/{}/locations/{locationsId}/targets/{targetsId}:testIamPermissions",

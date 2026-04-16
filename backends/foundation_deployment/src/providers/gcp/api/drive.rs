@@ -101,7 +101,6 @@ use crate::providers::gcp::clients::drive::RevisionList;
 use crate::providers::gcp::clients::drive::StartPageToken;
 use crate::providers::gcp::clients::drive::TeamDrive;
 use crate::providers::gcp::clients::drive::TeamDriveList;
-use crate::providers::gcp::clients::drive::DriveAboutGetArgs;
 use crate::providers::gcp::clients::drive::DriveAccessproposalsGetArgs;
 use crate::providers::gcp::clients::drive::DriveAccessproposalsListArgs;
 use crate::providers::gcp::clients::drive::DriveAccessproposalsResolveArgs;
@@ -112,7 +111,6 @@ use crate::providers::gcp::clients::drive::DriveAppsListArgs;
 use crate::providers::gcp::clients::drive::DriveChangesGetStartPageTokenArgs;
 use crate::providers::gcp::clients::drive::DriveChangesListArgs;
 use crate::providers::gcp::clients::drive::DriveChangesWatchArgs;
-use crate::providers::gcp::clients::drive::DriveChannelsStopArgs;
 use crate::providers::gcp::clients::drive::DriveCommentsCreateArgs;
 use crate::providers::gcp::clients::drive::DriveCommentsDeleteArgs;
 use crate::providers::gcp::clients::drive::DriveCommentsGetArgs;
@@ -161,7 +159,7 @@ use crate::providers::gcp::clients::drive::DriveTeamdrivesListArgs;
 use crate::providers::gcp::clients::drive::DriveTeamdrivesUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -170,34 +168,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = DriveProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = DriveProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct DriveProvider<S>
+pub struct DriveProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> DriveProvider<S>
+impl<S, R> DriveProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new DriveProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new DriveProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Drive about get.

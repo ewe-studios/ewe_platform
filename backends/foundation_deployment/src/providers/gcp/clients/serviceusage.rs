@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_operations_cancel_execute()` to send, or `serviceusage_operations_cancel` for simplest API.
 
-pub fn serviceusage_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceusage.googleapis.com/v1/operations/{}:cancel",
@@ -183,10 +187,13 @@ pub fn serviceusage_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_operations_delete_execute()` to send, or `serviceusage_operations_delete` for simplest API.
 
-pub fn serviceusage_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations/{}", name,);
 
@@ -337,10 +344,13 @@ pub fn serviceusage_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_operations_get_execute()` to send, or `serviceusage_operations_get` for simplest API.
 
-pub fn serviceusage_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations/{}", name,);
 
@@ -491,14 +501,17 @@ pub fn serviceusage_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_operations_list_execute()` to send, or `serviceusage_operations_list` for simplest API.
 
-pub fn serviceusage_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     name: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations",);
 
@@ -691,10 +704,13 @@ pub fn serviceusage_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_services_batch_enable_execute()` to send, or `serviceusage_services_batch_enable` for simplest API.
 
-pub fn serviceusage_services_batch_enable_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_services_batch_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services:batchEnable",
@@ -848,11 +864,14 @@ pub fn serviceusage_services_batch_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_services_batch_get_execute()` to send, or `serviceusage_services_batch_get` for simplest API.
 
-pub fn serviceusage_services_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_services_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services:batchGet",
@@ -1023,10 +1042,13 @@ pub fn serviceusage_services_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_services_disable_execute()` to send, or `serviceusage_services_disable` for simplest API.
 
-pub fn serviceusage_services_disable_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_services_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services/{servicesId}:disable",
@@ -1180,10 +1202,13 @@ pub fn serviceusage_services_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_services_enable_execute()` to send, or `serviceusage_services_enable` for simplest API.
 
-pub fn serviceusage_services_enable_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_services_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services/{servicesId}:enable",
@@ -1337,10 +1362,13 @@ pub fn serviceusage_services_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_services_get_execute()` to send, or `serviceusage_services_get` for simplest API.
 
-pub fn serviceusage_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services/{servicesId}",
@@ -1502,13 +1530,16 @@ pub fn serviceusage_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceusage_services_list_execute()` to send, or `serviceusage_services_list` for simplest API.
 
-pub fn serviceusage_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn serviceusage_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services",

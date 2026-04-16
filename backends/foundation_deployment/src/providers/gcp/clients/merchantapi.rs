@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_merchant_reviews_delete_execute()` to send, or `merchantapi_accounts_merchant_reviews_delete` for simplest API.
 
-pub fn merchantapi_accounts_merchant_reviews_delete_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_merchant_reviews_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews/{merchantReviewsId}",
@@ -183,10 +187,13 @@ pub fn merchantapi_accounts_merchant_reviews_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_merchant_reviews_get_execute()` to send, or `merchantapi_accounts_merchant_reviews_get` for simplest API.
 
-pub fn merchantapi_accounts_merchant_reviews_get_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_merchant_reviews_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews/{merchantReviewsId}",
@@ -344,11 +351,14 @@ pub fn merchantapi_accounts_merchant_reviews_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_merchant_reviews_insert_execute()` to send, or `merchantapi_accounts_merchant_reviews_insert` for simplest API.
 
-pub fn merchantapi_accounts_merchant_reviews_insert_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_merchant_reviews_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataSource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews:insert",
@@ -523,12 +533,15 @@ pub fn merchantapi_accounts_merchant_reviews_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_merchant_reviews_list_execute()` to send, or `merchantapi_accounts_merchant_reviews_list` for simplest API.
 
-pub fn merchantapi_accounts_merchant_reviews_list_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_merchant_reviews_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews",
@@ -713,10 +726,13 @@ pub fn merchantapi_accounts_merchant_reviews_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_product_reviews_delete_execute()` to send, or `merchantapi_accounts_product_reviews_delete` for simplest API.
 
-pub fn merchantapi_accounts_product_reviews_delete_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_product_reviews_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews/{productReviewsId}",
@@ -870,10 +886,13 @@ pub fn merchantapi_accounts_product_reviews_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_product_reviews_get_execute()` to send, or `merchantapi_accounts_product_reviews_get` for simplest API.
 
-pub fn merchantapi_accounts_product_reviews_get_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_product_reviews_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews/{productReviewsId}",
@@ -1031,11 +1050,14 @@ pub fn merchantapi_accounts_product_reviews_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_product_reviews_insert_execute()` to send, or `merchantapi_accounts_product_reviews_insert` for simplest API.
 
-pub fn merchantapi_accounts_product_reviews_insert_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_product_reviews_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataSource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews:insert",
@@ -1210,12 +1232,15 @@ pub fn merchantapi_accounts_product_reviews_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `merchantapi_accounts_product_reviews_list_execute()` to send, or `merchantapi_accounts_product_reviews_list` for simplest API.
 
-pub fn merchantapi_accounts_product_reviews_list_builder(
-    client: &SimpleHttpClient,
+pub fn merchantapi_accounts_product_reviews_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews",

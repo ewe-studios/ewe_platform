@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ondemandscanning_projects_locations_operations_cancel_execute()` to send, or `ondemandscanning_projects_locations_operations_cancel` for simplest API.
 
-pub fn ondemandscanning_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn ondemandscanning_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ondemandscanning.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -184,10 +188,13 @@ pub fn ondemandscanning_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ondemandscanning_projects_locations_operations_delete_execute()` to send, or `ondemandscanning_projects_locations_operations_delete` for simplest API.
 
-pub fn ondemandscanning_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ondemandscanning_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ondemandscanning.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -342,10 +349,13 @@ pub fn ondemandscanning_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ondemandscanning_projects_locations_operations_get_execute()` to send, or `ondemandscanning_projects_locations_operations_get` for simplest API.
 
-pub fn ondemandscanning_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn ondemandscanning_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ondemandscanning.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -499,14 +509,17 @@ pub fn ondemandscanning_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ondemandscanning_projects_locations_operations_list_execute()` to send, or `ondemandscanning_projects_locations_operations_list` for simplest API.
 
-pub fn ondemandscanning_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn ondemandscanning_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ondemandscanning.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -699,11 +712,14 @@ pub fn ondemandscanning_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ondemandscanning_projects_locations_operations_wait_execute()` to send, or `ondemandscanning_projects_locations_operations_wait` for simplest API.
 
-pub fn ondemandscanning_projects_locations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn ondemandscanning_projects_locations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ondemandscanning.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:wait",
@@ -874,10 +890,13 @@ pub fn ondemandscanning_projects_locations_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ondemandscanning_projects_locations_scans_analyze_packages_execute()` to send, or `ondemandscanning_projects_locations_scans_analyze_packages` for simplest API.
 
-pub fn ondemandscanning_projects_locations_scans_analyze_packages_builder(
-    client: &SimpleHttpClient,
+pub fn ondemandscanning_projects_locations_scans_analyze_packages_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ondemandscanning.googleapis.com/v1/projects/{}/locations/{locationsId}/scans:analyzePackages",
@@ -1032,12 +1051,15 @@ pub fn ondemandscanning_projects_locations_scans_analyze_packages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ondemandscanning_projects_locations_scans_vulnerabilities_list_execute()` to send, or `ondemandscanning_projects_locations_scans_vulnerabilities_list` for simplest API.
 
-pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list_builder(
-    client: &SimpleHttpClient,
+pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ondemandscanning.googleapis.com/v1/projects/{}/locations/{locationsId}/scans/{scansId}/vulnerabilities",

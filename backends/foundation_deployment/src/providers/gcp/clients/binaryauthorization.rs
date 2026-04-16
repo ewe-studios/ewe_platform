@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_get_policy_execute()` to send, or `binaryauthorization_projects_get_policy` for simplest API.
 
-pub fn binaryauthorization_projects_get_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_get_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/policy",
@@ -183,10 +187,13 @@ pub fn binaryauthorization_projects_get_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_update_policy_execute()` to send, or `binaryauthorization_projects_update_policy` for simplest API.
 
-pub fn binaryauthorization_projects_update_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_update_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/policy",
@@ -340,11 +347,14 @@ pub fn binaryauthorization_projects_update_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_create_execute()` to send, or `binaryauthorization_projects_attestors_create` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_create_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     attestorId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors",
@@ -515,10 +525,13 @@ pub fn binaryauthorization_projects_attestors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_delete_execute()` to send, or `binaryauthorization_projects_attestors_delete` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}",
@@ -672,10 +685,13 @@ pub fn binaryauthorization_projects_attestors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_get_execute()` to send, or `binaryauthorization_projects_attestors_get` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_get_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}",
@@ -829,11 +845,14 @@ pub fn binaryauthorization_projects_attestors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_get_iam_policy_execute()` to send, or `binaryauthorization_projects_attestors_get_iam_policy` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:getIamPolicy",
@@ -1004,12 +1023,15 @@ pub fn binaryauthorization_projects_attestors_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_list_execute()` to send, or `binaryauthorization_projects_attestors_list` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_list_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors",
@@ -1190,10 +1212,13 @@ pub fn binaryauthorization_projects_attestors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_set_iam_policy_execute()` to send, or `binaryauthorization_projects_attestors_set_iam_policy` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:setIamPolicy",
@@ -1348,10 +1373,13 @@ pub fn binaryauthorization_projects_attestors_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_test_iam_permissions_execute()` to send, or `binaryauthorization_projects_attestors_test_iam_permissions` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:testIamPermissions",
@@ -1516,10 +1544,13 @@ pub fn binaryauthorization_projects_attestors_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_update_execute()` to send, or `binaryauthorization_projects_attestors_update` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_update_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}",
@@ -1673,10 +1704,13 @@ pub fn binaryauthorization_projects_attestors_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_attestors_validate_attestation_occurrence_execute()` to send, or `binaryauthorization_projects_attestors_validate_attestation_occurrence` for simplest API.
 
-pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence_builder<R>(
+    client: &SimpleHttpClient<R>,
     attestor: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:validateAttestationOccurrence",
@@ -1842,10 +1876,13 @@ pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_gke_policies_evaluate_execute()` to send, or `binaryauthorization_projects_platforms_gke_policies_evaluate` for simplest API.
 
-pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/gke/policies/{policiesId}:evaluate",
@@ -2004,11 +2041,14 @@ pub fn binaryauthorization_projects_platforms_gke_policies_evaluate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_create_execute()` to send, or `binaryauthorization_projects_platforms_policies_create` for simplest API.
 
-pub fn binaryauthorization_projects_platforms_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_platforms_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     policyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies",
@@ -2183,11 +2223,14 @@ pub fn binaryauthorization_projects_platforms_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_delete_execute()` to send, or `binaryauthorization_projects_platforms_policies_delete` for simplest API.
 
-pub fn binaryauthorization_projects_platforms_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_platforms_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies/{policiesId}",
@@ -2356,10 +2399,13 @@ pub fn binaryauthorization_projects_platforms_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_get_execute()` to send, or `binaryauthorization_projects_platforms_policies_get` for simplest API.
 
-pub fn binaryauthorization_projects_platforms_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_platforms_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies/{policiesId}",
@@ -2517,12 +2563,15 @@ pub fn binaryauthorization_projects_platforms_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_list_execute()` to send, or `binaryauthorization_projects_platforms_policies_list` for simplest API.
 
-pub fn binaryauthorization_projects_platforms_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_platforms_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies",
@@ -2707,10 +2756,13 @@ pub fn binaryauthorization_projects_platforms_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_replace_platform_policy_execute()` to send, or `binaryauthorization_projects_platforms_policies_replace_platform_policy` for simplest API.
 
-pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies/{policiesId}",
@@ -2871,11 +2923,14 @@ pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_policy_get_iam_policy_execute()` to send, or `binaryauthorization_projects_policy_get_iam_policy` for simplest API.
 
-pub fn binaryauthorization_projects_policy_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_policy_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/policy:getIamPolicy",
@@ -3046,10 +3101,13 @@ pub fn binaryauthorization_projects_policy_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_policy_set_iam_policy_execute()` to send, or `binaryauthorization_projects_policy_set_iam_policy` for simplest API.
 
-pub fn binaryauthorization_projects_policy_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_policy_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/policy:setIamPolicy",
@@ -3204,10 +3262,13 @@ pub fn binaryauthorization_projects_policy_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_policy_test_iam_permissions_execute()` to send, or `binaryauthorization_projects_policy_test_iam_permissions` for simplest API.
 
-pub fn binaryauthorization_projects_policy_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_projects_policy_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/policy:testIamPermissions",
@@ -3370,10 +3431,13 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_systempolicy_get_policy_execute()` to send, or `binaryauthorization_systempolicy_get_policy` for simplest API.
 
-pub fn binaryauthorization_systempolicy_get_policy_builder(
-    client: &SimpleHttpClient,
+pub fn binaryauthorization_systempolicy_get_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/locations/{}/policy",

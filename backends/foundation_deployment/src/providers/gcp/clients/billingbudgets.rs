@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_create_execute()` to send, or `billingbudgets_billing_accounts_budgets_create` for simplest API.
 
-pub fn billingbudgets_billing_accounts_budgets_create_builder(
-    client: &SimpleHttpClient,
+pub fn billingbudgets_billing_accounts_budgets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://billingbudgets.googleapis.com/v1/billingAccounts/{}/budgets",
@@ -191,10 +195,13 @@ pub fn billingbudgets_billing_accounts_budgets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_delete_execute()` to send, or `billingbudgets_billing_accounts_budgets_delete` for simplest API.
 
-pub fn billingbudgets_billing_accounts_budgets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn billingbudgets_billing_accounts_budgets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://billingbudgets.googleapis.com/v1/billingAccounts/{}/budgets/{budgetsId}",
@@ -352,10 +359,13 @@ pub fn billingbudgets_billing_accounts_budgets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_get_execute()` to send, or `billingbudgets_billing_accounts_budgets_get` for simplest API.
 
-pub fn billingbudgets_billing_accounts_budgets_get_builder(
-    client: &SimpleHttpClient,
+pub fn billingbudgets_billing_accounts_budgets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://billingbudgets.googleapis.com/v1/billingAccounts/{}/budgets/{budgetsId}",
@@ -517,13 +527,16 @@ pub fn billingbudgets_billing_accounts_budgets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_list_execute()` to send, or `billingbudgets_billing_accounts_budgets_list` for simplest API.
 
-pub fn billingbudgets_billing_accounts_budgets_list_builder(
-    client: &SimpleHttpClient,
+pub fn billingbudgets_billing_accounts_budgets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     scope: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://billingbudgets.googleapis.com/v1/billingAccounts/{}/budgets",
@@ -715,11 +728,14 @@ pub fn billingbudgets_billing_accounts_budgets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_patch_execute()` to send, or `billingbudgets_billing_accounts_budgets_patch` for simplest API.
 
-pub fn billingbudgets_billing_accounts_budgets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn billingbudgets_billing_accounts_budgets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://billingbudgets.googleapis.com/v1/billingAccounts/{}/budgets/{budgetsId}",

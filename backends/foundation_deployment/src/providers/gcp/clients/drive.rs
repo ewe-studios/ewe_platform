@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_about_get_execute()` to send, or `drive_about_get` for simplest API.
 
-pub fn drive_about_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn drive_about_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/about",);
 
@@ -171,11 +175,14 @@ pub fn drive_about_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_accessproposals_get_execute()` to send, or `drive_accessproposals_get` for simplest API.
 
-pub fn drive_accessproposals_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_accessproposals_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/accessproposals/{}",
@@ -335,12 +342,15 @@ pub fn drive_accessproposals_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_accessproposals_list_execute()` to send, or `drive_accessproposals_list` for simplest API.
 
-pub fn drive_accessproposals_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_accessproposals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/accessproposals",
@@ -521,11 +531,14 @@ pub fn drive_accessproposals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_accessproposals_resolve_execute()` to send, or `drive_accessproposals_resolve` for simplest API.
 
-pub fn drive_accessproposals_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn drive_accessproposals_resolve_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/accessproposals/{}:resolve",
@@ -678,11 +691,14 @@ pub fn drive_accessproposals_resolve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_approvals_get_execute()` to send, or `drive_approvals_get` for simplest API.
 
-pub fn drive_approvals_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_approvals_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     approvalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/approvals/{}",
@@ -838,12 +854,15 @@ pub fn drive_approvals_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_approvals_list_execute()` to send, or `drive_approvals_list` for simplest API.
 
-pub fn drive_approvals_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_approvals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/approvals",
@@ -1020,10 +1039,13 @@ pub fn drive_approvals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_apps_get_execute()` to send, or `drive_apps_get` for simplest API.
 
-pub fn drive_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     appId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/apps/{}", appId,);
 
@@ -1174,12 +1196,15 @@ pub fn drive_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_apps_list_execute()` to send, or `drive_apps_list` for simplest API.
 
-pub fn drive_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     appFilterExtensions: &Option<Option<String>>,
     appFilterMimeTypes: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/apps",);
 
@@ -1356,13 +1381,16 @@ pub fn drive_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_changes_get_start_page_token_execute()` to send, or `drive_changes_get_start_page_token` for simplest API.
 
-pub fn drive_changes_get_start_page_token_builder(
-    client: &SimpleHttpClient,
+pub fn drive_changes_get_start_page_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &Option<Option<String>>,
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     teamDriveId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/changes/startPageToken",);
 
@@ -1549,8 +1577,8 @@ pub fn drive_changes_get_start_page_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_changes_list_execute()` to send, or `drive_changes_list` for simplest API.
 
-pub fn drive_changes_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_changes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &Option<Option<String>>,
     includeCorpusRemovals: &Option<Option<String>>,
     includeItemsFromAllDrives: &Option<Option<String>>,
@@ -1565,7 +1593,10 @@ pub fn drive_changes_list_builder(
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     teamDriveId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/changes",);
 
@@ -1808,8 +1839,8 @@ pub fn drive_changes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_changes_watch_execute()` to send, or `drive_changes_watch` for simplest API.
 
-pub fn drive_changes_watch_builder(
-    client: &SimpleHttpClient,
+pub fn drive_changes_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &Option<Option<String>>,
     includeCorpusRemovals: &Option<Option<String>>,
     includeItemsFromAllDrives: &Option<Option<String>>,
@@ -1824,7 +1855,10 @@ pub fn drive_changes_watch_builder(
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     teamDriveId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/changes/watch",);
 
@@ -2067,9 +2101,12 @@ pub fn drive_changes_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_channels_stop_execute()` to send, or `drive_channels_stop` for simplest API.
 
-pub fn drive_channels_stop_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn drive_channels_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/channels/stop",);
 
@@ -2209,10 +2246,13 @@ pub fn drive_channels_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_comments_create_execute()` to send, or `drive_comments_create` for simplest API.
 
-pub fn drive_comments_create_builder(
-    client: &SimpleHttpClient,
+pub fn drive_comments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments",
@@ -2366,11 +2406,14 @@ pub fn drive_comments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_comments_delete_execute()` to send, or `drive_comments_delete` for simplest API.
 
-pub fn drive_comments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drive_comments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}",
@@ -2523,12 +2566,15 @@ pub fn drive_comments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_comments_get_execute()` to send, or `drive_comments_get` for simplest API.
 
-pub fn drive_comments_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_comments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
     includeDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}",
@@ -2698,14 +2744,17 @@ pub fn drive_comments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_comments_list_execute()` to send, or `drive_comments_list` for simplest API.
 
-pub fn drive_comments_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_comments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     includeDeleted: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startModifiedTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments",
@@ -2894,11 +2943,14 @@ pub fn drive_comments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_comments_update_execute()` to send, or `drive_comments_update` for simplest API.
 
-pub fn drive_comments_update_builder(
-    client: &SimpleHttpClient,
+pub fn drive_comments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}",
@@ -3054,10 +3106,13 @@ pub fn drive_comments_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_create_execute()` to send, or `drive_drives_create` for simplest API.
 
-pub fn drive_drives_create_builder(
-    client: &SimpleHttpClient,
+pub fn drive_drives_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives",);
 
@@ -3219,12 +3274,15 @@ pub fn drive_drives_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_delete_execute()` to send, or `drive_drives_delete` for simplest API.
 
-pub fn drive_drives_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drive_drives_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &String,
     allowItemDeletion: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives/{}", driveId,);
 
@@ -3395,11 +3453,14 @@ pub fn drive_drives_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_get_execute()` to send, or `drive_drives_get` for simplest API.
 
-pub fn drive_drives_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_drives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &String,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives/{}", driveId,);
 
@@ -3563,10 +3624,13 @@ pub fn drive_drives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_hide_execute()` to send, or `drive_drives_hide` for simplest API.
 
-pub fn drive_drives_hide_builder(
-    client: &SimpleHttpClient,
+pub fn drive_drives_hide_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/drives/{}/hide",
@@ -3720,13 +3784,16 @@ pub fn drive_drives_hide(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_list_execute()` to send, or `drive_drives_list` for simplest API.
 
-pub fn drive_drives_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_drives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     q: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives",);
 
@@ -3909,10 +3976,13 @@ pub fn drive_drives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_unhide_execute()` to send, or `drive_drives_unhide` for simplest API.
 
-pub fn drive_drives_unhide_builder(
-    client: &SimpleHttpClient,
+pub fn drive_drives_unhide_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/drives/{}/unhide",
@@ -4066,11 +4136,14 @@ pub fn drive_drives_unhide(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_update_execute()` to send, or `drive_drives_update` for simplest API.
 
-pub fn drive_drives_update_builder(
-    client: &SimpleHttpClient,
+pub fn drive_drives_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &String,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives/{}", driveId,);
 
@@ -4234,8 +4307,8 @@ pub fn drive_drives_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_copy_execute()` to send, or `drive_files_copy` for simplest API.
 
-pub fn drive_files_copy_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_copy_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     enforceSingleParent: &Option<Option<String>>,
     ignoreDefaultVisibility: &Option<Option<String>>,
@@ -4245,7 +4318,10 @@ pub fn drive_files_copy_builder(
     ocrLanguage: &Option<Option<String>>,
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}/copy", fileId,);
 
@@ -4455,8 +4531,8 @@ pub fn drive_files_copy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_create_execute()` to send, or `drive_files_create` for simplest API.
 
-pub fn drive_files_create_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     enforceSingleParent: &Option<Option<String>>,
     ignoreDefaultVisibility: &Option<Option<String>>,
     includeLabels: &Option<Option<String>>,
@@ -4466,7 +4542,10 @@ pub fn drive_files_create_builder(
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     useContentAsIndexableText: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files",);
 
@@ -4679,13 +4758,16 @@ pub fn drive_files_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_delete_execute()` to send, or `drive_files_delete` for simplest API.
 
-pub fn drive_files_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     enforceSingleParent: &Option<Option<String>>,
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}", fileId,);
 
@@ -4862,12 +4944,15 @@ pub fn drive_files_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_download_execute()` to send, or `drive_files_download` for simplest API.
 
-pub fn drive_files_download_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     mimeType: &Option<Option<String>>,
     revisionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/download",
@@ -5040,11 +5125,14 @@ pub fn drive_files_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_empty_trash_execute()` to send, or `drive_files_empty_trash` for simplest API.
 
-pub fn drive_files_empty_trash_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_empty_trash_builder<R>(
+    client: &SimpleHttpClient<R>,
     driveId: &Option<Option<String>>,
     enforceSingleParent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/trash",);
 
@@ -5209,11 +5297,14 @@ pub fn drive_files_empty_trash(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_export_execute()` to send, or `drive_files_export` for simplest API.
 
-pub fn drive_files_export_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     mimeType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/export",
@@ -5377,11 +5468,14 @@ pub fn drive_files_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_generate_cse_token_execute()` to send, or `drive_files_generate_cse_token` for simplest API.
 
-pub fn drive_files_generate_cse_token_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_generate_cse_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/generateCseToken",);
 
@@ -5552,12 +5646,15 @@ pub fn drive_files_generate_cse_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_generate_ids_execute()` to send, or `drive_files_generate_ids` for simplest API.
 
-pub fn drive_files_generate_ids_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_generate_ids_builder<R>(
+    client: &SimpleHttpClient<R>,
     count: &Option<Option<String>>,
     space: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/generateIds",);
 
@@ -5734,15 +5831,18 @@ pub fn drive_files_generate_ids(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_get_execute()` to send, or `drive_files_get` for simplest API.
 
-pub fn drive_files_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     acknowledgeAbuse: &Option<Option<String>>,
     includeLabels: &Option<Option<String>>,
     includePermissionsForView: &Option<Option<String>>,
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}", fileId,);
 
@@ -5934,8 +6034,8 @@ pub fn drive_files_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_list_execute()` to send, or `drive_files_list` for simplest API.
 
-pub fn drive_files_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     corpora: &Option<Option<String>>,
     corpus: &Option<Option<String>>,
     driveId: &Option<Option<String>>,
@@ -5951,7 +6051,10 @@ pub fn drive_files_list_builder(
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     teamDriveId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files",);
 
@@ -6200,12 +6303,15 @@ pub fn drive_files_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_list_labels_execute()` to send, or `drive_files_list_labels` for simplest API.
 
-pub fn drive_files_list_labels_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_list_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/listLabels",
@@ -6378,10 +6484,13 @@ pub fn drive_files_list_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_modify_labels_execute()` to send, or `drive_files_modify_labels` for simplest API.
 
-pub fn drive_files_modify_labels_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_modify_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/modifyLabels",
@@ -6539,8 +6648,8 @@ pub fn drive_files_modify_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_update_execute()` to send, or `drive_files_update` for simplest API.
 
-pub fn drive_files_update_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     addParents: &Option<Option<String>>,
     enforceSingleParent: &Option<Option<String>>,
@@ -6552,7 +6661,10 @@ pub fn drive_files_update_builder(
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     useContentAsIndexableText: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}", fileId,);
 
@@ -6774,15 +6886,18 @@ pub fn drive_files_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_watch_execute()` to send, or `drive_files_watch` for simplest API.
 
-pub fn drive_files_watch_builder(
-    client: &SimpleHttpClient,
+pub fn drive_files_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     acknowledgeAbuse: &Option<Option<String>>,
     includeLabels: &Option<Option<String>>,
     includePermissionsForView: &Option<Option<String>>,
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}/watch", fileId,);
 
@@ -6974,10 +7089,13 @@ pub fn drive_files_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_operations_get_execute()` to send, or `drive_operations_get` for simplest API.
 
-pub fn drive_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/operations/{}", name,);
 
@@ -7128,8 +7246,8 @@ pub fn drive_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_create_execute()` to send, or `drive_permissions_create` for simplest API.
 
-pub fn drive_permissions_create_builder(
-    client: &SimpleHttpClient,
+pub fn drive_permissions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     emailMessage: &Option<Option<String>>,
     enforceExpansiveAccess: &Option<Option<String>>,
@@ -7140,7 +7258,10 @@ pub fn drive_permissions_create_builder(
     supportsTeamDrives: &Option<Option<String>>,
     transferOwnership: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/permissions",
@@ -7359,15 +7480,18 @@ pub fn drive_permissions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_delete_execute()` to send, or `drive_permissions_delete` for simplest API.
 
-pub fn drive_permissions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drive_permissions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     permissionId: &String,
     enforceExpansiveAccess: &Option<Option<String>>,
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/permissions/{}",
@@ -7556,14 +7680,17 @@ pub fn drive_permissions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_get_execute()` to send, or `drive_permissions_get` for simplest API.
 
-pub fn drive_permissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_permissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     permissionId: &String,
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/permissions/{}",
@@ -7749,8 +7876,8 @@ pub fn drive_permissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_list_execute()` to send, or `drive_permissions_list` for simplest API.
 
-pub fn drive_permissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_permissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     includePermissionsForView: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
@@ -7758,7 +7885,10 @@ pub fn drive_permissions_list_builder(
     supportsAllDrives: &Option<Option<String>>,
     supportsTeamDrives: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/permissions",
@@ -7963,8 +8093,8 @@ pub fn drive_permissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_update_execute()` to send, or `drive_permissions_update` for simplest API.
 
-pub fn drive_permissions_update_builder(
-    client: &SimpleHttpClient,
+pub fn drive_permissions_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     permissionId: &String,
     enforceExpansiveAccess: &Option<Option<String>>,
@@ -7973,7 +8103,10 @@ pub fn drive_permissions_update_builder(
     supportsTeamDrives: &Option<Option<String>>,
     transferOwnership: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/permissions/{}",
@@ -8177,11 +8310,14 @@ pub fn drive_permissions_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_replies_create_execute()` to send, or `drive_replies_create` for simplest API.
 
-pub fn drive_replies_create_builder(
-    client: &SimpleHttpClient,
+pub fn drive_replies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies",
@@ -8337,12 +8473,15 @@ pub fn drive_replies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_replies_delete_execute()` to send, or `drive_replies_delete` for simplest API.
 
-pub fn drive_replies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drive_replies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
     replyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies/{}",
@@ -8498,13 +8637,16 @@ pub fn drive_replies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_replies_get_execute()` to send, or `drive_replies_get` for simplest API.
 
-pub fn drive_replies_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_replies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
     replyId: &String,
     includeDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies/{}",
@@ -8681,14 +8823,17 @@ pub fn drive_replies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_replies_list_execute()` to send, or `drive_replies_list` for simplest API.
 
-pub fn drive_replies_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_replies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
     includeDeleted: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies",
@@ -8874,12 +9019,15 @@ pub fn drive_replies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_replies_update_execute()` to send, or `drive_replies_update` for simplest API.
 
-pub fn drive_replies_update_builder(
-    client: &SimpleHttpClient,
+pub fn drive_replies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
     replyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies/{}",
@@ -9038,11 +9186,14 @@ pub fn drive_replies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_revisions_delete_execute()` to send, or `drive_revisions_delete` for simplest API.
 
-pub fn drive_revisions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drive_revisions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     revisionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/revisions/{}",
@@ -9195,12 +9346,15 @@ pub fn drive_revisions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_revisions_get_execute()` to send, or `drive_revisions_get` for simplest API.
 
-pub fn drive_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     revisionId: &String,
     acknowledgeAbuse: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/revisions/{}",
@@ -9374,12 +9528,15 @@ pub fn drive_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_revisions_list_execute()` to send, or `drive_revisions_list` for simplest API.
 
-pub fn drive_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/revisions",
@@ -9556,11 +9713,14 @@ pub fn drive_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_revisions_update_execute()` to send, or `drive_revisions_update` for simplest API.
 
-pub fn drive_revisions_update_builder(
-    client: &SimpleHttpClient,
+pub fn drive_revisions_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     fileId: &String,
     revisionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/revisions/{}",
@@ -9716,10 +9876,13 @@ pub fn drive_revisions_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_teamdrives_create_execute()` to send, or `drive_teamdrives_create` for simplest API.
 
-pub fn drive_teamdrives_create_builder(
-    client: &SimpleHttpClient,
+pub fn drive_teamdrives_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/teamdrives",);
 
@@ -9881,10 +10044,13 @@ pub fn drive_teamdrives_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_teamdrives_delete_execute()` to send, or `drive_teamdrives_delete` for simplest API.
 
-pub fn drive_teamdrives_delete_builder(
-    client: &SimpleHttpClient,
+pub fn drive_teamdrives_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     teamDriveId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/teamdrives/{}",
@@ -10035,11 +10201,14 @@ pub fn drive_teamdrives_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_teamdrives_get_execute()` to send, or `drive_teamdrives_get` for simplest API.
 
-pub fn drive_teamdrives_get_builder(
-    client: &SimpleHttpClient,
+pub fn drive_teamdrives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     teamDriveId: &String,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/teamdrives/{}",
@@ -10207,13 +10376,16 @@ pub fn drive_teamdrives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_teamdrives_list_execute()` to send, or `drive_teamdrives_list` for simplest API.
 
-pub fn drive_teamdrives_list_builder(
-    client: &SimpleHttpClient,
+pub fn drive_teamdrives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     q: &Option<Option<String>>,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/teamdrives",);
 
@@ -10400,11 +10572,14 @@ pub fn drive_teamdrives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_teamdrives_update_execute()` to send, or `drive_teamdrives_update` for simplest API.
 
-pub fn drive_teamdrives_update_builder(
-    client: &SimpleHttpClient,
+pub fn drive_teamdrives_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     teamDriveId: &String,
     useDomainAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/teamdrives/{}",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_operations_get_execute()` to send, or `assuredworkloads_organizations_locations_operations_get` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -192,14 +196,17 @@ pub fn assuredworkloads_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_operations_list_execute()` to send, or `assuredworkloads_organizations_locations_operations_list` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations",
@@ -397,14 +404,17 @@ pub fn assuredworkloads_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_analyze_workload_move_execute()` to send, or `assuredworkloads_organizations_locations_workloads_analyze_workload_move` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     target: &String,
     assetTypes: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     project: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}:analyzeWorkloadMove",
@@ -612,11 +622,14 @@ pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_create_execute()` to send, or `assuredworkloads_organizations_locations_workloads_create` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_create_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     externalId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads",
@@ -795,11 +808,14 @@ pub fn assuredworkloads_organizations_locations_workloads_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_delete_execute()` to send, or `assuredworkloads_organizations_locations_workloads_delete` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_delete_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}",
@@ -972,10 +988,13 @@ pub fn assuredworkloads_organizations_locations_workloads_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_enable_compliance_updates_execute()` to send, or `assuredworkloads_organizations_locations_workloads_enable_compliance_updates` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_enable_compliance_updates_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_enable_compliance_updates_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}:enableComplianceUpdates",
@@ -1151,10 +1170,13 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_compliance_upda
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_enable_resource_monitoring_execute()` to send, or `assuredworkloads_organizations_locations_workloads_enable_resource_monitoring` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_enable_resource_monitoring_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_enable_resource_monitoring_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}:enableResourceMonitoring",
@@ -1331,10 +1353,13 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_resource_monito
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_get_execute()` to send, or `assuredworkloads_organizations_locations_workloads_get` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_get_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}",
@@ -1497,13 +1522,16 @@ pub fn assuredworkloads_organizations_locations_workloads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_list_execute()` to send, or `assuredworkloads_organizations_locations_workloads_list` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_list_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads",
@@ -1698,10 +1726,13 @@ pub fn assuredworkloads_organizations_locations_workloads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_execute()` to send, or `assuredworkloads_organizations_locations_workloads_mutate_partner_permissions` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}:mutatePartnerPermissions",
@@ -1868,11 +1899,14 @@ pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permiss
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_patch_execute()` to send, or `assuredworkloads_organizations_locations_workloads_patch` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_patch_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}",
@@ -2051,10 +2085,13 @@ pub fn assuredworkloads_organizations_locations_workloads_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_restrict_allowed_resources_execute()` to send, or `assuredworkloads_organizations_locations_workloads_restrict_allowed_resources` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_restrict_allowed_resources_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_restrict_allowed_resources_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}:restrictAllowedResources",
@@ -2231,10 +2268,13 @@ pub fn assuredworkloads_organizations_locations_workloads_restrict_allowed_resou
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_updates_apply_execute()` to send, or `assuredworkloads_organizations_locations_workloads_updates_apply` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_updates_apply_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_updates_apply_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}/updates/{updatesId}:apply",
@@ -2398,12 +2438,15 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_apply(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_updates_list_execute()` to send, or `assuredworkloads_organizations_locations_workloads_updates_list` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_updates_list_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_updates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}/updates",
@@ -2598,10 +2641,13 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_violations_acknowledge_execute()` to send, or `assuredworkloads_organizations_locations_workloads_violations_acknowledge` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_violations_acknowledge_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_violations_acknowledge_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}/violations/{violationsId}:acknowledge",
@@ -2777,10 +2823,13 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_acknowledge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_violations_get_execute()` to send, or `assuredworkloads_organizations_locations_workloads_violations_get` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_violations_get_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_violations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}/violations/{violationsId}",
@@ -2944,15 +2993,18 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_violations_list_execute()` to send, or `assuredworkloads_organizations_locations_workloads_violations_list` for simplest API.
 
-pub fn assuredworkloads_organizations_locations_workloads_violations_list_builder(
-    client: &SimpleHttpClient,
+pub fn assuredworkloads_organizations_locations_workloads_violations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     interval_endTime: &Option<Option<String>>,
     interval_startTime: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://assuredworkloads.googleapis.com/v1/organizations/{}/locations/{locationsId}/workloads/{workloadsId}/violations",

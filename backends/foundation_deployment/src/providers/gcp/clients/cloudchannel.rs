@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_check_cloud_identity_accounts_exist_execute()` to send, or `cloudchannel_accounts_check_cloud_identity_accounts_exist` for simplest API.
 
-pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}:checkCloudIdentityAccountsExist",
@@ -202,13 +206,16 @@ pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_list_subscribers_execute()` to send, or `cloudchannel_accounts_list_subscribers` for simplest API.
 
-pub fn cloudchannel_accounts_list_subscribers_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_list_subscribers_builder<R>(
+    client: &SimpleHttpClient<R>,
     account: &String,
     integrator: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}:listSubscribers",
@@ -400,10 +407,13 @@ pub fn cloudchannel_accounts_list_subscribers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_list_transferable_offers_execute()` to send, or `cloudchannel_accounts_list_transferable_offers` for simplest API.
 
-pub fn cloudchannel_accounts_list_transferable_offers_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_list_transferable_offers_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}:listTransferableOffers",
@@ -569,10 +579,13 @@ pub fn cloudchannel_accounts_list_transferable_offers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_list_transferable_skus_execute()` to send, or `cloudchannel_accounts_list_transferable_skus` for simplest API.
 
-pub fn cloudchannel_accounts_list_transferable_skus_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_list_transferable_skus_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}:listTransferableSkus",
@@ -735,10 +748,13 @@ pub fn cloudchannel_accounts_list_transferable_skus(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_register_execute()` to send, or `cloudchannel_accounts_register` for simplest API.
 
-pub fn cloudchannel_accounts_register_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_register_builder<R>(
+    client: &SimpleHttpClient<R>,
     account: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}:register",
@@ -901,10 +917,13 @@ pub fn cloudchannel_accounts_register(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_unregister_execute()` to send, or `cloudchannel_accounts_unregister` for simplest API.
 
-pub fn cloudchannel_accounts_unregister_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_unregister_builder<R>(
+    client: &SimpleHttpClient<R>,
     account: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}:unregister",
@@ -1067,10 +1086,13 @@ pub fn cloudchannel_accounts_unregister(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_create_execute()` to send, or `cloudchannel_accounts_channel_partner_links_create` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks",
@@ -1232,11 +1254,14 @@ pub fn cloudchannel_accounts_channel_partner_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_get_execute()` to send, or `cloudchannel_accounts_channel_partner_links_get` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}",
@@ -1412,13 +1437,16 @@ pub fn cloudchannel_accounts_channel_partner_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_list_execute()` to send, or `cloudchannel_accounts_channel_partner_links_list` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks",
@@ -1613,10 +1641,13 @@ pub fn cloudchannel_accounts_channel_partner_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_patch_execute()` to send, or `cloudchannel_accounts_channel_partner_links_patch` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}",
@@ -1778,10 +1809,15 @@ pub fn cloudchannel_accounts_channel_partner_links_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create_execute()` to send, or `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs",
@@ -1952,10 +1988,15 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete_execute()` to send, or `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs/{channelPartnerRepricingConfigsId}",
@@ -2118,10 +2159,15 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get_execute()` to send, or `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs/{channelPartnerRepricingConfigsId}",
@@ -2295,13 +2341,18 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list_execute()` to send, or `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs",
@@ -2508,10 +2559,15 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch_execute()` to send, or `cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs/{channelPartnerRepricingConfigsId}",
@@ -2682,10 +2738,13 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_customers_create_execute()` to send, or `cloudchannel_accounts_channel_partner_links_customers_create` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_customers_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_customers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/customers",
@@ -2848,10 +2907,13 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_customers_delete_execute()` to send, or `cloudchannel_accounts_channel_partner_links_customers_delete` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_customers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_customers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/customers/{customersId}",
@@ -3010,10 +3072,13 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_customers_get_execute()` to send, or `cloudchannel_accounts_channel_partner_links_customers_get` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_customers_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_customers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/customers/{customersId}",
@@ -3176,10 +3241,13 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_customers_import_execute()` to send, or `cloudchannel_accounts_channel_partner_links_customers_import` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_customers_import_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_customers_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/customers:import",
@@ -3342,13 +3410,16 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_customers_list_execute()` to send, or `cloudchannel_accounts_channel_partner_links_customers_list` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_customers_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_customers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/customers",
@@ -3539,11 +3610,14 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_channel_partner_links_customers_patch_execute()` to send, or `cloudchannel_accounts_channel_partner_links_customers_patch` for simplest API.
 
-pub fn cloudchannel_accounts_channel_partner_links_customers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_channel_partner_links_customers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/channelPartnerLinks/{channelPartnerLinksId}/customers/{customersId}",
@@ -3722,10 +3796,13 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_create_execute()` to send, or `cloudchannel_accounts_customers_create` for simplest API.
 
-pub fn cloudchannel_accounts_customers_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers",
@@ -3887,10 +3964,13 @@ pub fn cloudchannel_accounts_customers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_delete_execute()` to send, or `cloudchannel_accounts_customers_delete` for simplest API.
 
-pub fn cloudchannel_accounts_customers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}",
@@ -4048,10 +4128,13 @@ pub fn cloudchannel_accounts_customers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_get_execute()` to send, or `cloudchannel_accounts_customers_get` for simplest API.
 
-pub fn cloudchannel_accounts_customers_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}",
@@ -4213,10 +4296,13 @@ pub fn cloudchannel_accounts_customers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_import_execute()` to send, or `cloudchannel_accounts_customers_import` for simplest API.
 
-pub fn cloudchannel_accounts_customers_import_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers:import",
@@ -4378,13 +4464,16 @@ pub fn cloudchannel_accounts_customers_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_list_execute()` to send, or `cloudchannel_accounts_customers_list` for simplest API.
 
-pub fn cloudchannel_accounts_customers_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers",
@@ -4575,8 +4664,8 @@ pub fn cloudchannel_accounts_customers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_list_purchasable_offers_execute()` to send, or `cloudchannel_accounts_customers_list_purchasable_offers` for simplest API.
 
-pub fn cloudchannel_accounts_customers_list_purchasable_offers_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_list_purchasable_offers_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     changeOfferPurchase_billingAccount: &Option<Option<String>>,
     changeOfferPurchase_entitlement: &Option<Option<String>>,
@@ -4586,7 +4675,10 @@ pub fn cloudchannel_accounts_customers_list_purchasable_offers_builder(
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}:listPurchasableOffers",
@@ -4811,8 +4903,8 @@ pub fn cloudchannel_accounts_customers_list_purchasable_offers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_list_purchasable_skus_execute()` to send, or `cloudchannel_accounts_customers_list_purchasable_skus` for simplest API.
 
-pub fn cloudchannel_accounts_customers_list_purchasable_skus_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_list_purchasable_skus_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     changeOfferPurchase_changeType: &Option<Option<String>>,
     changeOfferPurchase_entitlement: &Option<Option<String>>,
@@ -4820,7 +4912,10 @@ pub fn cloudchannel_accounts_customers_list_purchasable_skus_builder(
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}:listPurchasableSkus",
@@ -5030,11 +5125,14 @@ pub fn cloudchannel_accounts_customers_list_purchasable_skus(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_patch_execute()` to send, or `cloudchannel_accounts_customers_patch` for simplest API.
 
-pub fn cloudchannel_accounts_customers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}",
@@ -5210,10 +5308,13 @@ pub fn cloudchannel_accounts_customers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_provision_cloud_identity_execute()` to send, or `cloudchannel_accounts_customers_provision_cloud_identity` for simplest API.
 
-pub fn cloudchannel_accounts_customers_provision_cloud_identity_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_provision_cloud_identity_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}:provisionCloudIdentity",
@@ -5376,11 +5477,14 @@ pub fn cloudchannel_accounts_customers_provision_cloud_identity(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_query_eligible_billing_accounts_execute()` to send, or `cloudchannel_accounts_customers_query_eligible_billing_accounts` for simplest API.
 
-pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     skus: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}:queryEligibleBillingAccounts",
@@ -5569,10 +5673,13 @@ pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_transfer_entitlements_execute()` to send, or `cloudchannel_accounts_customers_transfer_entitlements` for simplest API.
 
-pub fn cloudchannel_accounts_customers_transfer_entitlements_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_transfer_entitlements_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}:transferEntitlements",
@@ -5735,10 +5842,13 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_transfer_entitlements_to_google_execute()` to send, or `cloudchannel_accounts_customers_transfer_entitlements_to_google` for simplest API.
 
-pub fn cloudchannel_accounts_customers_transfer_entitlements_to_google_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_transfer_entitlements_to_google_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}:transferEntitlementsToGoogle",
@@ -5903,10 +6013,13 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements_to_google(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_customer_repricing_configs_create_execute()` to send, or `cloudchannel_accounts_customers_customer_repricing_configs_create` for simplest API.
 
-pub fn cloudchannel_accounts_customers_customer_repricing_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_customer_repricing_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/customerRepricingConfigs",
@@ -6072,10 +6185,13 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_customer_repricing_configs_delete_execute()` to send, or `cloudchannel_accounts_customers_customer_repricing_configs_delete` for simplest API.
 
-pub fn cloudchannel_accounts_customers_customer_repricing_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_customer_repricing_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/customerRepricingConfigs/{customerRepricingConfigsId}",
@@ -6235,10 +6351,13 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_customer_repricing_configs_get_execute()` to send, or `cloudchannel_accounts_customers_customer_repricing_configs_get` for simplest API.
 
-pub fn cloudchannel_accounts_customers_customer_repricing_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_customer_repricing_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/customerRepricingConfigs/{customerRepricingConfigsId}",
@@ -6402,13 +6521,16 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_customer_repricing_configs_list_execute()` to send, or `cloudchannel_accounts_customers_customer_repricing_configs_list` for simplest API.
 
-pub fn cloudchannel_accounts_customers_customer_repricing_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_customer_repricing_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/customerRepricingConfigs",
@@ -6609,10 +6731,13 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_customer_repricing_configs_patch_execute()` to send, or `cloudchannel_accounts_customers_customer_repricing_configs_patch` for simplest API.
 
-pub fn cloudchannel_accounts_customers_customer_repricing_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_customer_repricing_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/customerRepricingConfigs/{customerRepricingConfigsId}",
@@ -6777,10 +6902,13 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_activate_execute()` to send, or `cloudchannel_accounts_customers_entitlements_activate` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_activate_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:activate",
@@ -6943,10 +7071,13 @@ pub fn cloudchannel_accounts_customers_entitlements_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_cancel_execute()` to send, or `cloudchannel_accounts_customers_entitlements_cancel` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:cancel",
@@ -7108,10 +7239,13 @@ pub fn cloudchannel_accounts_customers_entitlements_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_change_offer_execute()` to send, or `cloudchannel_accounts_customers_entitlements_change_offer` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_change_offer_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_change_offer_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:changeOffer",
@@ -7274,10 +7408,13 @@ pub fn cloudchannel_accounts_customers_entitlements_change_offer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_change_parameters_execute()` to send, or `cloudchannel_accounts_customers_entitlements_change_parameters` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_change_parameters_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_change_parameters_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:changeParameters",
@@ -7440,10 +7577,13 @@ pub fn cloudchannel_accounts_customers_entitlements_change_parameters(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_change_renewal_settings_execute()` to send, or `cloudchannel_accounts_customers_entitlements_change_renewal_settings` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_change_renewal_settings_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_change_renewal_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:changeRenewalSettings",
@@ -7607,10 +7747,13 @@ pub fn cloudchannel_accounts_customers_entitlements_change_renewal_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_create_execute()` to send, or `cloudchannel_accounts_customers_entitlements_create` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements",
@@ -7773,10 +7916,13 @@ pub fn cloudchannel_accounts_customers_entitlements_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_get_execute()` to send, or `cloudchannel_accounts_customers_entitlements_get` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}",
@@ -7938,12 +8084,15 @@ pub fn cloudchannel_accounts_customers_entitlements_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_list_execute()` to send, or `cloudchannel_accounts_customers_entitlements_list` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements",
@@ -8129,13 +8278,16 @@ pub fn cloudchannel_accounts_customers_entitlements_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_list_entitlement_changes_execute()` to send, or `cloudchannel_accounts_customers_entitlements_list_entitlement_changes` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:listEntitlementChanges",
@@ -8330,10 +8482,13 @@ pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_lookup_offer_execute()` to send, or `cloudchannel_accounts_customers_entitlements_lookup_offer` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_lookup_offer_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_lookup_offer_builder<R>(
+    client: &SimpleHttpClient<R>,
     entitlement: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:lookupOffer",
@@ -8494,10 +8649,13 @@ pub fn cloudchannel_accounts_customers_entitlements_lookup_offer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_start_paid_service_execute()` to send, or `cloudchannel_accounts_customers_entitlements_start_paid_service` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_start_paid_service_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_start_paid_service_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:startPaidService",
@@ -8661,10 +8819,13 @@ pub fn cloudchannel_accounts_customers_entitlements_start_paid_service(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_customers_entitlements_suspend_execute()` to send, or `cloudchannel_accounts_customers_entitlements_suspend` for simplest API.
 
-pub fn cloudchannel_accounts_customers_entitlements_suspend_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_customers_entitlements_suspend_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/customers/{customersId}/entitlements/{entitlementsId}:suspend",
@@ -8826,15 +8987,18 @@ pub fn cloudchannel_accounts_customers_entitlements_suspend(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_offers_list_execute()` to send, or `cloudchannel_accounts_offers_list` for simplest API.
 
-pub fn cloudchannel_accounts_offers_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_offers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showFutureOffers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/offers",
@@ -9037,10 +9201,13 @@ pub fn cloudchannel_accounts_offers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_report_jobs_fetch_report_results_execute()` to send, or `cloudchannel_accounts_report_jobs_fetch_report_results` for simplest API.
 
-pub fn cloudchannel_accounts_report_jobs_fetch_report_results_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_report_jobs_fetch_report_results_builder<R>(
+    client: &SimpleHttpClient<R>,
     reportJob: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/reportJobs/{reportJobsId}:fetchReportResults",
@@ -9204,13 +9371,16 @@ pub fn cloudchannel_accounts_report_jobs_fetch_report_results(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_reports_list_execute()` to send, or `cloudchannel_accounts_reports_list` for simplest API.
 
-pub fn cloudchannel_accounts_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/reports",
@@ -9402,10 +9572,13 @@ pub fn cloudchannel_accounts_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_reports_run_execute()` to send, or `cloudchannel_accounts_reports_run` for simplest API.
 
-pub fn cloudchannel_accounts_reports_run_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_reports_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/reports/{reportsId}:run",
@@ -9567,12 +9740,15 @@ pub fn cloudchannel_accounts_reports_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_sku_groups_list_execute()` to send, or `cloudchannel_accounts_sku_groups_list` for simplest API.
 
-pub fn cloudchannel_accounts_sku_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_sku_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/skuGroups",
@@ -9757,12 +9933,15 @@ pub fn cloudchannel_accounts_sku_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_accounts_sku_groups_billable_skus_list_execute()` to send, or `cloudchannel_accounts_sku_groups_billable_skus_list` for simplest API.
 
-pub fn cloudchannel_accounts_sku_groups_billable_skus_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_accounts_sku_groups_billable_skus_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/accounts/{}/skuGroups/{skuGroupsId}/billableSkus",
@@ -9951,13 +10130,16 @@ pub fn cloudchannel_accounts_sku_groups_billable_skus_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_integrators_list_subscribers_execute()` to send, or `cloudchannel_integrators_list_subscribers` for simplest API.
 
-pub fn cloudchannel_integrators_list_subscribers_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_integrators_list_subscribers_builder<R>(
+    client: &SimpleHttpClient<R>,
     integrator: &String,
     account: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/integrators/{}:listSubscribers",
@@ -10149,10 +10331,13 @@ pub fn cloudchannel_integrators_list_subscribers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_integrators_register_subscriber_execute()` to send, or `cloudchannel_integrators_register_subscriber` for simplest API.
 
-pub fn cloudchannel_integrators_register_subscriber_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_integrators_register_subscriber_builder<R>(
+    client: &SimpleHttpClient<R>,
     integrator: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/integrators/{}:registerSubscriber",
@@ -10315,10 +10500,13 @@ pub fn cloudchannel_integrators_register_subscriber(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_integrators_unregister_subscriber_execute()` to send, or `cloudchannel_integrators_unregister_subscriber` for simplest API.
 
-pub fn cloudchannel_integrators_unregister_subscriber_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_integrators_unregister_subscriber_builder<R>(
+    client: &SimpleHttpClient<R>,
     integrator: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/integrators/{}:unregisterSubscriber",
@@ -10481,10 +10669,13 @@ pub fn cloudchannel_integrators_unregister_subscriber(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_operations_cancel_execute()` to send, or `cloudchannel_operations_cancel` for simplest API.
 
-pub fn cloudchannel_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/operations/{}:cancel",
@@ -10642,10 +10833,13 @@ pub fn cloudchannel_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_operations_delete_execute()` to send, or `cloudchannel_operations_delete` for simplest API.
 
-pub fn cloudchannel_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/operations/{}", name,);
 
@@ -10800,10 +10994,13 @@ pub fn cloudchannel_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_operations_get_execute()` to send, or `cloudchannel_operations_get` for simplest API.
 
-pub fn cloudchannel_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/operations/{}", name,);
 
@@ -10962,13 +11159,16 @@ pub fn cloudchannel_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_operations_list_execute()` to send, or `cloudchannel_operations_list` for simplest API.
 
-pub fn cloudchannel_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/operations",);
 
@@ -11160,13 +11360,16 @@ pub fn cloudchannel_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_products_list_execute()` to send, or `cloudchannel_products_list` for simplest API.
 
-pub fn cloudchannel_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     account: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/products",);
 
@@ -11357,14 +11560,17 @@ pub fn cloudchannel_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudchannel_products_skus_list_execute()` to send, or `cloudchannel_products_skus_list` for simplest API.
 
-pub fn cloudchannel_products_skus_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudchannel_products_skus_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     account: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudchannel.googleapis.com/v1/products/{}/skus",

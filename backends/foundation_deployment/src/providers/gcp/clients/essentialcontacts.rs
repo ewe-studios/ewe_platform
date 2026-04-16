@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_compute_execute()` to send, or `essentialcontacts_folders_contacts_compute` for simplest API.
 
-pub fn essentialcontacts_folders_contacts_compute_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_folders_contacts_compute_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     notificationCategories: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts:compute",
@@ -233,10 +237,13 @@ pub fn essentialcontacts_folders_contacts_compute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_create_execute()` to send, or `essentialcontacts_folders_contacts_create` for simplest API.
 
-pub fn essentialcontacts_folders_contacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_folders_contacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts",
@@ -398,10 +405,13 @@ pub fn essentialcontacts_folders_contacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_delete_execute()` to send, or `essentialcontacts_folders_contacts_delete` for simplest API.
 
-pub fn essentialcontacts_folders_contacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_folders_contacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts/{contactsId}",
@@ -559,10 +569,13 @@ pub fn essentialcontacts_folders_contacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_get_execute()` to send, or `essentialcontacts_folders_contacts_get` for simplest API.
 
-pub fn essentialcontacts_folders_contacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_folders_contacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts/{contactsId}",
@@ -724,12 +737,15 @@ pub fn essentialcontacts_folders_contacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_list_execute()` to send, or `essentialcontacts_folders_contacts_list` for simplest API.
 
-pub fn essentialcontacts_folders_contacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_folders_contacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts",
@@ -918,11 +934,14 @@ pub fn essentialcontacts_folders_contacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_patch_execute()` to send, or `essentialcontacts_folders_contacts_patch` for simplest API.
 
-pub fn essentialcontacts_folders_contacts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_folders_contacts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts/{contactsId}",
@@ -1098,10 +1117,13 @@ pub fn essentialcontacts_folders_contacts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_send_test_message_execute()` to send, or `essentialcontacts_folders_contacts_send_test_message` for simplest API.
 
-pub fn essentialcontacts_folders_contacts_send_test_message_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_folders_contacts_send_test_message_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts:sendTestMessage",
@@ -1260,13 +1282,16 @@ pub fn essentialcontacts_folders_contacts_send_test_message(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_compute_execute()` to send, or `essentialcontacts_organizations_contacts_compute` for simplest API.
 
-pub fn essentialcontacts_organizations_contacts_compute_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_organizations_contacts_compute_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     notificationCategories: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts:compute",
@@ -1467,10 +1492,13 @@ pub fn essentialcontacts_organizations_contacts_compute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_create_execute()` to send, or `essentialcontacts_organizations_contacts_create` for simplest API.
 
-pub fn essentialcontacts_organizations_contacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_organizations_contacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts",
@@ -1632,10 +1660,13 @@ pub fn essentialcontacts_organizations_contacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_delete_execute()` to send, or `essentialcontacts_organizations_contacts_delete` for simplest API.
 
-pub fn essentialcontacts_organizations_contacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_organizations_contacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts/{contactsId}",
@@ -1793,10 +1824,13 @@ pub fn essentialcontacts_organizations_contacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_get_execute()` to send, or `essentialcontacts_organizations_contacts_get` for simplest API.
 
-pub fn essentialcontacts_organizations_contacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_organizations_contacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts/{contactsId}",
@@ -1958,12 +1992,15 @@ pub fn essentialcontacts_organizations_contacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_list_execute()` to send, or `essentialcontacts_organizations_contacts_list` for simplest API.
 
-pub fn essentialcontacts_organizations_contacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_organizations_contacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts",
@@ -2152,11 +2189,14 @@ pub fn essentialcontacts_organizations_contacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_patch_execute()` to send, or `essentialcontacts_organizations_contacts_patch` for simplest API.
 
-pub fn essentialcontacts_organizations_contacts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_organizations_contacts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts/{contactsId}",
@@ -2335,10 +2375,13 @@ pub fn essentialcontacts_organizations_contacts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_send_test_message_execute()` to send, or `essentialcontacts_organizations_contacts_send_test_message` for simplest API.
 
-pub fn essentialcontacts_organizations_contacts_send_test_message_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_organizations_contacts_send_test_message_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts:sendTestMessage",
@@ -2497,13 +2540,16 @@ pub fn essentialcontacts_organizations_contacts_send_test_message(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_compute_execute()` to send, or `essentialcontacts_projects_contacts_compute` for simplest API.
 
-pub fn essentialcontacts_projects_contacts_compute_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_projects_contacts_compute_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     notificationCategories: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts:compute",
@@ -2704,10 +2750,13 @@ pub fn essentialcontacts_projects_contacts_compute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_create_execute()` to send, or `essentialcontacts_projects_contacts_create` for simplest API.
 
-pub fn essentialcontacts_projects_contacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_projects_contacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts",
@@ -2869,10 +2918,13 @@ pub fn essentialcontacts_projects_contacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_delete_execute()` to send, or `essentialcontacts_projects_contacts_delete` for simplest API.
 
-pub fn essentialcontacts_projects_contacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_projects_contacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts/{contactsId}",
@@ -3030,10 +3082,13 @@ pub fn essentialcontacts_projects_contacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_get_execute()` to send, or `essentialcontacts_projects_contacts_get` for simplest API.
 
-pub fn essentialcontacts_projects_contacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_projects_contacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts/{contactsId}",
@@ -3195,12 +3250,15 @@ pub fn essentialcontacts_projects_contacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_list_execute()` to send, or `essentialcontacts_projects_contacts_list` for simplest API.
 
-pub fn essentialcontacts_projects_contacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_projects_contacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts",
@@ -3389,11 +3447,14 @@ pub fn essentialcontacts_projects_contacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_patch_execute()` to send, or `essentialcontacts_projects_contacts_patch` for simplest API.
 
-pub fn essentialcontacts_projects_contacts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_projects_contacts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts/{contactsId}",
@@ -3569,10 +3630,13 @@ pub fn essentialcontacts_projects_contacts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_send_test_message_execute()` to send, or `essentialcontacts_projects_contacts_send_test_message` for simplest API.
 
-pub fn essentialcontacts_projects_contacts_send_test_message_builder(
-    client: &SimpleHttpClient,
+pub fn essentialcontacts_projects_contacts_send_test_message_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts:sendTestMessage",

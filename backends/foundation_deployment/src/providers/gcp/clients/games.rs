@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_accesstokens_generate_play_grouping_api_token_execute()` to send, or `games_accesstokens_generate_play_grouping_api_token` for simplest API.
 
-pub fn games_accesstokens_generate_play_grouping_api_token_builder(
-    client: &SimpleHttpClient,
+pub fn games_accesstokens_generate_play_grouping_api_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &Option<Option<String>>,
     persona: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://games.googleapis.com/games/v1/accesstokens/generatePlayGroupingApiToken",);
@@ -210,12 +214,15 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_accesstokens_generate_recall_play_grouping_api_token_execute()` to send, or `games_accesstokens_generate_recall_play_grouping_api_token` for simplest API.
 
-pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder(
-    client: &SimpleHttpClient,
+pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &Option<Option<String>>,
     persona: &Option<Option<String>>,
     recallSessionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/accesstokens/generateRecallPlayGroupingApiToken",
@@ -403,12 +410,15 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievement_definitions_list_execute()` to send, or `games_achievement_definitions_list` for simplest API.
 
-pub fn games_achievement_definitions_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_achievement_definitions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/achievements",);
 
@@ -593,12 +603,15 @@ pub fn games_achievement_definitions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievements_increment_execute()` to send, or `games_achievements_increment` for simplest API.
 
-pub fn games_achievements_increment_builder(
-    client: &SimpleHttpClient,
+pub fn games_achievements_increment_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
     requestId: &Option<Option<String>>,
     stepsToIncrement: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/increment",
@@ -783,14 +796,17 @@ pub fn games_achievements_increment(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievements_list_execute()` to send, or `games_achievements_list` for simplest API.
 
-pub fn games_achievements_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_achievements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     playerId: &String,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     state: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/achievements",
@@ -987,10 +1003,13 @@ pub fn games_achievements_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievements_reveal_execute()` to send, or `games_achievements_reveal` for simplest API.
 
-pub fn games_achievements_reveal_builder(
-    client: &SimpleHttpClient,
+pub fn games_achievements_reveal_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/reveal",
@@ -1148,11 +1167,14 @@ pub fn games_achievements_reveal(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievements_set_steps_at_least_execute()` to send, or `games_achievements_set_steps_at_least` for simplest API.
 
-pub fn games_achievements_set_steps_at_least_builder(
-    client: &SimpleHttpClient,
+pub fn games_achievements_set_steps_at_least_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
     steps: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/setStepsAtLeast",
@@ -1328,10 +1350,13 @@ pub fn games_achievements_set_steps_at_least(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievements_unlock_execute()` to send, or `games_achievements_unlock` for simplest API.
 
-pub fn games_achievements_unlock_builder(
-    client: &SimpleHttpClient,
+pub fn games_achievements_unlock_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/unlock",
@@ -1489,9 +1514,12 @@ pub fn games_achievements_unlock(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievements_update_multiple_execute()` to send, or `games_achievements_update_multiple` for simplest API.
 
-pub fn games_achievements_update_multiple_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_achievements_update_multiple_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://games.googleapis.com/games/v1/achievements/updateMultiple",);
@@ -1643,12 +1671,15 @@ pub fn games_achievements_update_multiple(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_applications_get_execute()` to send, or `games_applications_get` for simplest API.
 
-pub fn games_applications_get_builder(
-    client: &SimpleHttpClient,
+pub fn games_applications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     language: &Option<Option<String>>,
     platformType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/applications/{}",
@@ -1825,11 +1856,14 @@ pub fn games_applications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_applications_get_end_point_execute()` to send, or `games_applications_get_end_point` for simplest API.
 
-pub fn games_applications_get_end_point_builder(
-    client: &SimpleHttpClient,
+pub fn games_applications_get_end_point_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &Option<Option<String>>,
     endPointType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/applications/getEndPoint",);
 
@@ -1997,9 +2031,12 @@ pub fn games_applications_get_end_point(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_applications_played_execute()` to send, or `games_applications_played` for simplest API.
 
-pub fn games_applications_played_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_applications_played_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/applications/played",);
 
@@ -2139,10 +2176,13 @@ pub fn games_applications_played(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_applications_verify_execute()` to send, or `games_applications_verify` for simplest API.
 
-pub fn games_applications_verify_builder(
-    client: &SimpleHttpClient,
+pub fn games_applications_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/applications/{}/verify",
@@ -2300,12 +2340,15 @@ pub fn games_applications_verify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_events_list_by_player_execute()` to send, or `games_events_list_by_player` for simplest API.
 
-pub fn games_events_list_by_player_builder(
-    client: &SimpleHttpClient,
+pub fn games_events_list_by_player_builder<R>(
+    client: &SimpleHttpClient<R>,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/events",);
 
@@ -2486,12 +2529,15 @@ pub fn games_events_list_by_player(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_events_list_definitions_execute()` to send, or `games_events_list_definitions` for simplest API.
 
-pub fn games_events_list_definitions_builder(
-    client: &SimpleHttpClient,
+pub fn games_events_list_definitions_builder<R>(
+    client: &SimpleHttpClient<R>,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/eventDefinitions",);
 
@@ -2676,10 +2722,13 @@ pub fn games_events_list_definitions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_events_record_execute()` to send, or `games_events_record` for simplest API.
 
-pub fn games_events_record_builder(
-    client: &SimpleHttpClient,
+pub fn games_events_record_builder<R>(
+    client: &SimpleHttpClient<R>,
     language: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/events",);
 
@@ -2845,11 +2894,14 @@ pub fn games_events_record(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_leaderboards_get_execute()` to send, or `games_leaderboards_get` for simplest API.
 
-pub fn games_leaderboards_get_builder(
-    client: &SimpleHttpClient,
+pub fn games_leaderboards_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
     language: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/leaderboards/{}",
@@ -3016,12 +3068,15 @@ pub fn games_leaderboards_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_leaderboards_list_execute()` to send, or `games_leaderboards_list` for simplest API.
 
-pub fn games_leaderboards_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_leaderboards_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/leaderboards",);
 
@@ -3198,9 +3253,12 @@ pub fn games_leaderboards_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_metagame_get_metagame_config_execute()` to send, or `games_metagame_get_metagame_config` for simplest API.
 
-pub fn games_metagame_get_metagame_config_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_metagame_get_metagame_config_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/metagameConfig",);
 
@@ -3347,14 +3405,17 @@ pub fn games_metagame_get_metagame_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_metagame_list_categories_by_player_execute()` to send, or `games_metagame_list_categories_by_player` for simplest API.
 
-pub fn games_metagame_list_categories_by_player_builder(
-    client: &SimpleHttpClient,
+pub fn games_metagame_list_categories_by_player_builder<R>(
+    client: &SimpleHttpClient<R>,
     playerId: &String,
     collection: &String,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/categories/{}",
@@ -3544,12 +3605,15 @@ pub fn games_metagame_list_categories_by_player(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_players_get_execute()` to send, or `games_players_get` for simplest API.
 
-pub fn games_players_get_builder(
-    client: &SimpleHttpClient,
+pub fn games_players_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     playerId: &String,
     language: &Option<Option<String>>,
     playerIdConsistencyToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/players/{}", playerId,);
 
@@ -3723,10 +3787,13 @@ pub fn games_players_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_players_get_multiple_application_player_ids_execute()` to send, or `games_players_get_multiple_application_player_ids` for simplest API.
 
-pub fn games_players_get_multiple_application_player_ids_builder(
-    client: &SimpleHttpClient,
+pub fn games_players_get_multiple_application_player_ids_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://games.googleapis.com/games/v1/players/me/multipleApplicationPlayerIds",);
@@ -3899,9 +3966,12 @@ pub fn games_players_get_multiple_application_player_ids(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_players_get_scoped_player_ids_execute()` to send, or `games_players_get_scoped_player_ids` for simplest API.
 
-pub fn games_players_get_scoped_player_ids_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_players_get_scoped_player_ids_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/players/me/scopedIds",);
 
@@ -4048,13 +4118,16 @@ pub fn games_players_get_scoped_player_ids(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_players_list_execute()` to send, or `games_players_list` for simplest API.
 
-pub fn games_players_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_players_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     collection: &String,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/me/players/{}",
@@ -4241,11 +4314,14 @@ pub fn games_players_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_recall_games_player_tokens_execute()` to send, or `games_recall_games_player_tokens` for simplest API.
 
-pub fn games_recall_games_player_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn games_recall_games_player_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     sessionId: &String,
     applicationIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/gamesPlayerTokens/{}",
@@ -4421,10 +4497,13 @@ pub fn games_recall_games_player_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_recall_last_token_from_all_developer_games_execute()` to send, or `games_recall_last_token_from_all_developer_games` for simplest API.
 
-pub fn games_recall_last_token_from_all_developer_games_builder(
-    client: &SimpleHttpClient,
+pub fn games_recall_last_token_from_all_developer_games_builder<R>(
+    client: &SimpleHttpClient<R>,
     sessionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/developerGamesLastPlayerToken/{}",
@@ -4588,9 +4667,12 @@ pub fn games_recall_last_token_from_all_developer_games(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_recall_link_persona_execute()` to send, or `games_recall_link_persona` for simplest API.
 
-pub fn games_recall_link_persona_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_recall_link_persona_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:linkPersona",);
 
@@ -4737,9 +4819,12 @@ pub fn games_recall_link_persona(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_recall_reset_persona_execute()` to send, or `games_recall_reset_persona` for simplest API.
 
-pub fn games_recall_reset_persona_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_recall_reset_persona_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:resetPersona",);
 
@@ -4886,10 +4971,13 @@ pub fn games_recall_reset_persona(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_recall_retrieve_tokens_execute()` to send, or `games_recall_retrieve_tokens` for simplest API.
 
-pub fn games_recall_retrieve_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn games_recall_retrieve_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     sessionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/tokens/{}",
@@ -5051,9 +5139,12 @@ pub fn games_recall_retrieve_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_recall_unlink_persona_execute()` to send, or `games_recall_unlink_persona` for simplest API.
 
-pub fn games_recall_unlink_persona_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_recall_unlink_persona_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:unlinkPersona",);
 
@@ -5200,10 +5291,13 @@ pub fn games_recall_unlink_persona(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_revisions_check_execute()` to send, or `games_revisions_check` for simplest API.
 
-pub fn games_revisions_check_builder(
-    client: &SimpleHttpClient,
+pub fn games_revisions_check_builder<R>(
+    client: &SimpleHttpClient<R>,
     clientRevision: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/revisions/check",);
 
@@ -5369,8 +5463,8 @@ pub fn games_revisions_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_scores_get_execute()` to send, or `games_scores_get` for simplest API.
 
-pub fn games_scores_get_builder(
-    client: &SimpleHttpClient,
+pub fn games_scores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     playerId: &String,
     leaderboardId: &String,
     timeSpan: &String,
@@ -5378,7 +5472,10 @@ pub fn games_scores_get_builder(
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/leaderboards/{}/scores/{}",
@@ -5581,15 +5678,18 @@ pub fn games_scores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_scores_list_execute()` to send, or `games_scores_list` for simplest API.
 
-pub fn games_scores_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_scores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
     collection: &String,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     timeSpan: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/leaderboards/{}/scores/{}",
@@ -5785,8 +5885,8 @@ pub fn games_scores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_scores_list_window_execute()` to send, or `games_scores_list_window` for simplest API.
 
-pub fn games_scores_list_window_builder(
-    client: &SimpleHttpClient,
+pub fn games_scores_list_window_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
     collection: &String,
     language: &Option<Option<String>>,
@@ -5795,7 +5895,10 @@ pub fn games_scores_list_window_builder(
     resultsAbove: &Option<Option<String>>,
     returnTopIfAbsent: &Option<Option<String>>,
     timeSpan: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/leaderboards/{}/window/{}",
@@ -6003,13 +6106,16 @@ pub fn games_scores_list_window(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_scores_submit_execute()` to send, or `games_scores_submit` for simplest API.
 
-pub fn games_scores_submit_builder(
-    client: &SimpleHttpClient,
+pub fn games_scores_submit_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
     language: &Option<Option<String>>,
     score: &Option<Option<String>>,
     scoreTag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/leaderboards/{}/scores",
@@ -6196,10 +6302,13 @@ pub fn games_scores_submit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_scores_submit_multiple_execute()` to send, or `games_scores_submit_multiple` for simplest API.
 
-pub fn games_scores_submit_multiple_builder(
-    client: &SimpleHttpClient,
+pub fn games_scores_submit_multiple_builder<R>(
+    client: &SimpleHttpClient<R>,
     language: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/leaderboards/scores",);
 
@@ -6365,11 +6474,14 @@ pub fn games_scores_submit_multiple(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_snapshots_get_execute()` to send, or `games_snapshots_get` for simplest API.
 
-pub fn games_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn games_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     snapshotId: &String,
     language: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/snapshots/{}",
@@ -6536,13 +6648,16 @@ pub fn games_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_snapshots_list_execute()` to send, or `games_snapshots_list` for simplest API.
 
-pub fn games_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     playerId: &String,
     language: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/snapshots",
@@ -6729,9 +6844,12 @@ pub fn games_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_stats_get_execute()` to send, or `games_stats_get` for simplest API.
 
-pub fn games_stats_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_stats_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/stats",);
 

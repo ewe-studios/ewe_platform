@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_operations_get_execute()` to send, or `servicemanagement_operations_get` for simplest API.
 
-pub fn servicemanagement_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/operations/{}",
@@ -183,14 +187,17 @@ pub fn servicemanagement_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_operations_list_execute()` to send, or `servicemanagement_operations_list` for simplest API.
 
-pub fn servicemanagement_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     name: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/operations",);
 
@@ -383,9 +390,12 @@ pub fn servicemanagement_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_create_execute()` to send, or `servicemanagement_services_create` for simplest API.
 
-pub fn servicemanagement_services_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn servicemanagement_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/services",);
 
@@ -528,10 +538,13 @@ pub fn servicemanagement_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_delete_execute()` to send, or `servicemanagement_services_delete` for simplest API.
 
-pub fn servicemanagement_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}",
@@ -685,9 +698,12 @@ pub fn servicemanagement_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_generate_config_report_execute()` to send, or `servicemanagement_services_generate_config_report` for simplest API.
 
-pub fn servicemanagement_services_generate_config_report_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn servicemanagement_services_generate_config_report_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://servicemanagement.googleapis.com/v1/services:generateConfigReport",);
@@ -839,10 +855,13 @@ pub fn servicemanagement_services_generate_config_report(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_get_execute()` to send, or `servicemanagement_services_get` for simplest API.
 
-pub fn servicemanagement_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}",
@@ -1000,12 +1019,15 @@ pub fn servicemanagement_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_get_config_execute()` to send, or `servicemanagement_services_get_config` for simplest API.
 
-pub fn servicemanagement_services_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
     configId: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/config",
@@ -1182,10 +1204,13 @@ pub fn servicemanagement_services_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_get_iam_policy_execute()` to send, or `servicemanagement_services_get_iam_policy` for simplest API.
 
-pub fn servicemanagement_services_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}:getIamPolicy",
@@ -1339,13 +1364,16 @@ pub fn servicemanagement_services_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_list_execute()` to send, or `servicemanagement_services_list` for simplest API.
 
-pub fn servicemanagement_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     consumerId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     producerProjectId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/services",);
 
@@ -1532,10 +1560,13 @@ pub fn servicemanagement_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_set_iam_policy_execute()` to send, or `servicemanagement_services_set_iam_policy` for simplest API.
 
-pub fn servicemanagement_services_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}:setIamPolicy",
@@ -1689,10 +1720,13 @@ pub fn servicemanagement_services_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_test_iam_permissions_execute()` to send, or `servicemanagement_services_test_iam_permissions` for simplest API.
 
-pub fn servicemanagement_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}:testIamPermissions",
@@ -1854,10 +1888,13 @@ pub fn servicemanagement_services_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_undelete_execute()` to send, or `servicemanagement_services_undelete` for simplest API.
 
-pub fn servicemanagement_services_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}:undelete",
@@ -2011,10 +2048,13 @@ pub fn servicemanagement_services_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_configs_create_execute()` to send, or `servicemanagement_services_configs_create` for simplest API.
 
-pub fn servicemanagement_services_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs",
@@ -2168,12 +2208,15 @@ pub fn servicemanagement_services_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_configs_get_execute()` to send, or `servicemanagement_services_configs_get` for simplest API.
 
-pub fn servicemanagement_services_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
     configId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs/{}",
@@ -2347,12 +2390,15 @@ pub fn servicemanagement_services_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_configs_list_execute()` to send, or `servicemanagement_services_configs_list` for simplest API.
 
-pub fn servicemanagement_services_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs",
@@ -2537,10 +2583,13 @@ pub fn servicemanagement_services_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_configs_submit_execute()` to send, or `servicemanagement_services_configs_submit` for simplest API.
 
-pub fn servicemanagement_services_configs_submit_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_configs_submit_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs:submit",
@@ -2694,10 +2743,13 @@ pub fn servicemanagement_services_configs_submit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_consumers_get_iam_policy_execute()` to send, or `servicemanagement_services_consumers_get_iam_policy` for simplest API.
 
-pub fn servicemanagement_services_consumers_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_consumers_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{consumersId}:getIamPolicy",
@@ -2852,10 +2904,13 @@ pub fn servicemanagement_services_consumers_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_consumers_set_iam_policy_execute()` to send, or `servicemanagement_services_consumers_set_iam_policy` for simplest API.
 
-pub fn servicemanagement_services_consumers_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_consumers_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{consumersId}:setIamPolicy",
@@ -3010,10 +3065,13 @@ pub fn servicemanagement_services_consumers_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_consumers_test_iam_permissions_execute()` to send, or `servicemanagement_services_consumers_test_iam_permissions` for simplest API.
 
-pub fn servicemanagement_services_consumers_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_consumers_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{consumersId}:testIamPermissions",
@@ -3176,10 +3234,13 @@ pub fn servicemanagement_services_consumers_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_rollouts_create_execute()` to send, or `servicemanagement_services_rollouts_create` for simplest API.
 
-pub fn servicemanagement_services_rollouts_create_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_rollouts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/rollouts",
@@ -3333,11 +3394,14 @@ pub fn servicemanagement_services_rollouts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_rollouts_get_execute()` to send, or `servicemanagement_services_rollouts_get` for simplest API.
 
-pub fn servicemanagement_services_rollouts_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_rollouts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
     rolloutId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/rollouts/{}",
@@ -3497,13 +3561,16 @@ pub fn servicemanagement_services_rollouts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicemanagement_services_rollouts_list_execute()` to send, or `servicemanagement_services_rollouts_list` for simplest API.
 
-pub fn servicemanagement_services_rollouts_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicemanagement_services_rollouts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceName: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/rollouts",

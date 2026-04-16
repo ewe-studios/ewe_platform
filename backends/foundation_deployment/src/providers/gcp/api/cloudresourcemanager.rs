@@ -103,7 +103,6 @@ use crate::providers::gcp::clients::cloudresourcemanager::TestIamPermissionsResp
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerEffectiveTagsListArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersCapabilitiesGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersCapabilitiesPatchArgs;
-use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersDeleteArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersGetIamPolicyArgs;
@@ -114,7 +113,6 @@ use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFo
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersTestIamPermissionsArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersUndeleteArgs;
-use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensDeleteArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensListArgs;
@@ -127,7 +125,6 @@ use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOr
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsSearchArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsTestIamPermissionsArgs;
-use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsDeleteArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsGetIamPolicyArgs;
@@ -164,7 +161,7 @@ use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTa
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesTestIamPermissionsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -173,34 +170,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = CloudresourcemanagerProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = CloudresourcemanagerProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct CloudresourcemanagerProvider<S>
+pub struct CloudresourcemanagerProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> CloudresourcemanagerProvider<S>
+impl<S, R> CloudresourcemanagerProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new CloudresourcemanagerProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new CloudresourcemanagerProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Cloudresourcemanager effective tags list.

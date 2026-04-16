@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_list_execute()` to send, or `androiddeviceprovisioning_customers_list` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_list_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://androiddeviceprovisioning.googleapis.com/v1/customers",);
 
@@ -206,10 +210,13 @@ pub fn androiddeviceprovisioning_customers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_configurations_create_execute()` to send, or `androiddeviceprovisioning_customers_configurations_create` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_configurations_create_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_configurations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations",
@@ -368,10 +375,13 @@ pub fn androiddeviceprovisioning_customers_configurations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_configurations_delete_execute()` to send, or `androiddeviceprovisioning_customers_configurations_delete` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_configurations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_configurations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations/{configurationsId}",
@@ -526,10 +536,13 @@ pub fn androiddeviceprovisioning_customers_configurations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_configurations_get_execute()` to send, or `androiddeviceprovisioning_customers_configurations_get` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_configurations_get_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_configurations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations/{configurationsId}",
@@ -688,10 +701,13 @@ pub fn androiddeviceprovisioning_customers_configurations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_configurations_list_execute()` to send, or `androiddeviceprovisioning_customers_configurations_list` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_configurations_list_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_configurations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations",
@@ -854,11 +870,14 @@ pub fn androiddeviceprovisioning_customers_configurations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_configurations_patch_execute()` to send, or `androiddeviceprovisioning_customers_configurations_patch` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_configurations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_configurations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations/{configurationsId}",
@@ -1033,10 +1052,13 @@ pub fn androiddeviceprovisioning_customers_configurations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_devices_apply_configuration_execute()` to send, or `androiddeviceprovisioning_customers_devices_apply_configuration` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_devices_apply_configuration_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_devices_apply_configuration_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices:applyConfiguration",
@@ -1193,10 +1215,13 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_devices_get_execute()` to send, or `androiddeviceprovisioning_customers_devices_get` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices/{devicesId}",
@@ -1350,12 +1375,15 @@ pub fn androiddeviceprovisioning_customers_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_devices_list_execute()` to send, or `androiddeviceprovisioning_customers_devices_list` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices",
@@ -1540,10 +1568,13 @@ pub fn androiddeviceprovisioning_customers_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_devices_remove_configuration_execute()` to send, or `androiddeviceprovisioning_customers_devices_remove_configuration` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_devices_remove_configuration_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_devices_remove_configuration_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices:removeConfiguration",
@@ -1700,10 +1731,13 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_devices_unclaim_execute()` to send, or `androiddeviceprovisioning_customers_devices_unclaim` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_devices_unclaim_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_devices_unclaim_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices:unclaim",
@@ -1858,10 +1892,13 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_dpcs_list_execute()` to send, or `androiddeviceprovisioning_customers_dpcs_list` for simplest API.
 
-pub fn androiddeviceprovisioning_customers_dpcs_list_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_customers_dpcs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/dpcs",
@@ -2019,10 +2056,13 @@ pub fn androiddeviceprovisioning_customers_dpcs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_operations_get_execute()` to send, or `androiddeviceprovisioning_operations_get` for simplest API.
 
-pub fn androiddeviceprovisioning_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/operations/{}",
@@ -2176,10 +2216,13 @@ pub fn androiddeviceprovisioning_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_customers_create_execute()` to send, or `androiddeviceprovisioning_partners_customers_create` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_customers_create_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_customers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/customers",
@@ -2334,12 +2377,15 @@ pub fn androiddeviceprovisioning_partners_customers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_customers_list_execute()` to send, or `androiddeviceprovisioning_partners_customers_list` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_customers_list_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_customers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/customers",
@@ -2520,10 +2566,13 @@ pub fn androiddeviceprovisioning_partners_customers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_claim_execute()` to send, or `androiddeviceprovisioning_partners_devices_claim` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_claim_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_claim_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:claim",
@@ -2682,10 +2731,13 @@ pub fn androiddeviceprovisioning_partners_devices_claim(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_claim_async_execute()` to send, or `androiddeviceprovisioning_partners_devices_claim_async` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_claim_async_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_claim_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:claimAsync",
@@ -2840,10 +2892,13 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_find_by_identifier_execute()` to send, or `androiddeviceprovisioning_partners_devices_find_by_identifier` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:findByIdentifier",
@@ -3008,10 +3063,13 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_find_by_owner_execute()` to send, or `androiddeviceprovisioning_partners_devices_find_by_owner` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_find_by_owner_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_find_by_owner_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:findByOwner",
@@ -3174,10 +3232,13 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_get_execute()` to send, or `androiddeviceprovisioning_partners_devices_get` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices/{devicesId}",
@@ -3331,10 +3392,13 @@ pub fn androiddeviceprovisioning_partners_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute()` to send, or `androiddeviceprovisioning_partners_devices_get_sim_lock_state` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:getSimLockState",
@@ -3499,11 +3563,14 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_metadata_execute()` to send, or `androiddeviceprovisioning_partners_devices_metadata` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     metadataOwnerId: &String,
     deviceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices/{}/metadata",
@@ -3667,10 +3734,13 @@ pub fn androiddeviceprovisioning_partners_devices_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_unclaim_execute()` to send, or `androiddeviceprovisioning_partners_devices_unclaim` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_unclaim_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_unclaim_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:unclaim",
@@ -3825,10 +3895,13 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_unclaim_async_execute()` to send, or `androiddeviceprovisioning_partners_devices_unclaim_async` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_unclaim_async_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_unclaim_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:unclaimAsync",
@@ -3983,10 +4056,13 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_update_metadata_async_execute()` to send, or `androiddeviceprovisioning_partners_devices_update_metadata_async` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:updateMetadataAsync",
@@ -4143,12 +4219,15 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_vendors_list_execute()` to send, or `androiddeviceprovisioning_partners_vendors_list` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_vendors_list_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_vendors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/vendors",
@@ -4329,12 +4408,15 @@ pub fn androiddeviceprovisioning_partners_vendors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_vendors_customers_list_execute()` to send, or `androiddeviceprovisioning_partners_vendors_customers_list` for simplest API.
 
-pub fn androiddeviceprovisioning_partners_vendors_customers_list_builder(
-    client: &SimpleHttpClient,
+pub fn androiddeviceprovisioning_partners_vendors_customers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/vendors/{vendorsId}/customers",

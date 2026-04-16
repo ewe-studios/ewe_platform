@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_get_iam_policy_execute()` to send, or `biglake_projects_catalogs_get_iam_policy` for simplest API.
 
-pub fn biglake_projects_catalogs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}:getIamPolicy",
@@ -201,10 +205,13 @@ pub fn biglake_projects_catalogs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_set_iam_policy_execute()` to send, or `biglake_projects_catalogs_set_iam_policy` for simplest API.
 
-pub fn biglake_projects_catalogs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}:setIamPolicy",
@@ -358,10 +365,13 @@ pub fn biglake_projects_catalogs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_test_iam_permissions_execute()` to send, or `biglake_projects_catalogs_test_iam_permissions` for simplest API.
 
-pub fn biglake_projects_catalogs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}:testIamPermissions",
@@ -523,11 +533,14 @@ pub fn biglake_projects_catalogs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_namespaces_get_iam_policy_execute()` to send, or `biglake_projects_catalogs_namespaces_get_iam_policy` for simplest API.
 
-pub fn biglake_projects_catalogs_namespaces_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_namespaces_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}/namespaces/{namespacesId}:getIamPolicy",
@@ -698,10 +711,13 @@ pub fn biglake_projects_catalogs_namespaces_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_namespaces_set_iam_policy_execute()` to send, or `biglake_projects_catalogs_namespaces_set_iam_policy` for simplest API.
 
-pub fn biglake_projects_catalogs_namespaces_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_namespaces_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}/namespaces/{namespacesId}:setIamPolicy",
@@ -856,10 +872,13 @@ pub fn biglake_projects_catalogs_namespaces_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_namespaces_test_iam_permissions_execute()` to send, or `biglake_projects_catalogs_namespaces_test_iam_permissions` for simplest API.
 
-pub fn biglake_projects_catalogs_namespaces_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_namespaces_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}/namespaces/{namespacesId}:testIamPermissions",
@@ -1022,11 +1041,14 @@ pub fn biglake_projects_catalogs_namespaces_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_namespaces_tables_get_iam_policy_execute()` to send, or `biglake_projects_catalogs_namespaces_tables_get_iam_policy` for simplest API.
 
-pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}/namespaces/{namespacesId}/tables/{tablesId}:getIamPolicy",
@@ -1197,10 +1219,13 @@ pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_namespaces_tables_set_iam_policy_execute()` to send, or `biglake_projects_catalogs_namespaces_tables_set_iam_policy` for simplest API.
 
-pub fn biglake_projects_catalogs_namespaces_tables_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_namespaces_tables_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}/namespaces/{namespacesId}/tables/{tablesId}:setIamPolicy",
@@ -1355,10 +1380,13 @@ pub fn biglake_projects_catalogs_namespaces_tables_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_catalogs_namespaces_tables_test_iam_permissions_execute()` to send, or `biglake_projects_catalogs_namespaces_tables_test_iam_permissions` for simplest API.
 
-pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/catalogs/{catalogsId}/namespaces/{namespacesId}/tables/{tablesId}:testIamPermissions",
@@ -1523,11 +1551,14 @@ pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_create_execute()` to send, or `biglake_projects_locations_catalogs_create` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_create_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     catalogId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs",
@@ -1695,10 +1726,13 @@ pub fn biglake_projects_locations_catalogs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_delete_execute()` to send, or `biglake_projects_locations_catalogs_delete` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}",
@@ -1852,10 +1886,13 @@ pub fn biglake_projects_locations_catalogs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_get_execute()` to send, or `biglake_projects_locations_catalogs_get` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_get_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}",
@@ -2009,12 +2046,15 @@ pub fn biglake_projects_locations_catalogs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_list_execute()` to send, or `biglake_projects_locations_catalogs_list` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_list_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs",
@@ -2195,11 +2235,14 @@ pub fn biglake_projects_locations_catalogs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_create_execute()` to send, or `biglake_projects_locations_catalogs_databases_create` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_create_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     databaseId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases",
@@ -2370,10 +2413,13 @@ pub fn biglake_projects_locations_catalogs_databases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_delete_execute()` to send, or `biglake_projects_locations_catalogs_databases_delete` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}",
@@ -2527,10 +2573,13 @@ pub fn biglake_projects_locations_catalogs_databases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_get_execute()` to send, or `biglake_projects_locations_catalogs_databases_get` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_get_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}",
@@ -2684,12 +2733,15 @@ pub fn biglake_projects_locations_catalogs_databases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_list_execute()` to send, or `biglake_projects_locations_catalogs_databases_list` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_list_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases",
@@ -2870,11 +2922,14 @@ pub fn biglake_projects_locations_catalogs_databases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_patch_execute()` to send, or `biglake_projects_locations_catalogs_databases_patch` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}",
@@ -3045,11 +3100,14 @@ pub fn biglake_projects_locations_catalogs_databases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_tables_create_execute()` to send, or `biglake_projects_locations_catalogs_databases_tables_create` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_tables_create_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_tables_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tableId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables",
@@ -3220,10 +3278,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_tables_delete_execute()` to send, or `biglake_projects_locations_catalogs_databases_tables_delete` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_tables_delete_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_tables_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}",
@@ -3378,10 +3439,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_tables_get_execute()` to send, or `biglake_projects_locations_catalogs_databases_tables_get` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_tables_get_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_tables_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}",
@@ -3536,13 +3600,16 @@ pub fn biglake_projects_locations_catalogs_databases_tables_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_tables_list_execute()` to send, or `biglake_projects_locations_catalogs_databases_tables_list` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_tables_list_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_tables_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables",
@@ -3729,11 +3796,14 @@ pub fn biglake_projects_locations_catalogs_databases_tables_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_tables_patch_execute()` to send, or `biglake_projects_locations_catalogs_databases_tables_patch` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_tables_patch_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_tables_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}",
@@ -3904,10 +3974,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `biglake_projects_locations_catalogs_databases_tables_rename_execute()` to send, or `biglake_projects_locations_catalogs_databases_tables_rename` for simplest API.
 
-pub fn biglake_projects_locations_catalogs_databases_tables_rename_builder(
-    client: &SimpleHttpClient,
+pub fn biglake_projects_locations_catalogs_databases_tables_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://biglake.googleapis.com/v1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}:rename",

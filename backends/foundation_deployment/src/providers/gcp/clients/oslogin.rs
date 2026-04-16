@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_projects_locations_sign_ssh_public_key_execute()` to send, or `oslogin_projects_locations_sign_ssh_public_key` for simplest API.
 
-pub fn oslogin_projects_locations_sign_ssh_public_key_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_projects_locations_sign_ssh_public_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/projects/{}/locations/{locationsId}:signSshPublicKey",
@@ -187,12 +191,15 @@ pub fn oslogin_projects_locations_sign_ssh_public_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_get_login_profile_execute()` to send, or `oslogin_users_get_login_profile` for simplest API.
 
-pub fn oslogin_users_get_login_profile_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_get_login_profile_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     projectId: &Option<Option<String>>,
     systemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}/loginProfile",
@@ -373,12 +380,15 @@ pub fn oslogin_users_get_login_profile(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_import_ssh_public_key_execute()` to send, or `oslogin_users_import_ssh_public_key` for simplest API.
 
-pub fn oslogin_users_import_ssh_public_key_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_import_ssh_public_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     projectId: &Option<Option<String>>,
     regions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}:importSshPublicKey",
@@ -563,10 +573,13 @@ pub fn oslogin_users_import_ssh_public_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_projects_delete_execute()` to send, or `oslogin_users_projects_delete` for simplest API.
 
-pub fn oslogin_users_projects_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_projects_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}/projects/{projectsId}",
@@ -720,10 +733,13 @@ pub fn oslogin_users_projects_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_projects_provision_posix_account_execute()` to send, or `oslogin_users_projects_provision_posix_account` for simplest API.
 
-pub fn oslogin_users_projects_provision_posix_account_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_projects_provision_posix_account_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}/projects/{projectsId}",
@@ -881,10 +897,13 @@ pub fn oslogin_users_projects_provision_posix_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_ssh_public_keys_create_execute()` to send, or `oslogin_users_ssh_public_keys_create` for simplest API.
 
-pub fn oslogin_users_ssh_public_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_ssh_public_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys",
@@ -1042,10 +1061,13 @@ pub fn oslogin_users_ssh_public_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_ssh_public_keys_delete_execute()` to send, or `oslogin_users_ssh_public_keys_delete` for simplest API.
 
-pub fn oslogin_users_ssh_public_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_ssh_public_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys/{sshPublicKeysId}",
@@ -1199,10 +1221,13 @@ pub fn oslogin_users_ssh_public_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_ssh_public_keys_get_execute()` to send, or `oslogin_users_ssh_public_keys_get` for simplest API.
 
-pub fn oslogin_users_ssh_public_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_ssh_public_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys/{sshPublicKeysId}",
@@ -1360,11 +1385,14 @@ pub fn oslogin_users_ssh_public_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oslogin_users_ssh_public_keys_patch_execute()` to send, or `oslogin_users_ssh_public_keys_patch` for simplest API.
 
-pub fn oslogin_users_ssh_public_keys_patch_builder(
-    client: &SimpleHttpClient,
+pub fn oslogin_users_ssh_public_keys_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys/{sshPublicKeysId}",

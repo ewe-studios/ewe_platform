@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_get_execute()` to send, or `networkservices_projects_locations_get` for simplest API.
 
-pub fn networkservices_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn networkservices_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_list_execute()` to send, or `networkservices_projects_locations_list` for simplest API.
 
-pub fn networkservices_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations",
@@ -383,12 +390,15 @@ pub fn networkservices_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_authz_extensions_create_execute()` to send, or `networkservices_projects_locations_authz_extensions_create` for simplest API.
 
-pub fn networkservices_projects_locations_authz_extensions_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_authz_extensions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authzExtensionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions",
@@ -565,11 +575,14 @@ pub fn networkservices_projects_locations_authz_extensions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_authz_extensions_delete_execute()` to send, or `networkservices_projects_locations_authz_extensions_delete` for simplest API.
 
-pub fn networkservices_projects_locations_authz_extensions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_authz_extensions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions/{authzExtensionsId}",
@@ -740,10 +753,13 @@ pub fn networkservices_projects_locations_authz_extensions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_authz_extensions_get_execute()` to send, or `networkservices_projects_locations_authz_extensions_get` for simplest API.
 
-pub fn networkservices_projects_locations_authz_extensions_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_authz_extensions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions/{authzExtensionsId}",
@@ -902,14 +918,17 @@ pub fn networkservices_projects_locations_authz_extensions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_authz_extensions_list_execute()` to send, or `networkservices_projects_locations_authz_extensions_list` for simplest API.
 
-pub fn networkservices_projects_locations_authz_extensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_authz_extensions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions",
@@ -1106,12 +1125,15 @@ pub fn networkservices_projects_locations_authz_extensions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_authz_extensions_patch_execute()` to send, or `networkservices_projects_locations_authz_extensions_patch` for simplest API.
 
-pub fn networkservices_projects_locations_authz_extensions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_authz_extensions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions/{authzExtensionsId}",
@@ -1288,11 +1310,14 @@ pub fn networkservices_projects_locations_authz_extensions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_keysets_get_iam_policy` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy",
@@ -1463,10 +1488,13 @@ pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_keysets_set_iam_policy` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:setIamPolicy",
@@ -1623,10 +1651,13 @@ pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_execute()` to send, or `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:testIamPermissions",
@@ -1793,11 +1824,14 @@ pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permission
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_origins_get_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_origins_get_iam_policy` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy",
@@ -1968,10 +2002,13 @@ pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_origins_set_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_origins_set_iam_policy` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:setIamPolicy",
@@ -2128,10 +2165,13 @@ pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_execute()` to send, or `networkservices_projects_locations_edge_cache_origins_test_iam_permissions` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:testIamPermissions",
@@ -2298,11 +2338,14 @@ pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permission
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_services_get_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_services_get_iam_policy` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy",
@@ -2473,10 +2516,13 @@ pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_services_set_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_services_set_iam_policy` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:setIamPolicy",
@@ -2633,10 +2679,13 @@ pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_edge_cache_services_test_iam_permissions_execute()` to send, or `networkservices_projects_locations_edge_cache_services_test_iam_permissions` for simplest API.
 
-pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:testIamPermissions",
@@ -2803,11 +2852,14 @@ pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_endpoint_policies_create_execute()` to send, or `networkservices_projects_locations_endpoint_policies_create` for simplest API.
 
-pub fn networkservices_projects_locations_endpoint_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_endpoint_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     endpointPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies",
@@ -2978,10 +3030,13 @@ pub fn networkservices_projects_locations_endpoint_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_endpoint_policies_delete_execute()` to send, or `networkservices_projects_locations_endpoint_policies_delete` for simplest API.
 
-pub fn networkservices_projects_locations_endpoint_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_endpoint_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}",
@@ -3136,10 +3191,13 @@ pub fn networkservices_projects_locations_endpoint_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_endpoint_policies_get_execute()` to send, or `networkservices_projects_locations_endpoint_policies_get` for simplest API.
 
-pub fn networkservices_projects_locations_endpoint_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_endpoint_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}",
@@ -3298,13 +3356,16 @@ pub fn networkservices_projects_locations_endpoint_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_endpoint_policies_list_execute()` to send, or `networkservices_projects_locations_endpoint_policies_list` for simplest API.
 
-pub fn networkservices_projects_locations_endpoint_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_endpoint_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies",
@@ -3495,11 +3556,14 @@ pub fn networkservices_projects_locations_endpoint_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_endpoint_policies_patch_execute()` to send, or `networkservices_projects_locations_endpoint_policies_patch` for simplest API.
 
-pub fn networkservices_projects_locations_endpoint_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_endpoint_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}",
@@ -3670,11 +3734,14 @@ pub fn networkservices_projects_locations_endpoint_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_gateways_create_execute()` to send, or `networkservices_projects_locations_gateways_create` for simplest API.
 
-pub fn networkservices_projects_locations_gateways_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_gateways_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     gatewayId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways",
@@ -3845,10 +3912,13 @@ pub fn networkservices_projects_locations_gateways_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_gateways_delete_execute()` to send, or `networkservices_projects_locations_gateways_delete` for simplest API.
 
-pub fn networkservices_projects_locations_gateways_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_gateways_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
@@ -4002,10 +4072,13 @@ pub fn networkservices_projects_locations_gateways_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_gateways_get_execute()` to send, or `networkservices_projects_locations_gateways_get` for simplest API.
 
-pub fn networkservices_projects_locations_gateways_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_gateways_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
@@ -4159,12 +4232,15 @@ pub fn networkservices_projects_locations_gateways_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_gateways_list_execute()` to send, or `networkservices_projects_locations_gateways_list` for simplest API.
 
-pub fn networkservices_projects_locations_gateways_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_gateways_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways",
@@ -4345,11 +4421,14 @@ pub fn networkservices_projects_locations_gateways_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_gateways_patch_execute()` to send, or `networkservices_projects_locations_gateways_patch` for simplest API.
 
-pub fn networkservices_projects_locations_gateways_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_gateways_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
@@ -4520,10 +4599,13 @@ pub fn networkservices_projects_locations_gateways_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_gateways_route_views_get_execute()` to send, or `networkservices_projects_locations_gateways_route_views_get` for simplest API.
 
-pub fn networkservices_projects_locations_gateways_route_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_gateways_route_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}/routeViews/{routeViewsId}",
@@ -4682,12 +4764,15 @@ pub fn networkservices_projects_locations_gateways_route_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_gateways_route_views_list_execute()` to send, or `networkservices_projects_locations_gateways_route_views_list` for simplest API.
 
-pub fn networkservices_projects_locations_gateways_route_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_gateways_route_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}/routeViews",
@@ -4872,11 +4957,14 @@ pub fn networkservices_projects_locations_gateways_route_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_grpc_routes_create_execute()` to send, or `networkservices_projects_locations_grpc_routes_create` for simplest API.
 
-pub fn networkservices_projects_locations_grpc_routes_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_grpc_routes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     grpcRouteId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes",
@@ -5047,10 +5135,13 @@ pub fn networkservices_projects_locations_grpc_routes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_grpc_routes_delete_execute()` to send, or `networkservices_projects_locations_grpc_routes_delete` for simplest API.
 
-pub fn networkservices_projects_locations_grpc_routes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_grpc_routes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}",
@@ -5205,10 +5296,13 @@ pub fn networkservices_projects_locations_grpc_routes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_grpc_routes_get_execute()` to send, or `networkservices_projects_locations_grpc_routes_get` for simplest API.
 
-pub fn networkservices_projects_locations_grpc_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_grpc_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}",
@@ -5362,13 +5456,16 @@ pub fn networkservices_projects_locations_grpc_routes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_grpc_routes_list_execute()` to send, or `networkservices_projects_locations_grpc_routes_list` for simplest API.
 
-pub fn networkservices_projects_locations_grpc_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_grpc_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes",
@@ -5555,11 +5652,14 @@ pub fn networkservices_projects_locations_grpc_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_grpc_routes_patch_execute()` to send, or `networkservices_projects_locations_grpc_routes_patch` for simplest API.
 
-pub fn networkservices_projects_locations_grpc_routes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_grpc_routes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}",
@@ -5730,11 +5830,14 @@ pub fn networkservices_projects_locations_grpc_routes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_http_routes_create_execute()` to send, or `networkservices_projects_locations_http_routes_create` for simplest API.
 
-pub fn networkservices_projects_locations_http_routes_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_http_routes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     httpRouteId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes",
@@ -5905,10 +6008,13 @@ pub fn networkservices_projects_locations_http_routes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_http_routes_delete_execute()` to send, or `networkservices_projects_locations_http_routes_delete` for simplest API.
 
-pub fn networkservices_projects_locations_http_routes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_http_routes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes/{httpRoutesId}",
@@ -6063,10 +6169,13 @@ pub fn networkservices_projects_locations_http_routes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_http_routes_get_execute()` to send, or `networkservices_projects_locations_http_routes_get` for simplest API.
 
-pub fn networkservices_projects_locations_http_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_http_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes/{httpRoutesId}",
@@ -6220,13 +6329,16 @@ pub fn networkservices_projects_locations_http_routes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_http_routes_list_execute()` to send, or `networkservices_projects_locations_http_routes_list` for simplest API.
 
-pub fn networkservices_projects_locations_http_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_http_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes",
@@ -6413,11 +6525,14 @@ pub fn networkservices_projects_locations_http_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_http_routes_patch_execute()` to send, or `networkservices_projects_locations_http_routes_patch` for simplest API.
 
-pub fn networkservices_projects_locations_http_routes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_http_routes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes/{httpRoutesId}",
@@ -6588,12 +6703,15 @@ pub fn networkservices_projects_locations_http_routes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_edge_extensions_create_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_create` for simplest API.
 
-pub fn networkservices_projects_locations_lb_edge_extensions_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_edge_extensions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     lbEdgeExtensionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions",
@@ -6770,11 +6888,14 @@ pub fn networkservices_projects_locations_lb_edge_extensions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_edge_extensions_delete_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_delete` for simplest API.
 
-pub fn networkservices_projects_locations_lb_edge_extensions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_edge_extensions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}",
@@ -6945,10 +7066,13 @@ pub fn networkservices_projects_locations_lb_edge_extensions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_edge_extensions_get_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_get` for simplest API.
 
-pub fn networkservices_projects_locations_lb_edge_extensions_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_edge_extensions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}",
@@ -7107,14 +7231,17 @@ pub fn networkservices_projects_locations_lb_edge_extensions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_edge_extensions_list_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_list` for simplest API.
 
-pub fn networkservices_projects_locations_lb_edge_extensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_edge_extensions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions",
@@ -7311,12 +7438,15 @@ pub fn networkservices_projects_locations_lb_edge_extensions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_edge_extensions_patch_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_patch` for simplest API.
 
-pub fn networkservices_projects_locations_lb_edge_extensions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_edge_extensions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}",
@@ -7493,12 +7623,15 @@ pub fn networkservices_projects_locations_lb_edge_extensions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_route_extensions_create_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_create` for simplest API.
 
-pub fn networkservices_projects_locations_lb_route_extensions_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_route_extensions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     lbRouteExtensionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions",
@@ -7675,11 +7808,14 @@ pub fn networkservices_projects_locations_lb_route_extensions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_route_extensions_delete_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_delete` for simplest API.
 
-pub fn networkservices_projects_locations_lb_route_extensions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_route_extensions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}",
@@ -7850,10 +7986,13 @@ pub fn networkservices_projects_locations_lb_route_extensions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_route_extensions_get_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_get` for simplest API.
 
-pub fn networkservices_projects_locations_lb_route_extensions_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_route_extensions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}",
@@ -8012,14 +8151,17 @@ pub fn networkservices_projects_locations_lb_route_extensions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_route_extensions_list_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_list` for simplest API.
 
-pub fn networkservices_projects_locations_lb_route_extensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_route_extensions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions",
@@ -8216,12 +8358,15 @@ pub fn networkservices_projects_locations_lb_route_extensions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_route_extensions_patch_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_patch` for simplest API.
 
-pub fn networkservices_projects_locations_lb_route_extensions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_route_extensions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}",
@@ -8398,12 +8543,15 @@ pub fn networkservices_projects_locations_lb_route_extensions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_traffic_extensions_create_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_create` for simplest API.
 
-pub fn networkservices_projects_locations_lb_traffic_extensions_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_traffic_extensions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     lbTrafficExtensionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions",
@@ -8580,11 +8728,14 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_traffic_extensions_delete_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_delete` for simplest API.
 
-pub fn networkservices_projects_locations_lb_traffic_extensions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_traffic_extensions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}",
@@ -8755,10 +8906,13 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_traffic_extensions_get_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_get` for simplest API.
 
-pub fn networkservices_projects_locations_lb_traffic_extensions_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_traffic_extensions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}",
@@ -8917,14 +9071,17 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_traffic_extensions_list_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_list` for simplest API.
 
-pub fn networkservices_projects_locations_lb_traffic_extensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_traffic_extensions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions",
@@ -9121,12 +9278,15 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_lb_traffic_extensions_patch_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_patch` for simplest API.
 
-pub fn networkservices_projects_locations_lb_traffic_extensions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_lb_traffic_extensions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}",
@@ -9303,11 +9463,14 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_meshes_create_execute()` to send, or `networkservices_projects_locations_meshes_create` for simplest API.
 
-pub fn networkservices_projects_locations_meshes_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_meshes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     meshId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes",
@@ -9478,10 +9641,13 @@ pub fn networkservices_projects_locations_meshes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_meshes_delete_execute()` to send, or `networkservices_projects_locations_meshes_delete` for simplest API.
 
-pub fn networkservices_projects_locations_meshes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_meshes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}",
@@ -9635,10 +9801,13 @@ pub fn networkservices_projects_locations_meshes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_meshes_get_execute()` to send, or `networkservices_projects_locations_meshes_get` for simplest API.
 
-pub fn networkservices_projects_locations_meshes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_meshes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}",
@@ -9792,13 +9961,16 @@ pub fn networkservices_projects_locations_meshes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_meshes_list_execute()` to send, or `networkservices_projects_locations_meshes_list` for simplest API.
 
-pub fn networkservices_projects_locations_meshes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_meshes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes",
@@ -9985,11 +10157,14 @@ pub fn networkservices_projects_locations_meshes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_meshes_patch_execute()` to send, or `networkservices_projects_locations_meshes_patch` for simplest API.
 
-pub fn networkservices_projects_locations_meshes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_meshes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}",
@@ -10160,10 +10335,13 @@ pub fn networkservices_projects_locations_meshes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_meshes_route_views_get_execute()` to send, or `networkservices_projects_locations_meshes_route_views_get` for simplest API.
 
-pub fn networkservices_projects_locations_meshes_route_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_meshes_route_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}/routeViews/{routeViewsId}",
@@ -10322,12 +10500,15 @@ pub fn networkservices_projects_locations_meshes_route_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_meshes_route_views_list_execute()` to send, or `networkservices_projects_locations_meshes_route_views_list` for simplest API.
 
-pub fn networkservices_projects_locations_meshes_route_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_meshes_route_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}/routeViews",
@@ -10512,10 +10693,13 @@ pub fn networkservices_projects_locations_meshes_route_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_operations_cancel_execute()` to send, or `networkservices_projects_locations_operations_cancel` for simplest API.
 
-pub fn networkservices_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -10669,10 +10853,13 @@ pub fn networkservices_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_operations_delete_execute()` to send, or `networkservices_projects_locations_operations_delete` for simplest API.
 
-pub fn networkservices_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10826,10 +11013,13 @@ pub fn networkservices_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_operations_get_execute()` to send, or `networkservices_projects_locations_operations_get` for simplest API.
 
-pub fn networkservices_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10983,14 +11173,17 @@ pub fn networkservices_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_operations_list_execute()` to send, or `networkservices_projects_locations_operations_list` for simplest API.
 
-pub fn networkservices_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -11183,11 +11376,14 @@ pub fn networkservices_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_bindings_create_execute()` to send, or `networkservices_projects_locations_service_bindings_create` for simplest API.
 
-pub fn networkservices_projects_locations_service_bindings_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_bindings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serviceBindingId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings",
@@ -11358,10 +11554,13 @@ pub fn networkservices_projects_locations_service_bindings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_bindings_delete_execute()` to send, or `networkservices_projects_locations_service_bindings_delete` for simplest API.
 
-pub fn networkservices_projects_locations_service_bindings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_bindings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings/{serviceBindingsId}",
@@ -11516,10 +11715,13 @@ pub fn networkservices_projects_locations_service_bindings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_bindings_get_execute()` to send, or `networkservices_projects_locations_service_bindings_get` for simplest API.
 
-pub fn networkservices_projects_locations_service_bindings_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_bindings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings/{serviceBindingsId}",
@@ -11678,12 +11880,15 @@ pub fn networkservices_projects_locations_service_bindings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_bindings_list_execute()` to send, or `networkservices_projects_locations_service_bindings_list` for simplest API.
 
-pub fn networkservices_projects_locations_service_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings",
@@ -11868,11 +12073,14 @@ pub fn networkservices_projects_locations_service_bindings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_bindings_patch_execute()` to send, or `networkservices_projects_locations_service_bindings_patch` for simplest API.
 
-pub fn networkservices_projects_locations_service_bindings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_bindings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings/{serviceBindingsId}",
@@ -12043,11 +12251,14 @@ pub fn networkservices_projects_locations_service_bindings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_lb_policies_create_execute()` to send, or `networkservices_projects_locations_service_lb_policies_create` for simplest API.
 
-pub fn networkservices_projects_locations_service_lb_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_lb_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serviceLbPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies",
@@ -12218,10 +12429,13 @@ pub fn networkservices_projects_locations_service_lb_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_lb_policies_delete_execute()` to send, or `networkservices_projects_locations_service_lb_policies_delete` for simplest API.
 
-pub fn networkservices_projects_locations_service_lb_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_lb_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}",
@@ -12376,10 +12590,13 @@ pub fn networkservices_projects_locations_service_lb_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_lb_policies_get_execute()` to send, or `networkservices_projects_locations_service_lb_policies_get` for simplest API.
 
-pub fn networkservices_projects_locations_service_lb_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_lb_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}",
@@ -12538,12 +12755,15 @@ pub fn networkservices_projects_locations_service_lb_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_lb_policies_list_execute()` to send, or `networkservices_projects_locations_service_lb_policies_list` for simplest API.
 
-pub fn networkservices_projects_locations_service_lb_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_lb_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies",
@@ -12728,11 +12948,14 @@ pub fn networkservices_projects_locations_service_lb_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_service_lb_policies_patch_execute()` to send, or `networkservices_projects_locations_service_lb_policies_patch` for simplest API.
 
-pub fn networkservices_projects_locations_service_lb_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_service_lb_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}",
@@ -12903,11 +13126,14 @@ pub fn networkservices_projects_locations_service_lb_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tcp_routes_create_execute()` to send, or `networkservices_projects_locations_tcp_routes_create` for simplest API.
 
-pub fn networkservices_projects_locations_tcp_routes_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tcp_routes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tcpRouteId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes",
@@ -13078,10 +13304,13 @@ pub fn networkservices_projects_locations_tcp_routes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tcp_routes_delete_execute()` to send, or `networkservices_projects_locations_tcp_routes_delete` for simplest API.
 
-pub fn networkservices_projects_locations_tcp_routes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tcp_routes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}",
@@ -13235,10 +13464,13 @@ pub fn networkservices_projects_locations_tcp_routes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tcp_routes_get_execute()` to send, or `networkservices_projects_locations_tcp_routes_get` for simplest API.
 
-pub fn networkservices_projects_locations_tcp_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tcp_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}",
@@ -13392,13 +13624,16 @@ pub fn networkservices_projects_locations_tcp_routes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tcp_routes_list_execute()` to send, or `networkservices_projects_locations_tcp_routes_list` for simplest API.
 
-pub fn networkservices_projects_locations_tcp_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tcp_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes",
@@ -13585,11 +13820,14 @@ pub fn networkservices_projects_locations_tcp_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tcp_routes_patch_execute()` to send, or `networkservices_projects_locations_tcp_routes_patch` for simplest API.
 
-pub fn networkservices_projects_locations_tcp_routes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tcp_routes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}",
@@ -13760,11 +13998,14 @@ pub fn networkservices_projects_locations_tcp_routes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tls_routes_create_execute()` to send, or `networkservices_projects_locations_tls_routes_create` for simplest API.
 
-pub fn networkservices_projects_locations_tls_routes_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tls_routes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tlsRouteId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes",
@@ -13935,10 +14176,13 @@ pub fn networkservices_projects_locations_tls_routes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tls_routes_delete_execute()` to send, or `networkservices_projects_locations_tls_routes_delete` for simplest API.
 
-pub fn networkservices_projects_locations_tls_routes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tls_routes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}",
@@ -14092,10 +14336,13 @@ pub fn networkservices_projects_locations_tls_routes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tls_routes_get_execute()` to send, or `networkservices_projects_locations_tls_routes_get` for simplest API.
 
-pub fn networkservices_projects_locations_tls_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tls_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}",
@@ -14249,13 +14496,16 @@ pub fn networkservices_projects_locations_tls_routes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tls_routes_list_execute()` to send, or `networkservices_projects_locations_tls_routes_list` for simplest API.
 
-pub fn networkservices_projects_locations_tls_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tls_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes",
@@ -14442,11 +14692,14 @@ pub fn networkservices_projects_locations_tls_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_tls_routes_patch_execute()` to send, or `networkservices_projects_locations_tls_routes_patch` for simplest API.
 
-pub fn networkservices_projects_locations_tls_routes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_tls_routes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}",
@@ -14617,11 +14870,14 @@ pub fn networkservices_projects_locations_tls_routes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_create_execute()` to send, or `networkservices_projects_locations_wasm_plugins_create` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     wasmPluginId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins",
@@ -14792,10 +15048,13 @@ pub fn networkservices_projects_locations_wasm_plugins_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_delete_execute()` to send, or `networkservices_projects_locations_wasm_plugins_delete` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}",
@@ -14950,11 +15209,14 @@ pub fn networkservices_projects_locations_wasm_plugins_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_get_execute()` to send, or `networkservices_projects_locations_wasm_plugins_get` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}",
@@ -15123,12 +15385,15 @@ pub fn networkservices_projects_locations_wasm_plugins_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_list_execute()` to send, or `networkservices_projects_locations_wasm_plugins_list` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins",
@@ -15309,11 +15574,14 @@ pub fn networkservices_projects_locations_wasm_plugins_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_patch_execute()` to send, or `networkservices_projects_locations_wasm_plugins_patch` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}",
@@ -15484,11 +15752,14 @@ pub fn networkservices_projects_locations_wasm_plugins_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_versions_create_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_create` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     wasmPluginVersionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions",
@@ -15659,10 +15930,13 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_versions_delete_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_delete` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}",
@@ -15818,10 +16092,13 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_versions_get_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_get` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}",
@@ -15980,12 +16257,15 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkservices_projects_locations_wasm_plugins_versions_list_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_list` for simplest API.
 
-pub fn networkservices_projects_locations_wasm_plugins_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkservices_projects_locations_wasm_plugins_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions",

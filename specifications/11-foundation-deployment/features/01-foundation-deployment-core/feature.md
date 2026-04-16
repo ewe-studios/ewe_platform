@@ -4,12 +4,21 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/01-foundation-deployment-core"
 this_file: "specifications/11-foundation-deployment/features/01-foundation-deployment-core/feature.md"
 
-status: complete
+status: rejected
 priority: high
 created: 2026-03-26
 completed: 2026-04-06
+updated: 2026-04-15
 
 depends_on: []
+
+## Status: REJECTED
+
+**The `DeploymentProvider` trait approach is rejected.**
+
+**Reason:** The trait abstraction added unnecessary complexity. The new design (Feature 35: Trait-Based Deployments) provides a simpler approach where users implement `Deployable` on their own structs and call provider clients directly.
+
+**Important:** The existing code in `backends/foundation_deployment/` **remains as-is** for now. It is not removed - it is simply not the recommended user-facing API going forward.
 
 tasks:
   completed: 7

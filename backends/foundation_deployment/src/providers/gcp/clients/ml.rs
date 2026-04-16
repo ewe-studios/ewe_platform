@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_explain_execute()` to send, or `ml_projects_explain` for simplest API.
 
-pub fn ml_projects_explain_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_explain_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}:explain", name,);
 
@@ -184,10 +188,13 @@ pub fn ml_projects_explain(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_get_config_execute()` to send, or `ml_projects_get_config` for simplest API.
 
-pub fn ml_projects_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}:getConfig", name,);
 
@@ -346,10 +353,13 @@ pub fn ml_projects_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_predict_execute()` to send, or `ml_projects_predict` for simplest API.
 
-pub fn ml_projects_predict_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}:predict", name,);
 
@@ -504,10 +514,13 @@ pub fn ml_projects_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_cancel_execute()` to send, or `ml_projects_jobs_cancel` for simplest API.
 
-pub fn ml_projects_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/jobs/{jobsId}:cancel",
@@ -665,10 +678,13 @@ pub fn ml_projects_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_create_execute()` to send, or `ml_projects_jobs_create` for simplest API.
 
-pub fn ml_projects_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/jobs", parent,);
 
@@ -823,10 +839,13 @@ pub fn ml_projects_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_get_execute()` to send, or `ml_projects_jobs_get` for simplest API.
 
-pub fn ml_projects_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/jobs/{jobsId}",
@@ -984,11 +1003,14 @@ pub fn ml_projects_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_get_iam_policy_execute()` to send, or `ml_projects_jobs_get_iam_policy` for simplest API.
 
-pub fn ml_projects_jobs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/jobs/{jobsId}:getIamPolicy",
@@ -1163,13 +1185,16 @@ pub fn ml_projects_jobs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_list_execute()` to send, or `ml_projects_jobs_list` for simplest API.
 
-pub fn ml_projects_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/jobs", parent,);
 
@@ -1357,11 +1382,14 @@ pub fn ml_projects_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_patch_execute()` to send, or `ml_projects_jobs_patch` for simplest API.
 
-pub fn ml_projects_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/jobs/{jobsId}",
@@ -1532,10 +1560,13 @@ pub fn ml_projects_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_set_iam_policy_execute()` to send, or `ml_projects_jobs_set_iam_policy` for simplest API.
 
-pub fn ml_projects_jobs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/jobs/{jobsId}:setIamPolicy",
@@ -1693,10 +1724,13 @@ pub fn ml_projects_jobs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_jobs_test_iam_permissions_execute()` to send, or `ml_projects_jobs_test_iam_permissions` for simplest API.
 
-pub fn ml_projects_jobs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_jobs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/jobs/{jobsId}:testIamPermissions",
@@ -1858,10 +1892,13 @@ pub fn ml_projects_jobs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_get_execute()` to send, or `ml_projects_locations_get` for simplest API.
 
-pub fn ml_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -2019,12 +2056,15 @@ pub fn ml_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_list_execute()` to send, or `ml_projects_locations_list` for simplest API.
 
-pub fn ml_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/locations", parent,);
 
@@ -2202,10 +2242,13 @@ pub fn ml_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_operations_cancel_execute()` to send, or `ml_projects_locations_operations_cancel` for simplest API.
 
-pub fn ml_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2363,10 +2406,13 @@ pub fn ml_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_operations_get_execute()` to send, or `ml_projects_locations_operations_get` for simplest API.
 
-pub fn ml_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2528,11 +2574,14 @@ pub fn ml_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_create_execute()` to send, or `ml_projects_locations_studies_create` for simplest API.
 
-pub fn ml_projects_locations_studies_create_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     studyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies",
@@ -2704,10 +2753,13 @@ pub fn ml_projects_locations_studies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_delete_execute()` to send, or `ml_projects_locations_studies_delete` for simplest API.
 
-pub fn ml_projects_locations_studies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}",
@@ -2865,10 +2917,13 @@ pub fn ml_projects_locations_studies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_get_execute()` to send, or `ml_projects_locations_studies_get` for simplest API.
 
-pub fn ml_projects_locations_studies_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}",
@@ -3026,10 +3081,13 @@ pub fn ml_projects_locations_studies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_list_execute()` to send, or `ml_projects_locations_studies_list` for simplest API.
 
-pub fn ml_projects_locations_studies_list_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies",
@@ -3191,10 +3249,13 @@ pub fn ml_projects_locations_studies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_add_measurement_execute()` to send, or `ml_projects_locations_studies_trials_add_measurement` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_add_measurement_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_add_measurement_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:addMeasurement",
@@ -3352,10 +3413,13 @@ pub fn ml_projects_locations_studies_trials_add_measurement(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_check_early_stopping_state_execute()` to send, or `ml_projects_locations_studies_trials_check_early_stopping_state` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_check_early_stopping_state_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_check_early_stopping_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:checkEarlyStoppingState",
@@ -3519,10 +3583,13 @@ pub fn ml_projects_locations_studies_trials_check_early_stopping_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_complete_execute()` to send, or `ml_projects_locations_studies_trials_complete` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_complete_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_complete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:complete",
@@ -3680,10 +3747,13 @@ pub fn ml_projects_locations_studies_trials_complete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_create_execute()` to send, or `ml_projects_locations_studies_trials_create` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_create_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials",
@@ -3841,10 +3911,13 @@ pub fn ml_projects_locations_studies_trials_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_delete_execute()` to send, or `ml_projects_locations_studies_trials_delete` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}",
@@ -4002,10 +4075,13 @@ pub fn ml_projects_locations_studies_trials_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_get_execute()` to send, or `ml_projects_locations_studies_trials_get` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}",
@@ -4163,10 +4239,13 @@ pub fn ml_projects_locations_studies_trials_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_list_execute()` to send, or `ml_projects_locations_studies_trials_list` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_list_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials",
@@ -4328,10 +4407,13 @@ pub fn ml_projects_locations_studies_trials_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_list_optimal_trials_execute()` to send, or `ml_projects_locations_studies_trials_list_optimal_trials` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_list_optimal_trials_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_list_optimal_trials_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials:listOptimalTrials",
@@ -4494,10 +4576,13 @@ pub fn ml_projects_locations_studies_trials_list_optimal_trials(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_stop_execute()` to send, or `ml_projects_locations_studies_trials_stop` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_stop_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:stop",
@@ -4655,10 +4740,13 @@ pub fn ml_projects_locations_studies_trials_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_studies_trials_suggest_execute()` to send, or `ml_projects_locations_studies_trials_suggest` for simplest API.
 
-pub fn ml_projects_locations_studies_trials_suggest_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_locations_studies_trials_suggest_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials:suggest",
@@ -4820,10 +4908,13 @@ pub fn ml_projects_locations_studies_trials_suggest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_create_execute()` to send, or `ml_projects_models_create` for simplest API.
 
-pub fn ml_projects_models_create_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/models", parent,);
 
@@ -4978,10 +5069,13 @@ pub fn ml_projects_models_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_delete_execute()` to send, or `ml_projects_models_delete` for simplest API.
 
-pub fn ml_projects_models_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}",
@@ -5143,10 +5237,13 @@ pub fn ml_projects_models_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_get_execute()` to send, or `ml_projects_models_get` for simplest API.
 
-pub fn ml_projects_models_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}",
@@ -5304,11 +5401,14 @@ pub fn ml_projects_models_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_get_iam_policy_execute()` to send, or `ml_projects_models_get_iam_policy` for simplest API.
 
-pub fn ml_projects_models_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}:getIamPolicy",
@@ -5483,13 +5583,16 @@ pub fn ml_projects_models_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_list_execute()` to send, or `ml_projects_models_list` for simplest API.
 
-pub fn ml_projects_models_list_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/models", parent,);
 
@@ -5677,11 +5780,14 @@ pub fn ml_projects_models_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_patch_execute()` to send, or `ml_projects_models_patch` for simplest API.
 
-pub fn ml_projects_models_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}",
@@ -5856,10 +5962,13 @@ pub fn ml_projects_models_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_set_iam_policy_execute()` to send, or `ml_projects_models_set_iam_policy` for simplest API.
 
-pub fn ml_projects_models_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}:setIamPolicy",
@@ -6017,10 +6126,13 @@ pub fn ml_projects_models_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_test_iam_permissions_execute()` to send, or `ml_projects_models_test_iam_permissions` for simplest API.
 
-pub fn ml_projects_models_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}:testIamPermissions",
@@ -6182,10 +6294,13 @@ pub fn ml_projects_models_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_versions_create_execute()` to send, or `ml_projects_models_versions_create` for simplest API.
 
-pub fn ml_projects_models_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}/versions",
@@ -6347,10 +6462,13 @@ pub fn ml_projects_models_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_versions_delete_execute()` to send, or `ml_projects_models_versions_delete` for simplest API.
 
-pub fn ml_projects_models_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}/versions/{versionsId}",
@@ -6512,10 +6630,13 @@ pub fn ml_projects_models_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_versions_get_execute()` to send, or `ml_projects_models_versions_get` for simplest API.
 
-pub fn ml_projects_models_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}/versions/{versionsId}",
@@ -6673,13 +6794,16 @@ pub fn ml_projects_models_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_versions_list_execute()` to send, or `ml_projects_models_versions_list` for simplest API.
 
-pub fn ml_projects_models_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}/versions",
@@ -6870,11 +6994,14 @@ pub fn ml_projects_models_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_versions_patch_execute()` to send, or `ml_projects_models_versions_patch` for simplest API.
 
-pub fn ml_projects_models_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}/versions/{versionsId}",
@@ -7049,10 +7176,13 @@ pub fn ml_projects_models_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_versions_set_default_execute()` to send, or `ml_projects_models_versions_set_default` for simplest API.
 
-pub fn ml_projects_models_versions_set_default_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_models_versions_set_default_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/models/{modelsId}/versions/{versionsId}:setDefault",
@@ -7210,10 +7340,13 @@ pub fn ml_projects_models_versions_set_default(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_operations_cancel_execute()` to send, or `ml_projects_operations_cancel` for simplest API.
 
-pub fn ml_projects_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/operations/{operationsId}:cancel",
@@ -7371,10 +7504,13 @@ pub fn ml_projects_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_operations_get_execute()` to send, or `ml_projects_operations_get` for simplest API.
 
-pub fn ml_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ml.googleapis.com/v1/projects/{}/operations/{operationsId}",
@@ -7536,14 +7672,17 @@ pub fn ml_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_operations_list_execute()` to send, or `ml_projects_operations_list` for simplest API.
 
-pub fn ml_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn ml_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/operations", name,);
 

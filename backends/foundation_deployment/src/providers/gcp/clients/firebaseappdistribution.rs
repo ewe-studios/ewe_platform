@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_media_upload_execute()` to send, or `firebaseappdistribution_media_upload` for simplest API.
 
-pub fn firebaseappdistribution_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases:upload",
@@ -191,10 +195,13 @@ pub fn firebaseappdistribution_media_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_get_aab_info_execute()` to send, or `firebaseappdistribution_projects_apps_get_aab_info` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_get_aab_info_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_get_aab_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/aabInfo",
@@ -356,10 +363,13 @@ pub fn firebaseappdistribution_projects_apps_get_aab_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_batch_delete_execute()` to send, or `firebaseappdistribution_projects_apps_releases_batch_delete` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases:batchDelete",
@@ -518,10 +528,13 @@ pub fn firebaseappdistribution_projects_apps_releases_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_distribute_execute()` to send, or `firebaseappdistribution_projects_apps_releases_distribute` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_distribute_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_distribute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}:distribute",
@@ -688,10 +701,13 @@ pub fn firebaseappdistribution_projects_apps_releases_distribute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_get_execute()` to send, or `firebaseappdistribution_projects_apps_releases_get` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}",
@@ -853,14 +869,17 @@ pub fn firebaseappdistribution_projects_apps_releases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_list_execute()` to send, or `firebaseappdistribution_projects_apps_releases_list` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases",
@@ -1058,11 +1077,14 @@ pub fn firebaseappdistribution_projects_apps_releases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_patch_execute()` to send, or `firebaseappdistribution_projects_apps_releases_patch` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}",
@@ -1241,10 +1263,13 @@ pub fn firebaseappdistribution_projects_apps_releases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_execute()` to send, or `firebaseappdistribution_projects_apps_releases_feedback_reports_delete` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}",
@@ -1405,10 +1430,13 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_feedback_reports_get_execute()` to send, or `firebaseappdistribution_projects_apps_releases_feedback_reports_get` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}",
@@ -1573,12 +1601,15 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_feedback_reports_list_execute()` to send, or `firebaseappdistribution_projects_apps_releases_feedback_reports_list` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/feedbackReports",
@@ -1767,10 +1798,13 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_cancel_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_cancel` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel",
@@ -1930,10 +1964,13 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_delete_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_delete` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}",
@@ -2093,10 +2130,13 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_get_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_get` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}",
@@ -2259,14 +2299,17 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_list_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_list` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations",
@@ -2464,10 +2507,13 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_wait_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_wait` for simplest API.
 
-pub fn firebaseappdistribution_projects_apps_releases_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_apps_releases_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:wait",
@@ -2630,10 +2676,13 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_groups_batch_join_execute()` to send, or `firebaseappdistribution_projects_groups_batch_join` for simplest API.
 
-pub fn firebaseappdistribution_projects_groups_batch_join_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_groups_batch_join_builder<R>(
+    client: &SimpleHttpClient<R>,
     group: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}:batchJoin",
@@ -2791,10 +2840,13 @@ pub fn firebaseappdistribution_projects_groups_batch_join(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_groups_batch_leave_execute()` to send, or `firebaseappdistribution_projects_groups_batch_leave` for simplest API.
 
-pub fn firebaseappdistribution_projects_groups_batch_leave_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_groups_batch_leave_builder<R>(
+    client: &SimpleHttpClient<R>,
     group: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}:batchLeave",
@@ -2952,11 +3004,14 @@ pub fn firebaseappdistribution_projects_groups_batch_leave(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_groups_create_execute()` to send, or `firebaseappdistribution_projects_groups_create` for simplest API.
 
-pub fn firebaseappdistribution_projects_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     groupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups",
@@ -3135,10 +3190,13 @@ pub fn firebaseappdistribution_projects_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_groups_delete_execute()` to send, or `firebaseappdistribution_projects_groups_delete` for simplest API.
 
-pub fn firebaseappdistribution_projects_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}",
@@ -3296,10 +3354,13 @@ pub fn firebaseappdistribution_projects_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_groups_get_execute()` to send, or `firebaseappdistribution_projects_groups_get` for simplest API.
 
-pub fn firebaseappdistribution_projects_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}",
@@ -3461,12 +3522,15 @@ pub fn firebaseappdistribution_projects_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_groups_list_execute()` to send, or `firebaseappdistribution_projects_groups_list` for simplest API.
 
-pub fn firebaseappdistribution_projects_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups",
@@ -3652,11 +3716,14 @@ pub fn firebaseappdistribution_projects_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_groups_patch_execute()` to send, or `firebaseappdistribution_projects_groups_patch` for simplest API.
 
-pub fn firebaseappdistribution_projects_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}",
@@ -3835,10 +3902,13 @@ pub fn firebaseappdistribution_projects_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_testers_batch_add_execute()` to send, or `firebaseappdistribution_projects_testers_batch_add` for simplest API.
 
-pub fn firebaseappdistribution_projects_testers_batch_add_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_testers_batch_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers:batchAdd",
@@ -4002,10 +4072,13 @@ pub fn firebaseappdistribution_projects_testers_batch_add(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_testers_batch_remove_execute()` to send, or `firebaseappdistribution_projects_testers_batch_remove` for simplest API.
 
-pub fn firebaseappdistribution_projects_testers_batch_remove_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_testers_batch_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers:batchRemove",
@@ -4172,13 +4245,16 @@ pub fn firebaseappdistribution_projects_testers_batch_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_testers_list_execute()` to send, or `firebaseappdistribution_projects_testers_list` for simplest API.
 
-pub fn firebaseappdistribution_projects_testers_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_testers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers",
@@ -4370,11 +4446,14 @@ pub fn firebaseappdistribution_projects_testers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_testers_patch_execute()` to send, or `firebaseappdistribution_projects_testers_patch` for simplest API.
 
-pub fn firebaseappdistribution_projects_testers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappdistribution_projects_testers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers/{testersId}",

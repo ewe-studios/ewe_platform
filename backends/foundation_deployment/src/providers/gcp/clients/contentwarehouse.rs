@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_fetch_acl_execute()` to send, or `contentwarehouse_projects_fetch_acl` for simplest API.
 
-pub fn contentwarehouse_projects_fetch_acl_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_fetch_acl_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}:fetchAcl",
@@ -192,10 +196,13 @@ pub fn contentwarehouse_projects_fetch_acl(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_set_acl_execute()` to send, or `contentwarehouse_projects_set_acl` for simplest API.
 
-pub fn contentwarehouse_projects_set_acl_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_set_acl_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}:setAcl",
@@ -358,10 +365,13 @@ pub fn contentwarehouse_projects_set_acl(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_get_status_execute()` to send, or `contentwarehouse_projects_locations_get_status` for simplest API.
 
-pub fn contentwarehouse_projects_locations_get_status_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_get_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}:getStatus",
@@ -524,10 +534,13 @@ pub fn contentwarehouse_projects_locations_get_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_initialize_execute()` to send, or `contentwarehouse_projects_locations_initialize` for simplest API.
 
-pub fn contentwarehouse_projects_locations_initialize_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_initialize_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}:initialize",
@@ -689,10 +702,13 @@ pub fn contentwarehouse_projects_locations_initialize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_run_pipeline_execute()` to send, or `contentwarehouse_projects_locations_run_pipeline` for simplest API.
 
-pub fn contentwarehouse_projects_locations_run_pipeline_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_run_pipeline_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}:runPipeline",
@@ -854,10 +870,13 @@ pub fn contentwarehouse_projects_locations_run_pipeline(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_document_schemas_create_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_create` for simplest API.
 
-pub fn contentwarehouse_projects_locations_document_schemas_create_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_document_schemas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas",
@@ -1021,10 +1040,13 @@ pub fn contentwarehouse_projects_locations_document_schemas_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_document_schemas_delete_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_delete` for simplest API.
 
-pub fn contentwarehouse_projects_locations_document_schemas_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_document_schemas_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas/{documentSchemasId}",
@@ -1183,10 +1205,13 @@ pub fn contentwarehouse_projects_locations_document_schemas_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_document_schemas_get_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_get` for simplest API.
 
-pub fn contentwarehouse_projects_locations_document_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_document_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas/{documentSchemasId}",
@@ -1350,12 +1375,15 @@ pub fn contentwarehouse_projects_locations_document_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_document_schemas_list_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_list` for simplest API.
 
-pub fn contentwarehouse_projects_locations_document_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_document_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas",
@@ -1550,10 +1578,13 @@ pub fn contentwarehouse_projects_locations_document_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_document_schemas_patch_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_patch` for simplest API.
 
-pub fn contentwarehouse_projects_locations_document_schemas_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_document_schemas_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas/{documentSchemasId}",
@@ -1717,10 +1748,13 @@ pub fn contentwarehouse_projects_locations_document_schemas_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_create_execute()` to send, or `contentwarehouse_projects_locations_documents_create` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_create_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents",
@@ -1887,10 +1921,13 @@ pub fn contentwarehouse_projects_locations_documents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_delete_execute()` to send, or `contentwarehouse_projects_locations_documents_delete` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:delete",
@@ -2048,10 +2085,13 @@ pub fn contentwarehouse_projects_locations_documents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_fetch_acl_execute()` to send, or `contentwarehouse_projects_locations_documents_fetch_acl` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_fetch_acl_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_fetch_acl_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:fetchAcl",
@@ -2215,10 +2255,13 @@ pub fn contentwarehouse_projects_locations_documents_fetch_acl(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_get_execute()` to send, or `contentwarehouse_projects_locations_documents_get` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_get_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:get",
@@ -2380,10 +2423,13 @@ pub fn contentwarehouse_projects_locations_documents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_linked_sources_execute()` to send, or `contentwarehouse_projects_locations_documents_linked_sources` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_linked_sources_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_linked_sources_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/linkedSources",
@@ -2556,10 +2602,13 @@ pub fn contentwarehouse_projects_locations_documents_linked_sources(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_linked_targets_execute()` to send, or `contentwarehouse_projects_locations_documents_linked_targets` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_linked_targets_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_linked_targets_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/linkedTargets",
@@ -2732,10 +2781,13 @@ pub fn contentwarehouse_projects_locations_documents_linked_targets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_lock_execute()` to send, or `contentwarehouse_projects_locations_documents_lock` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_lock_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_lock_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:lock",
@@ -2897,10 +2949,13 @@ pub fn contentwarehouse_projects_locations_documents_lock(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_patch_execute()` to send, or `contentwarehouse_projects_locations_documents_patch` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}",
@@ -3066,10 +3121,13 @@ pub fn contentwarehouse_projects_locations_documents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_search_execute()` to send, or `contentwarehouse_projects_locations_documents_search` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_search_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents:search",
@@ -3236,10 +3294,13 @@ pub fn contentwarehouse_projects_locations_documents_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_set_acl_execute()` to send, or `contentwarehouse_projects_locations_documents_set_acl` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_set_acl_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_set_acl_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:setAcl",
@@ -3403,10 +3464,13 @@ pub fn contentwarehouse_projects_locations_documents_set_acl(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_document_links_create_execute()` to send, or `contentwarehouse_projects_locations_documents_document_links_create` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_document_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_document_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/documentLinks",
@@ -3571,10 +3635,13 @@ pub fn contentwarehouse_projects_locations_documents_document_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_document_links_delete_execute()` to send, or `contentwarehouse_projects_locations_documents_document_links_delete` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_document_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_document_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/documentLinks/{documentLinksId}:delete",
@@ -3734,10 +3801,13 @@ pub fn contentwarehouse_projects_locations_documents_document_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_reference_id_delete_execute()` to send, or `contentwarehouse_projects_locations_documents_reference_id_delete` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_reference_id_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_reference_id_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/referenceId/{referenceIdId}:delete",
@@ -3897,10 +3967,13 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_reference_id_get_execute()` to send, or `contentwarehouse_projects_locations_documents_reference_id_get` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_reference_id_get_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_reference_id_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/referenceId/{referenceIdId}:get",
@@ -4063,10 +4136,13 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_documents_reference_id_patch_execute()` to send, or `contentwarehouse_projects_locations_documents_reference_id_patch` for simplest API.
 
-pub fn contentwarehouse_projects_locations_documents_reference_id_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_documents_reference_id_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/referenceId/{referenceIdId}",
@@ -4234,10 +4310,13 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_operations_get_execute()` to send, or `contentwarehouse_projects_locations_operations_get` for simplest API.
 
-pub fn contentwarehouse_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4399,10 +4478,13 @@ pub fn contentwarehouse_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_rule_sets_create_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_create` for simplest API.
 
-pub fn contentwarehouse_projects_locations_rule_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_rule_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets",
@@ -4565,10 +4647,13 @@ pub fn contentwarehouse_projects_locations_rule_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_rule_sets_delete_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_delete` for simplest API.
 
-pub fn contentwarehouse_projects_locations_rule_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_rule_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets/{ruleSetsId}",
@@ -4726,10 +4811,13 @@ pub fn contentwarehouse_projects_locations_rule_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_rule_sets_get_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_get` for simplest API.
 
-pub fn contentwarehouse_projects_locations_rule_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_rule_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets/{ruleSetsId}",
@@ -4891,12 +4979,15 @@ pub fn contentwarehouse_projects_locations_rule_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_rule_sets_list_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_list` for simplest API.
 
-pub fn contentwarehouse_projects_locations_rule_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_rule_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets",
@@ -5085,10 +5176,13 @@ pub fn contentwarehouse_projects_locations_rule_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_rule_sets_patch_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_patch` for simplest API.
 
-pub fn contentwarehouse_projects_locations_rule_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_rule_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets/{ruleSetsId}",
@@ -5250,10 +5344,13 @@ pub fn contentwarehouse_projects_locations_rule_sets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_synonym_sets_create_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_create` for simplest API.
 
-pub fn contentwarehouse_projects_locations_synonym_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_synonym_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets",
@@ -5417,10 +5514,13 @@ pub fn contentwarehouse_projects_locations_synonym_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_synonym_sets_delete_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_delete` for simplest API.
 
-pub fn contentwarehouse_projects_locations_synonym_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_synonym_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets/{synonymSetsId}",
@@ -5579,10 +5679,13 @@ pub fn contentwarehouse_projects_locations_synonym_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_synonym_sets_get_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_get` for simplest API.
 
-pub fn contentwarehouse_projects_locations_synonym_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_synonym_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets/{synonymSetsId}",
@@ -5745,12 +5848,15 @@ pub fn contentwarehouse_projects_locations_synonym_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_synonym_sets_list_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_list` for simplest API.
 
-pub fn contentwarehouse_projects_locations_synonym_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_synonym_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets",
@@ -5939,10 +6045,13 @@ pub fn contentwarehouse_projects_locations_synonym_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contentwarehouse_projects_locations_synonym_sets_patch_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_patch` for simplest API.
 
-pub fn contentwarehouse_projects_locations_synonym_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contentwarehouse_projects_locations_synonym_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets/{synonymSetsId}",

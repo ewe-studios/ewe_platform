@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_job_templates_create_execute()` to send, or `transcoder_projects_locations_job_templates_create` for simplest API.
 
-pub fn transcoder_projects_locations_job_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_job_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     jobTemplateId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobTemplates",
@@ -201,11 +205,14 @@ pub fn transcoder_projects_locations_job_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_job_templates_delete_execute()` to send, or `transcoder_projects_locations_job_templates_delete` for simplest API.
 
-pub fn transcoder_projects_locations_job_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_job_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobTemplates/{jobTemplatesId}",
@@ -376,10 +383,13 @@ pub fn transcoder_projects_locations_job_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_job_templates_get_execute()` to send, or `transcoder_projects_locations_job_templates_get` for simplest API.
 
-pub fn transcoder_projects_locations_job_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_job_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobTemplates/{jobTemplatesId}",
@@ -533,14 +543,17 @@ pub fn transcoder_projects_locations_job_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_job_templates_list_execute()` to send, or `transcoder_projects_locations_job_templates_list` for simplest API.
 
-pub fn transcoder_projects_locations_job_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_job_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobTemplates",
@@ -733,10 +746,13 @@ pub fn transcoder_projects_locations_job_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_jobs_create_execute()` to send, or `transcoder_projects_locations_jobs_create` for simplest API.
 
-pub fn transcoder_projects_locations_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs",
@@ -890,11 +906,14 @@ pub fn transcoder_projects_locations_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_jobs_delete_execute()` to send, or `transcoder_projects_locations_jobs_delete` for simplest API.
 
-pub fn transcoder_projects_locations_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -1062,10 +1081,13 @@ pub fn transcoder_projects_locations_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_jobs_get_execute()` to send, or `transcoder_projects_locations_jobs_get` for simplest API.
 
-pub fn transcoder_projects_locations_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -1219,14 +1241,17 @@ pub fn transcoder_projects_locations_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `transcoder_projects_locations_jobs_list_execute()` to send, or `transcoder_projects_locations_jobs_list` for simplest API.
 
-pub fn transcoder_projects_locations_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn transcoder_projects_locations_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://transcoder.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs",

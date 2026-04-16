@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playintegrity_device_recall_write_execute()` to send, or `playintegrity_device_recall_write` for simplest API.
 
-pub fn playintegrity_device_recall_write_builder(
-    client: &SimpleHttpClient,
+pub fn playintegrity_device_recall_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playintegrity.googleapis.com/v1/{}/deviceRecall:write",
@@ -187,10 +191,13 @@ pub fn playintegrity_device_recall_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playintegrity_decode_integrity_token_execute()` to send, or `playintegrity_decode_integrity_token` for simplest API.
 
-pub fn playintegrity_decode_integrity_token_builder(
-    client: &SimpleHttpClient,
+pub fn playintegrity_decode_integrity_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playintegrity.googleapis.com/v1/{}:decodeIntegrityToken",
@@ -352,10 +359,13 @@ pub fn playintegrity_decode_integrity_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playintegrity_decode_pc_integrity_token_execute()` to send, or `playintegrity_decode_pc_integrity_token` for simplest API.
 
-pub fn playintegrity_decode_pc_integrity_token_builder(
-    client: &SimpleHttpClient,
+pub fn playintegrity_decode_pc_integrity_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playintegrity.googleapis.com/v1/{}:decodePcIntegrityToken",

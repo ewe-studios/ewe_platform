@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_get_execute()` to send, or `config_projects_locations_get` for simplest API.
 
-pub fn config_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn config_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_get_auto_migration_config_execute()` to send, or `config_projects_locations_get_auto_migration_config` for simplest API.
 
-pub fn config_projects_locations_get_auto_migration_config_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_get_auto_migration_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/autoMigrationConfig",
@@ -344,14 +351,17 @@ pub fn config_projects_locations_get_auto_migration_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_list_execute()` to send, or `config_projects_locations_list` for simplest API.
 
-pub fn config_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations",
@@ -544,11 +554,14 @@ pub fn config_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_update_auto_migration_config_execute()` to send, or `config_projects_locations_update_auto_migration_config` for simplest API.
 
-pub fn config_projects_locations_update_auto_migration_config_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_update_auto_migration_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/autoMigrationConfig",
@@ -719,12 +732,15 @@ pub fn config_projects_locations_update_auto_migration_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_create_execute()` to send, or `config_projects_locations_deployment_groups_create` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deploymentGroupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups",
@@ -901,13 +917,16 @@ pub fn config_projects_locations_deployment_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_delete_execute()` to send, or `config_projects_locations_deployment_groups_delete` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deploymentReferencePolicy: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}",
@@ -1090,10 +1109,13 @@ pub fn config_projects_locations_deployment_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_deprovision_execute()` to send, or `config_projects_locations_deployment_groups_deprovision` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_deprovision_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_deprovision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}:deprovision",
@@ -1248,10 +1270,13 @@ pub fn config_projects_locations_deployment_groups_deprovision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_get_execute()` to send, or `config_projects_locations_deployment_groups_get` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}",
@@ -1409,14 +1434,17 @@ pub fn config_projects_locations_deployment_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_list_execute()` to send, or `config_projects_locations_deployment_groups_list` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups",
@@ -1613,12 +1641,15 @@ pub fn config_projects_locations_deployment_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_patch_execute()` to send, or `config_projects_locations_deployment_groups_patch` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}",
@@ -1795,10 +1826,13 @@ pub fn config_projects_locations_deployment_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_provision_execute()` to send, or `config_projects_locations_deployment_groups_provision` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_provision_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_provision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}:provision",
@@ -1953,10 +1987,13 @@ pub fn config_projects_locations_deployment_groups_provision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_revisions_get_execute()` to send, or `config_projects_locations_deployment_groups_revisions_get` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}/revisions/{revisionsId}",
@@ -2115,12 +2152,15 @@ pub fn config_projects_locations_deployment_groups_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployment_groups_revisions_list_execute()` to send, or `config_projects_locations_deployment_groups_revisions_list` for simplest API.
 
-pub fn config_projects_locations_deployment_groups_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployment_groups_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}/revisions",
@@ -2305,12 +2345,15 @@ pub fn config_projects_locations_deployment_groups_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_create_execute()` to send, or `config_projects_locations_deployments_create` for simplest API.
 
-pub fn config_projects_locations_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deploymentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
@@ -2487,13 +2530,16 @@ pub fn config_projects_locations_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_delete_execute()` to send, or `config_projects_locations_deployments_delete` for simplest API.
 
-pub fn config_projects_locations_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deletePolicy: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
@@ -2676,10 +2722,13 @@ pub fn config_projects_locations_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_delete_state_execute()` to send, or `config_projects_locations_deployments_delete_state` for simplest API.
 
-pub fn config_projects_locations_deployments_delete_state_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_delete_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:deleteState",
@@ -2833,10 +2882,13 @@ pub fn config_projects_locations_deployments_delete_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_export_lock_execute()` to send, or `config_projects_locations_deployments_export_lock` for simplest API.
 
-pub fn config_projects_locations_deployments_export_lock_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_export_lock_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:exportLock",
@@ -2990,10 +3042,13 @@ pub fn config_projects_locations_deployments_export_lock(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_export_state_execute()` to send, or `config_projects_locations_deployments_export_state` for simplest API.
 
-pub fn config_projects_locations_deployments_export_state_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_export_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:exportState",
@@ -3147,10 +3202,13 @@ pub fn config_projects_locations_deployments_export_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_get_execute()` to send, or `config_projects_locations_deployments_get` for simplest API.
 
-pub fn config_projects_locations_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
@@ -3304,11 +3362,14 @@ pub fn config_projects_locations_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_get_iam_policy_execute()` to send, or `config_projects_locations_deployments_get_iam_policy` for simplest API.
 
-pub fn config_projects_locations_deployments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:getIamPolicy",
@@ -3479,10 +3540,13 @@ pub fn config_projects_locations_deployments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_import_state_execute()` to send, or `config_projects_locations_deployments_import_state` for simplest API.
 
-pub fn config_projects_locations_deployments_import_state_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_import_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:importState",
@@ -3636,14 +3700,17 @@ pub fn config_projects_locations_deployments_import_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_list_execute()` to send, or `config_projects_locations_deployments_list` for simplest API.
 
-pub fn config_projects_locations_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
@@ -3836,10 +3903,13 @@ pub fn config_projects_locations_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_lock_execute()` to send, or `config_projects_locations_deployments_lock` for simplest API.
 
-pub fn config_projects_locations_deployments_lock_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_lock_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:lock",
@@ -3993,12 +4063,15 @@ pub fn config_projects_locations_deployments_lock(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_patch_execute()` to send, or `config_projects_locations_deployments_patch` for simplest API.
 
-pub fn config_projects_locations_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
@@ -4175,10 +4248,13 @@ pub fn config_projects_locations_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_set_iam_policy_execute()` to send, or `config_projects_locations_deployments_set_iam_policy` for simplest API.
 
-pub fn config_projects_locations_deployments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:setIamPolicy",
@@ -4333,10 +4409,13 @@ pub fn config_projects_locations_deployments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_test_iam_permissions_execute()` to send, or `config_projects_locations_deployments_test_iam_permissions` for simplest API.
 
-pub fn config_projects_locations_deployments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:testIamPermissions",
@@ -4499,10 +4578,13 @@ pub fn config_projects_locations_deployments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_unlock_execute()` to send, or `config_projects_locations_deployments_unlock` for simplest API.
 
-pub fn config_projects_locations_deployments_unlock_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_unlock_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}:unlock",
@@ -4656,10 +4738,13 @@ pub fn config_projects_locations_deployments_unlock(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_revisions_export_state_execute()` to send, or `config_projects_locations_deployments_revisions_export_state` for simplest API.
 
-pub fn config_projects_locations_deployments_revisions_export_state_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_revisions_export_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}:exportState",
@@ -4814,10 +4899,13 @@ pub fn config_projects_locations_deployments_revisions_export_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_revisions_get_execute()` to send, or `config_projects_locations_deployments_revisions_get` for simplest API.
 
-pub fn config_projects_locations_deployments_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}",
@@ -4971,14 +5059,17 @@ pub fn config_projects_locations_deployments_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_revisions_list_execute()` to send, or `config_projects_locations_deployments_revisions_list` for simplest API.
 
-pub fn config_projects_locations_deployments_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/revisions",
@@ -5171,10 +5262,13 @@ pub fn config_projects_locations_deployments_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_revisions_resources_get_execute()` to send, or `config_projects_locations_deployments_revisions_resources_get` for simplest API.
 
-pub fn config_projects_locations_deployments_revisions_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_revisions_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}/resources/{resourcesId}",
@@ -5329,14 +5423,17 @@ pub fn config_projects_locations_deployments_revisions_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_deployments_revisions_resources_list_execute()` to send, or `config_projects_locations_deployments_revisions_resources_list` for simplest API.
 
-pub fn config_projects_locations_deployments_revisions_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_deployments_revisions_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}/resources",
@@ -5529,10 +5626,13 @@ pub fn config_projects_locations_deployments_revisions_resources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_operations_cancel_execute()` to send, or `config_projects_locations_operations_cancel` for simplest API.
 
-pub fn config_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -5686,10 +5786,13 @@ pub fn config_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_operations_delete_execute()` to send, or `config_projects_locations_operations_delete` for simplest API.
 
-pub fn config_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5843,10 +5946,13 @@ pub fn config_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_operations_get_execute()` to send, or `config_projects_locations_operations_get` for simplest API.
 
-pub fn config_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6000,14 +6106,17 @@ pub fn config_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_operations_list_execute()` to send, or `config_projects_locations_operations_list` for simplest API.
 
-pub fn config_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6200,12 +6309,15 @@ pub fn config_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_create_execute()` to send, or `config_projects_locations_previews_create` for simplest API.
 
-pub fn config_projects_locations_previews_create_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     previewId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews",
@@ -6382,11 +6494,14 @@ pub fn config_projects_locations_previews_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_delete_execute()` to send, or `config_projects_locations_previews_delete` for simplest API.
 
-pub fn config_projects_locations_previews_delete_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews/{previewsId}",
@@ -6554,10 +6669,13 @@ pub fn config_projects_locations_previews_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_export_execute()` to send, or `config_projects_locations_previews_export` for simplest API.
 
-pub fn config_projects_locations_previews_export_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews/{previewsId}:export",
@@ -6719,10 +6837,13 @@ pub fn config_projects_locations_previews_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_get_execute()` to send, or `config_projects_locations_previews_get` for simplest API.
 
-pub fn config_projects_locations_previews_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews/{previewsId}",
@@ -6876,14 +6997,17 @@ pub fn config_projects_locations_previews_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_list_execute()` to send, or `config_projects_locations_previews_list` for simplest API.
 
-pub fn config_projects_locations_previews_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews",
@@ -7076,10 +7200,13 @@ pub fn config_projects_locations_previews_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_resource_changes_get_execute()` to send, or `config_projects_locations_previews_resource_changes_get` for simplest API.
 
-pub fn config_projects_locations_previews_resource_changes_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_resource_changes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews/{previewsId}/resourceChanges/{resourceChangesId}",
@@ -7238,14 +7365,17 @@ pub fn config_projects_locations_previews_resource_changes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_resource_changes_list_execute()` to send, or `config_projects_locations_previews_resource_changes_list` for simplest API.
 
-pub fn config_projects_locations_previews_resource_changes_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_resource_changes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews/{previewsId}/resourceChanges",
@@ -7442,10 +7572,13 @@ pub fn config_projects_locations_previews_resource_changes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_resource_drifts_get_execute()` to send, or `config_projects_locations_previews_resource_drifts_get` for simplest API.
 
-pub fn config_projects_locations_previews_resource_drifts_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_resource_drifts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews/{previewsId}/resourceDrifts/{resourceDriftsId}",
@@ -7604,14 +7737,17 @@ pub fn config_projects_locations_previews_resource_drifts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_previews_resource_drifts_list_execute()` to send, or `config_projects_locations_previews_resource_drifts_list` for simplest API.
 
-pub fn config_projects_locations_previews_resource_drifts_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_previews_resource_drifts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/previews/{previewsId}/resourceDrifts",
@@ -7808,10 +7944,13 @@ pub fn config_projects_locations_previews_resource_drifts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_terraform_versions_get_execute()` to send, or `config_projects_locations_terraform_versions_get` for simplest API.
 
-pub fn config_projects_locations_terraform_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_terraform_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/terraformVersions/{terraformVersionsId}",
@@ -7969,14 +8108,17 @@ pub fn config_projects_locations_terraform_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `config_projects_locations_terraform_versions_list_execute()` to send, or `config_projects_locations_terraform_versions_list` for simplest API.
 
-pub fn config_projects_locations_terraform_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn config_projects_locations_terraform_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://config.googleapis.com/v1/projects/{}/locations/{locationsId}/terraformVersions",

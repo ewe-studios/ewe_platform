@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_check_consumer_config_execute()` to send, or `networkconnectivity_projects_locations_check_consumer_config` for simplest API.
 
-pub fn networkconnectivity_projects_locations_check_consumer_config_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_check_consumer_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}:checkConsumerConfig",
@@ -194,10 +198,13 @@ pub fn networkconnectivity_projects_locations_check_consumer_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_get_execute()` to send, or `networkconnectivity_projects_locations_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -351,14 +358,17 @@ pub fn networkconnectivity_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_list_execute()` to send, or `networkconnectivity_projects_locations_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations",
@@ -551,13 +561,16 @@ pub fn networkconnectivity_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_automated_dns_records_create_execute()` to send, or `networkconnectivity_projects_locations_automated_dns_records_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_automated_dns_records_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_automated_dns_records_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     automatedDnsRecordId: &Option<Option<String>>,
     insertMode: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/automatedDnsRecords",
@@ -748,13 +761,16 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_automated_dns_records_delete_execute()` to send, or `networkconnectivity_projects_locations_automated_dns_records_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_automated_dns_records_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_automated_dns_records_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deleteMode: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/automatedDnsRecords/{automatedDnsRecordsId}",
@@ -945,10 +961,13 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_automated_dns_records_get_execute()` to send, or `networkconnectivity_projects_locations_automated_dns_records_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_automated_dns_records_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_automated_dns_records_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/automatedDnsRecords/{automatedDnsRecordsId}",
@@ -1108,14 +1127,17 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_automated_dns_records_list_execute()` to send, or `networkconnectivity_projects_locations_automated_dns_records_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_automated_dns_records_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_automated_dns_records_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/automatedDnsRecords",
@@ -1312,10 +1334,13 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_accept_spoke_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_accept_spoke` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:acceptSpoke",
@@ -1479,10 +1504,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_accept_spoke_update_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_accept_spoke_update` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_update_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:acceptSpokeUpdate",
@@ -1647,12 +1675,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_create_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     hubId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs",
@@ -1837,11 +1868,14 @@ pub fn networkconnectivity_projects_locations_global_hubs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_delete_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}",
@@ -2020,10 +2054,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_get_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}",
@@ -2178,11 +2215,14 @@ pub fn networkconnectivity_projects_locations_global_hubs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_get_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_get_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:getIamPolicy",
@@ -2353,14 +2393,17 @@ pub fn networkconnectivity_projects_locations_global_hubs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_list_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs",
@@ -2553,8 +2596,8 @@ pub fn networkconnectivity_projects_locations_global_hubs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_list_spokes_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_list_spokes` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_list_spokes_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_list_spokes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
@@ -2562,7 +2605,10 @@ pub fn networkconnectivity_projects_locations_global_hubs_list_spokes_builder(
     pageToken: &Option<Option<String>>,
     spokeLocations: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:listSpokes",
@@ -2767,12 +2813,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_list_spokes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_patch_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}",
@@ -2957,15 +3006,18 @@ pub fn networkconnectivity_projects_locations_global_hubs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_query_status_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_query_status` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_query_status_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_query_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     groupBy: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:queryStatus",
@@ -3164,10 +3216,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_query_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_reject_spoke_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_reject_spoke` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:rejectSpoke",
@@ -3331,10 +3386,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_reject_spoke_update_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_reject_spoke_update` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_update_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:rejectSpokeUpdate",
@@ -3499,10 +3557,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_set_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_set_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:setIamPolicy",
@@ -3659,10 +3720,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_test_iam_permissions_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_test_iam_permissions` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}:testIamPermissions",
@@ -3828,10 +3892,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_groups_get_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_groups_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/groups/{groupsId}",
@@ -3986,11 +4053,14 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/groups/{groupsId}:getIamPolicy",
@@ -4162,14 +4232,17 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_groups_list_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_groups_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/groups",
@@ -4362,12 +4435,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_groups_patch_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_groups_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/groups/{groupsId}",
@@ -4552,10 +4628,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/groups/{groupsId}:setIamPolicy",
@@ -4713,10 +4792,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/groups/{groupsId}:testIamPermissions",
@@ -4884,10 +4966,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_test_iam_permis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_route_tables_get_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_route_tables_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_route_tables_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_route_tables_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/routeTables/{routeTablesId}",
@@ -5043,14 +5128,17 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_route_tables_list_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_route_tables_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_route_tables_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_route_tables_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/routeTables",
@@ -5243,10 +5331,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_route_tables_routes_get_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_route_tables_routes_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/routeTables/{routeTablesId}/routes/{routesId}",
@@ -5404,14 +5495,17 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_hubs_route_tables_routes_list_execute()` to send, or `networkconnectivity_projects_locations_global_hubs_route_tables_routes_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/hubs/{hubsId}/routeTables/{routeTablesId}/routes",
@@ -5606,12 +5700,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_policy_based_routes_create_execute()` to send, or `networkconnectivity_projects_locations_global_policy_based_routes_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_policy_based_routes_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_policy_based_routes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     policyBasedRouteId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/policyBasedRoutes",
@@ -5797,11 +5894,14 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_policy_based_routes_delete_execute()` to send, or `networkconnectivity_projects_locations_global_policy_based_routes_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_policy_based_routes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_policy_based_routes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/policyBasedRoutes/{policyBasedRoutesId}",
@@ -5981,10 +6081,13 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_policy_based_routes_get_execute()` to send, or `networkconnectivity_projects_locations_global_policy_based_routes_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/policyBasedRoutes/{policyBasedRoutesId}",
@@ -6144,11 +6247,14 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/policyBasedRoutes/{policyBasedRoutesId}:getIamPolicy",
@@ -6325,14 +6431,17 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_iam
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_policy_based_routes_list_execute()` to send, or `networkconnectivity_projects_locations_global_policy_based_routes_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_policy_based_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_policy_based_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/policyBasedRoutes",
@@ -6530,10 +6639,13 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/policyBasedRoutes/{policyBasedRoutesId}:setIamPolicy",
@@ -6696,10 +6808,15 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_set_iam
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions_execute()` to send, or `networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions` for simplest API.
 
-pub fn networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/global/policyBasedRoutes/{policyBasedRoutesId}:testIamPermissions",
@@ -6863,12 +6980,15 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_test_ia
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_create_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     internalRangeId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges",
@@ -7053,11 +7173,14 @@ pub fn networkconnectivity_projects_locations_internal_ranges_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_delete_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges/{internalRangesId}",
@@ -7236,10 +7359,13 @@ pub fn networkconnectivity_projects_locations_internal_ranges_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_get_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges/{internalRangesId}",
@@ -7398,11 +7524,14 @@ pub fn networkconnectivity_projects_locations_internal_ranges_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_get_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_get_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges/{internalRangesId}:getIamPolicy",
@@ -7573,14 +7702,17 @@ pub fn networkconnectivity_projects_locations_internal_ranges_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_list_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges",
@@ -7777,12 +7909,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_patch_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges/{internalRangesId}",
@@ -7967,10 +8102,13 @@ pub fn networkconnectivity_projects_locations_internal_ranges_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_set_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_set_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges/{internalRangesId}:setIamPolicy",
@@ -8127,10 +8265,13 @@ pub fn networkconnectivity_projects_locations_internal_ranges_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_internal_ranges_test_iam_permissions_execute()` to send, or `networkconnectivity_projects_locations_internal_ranges_test_iam_permissions` for simplest API.
 
-pub fn networkconnectivity_projects_locations_internal_ranges_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_internal_ranges_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/internalRanges/{internalRangesId}:testIamPermissions",
@@ -8297,12 +8438,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_create_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     multicloudDataTransferConfigId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs",
@@ -8490,12 +8634,15 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_c
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}",
@@ -8683,10 +8830,13 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_get_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}",
@@ -8852,15 +9002,18 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_list_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs",
@@ -9065,12 +9218,15 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}",
@@ -9258,12 +9414,17 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     destinationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations",
@@ -9443,12 +9604,17 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations/{destinationsId}",
@@ -9628,10 +9794,15 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations/{destinationsId}",
@@ -9787,15 +9958,20 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations",
@@ -9986,12 +10162,17 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations/{destinationsId}",
@@ -10171,10 +10352,15 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferSupportedServices/{multicloudDataTransferSupportedServicesId}",
@@ -10338,12 +10524,17 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list_execute()` to send, or `networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/multicloudDataTransferSupportedServices",
@@ -10529,10 +10720,13 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_operations_cancel_execute()` to send, or `networkconnectivity_projects_locations_operations_cancel` for simplest API.
 
-pub fn networkconnectivity_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -10687,10 +10881,13 @@ pub fn networkconnectivity_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_operations_delete_execute()` to send, or `networkconnectivity_projects_locations_operations_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10845,10 +11042,13 @@ pub fn networkconnectivity_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_operations_get_execute()` to send, or `networkconnectivity_projects_locations_operations_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -11011,14 +11211,17 @@ pub fn networkconnectivity_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_operations_list_execute()` to send, or `networkconnectivity_projects_locations_operations_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -11216,12 +11419,15 @@ pub fn networkconnectivity_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_regional_endpoints_create_execute()` to send, or `networkconnectivity_projects_locations_regional_endpoints_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_regional_endpoints_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_regional_endpoints_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     regionalEndpointId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/regionalEndpoints",
@@ -11406,11 +11612,14 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_regional_endpoints_delete_execute()` to send, or `networkconnectivity_projects_locations_regional_endpoints_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_regional_endpoints_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_regional_endpoints_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/regionalEndpoints/{regionalEndpointsId}",
@@ -11589,10 +11798,13 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_regional_endpoints_get_execute()` to send, or `networkconnectivity_projects_locations_regional_endpoints_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_regional_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_regional_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/regionalEndpoints/{regionalEndpointsId}",
@@ -11751,14 +11963,17 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_regional_endpoints_list_execute()` to send, or `networkconnectivity_projects_locations_regional_endpoints_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_regional_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_regional_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/regionalEndpoints",
@@ -11955,10 +12170,13 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_remote_transport_profiles_get_execute()` to send, or `networkconnectivity_projects_locations_remote_transport_profiles_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_remote_transport_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_remote_transport_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/remoteTransportProfiles/{remoteTransportProfilesId}",
@@ -12118,14 +12336,17 @@ pub fn networkconnectivity_projects_locations_remote_transport_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_remote_transport_profiles_list_execute()` to send, or `networkconnectivity_projects_locations_remote_transport_profiles_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_remote_transport_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_remote_transport_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/remoteTransportProfiles",
@@ -12322,12 +12543,15 @@ pub fn networkconnectivity_projects_locations_remote_transport_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_classes_delete_execute()` to send, or `networkconnectivity_projects_locations_service_classes_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_classes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_classes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceClasses/{serviceClassesId}",
@@ -12512,10 +12736,13 @@ pub fn networkconnectivity_projects_locations_service_classes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_classes_get_execute()` to send, or `networkconnectivity_projects_locations_service_classes_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_classes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_classes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceClasses/{serviceClassesId}",
@@ -12674,14 +12901,17 @@ pub fn networkconnectivity_projects_locations_service_classes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_classes_list_execute()` to send, or `networkconnectivity_projects_locations_service_classes_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_classes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_classes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceClasses",
@@ -12878,12 +13108,15 @@ pub fn networkconnectivity_projects_locations_service_classes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_classes_patch_execute()` to send, or `networkconnectivity_projects_locations_service_classes_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_classes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_classes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceClasses/{serviceClassesId}",
@@ -13068,12 +13301,15 @@ pub fn networkconnectivity_projects_locations_service_classes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_maps_create_execute()` to send, or `networkconnectivity_projects_locations_service_connection_maps_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_maps_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_maps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     serviceConnectionMapId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionMaps",
@@ -13258,12 +13494,15 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_maps_delete_execute()` to send, or `networkconnectivity_projects_locations_service_connection_maps_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_maps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_maps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionMaps/{serviceConnectionMapsId}",
@@ -13448,10 +13687,13 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_maps_get_execute()` to send, or `networkconnectivity_projects_locations_service_connection_maps_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_maps_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_maps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionMaps/{serviceConnectionMapsId}",
@@ -13611,14 +13853,17 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_maps_list_execute()` to send, or `networkconnectivity_projects_locations_service_connection_maps_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_maps_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_maps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionMaps",
@@ -13815,12 +14060,15 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_maps_patch_execute()` to send, or `networkconnectivity_projects_locations_service_connection_maps_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_maps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_maps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionMaps/{serviceConnectionMapsId}",
@@ -14005,8 +14253,8 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_policies_create_execute()` to send, or `networkconnectivity_projects_locations_service_connection_policies_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     autoSubnetworkConfig_allocRangeSpace: &Option<Option<String>>,
     autoSubnetworkConfig_ipStack: &Option<Option<String>>,
@@ -14014,7 +14262,10 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_create
     requestId: &Option<Option<String>>,
     serviceConnectionPolicyId: &Option<Option<String>>,
     subnetworkMode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionPolicies",
@@ -14225,12 +14476,15 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_policies_delete_execute()` to send, or `networkconnectivity_projects_locations_service_connection_policies_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionPolicies/{serviceConnectionPoliciesId}",
@@ -14417,10 +14671,13 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_policies_get_execute()` to send, or `networkconnectivity_projects_locations_service_connection_policies_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionPolicies/{serviceConnectionPoliciesId}",
@@ -14581,14 +14838,17 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_policies_list_execute()` to send, or `networkconnectivity_projects_locations_service_connection_policies_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionPolicies",
@@ -14786,12 +15046,15 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_policies_patch_execute()` to send, or `networkconnectivity_projects_locations_service_connection_policies_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionPolicies/{serviceConnectionPoliciesId}",
@@ -14977,12 +15240,15 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_tokens_create_execute()` to send, or `networkconnectivity_projects_locations_service_connection_tokens_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_tokens_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_tokens_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     serviceConnectionTokenId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionTokens",
@@ -15168,12 +15434,15 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_tokens_delete_execute()` to send, or `networkconnectivity_projects_locations_service_connection_tokens_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_tokens_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_tokens_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionTokens/{serviceConnectionTokensId}",
@@ -15359,10 +15628,13 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_tokens_get_execute()` to send, or `networkconnectivity_projects_locations_service_connection_tokens_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_tokens_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_tokens_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionTokens/{serviceConnectionTokensId}",
@@ -15522,14 +15794,17 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_service_connection_tokens_list_execute()` to send, or `networkconnectivity_projects_locations_service_connection_tokens_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_service_connection_tokens_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_service_connection_tokens_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConnectionTokens",
@@ -15726,12 +16001,15 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_create_execute()` to send, or `networkconnectivity_projects_locations_spokes_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     spokeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes",
@@ -15916,11 +16194,14 @@ pub fn networkconnectivity_projects_locations_spokes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_delete_execute()` to send, or `networkconnectivity_projects_locations_spokes_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes/{spokesId}",
@@ -16099,10 +16380,13 @@ pub fn networkconnectivity_projects_locations_spokes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_get_execute()` to send, or `networkconnectivity_projects_locations_spokes_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes/{spokesId}",
@@ -16256,11 +16540,14 @@ pub fn networkconnectivity_projects_locations_spokes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_get_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_spokes_get_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes/{spokesId}:getIamPolicy",
@@ -16431,14 +16718,17 @@ pub fn networkconnectivity_projects_locations_spokes_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_list_execute()` to send, or `networkconnectivity_projects_locations_spokes_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes",
@@ -16631,12 +16921,15 @@ pub fn networkconnectivity_projects_locations_spokes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_patch_execute()` to send, or `networkconnectivity_projects_locations_spokes_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes/{spokesId}",
@@ -16821,10 +17114,13 @@ pub fn networkconnectivity_projects_locations_spokes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_set_iam_policy_execute()` to send, or `networkconnectivity_projects_locations_spokes_set_iam_policy` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes/{spokesId}:setIamPolicy",
@@ -16981,10 +17277,13 @@ pub fn networkconnectivity_projects_locations_spokes_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_spokes_test_iam_permissions_execute()` to send, or `networkconnectivity_projects_locations_spokes_test_iam_permissions` for simplest API.
 
-pub fn networkconnectivity_projects_locations_spokes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_spokes_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/spokes/{spokesId}:testIamPermissions",
@@ -17149,12 +17448,15 @@ pub fn networkconnectivity_projects_locations_spokes_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_transports_create_execute()` to send, or `networkconnectivity_projects_locations_transports_create` for simplest API.
 
-pub fn networkconnectivity_projects_locations_transports_create_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_transports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     transportId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/transports",
@@ -17339,11 +17641,14 @@ pub fn networkconnectivity_projects_locations_transports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_transports_delete_execute()` to send, or `networkconnectivity_projects_locations_transports_delete` for simplest API.
 
-pub fn networkconnectivity_projects_locations_transports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_transports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/transports/{transportsId}",
@@ -17522,10 +17827,13 @@ pub fn networkconnectivity_projects_locations_transports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_transports_get_execute()` to send, or `networkconnectivity_projects_locations_transports_get` for simplest API.
 
-pub fn networkconnectivity_projects_locations_transports_get_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_transports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/transports/{transportsId}",
@@ -17680,14 +17988,17 @@ pub fn networkconnectivity_projects_locations_transports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_transports_list_execute()` to send, or `networkconnectivity_projects_locations_transports_list` for simplest API.
 
-pub fn networkconnectivity_projects_locations_transports_list_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_transports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/transports",
@@ -17880,12 +18191,15 @@ pub fn networkconnectivity_projects_locations_transports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networkconnectivity_projects_locations_transports_patch_execute()` to send, or `networkconnectivity_projects_locations_transports_patch` for simplest API.
 
-pub fn networkconnectivity_projects_locations_transports_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networkconnectivity_projects_locations_transports_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networkconnectivity.googleapis.com/v1/projects/{}/locations/{locationsId}/transports/{transportsId}",

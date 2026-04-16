@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_customers_get_execute()` to send, or `reseller_customers_get` for simplest API.
 
-pub fn reseller_customers_get_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_customers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
@@ -183,10 +187,13 @@ pub fn reseller_customers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_customers_insert_execute()` to send, or `reseller_customers_insert` for simplest API.
 
-pub fn reseller_customers_insert_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_customers_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerAuthToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://reseller.googleapis.com/apps/reseller/v1/customers",);
 
@@ -348,10 +355,13 @@ pub fn reseller_customers_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_customers_patch_execute()` to send, or `reseller_customers_patch` for simplest API.
 
-pub fn reseller_customers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_customers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
@@ -505,10 +515,13 @@ pub fn reseller_customers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_customers_update_execute()` to send, or `reseller_customers_update` for simplest API.
 
-pub fn reseller_customers_update_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_customers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
@@ -662,9 +675,12 @@ pub fn reseller_customers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_resellernotify_getwatchdetails_execute()` to send, or `reseller_resellernotify_getwatchdetails` for simplest API.
 
-pub fn reseller_resellernotify_getwatchdetails_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn reseller_resellernotify_getwatchdetails_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://reseller.googleapis.com/apps/reseller/v1/resellernotify/getwatchdetails",);
@@ -816,10 +832,13 @@ pub fn reseller_resellernotify_getwatchdetails(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_resellernotify_register_execute()` to send, or `reseller_resellernotify_register` for simplest API.
 
-pub fn reseller_resellernotify_register_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_resellernotify_register_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceAccountEmailAddress: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://reseller.googleapis.com/apps/reseller/v1/resellernotify/register",);
@@ -987,10 +1006,13 @@ pub fn reseller_resellernotify_register(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_resellernotify_unregister_execute()` to send, or `reseller_resellernotify_unregister` for simplest API.
 
-pub fn reseller_resellernotify_unregister_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_resellernotify_unregister_builder<R>(
+    client: &SimpleHttpClient<R>,
     serviceAccountEmailAddress: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://reseller.googleapis.com/apps/reseller/v1/resellernotify/unregister",);
@@ -1158,11 +1180,14 @@ pub fn reseller_resellernotify_unregister(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_activate_execute()` to send, or `reseller_subscriptions_activate` for simplest API.
 
-pub fn reseller_subscriptions_activate_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/activate",
@@ -1323,11 +1348,14 @@ pub fn reseller_subscriptions_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_change_plan_execute()` to send, or `reseller_subscriptions_change_plan` for simplest API.
 
-pub fn reseller_subscriptions_change_plan_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_change_plan_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changePlan",
@@ -1488,11 +1516,14 @@ pub fn reseller_subscriptions_change_plan(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_change_renewal_settings_execute()` to send, or `reseller_subscriptions_change_renewal_settings` for simplest API.
 
-pub fn reseller_subscriptions_change_renewal_settings_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_change_renewal_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changeRenewalSettings",
@@ -1657,11 +1688,14 @@ pub fn reseller_subscriptions_change_renewal_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_change_seats_execute()` to send, or `reseller_subscriptions_change_seats` for simplest API.
 
-pub fn reseller_subscriptions_change_seats_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_change_seats_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changeSeats",
@@ -1826,12 +1860,15 @@ pub fn reseller_subscriptions_change_seats(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_delete_execute()` to send, or `reseller_subscriptions_delete` for simplest API.
 
-pub fn reseller_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
     deletionType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}",
@@ -2002,11 +2039,14 @@ pub fn reseller_subscriptions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_get_execute()` to send, or `reseller_subscriptions_get` for simplest API.
 
-pub fn reseller_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}",
@@ -2167,13 +2207,16 @@ pub fn reseller_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_insert_execute()` to send, or `reseller_subscriptions_insert` for simplest API.
 
-pub fn reseller_subscriptions_insert_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     action: &Option<Option<String>>,
     customerAuthToken: &Option<Option<String>>,
     sourceSkuId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions",
@@ -2360,14 +2403,17 @@ pub fn reseller_subscriptions_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_list_execute()` to send, or `reseller_subscriptions_list` for simplest API.
 
-pub fn reseller_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerAuthToken: &Option<Option<String>>,
     customerId: &Option<Option<String>>,
     customerNamePrefix: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://reseller.googleapis.com/apps/reseller/v1/subscriptions",);
 
@@ -2560,11 +2606,14 @@ pub fn reseller_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_start_paid_service_execute()` to send, or `reseller_subscriptions_start_paid_service` for simplest API.
 
-pub fn reseller_subscriptions_start_paid_service_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_start_paid_service_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/startPaidService",
@@ -2729,11 +2778,14 @@ pub fn reseller_subscriptions_start_paid_service(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_suspend_execute()` to send, or `reseller_subscriptions_suspend` for simplest API.
 
-pub fn reseller_subscriptions_suspend_builder(
-    client: &SimpleHttpClient,
+pub fn reseller_subscriptions_suspend_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/suspend",

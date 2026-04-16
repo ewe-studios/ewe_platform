@@ -103,7 +103,6 @@ use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsGetArg
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsGetDataSharingSettingsArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsPatchArgs;
-use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsProvisionAccountTicketArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsRunAccessReportArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsSearchChangeHistoryEventsArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs;
@@ -112,7 +111,6 @@ use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConv
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsGetArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsPatchArgs;
-use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsArchiveArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsGetArgs;
@@ -154,7 +152,7 @@ use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesRunA
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -163,34 +161,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = AnalyticsadminProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = AnalyticsadminProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct AnalyticsadminProvider<S>
+pub struct AnalyticsadminProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> AnalyticsadminProvider<S>
+impl<S, R> AnalyticsadminProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new AnalyticsadminProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new AnalyticsadminProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Analyticsadmin account summaries list.

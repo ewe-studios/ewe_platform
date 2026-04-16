@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `texttospeech_operations_cancel_execute()` to send, or `texttospeech_operations_cancel` for simplest API.
 
-pub fn texttospeech_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn texttospeech_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://texttospeech.googleapis.com/v1/operations/{}:cancel",
@@ -183,10 +187,13 @@ pub fn texttospeech_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `texttospeech_operations_delete_execute()` to send, or `texttospeech_operations_delete` for simplest API.
 
-pub fn texttospeech_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn texttospeech_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://texttospeech.googleapis.com/v1/operations/{}", name,);
 
@@ -337,10 +344,13 @@ pub fn texttospeech_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `texttospeech_projects_locations_synthesize_long_audio_execute()` to send, or `texttospeech_projects_locations_synthesize_long_audio` for simplest API.
 
-pub fn texttospeech_projects_locations_synthesize_long_audio_builder(
-    client: &SimpleHttpClient,
+pub fn texttospeech_projects_locations_synthesize_long_audio_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://texttospeech.googleapis.com/v1/projects/{}/locations/{locationsId}:synthesizeLongAudio",
@@ -495,10 +505,13 @@ pub fn texttospeech_projects_locations_synthesize_long_audio(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `texttospeech_projects_locations_operations_get_execute()` to send, or `texttospeech_projects_locations_operations_get` for simplest API.
 
-pub fn texttospeech_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn texttospeech_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://texttospeech.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -652,14 +665,17 @@ pub fn texttospeech_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `texttospeech_projects_locations_operations_list_execute()` to send, or `texttospeech_projects_locations_operations_list` for simplest API.
 
-pub fn texttospeech_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn texttospeech_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://texttospeech.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -852,9 +868,12 @@ pub fn texttospeech_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `texttospeech_text_synthesize_execute()` to send, or `texttospeech_text_synthesize` for simplest API.
 
-pub fn texttospeech_text_synthesize_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn texttospeech_text_synthesize_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://texttospeech.googleapis.com/v1/text:synthesize",);
 
@@ -1001,10 +1020,13 @@ pub fn texttospeech_text_synthesize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `texttospeech_voices_list_execute()` to send, or `texttospeech_voices_list` for simplest API.
 
-pub fn texttospeech_voices_list_builder(
-    client: &SimpleHttpClient,
+pub fn texttospeech_voices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://texttospeech.googleapis.com/v1/voices",);
 

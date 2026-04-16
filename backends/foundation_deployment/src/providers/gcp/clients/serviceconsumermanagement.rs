@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_operations_cancel_execute()` to send, or `serviceconsumermanagement_operations_cancel` for simplest API.
 
-pub fn serviceconsumermanagement_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/operations/{}:cancel",
@@ -183,10 +187,13 @@ pub fn serviceconsumermanagement_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_operations_delete_execute()` to send, or `serviceconsumermanagement_operations_delete` for simplest API.
 
-pub fn serviceconsumermanagement_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/operations/{}",
@@ -340,10 +347,13 @@ pub fn serviceconsumermanagement_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_operations_get_execute()` to send, or `serviceconsumermanagement_operations_get` for simplest API.
 
-pub fn serviceconsumermanagement_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/operations/{}",
@@ -497,13 +507,16 @@ pub fn serviceconsumermanagement_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_operations_list_execute()` to send, or `serviceconsumermanagement_operations_list` for simplest API.
 
-pub fn serviceconsumermanagement_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://serviceconsumermanagement.googleapis.com/v1/operations",);
 
@@ -690,13 +703,16 @@ pub fn serviceconsumermanagement_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_search_execute()` to send, or `serviceconsumermanagement_services_search` for simplest API.
 
-pub fn serviceconsumermanagement_services_search_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}:search",
@@ -887,10 +903,13 @@ pub fn serviceconsumermanagement_services_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_add_project_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_add_project` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_add_project_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_add_project_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:addProject",
@@ -1045,10 +1064,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_add_project(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_apply_project_config_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_apply_project_config` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_apply_project_config_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_apply_project_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:applyProjectConfig",
@@ -1204,10 +1226,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_apply_project_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_attach_project_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_attach_project` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_attach_project_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_attach_project_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:attachProject",
@@ -1363,10 +1388,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_attach_project(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_create_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_create` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_create_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits",
@@ -1521,10 +1549,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_delete_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_delete` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_delete_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}",
@@ -1679,10 +1710,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_delete_project_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_delete_project` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_delete_project_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_delete_project_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:deleteProject",
@@ -1838,13 +1872,16 @@ pub fn serviceconsumermanagement_services_tenancy_units_delete_project(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_list_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_list` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_list_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits",
@@ -2031,10 +2068,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_remove_project_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_remove_project` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_remove_project_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_remove_project_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:removeProject",
@@ -2190,10 +2230,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_remove_project(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `serviceconsumermanagement_services_tenancy_units_undelete_project_execute()` to send, or `serviceconsumermanagement_services_tenancy_units_undelete_project` for simplest API.
 
-pub fn serviceconsumermanagement_services_tenancy_units_undelete_project_builder(
-    client: &SimpleHttpClient,
+pub fn serviceconsumermanagement_services_tenancy_units_undelete_project_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://serviceconsumermanagement.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:undeleteProject",

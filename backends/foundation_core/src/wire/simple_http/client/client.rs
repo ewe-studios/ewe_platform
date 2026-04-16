@@ -397,6 +397,32 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     }
 }
 
+impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
+    /// Creates a new HTTP client with a custom DNS resolver.
+    ///
+    /// WHY: Tests need to redirect API calls to mock servers.
+    ///      StaticSocketAddr ignores hostname and returns test server IP.
+    ///
+    /// # Arguments
+    ///
+    /// * `resolver` - DNS resolver implementation
+    ///
+    /// # Returns
+    ///
+    /// A new `SimpleHttpClient` with the specified resolver and default config.
+    #[must_use]
+    pub fn with_resolver(resolver: R) -> Self {
+        Self {
+            config: ClientConfig::default(),
+            pool: Some(Arc::new(HttpConnectionPool::new(
+                ConnectionPool::default(),
+                resolver,
+            ))),
+            middleware_chain: Arc::new(MiddlewareChain::new()),
+        }
+    }
+}
+
 impl<R: DnsResolver + Default + Clone> SimpleHttpClient<R> {
     /// Enables connection pooling by creating a pool instance.
     #[must_use]

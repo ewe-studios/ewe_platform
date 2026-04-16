@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_activities_list_execute()` to send, or `reports_activities_list` for simplest API.
 
-pub fn reports_activities_list_builder(
-    client: &SimpleHttpClient,
+pub fn reports_activities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userKey: &String,
     applicationName: &String,
     actorIpAddress: &Option<Option<String>>,
@@ -45,7 +46,10 @@ pub fn reports_activities_list_builder(
     resourceDetailsFilter: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
     statusFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/activity/users/{}/applications/{}",
@@ -303,8 +307,8 @@ pub fn reports_activities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_activities_watch_execute()` to send, or `reports_activities_watch` for simplest API.
 
-pub fn reports_activities_watch_builder(
-    client: &SimpleHttpClient,
+pub fn reports_activities_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     userKey: &String,
     applicationName: &String,
     actorIpAddress: &Option<Option<String>>,
@@ -317,7 +321,10 @@ pub fn reports_activities_watch_builder(
     orgUnitID: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/activity/users/{}/applications/{}/watch",
@@ -545,9 +552,12 @@ pub fn reports_activities_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `admin_channels_stop_execute()` to send, or `admin_channels_stop` for simplest API.
 
-pub fn admin_channels_stop_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn admin_channels_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://admin.googleapis.com/admin/reports_v1/channels/stop",);
 
@@ -687,13 +697,16 @@ pub fn admin_channels_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_customer_usage_reports_get_execute()` to send, or `reports_customer_usage_reports_get` for simplest API.
 
-pub fn reports_customer_usage_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn reports_customer_usage_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     date: &String,
     customerId: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parameters: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/usage/dates/{}",
@@ -880,8 +893,8 @@ pub fn reports_customer_usage_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_entity_usage_reports_get_execute()` to send, or `reports_entity_usage_reports_get` for simplest API.
 
-pub fn reports_entity_usage_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn reports_entity_usage_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
     entityKey: &String,
     date: &String,
@@ -890,7 +903,10 @@ pub fn reports_entity_usage_reports_get_builder(
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parameters: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/usage/{}/{}/dates/{}",
@@ -1095,8 +1111,8 @@ pub fn reports_entity_usage_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_user_usage_report_get_execute()` to send, or `reports_user_usage_report_get` for simplest API.
 
-pub fn reports_user_usage_report_get_builder(
-    client: &SimpleHttpClient,
+pub fn reports_user_usage_report_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userKey: &String,
     date: &String,
     customerId: &Option<Option<String>>,
@@ -1106,7 +1122,10 @@ pub fn reports_user_usage_report_get_builder(
     orgUnitID: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parameters: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/usage/users/{}/dates/{}",

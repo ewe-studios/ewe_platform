@@ -324,7 +324,6 @@ use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersChannel
 use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersChannelsSitesDeleteArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersChannelsSitesListArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersChannelsSitesReplaceArgs;
-use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersCreateArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersCreativesCreateArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersCreativesDeleteArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersCreativesGetArgs;
@@ -383,7 +382,6 @@ use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersTargeti
 use crate::providers::gcp::clients::displayvideo::DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoCombinedAudiencesGetArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoCombinedAudiencesListArgs;
-use crate::providers::gcp::clients::displayvideo::DisplayvideoCustomBiddingAlgorithmsCreateArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoCustomBiddingAlgorithmsGetArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoCustomBiddingAlgorithmsListArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoCustomBiddingAlgorithmsPatchArgs;
@@ -445,21 +443,19 @@ use crate::providers::gcp::clients::displayvideo::DisplayvideoPartnersTargetingT
 use crate::providers::gcp::clients::displayvideo::DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsDeleteArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs;
-use crate::providers::gcp::clients::displayvideo::DisplayvideoSdfdownloadtasksCreateArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoSdfdownloadtasksOperationsGetArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoSdfuploadtasksOperationsGetArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoTargetingTypesTargetingOptionsGetArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoTargetingTypesTargetingOptionsListArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoTargetingTypesTargetingOptionsSearchArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoUsersBulkEditAssignedUserRolesArgs;
-use crate::providers::gcp::clients::displayvideo::DisplayvideoUsersCreateArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoUsersDeleteArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoUsersGetArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoUsersListArgs;
 use crate::providers::gcp::clients::displayvideo::DisplayvideoUsersPatchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -468,34 +464,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = DisplayvideoProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = DisplayvideoProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct DisplayvideoProvider<S>
+pub struct DisplayvideoProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> DisplayvideoProvider<S>
+impl<S, R> DisplayvideoProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new DisplayvideoProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new DisplayvideoProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Displayvideo advertisers audit.
@@ -1745,7 +1751,7 @@ where
             &args.advertiserId,
             &args.adGroupId,
             &args.youtubeAssetType,
-            &args.linkedEntity.lineItemId,
+            &args.linkedEntity_lineItemId,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1792,7 +1798,7 @@ where
             &args.adGroupId,
             &args.youtubeAssetType,
             &args.youtubeAssetAssociationId,
-            &args.linkedEntity.lineItemId,
+            &args.linkedEntity_lineItemId,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1838,7 +1844,7 @@ where
             &args.advertiserId,
             &args.adGroupId,
             &args.youtubeAssetType,
-            &args.linkedEntity.lineItemId,
+            &args.linkedEntity_lineItemId,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
@@ -3603,7 +3609,7 @@ where
             &args.advertiserId,
             &args.lineItemId,
             &args.youtubeAssetType,
-            &args.linkedEntity.adGroupId,
+            &args.linkedEntity_adGroupId,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3650,7 +3656,7 @@ where
             &args.lineItemId,
             &args.youtubeAssetType,
             &args.youtubeAssetAssociationId,
-            &args.linkedEntity.adGroupId,
+            &args.linkedEntity_adGroupId,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3696,7 +3702,7 @@ where
             &args.advertiserId,
             &args.lineItemId,
             &args.youtubeAssetType,
-            &args.linkedEntity.adGroupId,
+            &args.linkedEntity_adGroupId,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,

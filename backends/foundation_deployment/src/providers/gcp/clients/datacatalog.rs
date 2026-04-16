@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_catalog_search_execute()` to send, or `datacatalog_catalog_search` for simplest API.
 
-pub fn datacatalog_catalog_search_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn datacatalog_catalog_search_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://datacatalog.googleapis.com/v1/catalog:search",);
 
@@ -180,14 +184,17 @@ pub fn datacatalog_catalog_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_entries_lookup_execute()` to send, or `datacatalog_entries_lookup` for simplest API.
 
-pub fn datacatalog_entries_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_entries_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     fullyQualifiedName: &Option<Option<String>>,
     linkedResource: &Option<Option<String>>,
     location: &Option<Option<String>>,
     project: &Option<Option<String>>,
     sqlResource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://datacatalog.googleapis.com/v1/entries:lookup",);
 
@@ -384,10 +391,13 @@ pub fn datacatalog_entries_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_organizations_locations_retrieve_config_execute()` to send, or `datacatalog_organizations_locations_retrieve_config` for simplest API.
 
-pub fn datacatalog_organizations_locations_retrieve_config_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_organizations_locations_retrieve_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/organizations/{}/locations/{locationsId}:retrieveConfig",
@@ -550,10 +560,13 @@ pub fn datacatalog_organizations_locations_retrieve_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_organizations_locations_retrieve_effective_config_execute()` to send, or `datacatalog_organizations_locations_retrieve_effective_config` for simplest API.
 
-pub fn datacatalog_organizations_locations_retrieve_effective_config_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_organizations_locations_retrieve_effective_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/organizations/{}/locations/{locationsId}:retrieveEffectiveConfig",
@@ -717,10 +730,13 @@ pub fn datacatalog_organizations_locations_retrieve_effective_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_organizations_locations_set_config_execute()` to send, or `datacatalog_organizations_locations_set_config` for simplest API.
 
-pub fn datacatalog_organizations_locations_set_config_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_organizations_locations_set_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/organizations/{}/locations/{locationsId}:setConfig",
@@ -883,10 +899,13 @@ pub fn datacatalog_organizations_locations_set_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_retrieve_effective_config_execute()` to send, or `datacatalog_projects_locations_retrieve_effective_config` for simplest API.
 
-pub fn datacatalog_projects_locations_retrieve_effective_config_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_retrieve_effective_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}:retrieveEffectiveConfig",
@@ -1050,10 +1069,13 @@ pub fn datacatalog_projects_locations_retrieve_effective_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_set_config_execute()` to send, or `datacatalog_projects_locations_set_config` for simplest API.
 
-pub fn datacatalog_projects_locations_set_config_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_set_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}:setConfig",
@@ -1216,11 +1238,14 @@ pub fn datacatalog_projects_locations_set_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_create` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     entryGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups",
@@ -1399,11 +1424,14 @@ pub fn datacatalog_projects_locations_entry_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
@@ -1574,11 +1602,14 @@ pub fn datacatalog_projects_locations_entry_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_get_execute()` to send, or `datacatalog_projects_locations_entry_groups_get` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
@@ -1757,10 +1788,13 @@ pub fn datacatalog_projects_locations_entry_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_get_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy",
@@ -1915,12 +1949,15 @@ pub fn datacatalog_projects_locations_entry_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_list` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups",
@@ -2106,11 +2143,14 @@ pub fn datacatalog_projects_locations_entry_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
@@ -2289,10 +2329,13 @@ pub fn datacatalog_projects_locations_entry_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_set_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy",
@@ -2447,10 +2490,13 @@ pub fn datacatalog_projects_locations_entry_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_entry_groups_test_iam_permissions` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions",
@@ -2615,11 +2661,14 @@ pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_create` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     entryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries",
@@ -2798,10 +2847,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
@@ -2956,10 +3008,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_get_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_get` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
@@ -3122,10 +3177,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_get_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy",
@@ -3282,10 +3340,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_import_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_import` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_import_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries:import",
@@ -3440,13 +3501,16 @@ pub fn datacatalog_projects_locations_entry_groups_entries_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_list` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries",
@@ -3638,10 +3702,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryContacts",
@@ -3807,10 +3874,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryOverview",
@@ -3976,11 +4046,14 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
@@ -4159,10 +4232,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_star_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_star` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_star_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_star_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:star",
@@ -4325,10 +4401,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_star(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions",
@@ -4494,10 +4573,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_unstar_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_unstar` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_unstar_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_unstar_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:unstar",
@@ -4661,10 +4743,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_unstar(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_tags_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_create` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_tags_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags",
@@ -4829,10 +4914,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_tags_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}",
@@ -4988,12 +5076,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_tags_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_list` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags",
@@ -5178,11 +5269,14 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_tags_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}",
@@ -5361,10 +5455,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_reconcile` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags:reconcile",
@@ -5521,10 +5618,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_tags_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_create` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_tags_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_tags_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags",
@@ -5687,10 +5787,13 @@ pub fn datacatalog_projects_locations_entry_groups_tags_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_tags_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_tags_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_tags_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}",
@@ -5845,12 +5948,15 @@ pub fn datacatalog_projects_locations_entry_groups_tags_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_tags_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_list` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags",
@@ -6035,11 +6141,14 @@ pub fn datacatalog_projects_locations_entry_groups_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_tags_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_entry_groups_tags_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_entry_groups_tags_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}",
@@ -6218,10 +6327,13 @@ pub fn datacatalog_projects_locations_entry_groups_tags_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_operations_cancel_execute()` to send, or `datacatalog_projects_locations_operations_cancel` for simplest API.
 
-pub fn datacatalog_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -6375,10 +6487,13 @@ pub fn datacatalog_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_operations_delete_execute()` to send, or `datacatalog_projects_locations_operations_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6532,10 +6647,13 @@ pub fn datacatalog_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_operations_get_execute()` to send, or `datacatalog_projects_locations_operations_get` for simplest API.
 
-pub fn datacatalog_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6689,14 +6807,17 @@ pub fn datacatalog_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_operations_list_execute()` to send, or `datacatalog_projects_locations_operations_list` for simplest API.
 
-pub fn datacatalog_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6889,11 +7010,14 @@ pub fn datacatalog_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_create_execute()` to send, or `datacatalog_projects_locations_tag_templates_create` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tagTemplateId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates",
@@ -7072,11 +7196,14 @@ pub fn datacatalog_projects_locations_tag_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_delete_execute()` to send, or `datacatalog_projects_locations_tag_templates_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
@@ -7247,10 +7374,13 @@ pub fn datacatalog_projects_locations_tag_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_get_execute()` to send, or `datacatalog_projects_locations_tag_templates_get` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
@@ -7412,10 +7542,13 @@ pub fn datacatalog_projects_locations_tag_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_tag_templates_get_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy",
@@ -7572,11 +7705,14 @@ pub fn datacatalog_projects_locations_tag_templates_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_patch_execute()` to send, or `datacatalog_projects_locations_tag_templates_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
@@ -7755,10 +7891,13 @@ pub fn datacatalog_projects_locations_tag_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_tag_templates_set_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy",
@@ -7915,10 +8054,13 @@ pub fn datacatalog_projects_locations_tag_templates_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_tag_templates_test_iam_permissions` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions",
@@ -8083,11 +8225,14 @@ pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_fields_create_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_create` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_fields_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_fields_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tagTemplateFieldId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields",
@@ -8266,11 +8411,14 @@ pub fn datacatalog_projects_locations_tag_templates_fields_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_fields_delete_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_fields_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_fields_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}",
@@ -8441,11 +8589,14 @@ pub fn datacatalog_projects_locations_tag_templates_fields_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_fields_patch_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_fields_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_fields_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}",
@@ -8624,10 +8775,13 @@ pub fn datacatalog_projects_locations_tag_templates_fields_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_fields_rename_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_rename` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_fields_rename_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_fields_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename",
@@ -8790,10 +8944,13 @@ pub fn datacatalog_projects_locations_tag_templates_fields_rename(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_enum_values_rename` for simplest API.
 
-pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}/enumValues/{enumValuesId}:rename",
@@ -8958,10 +9115,13 @@ pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_create_execute()` to send, or `datacatalog_projects_locations_taxonomies_create` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies",
@@ -9123,10 +9283,13 @@ pub fn datacatalog_projects_locations_taxonomies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_delete_execute()` to send, or `datacatalog_projects_locations_taxonomies_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}",
@@ -9280,12 +9443,15 @@ pub fn datacatalog_projects_locations_taxonomies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_export_execute()` to send, or `datacatalog_projects_locations_taxonomies_export` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_export_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serializedTaxonomies: &Option<Option<String>>,
     taxonomies: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies:export",
@@ -9471,10 +9637,13 @@ pub fn datacatalog_projects_locations_taxonomies_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_get_execute()` to send, or `datacatalog_projects_locations_taxonomies_get` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_get_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}",
@@ -9636,10 +9805,13 @@ pub fn datacatalog_projects_locations_taxonomies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_get_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:getIamPolicy",
@@ -9794,10 +9966,13 @@ pub fn datacatalog_projects_locations_taxonomies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_import_execute()` to send, or `datacatalog_projects_locations_taxonomies_import` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_import_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies:import",
@@ -9960,13 +10135,16 @@ pub fn datacatalog_projects_locations_taxonomies_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_list_execute()` to send, or `datacatalog_projects_locations_taxonomies_list` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_list_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies",
@@ -10158,11 +10336,14 @@ pub fn datacatalog_projects_locations_taxonomies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_patch_execute()` to send, or `datacatalog_projects_locations_taxonomies_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}",
@@ -10341,10 +10522,13 @@ pub fn datacatalog_projects_locations_taxonomies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_replace_execute()` to send, or `datacatalog_projects_locations_taxonomies_replace` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_replace_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_replace_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace",
@@ -10506,10 +10690,13 @@ pub fn datacatalog_projects_locations_taxonomies_replace(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_set_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:setIamPolicy",
@@ -10664,10 +10851,13 @@ pub fn datacatalog_projects_locations_taxonomies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_taxonomies_test_iam_permissions` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:testIamPermissions",
@@ -10832,10 +11022,13 @@ pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_create_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_create` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_create_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags",
@@ -10998,10 +11191,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_delete_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_delete` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}",
@@ -11156,10 +11352,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_get_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_get` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}",
@@ -11322,10 +11521,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:getIamPolicy",
@@ -11482,12 +11684,15 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_list_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_list` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags",
@@ -11673,11 +11878,14 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_patch_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_patch` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}",
@@ -11856,10 +12064,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:setIamPolicy",
@@ -12016,10 +12227,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions` for simplest API.
 
-pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:testIamPermissions",

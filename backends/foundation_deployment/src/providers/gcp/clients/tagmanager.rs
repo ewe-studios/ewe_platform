@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_get_execute()` to send, or `tagmanager_accounts_get` for simplest API.
 
-pub fn tagmanager_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}",
@@ -183,11 +187,14 @@ pub fn tagmanager_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_list_execute()` to send, or `tagmanager_accounts_list` for simplest API.
 
-pub fn tagmanager_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     includeGoogleTags: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts",);
 
@@ -359,11 +366,14 @@ pub fn tagmanager_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_update_execute()` to send, or `tagmanager_accounts_update` for simplest API.
 
-pub fn tagmanager_accounts_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}",
@@ -530,13 +540,16 @@ pub fn tagmanager_accounts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_combine_execute()` to send, or `tagmanager_accounts_containers_combine` for simplest API.
 
-pub fn tagmanager_accounts_containers_combine_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_combine_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     allowUserPermissionFeatureUpdate: &Option<Option<String>>,
     containerId: &Option<Option<String>>,
     settingSource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}:combine",
@@ -719,10 +732,13 @@ pub fn tagmanager_accounts_containers_combine(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_create_execute()` to send, or `tagmanager_accounts_containers_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers",
@@ -876,10 +892,13 @@ pub fn tagmanager_accounts_containers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_delete_execute()` to send, or `tagmanager_accounts_containers_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}",
@@ -1030,10 +1049,13 @@ pub fn tagmanager_accounts_containers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_get_execute()` to send, or `tagmanager_accounts_containers_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}",
@@ -1187,11 +1209,14 @@ pub fn tagmanager_accounts_containers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_list_execute()` to send, or `tagmanager_accounts_containers_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers",
@@ -1363,11 +1388,14 @@ pub fn tagmanager_accounts_containers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_lookup_execute()` to send, or `tagmanager_accounts_containers_lookup` for simplest API.
 
-pub fn tagmanager_accounts_containers_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     destinationId: &Option<Option<String>>,
     tagId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts/containers:lookup",);
@@ -1536,8 +1564,8 @@ pub fn tagmanager_accounts_containers_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_move_tag_id_execute()` to send, or `tagmanager_accounts_containers_move_tag_id` for simplest API.
 
-pub fn tagmanager_accounts_containers_move_tag_id_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_move_tag_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     allowUserPermissionFeatureUpdate: &Option<Option<String>>,
     copySettings: &Option<Option<String>>,
@@ -1545,7 +1573,10 @@ pub fn tagmanager_accounts_containers_move_tag_id_builder(
     copyUsers: &Option<Option<String>>,
     tagId: &Option<Option<String>>,
     tagName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}:move_tag_id",
@@ -1746,10 +1777,13 @@ pub fn tagmanager_accounts_containers_move_tag_id(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_snippet_execute()` to send, or `tagmanager_accounts_containers_snippet` for simplest API.
 
-pub fn tagmanager_accounts_containers_snippet_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_snippet_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}:snippet",
@@ -1911,11 +1945,14 @@ pub fn tagmanager_accounts_containers_snippet(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_update_execute()` to send, or `tagmanager_accounts_containers_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}",
@@ -2083,10 +2120,13 @@ pub fn tagmanager_accounts_containers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_destinations_get_execute()` to send, or `tagmanager_accounts_containers_destinations_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_destinations_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_destinations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/destinations/{destinationsId}",
@@ -2240,12 +2280,15 @@ pub fn tagmanager_accounts_containers_destinations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_destinations_link_execute()` to send, or `tagmanager_accounts_containers_destinations_link` for simplest API.
 
-pub fn tagmanager_accounts_containers_destinations_link_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_destinations_link_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowUserPermissionFeatureUpdate: &Option<Option<String>>,
     destinationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/destinations:link",
@@ -2422,10 +2465,13 @@ pub fn tagmanager_accounts_containers_destinations_link(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_destinations_list_execute()` to send, or `tagmanager_accounts_containers_destinations_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_destinations_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_destinations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/destinations",
@@ -2583,10 +2629,13 @@ pub fn tagmanager_accounts_containers_destinations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_environments_create_execute()` to send, or `tagmanager_accounts_containers_environments_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_environments_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_environments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments",
@@ -2740,10 +2789,13 @@ pub fn tagmanager_accounts_containers_environments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_environments_delete_execute()` to send, or `tagmanager_accounts_containers_environments_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_environments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_environments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}",
@@ -2894,10 +2946,13 @@ pub fn tagmanager_accounts_containers_environments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_environments_get_execute()` to send, or `tagmanager_accounts_containers_environments_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}",
@@ -3051,11 +3106,14 @@ pub fn tagmanager_accounts_containers_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_environments_list_execute()` to send, or `tagmanager_accounts_containers_environments_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_environments_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_environments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments",
@@ -3230,10 +3288,13 @@ pub fn tagmanager_accounts_containers_environments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_environments_reauthorize_execute()` to send, or `tagmanager_accounts_containers_environments_reauthorize` for simplest API.
 
-pub fn tagmanager_accounts_containers_environments_reauthorize_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_environments_reauthorize_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}:reauthorize",
@@ -3388,11 +3449,14 @@ pub fn tagmanager_accounts_containers_environments_reauthorize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_environments_update_execute()` to send, or `tagmanager_accounts_containers_environments_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_environments_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_environments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}",
@@ -3563,10 +3627,13 @@ pub fn tagmanager_accounts_containers_environments_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_version_headers_latest_execute()` to send, or `tagmanager_accounts_containers_version_headers_latest` for simplest API.
 
-pub fn tagmanager_accounts_containers_version_headers_latest_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_version_headers_latest_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/version_headers:latest",
@@ -3725,12 +3792,15 @@ pub fn tagmanager_accounts_containers_version_headers_latest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_version_headers_list_execute()` to send, or `tagmanager_accounts_containers_version_headers_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_version_headers_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_version_headers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     includeDeleted: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/version_headers",
@@ -3915,10 +3985,13 @@ pub fn tagmanager_accounts_containers_version_headers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_versions_delete_execute()` to send, or `tagmanager_accounts_containers_versions_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}",
@@ -4069,11 +4142,14 @@ pub fn tagmanager_accounts_containers_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_versions_get_execute()` to send, or `tagmanager_accounts_containers_versions_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     containerVersionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}",
@@ -4248,10 +4324,13 @@ pub fn tagmanager_accounts_containers_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_versions_live_execute()` to send, or `tagmanager_accounts_containers_versions_live` for simplest API.
 
-pub fn tagmanager_accounts_containers_versions_live_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_versions_live_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions:live",
@@ -4409,11 +4488,14 @@ pub fn tagmanager_accounts_containers_versions_live(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_versions_publish_execute()` to send, or `tagmanager_accounts_containers_versions_publish` for simplest API.
 
-pub fn tagmanager_accounts_containers_versions_publish_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_versions_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}:publish",
@@ -4592,10 +4674,13 @@ pub fn tagmanager_accounts_containers_versions_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_versions_set_latest_execute()` to send, or `tagmanager_accounts_containers_versions_set_latest` for simplest API.
 
-pub fn tagmanager_accounts_containers_versions_set_latest_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_versions_set_latest_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}:set_latest",
@@ -4753,10 +4838,13 @@ pub fn tagmanager_accounts_containers_versions_set_latest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_versions_undelete_execute()` to send, or `tagmanager_accounts_containers_versions_undelete` for simplest API.
 
-pub fn tagmanager_accounts_containers_versions_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_versions_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}:undelete",
@@ -4914,11 +5002,14 @@ pub fn tagmanager_accounts_containers_versions_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_versions_update_execute()` to send, or `tagmanager_accounts_containers_versions_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_versions_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_versions_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}",
@@ -5093,10 +5184,13 @@ pub fn tagmanager_accounts_containers_versions_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_bulk_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_bulk_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_bulk_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_bulk_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/bulk_update",
@@ -5259,10 +5353,13 @@ pub fn tagmanager_accounts_containers_workspaces_bulk_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces",
@@ -5416,10 +5513,13 @@ pub fn tagmanager_accounts_containers_workspaces_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_create_version_execute()` to send, or `tagmanager_accounts_containers_workspaces_create_version` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_create_version_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_create_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:create_version",
@@ -5582,10 +5682,13 @@ pub fn tagmanager_accounts_containers_workspaces_create_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}",
@@ -5736,10 +5839,13 @@ pub fn tagmanager_accounts_containers_workspaces_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}",
@@ -5893,10 +5999,13 @@ pub fn tagmanager_accounts_containers_workspaces_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_get_status_execute()` to send, or `tagmanager_accounts_containers_workspaces_get_status` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_get_status_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_get_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/status",
@@ -6058,11 +6167,14 @@ pub fn tagmanager_accounts_containers_workspaces_get_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces",
@@ -6237,10 +6349,13 @@ pub fn tagmanager_accounts_containers_workspaces_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_quick_preview_execute()` to send, or `tagmanager_accounts_containers_workspaces_quick_preview` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_quick_preview_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_quick_preview_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:quick_preview",
@@ -6399,11 +6514,14 @@ pub fn tagmanager_accounts_containers_workspaces_quick_preview(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_resolve_conflict_execute()` to send, or `tagmanager_accounts_containers_workspaces_resolve_conflict` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict",
@@ -6571,10 +6689,13 @@ pub fn tagmanager_accounts_containers_workspaces_resolve_conflict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_sync_execute()` to send, or `tagmanager_accounts_containers_workspaces_sync` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_sync_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_sync_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:sync",
@@ -6732,11 +6853,14 @@ pub fn tagmanager_accounts_containers_workspaces_sync(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}",
@@ -6907,11 +7031,14 @@ pub fn tagmanager_accounts_containers_workspaces_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_built_in_variables_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables",
@@ -7090,11 +7217,14 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_built_in_variables_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables",
@@ -7262,11 +7392,14 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_built_in_variables_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables",
@@ -7445,11 +7578,14 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_built_in_variables_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert",
@@ -7628,10 +7764,13 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_clients_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_clients_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_clients_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients",
@@ -7786,10 +7925,13 @@ pub fn tagmanager_accounts_containers_workspaces_clients_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_clients_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_clients_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_clients_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}",
@@ -7941,10 +8083,13 @@ pub fn tagmanager_accounts_containers_workspaces_clients_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_clients_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_clients_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_clients_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}",
@@ -8099,11 +8244,14 @@ pub fn tagmanager_accounts_containers_workspaces_clients_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_clients_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_clients_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_clients_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients",
@@ -8278,11 +8426,14 @@ pub fn tagmanager_accounts_containers_workspaces_clients_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_clients_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_clients_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_clients_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert",
@@ -8457,11 +8608,14 @@ pub fn tagmanager_accounts_containers_workspaces_clients_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_clients_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_clients_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_clients_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}",
@@ -8632,10 +8786,13 @@ pub fn tagmanager_accounts_containers_workspaces_clients_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders",
@@ -8790,10 +8947,13 @@ pub fn tagmanager_accounts_containers_workspaces_folders_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}",
@@ -8945,11 +9105,14 @@ pub fn tagmanager_accounts_containers_workspaces_folders_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_entities_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_entities` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_entities_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_entities_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities",
@@ -9124,10 +9287,13 @@ pub fn tagmanager_accounts_containers_workspaces_folders_entities(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}",
@@ -9282,11 +9448,14 @@ pub fn tagmanager_accounts_containers_workspaces_folders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders",
@@ -9461,13 +9630,16 @@ pub fn tagmanager_accounts_containers_workspaces_folders_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     tagId: &Option<Option<String>>,
     triggerId: &Option<Option<String>>,
     variableId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder",
@@ -9649,11 +9821,14 @@ pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert",
@@ -9828,11 +10003,14 @@ pub fn tagmanager_accounts_containers_workspaces_folders_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_folders_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_folders_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_folders_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}",
@@ -10003,10 +10181,13 @@ pub fn tagmanager_accounts_containers_workspaces_folders_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_gtag_config_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_gtag_config_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config",
@@ -10161,10 +10342,13 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_gtag_config_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}",
@@ -10316,10 +10500,13 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_gtag_config_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_gtag_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}",
@@ -10474,11 +10661,14 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_gtag_config_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config",
@@ -10653,11 +10843,14 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_gtag_config_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}",
@@ -10828,10 +11021,13 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_tags_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_tags_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_tags_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags",
@@ -10986,10 +11182,13 @@ pub fn tagmanager_accounts_containers_workspaces_tags_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_tags_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_tags_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_tags_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}",
@@ -11141,10 +11340,13 @@ pub fn tagmanager_accounts_containers_workspaces_tags_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_tags_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_tags_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_tags_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}",
@@ -11298,11 +11500,14 @@ pub fn tagmanager_accounts_containers_workspaces_tags_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_tags_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags",
@@ -11477,11 +11682,14 @@ pub fn tagmanager_accounts_containers_workspaces_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_tags_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_tags_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_tags_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert",
@@ -11656,11 +11864,14 @@ pub fn tagmanager_accounts_containers_workspaces_tags_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_tags_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_tags_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_tags_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}",
@@ -11831,10 +12042,13 @@ pub fn tagmanager_accounts_containers_workspaces_tags_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_templates_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates",
@@ -11993,10 +12207,13 @@ pub fn tagmanager_accounts_containers_workspaces_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_templates_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}",
@@ -12148,10 +12365,13 @@ pub fn tagmanager_accounts_containers_workspaces_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_templates_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}",
@@ -12310,14 +12530,17 @@ pub fn tagmanager_accounts_containers_workspaces_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_import_from_gallery` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     acknowledgePermissions: &Option<Option<String>>,
     galleryOwner: &Option<Option<String>>,
     galleryRepository: &Option<Option<String>>,
     gallerySha: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery",
@@ -12511,11 +12734,14 @@ pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_templates_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates",
@@ -12690,11 +12916,14 @@ pub fn tagmanager_accounts_containers_workspaces_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_templates_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_templates_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_templates_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert",
@@ -12869,11 +13098,14 @@ pub fn tagmanager_accounts_containers_workspaces_templates_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_templates_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_templates_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_templates_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}",
@@ -13048,10 +13280,13 @@ pub fn tagmanager_accounts_containers_workspaces_templates_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_transformations_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_transformations_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_transformations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations",
@@ -13212,10 +13447,13 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_transformations_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_transformations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_transformations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}",
@@ -13368,10 +13606,13 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_transformations_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_transformations_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_transformations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}",
@@ -13530,11 +13771,14 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_transformations_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_transformations_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_transformations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations",
@@ -13713,11 +13957,14 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_transformations_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_transformations_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_transformations_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert",
@@ -13896,11 +14143,14 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_transformations_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_transformations_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_transformations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}",
@@ -14075,10 +14325,13 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_triggers_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_triggers_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_triggers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers",
@@ -14233,10 +14486,13 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_triggers_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_triggers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_triggers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}",
@@ -14388,10 +14644,13 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_triggers_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_triggers_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_triggers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}",
@@ -14546,11 +14805,14 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_triggers_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_triggers_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_triggers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers",
@@ -14725,11 +14987,14 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_triggers_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_triggers_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_triggers_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert",
@@ -14904,11 +15169,14 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_triggers_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_triggers_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_triggers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}",
@@ -15079,10 +15347,13 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_variables_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_variables_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_variables_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables",
@@ -15237,10 +15508,13 @@ pub fn tagmanager_accounts_containers_workspaces_variables_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_variables_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_variables_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_variables_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}",
@@ -15392,10 +15666,13 @@ pub fn tagmanager_accounts_containers_workspaces_variables_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_variables_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_variables_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_variables_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}",
@@ -15550,11 +15827,14 @@ pub fn tagmanager_accounts_containers_workspaces_variables_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_variables_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_variables_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_variables_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables",
@@ -15729,11 +16009,14 @@ pub fn tagmanager_accounts_containers_workspaces_variables_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_variables_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_variables_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_variables_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert",
@@ -15908,11 +16191,14 @@ pub fn tagmanager_accounts_containers_workspaces_variables_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_variables_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_variables_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_variables_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}",
@@ -16083,10 +16369,13 @@ pub fn tagmanager_accounts_containers_workspaces_variables_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_zones_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_create` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_zones_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_zones_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones",
@@ -16241,10 +16530,13 @@ pub fn tagmanager_accounts_containers_workspaces_zones_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_zones_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_delete` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_zones_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_zones_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}",
@@ -16396,10 +16688,13 @@ pub fn tagmanager_accounts_containers_workspaces_zones_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_zones_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_get` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_zones_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_zones_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}",
@@ -16553,11 +16848,14 @@ pub fn tagmanager_accounts_containers_workspaces_zones_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_zones_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_list` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_zones_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_zones_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones",
@@ -16732,11 +17030,14 @@ pub fn tagmanager_accounts_containers_workspaces_zones_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_zones_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_revert` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_zones_revert_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_zones_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert",
@@ -16911,11 +17212,14 @@ pub fn tagmanager_accounts_containers_workspaces_zones_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_containers_workspaces_zones_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_update` for simplest API.
 
-pub fn tagmanager_accounts_containers_workspaces_zones_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_containers_workspaces_zones_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
     fingerprint: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}",
@@ -17086,10 +17390,13 @@ pub fn tagmanager_accounts_containers_workspaces_zones_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_create_execute()` to send, or `tagmanager_accounts_user_permissions_create` for simplest API.
 
-pub fn tagmanager_accounts_user_permissions_create_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_user_permissions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions",
@@ -17247,10 +17554,13 @@ pub fn tagmanager_accounts_user_permissions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_delete_execute()` to send, or `tagmanager_accounts_user_permissions_delete` for simplest API.
 
-pub fn tagmanager_accounts_user_permissions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_user_permissions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions/{user_permissionsId}",
@@ -17401,10 +17711,13 @@ pub fn tagmanager_accounts_user_permissions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_get_execute()` to send, or `tagmanager_accounts_user_permissions_get` for simplest API.
 
-pub fn tagmanager_accounts_user_permissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_user_permissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions/{user_permissionsId}",
@@ -17562,11 +17875,14 @@ pub fn tagmanager_accounts_user_permissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_list_execute()` to send, or `tagmanager_accounts_user_permissions_list` for simplest API.
 
-pub fn tagmanager_accounts_user_permissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_user_permissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions",
@@ -17742,10 +18058,13 @@ pub fn tagmanager_accounts_user_permissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_update_execute()` to send, or `tagmanager_accounts_user_permissions_update` for simplest API.
 
-pub fn tagmanager_accounts_user_permissions_update_builder(
-    client: &SimpleHttpClient,
+pub fn tagmanager_accounts_user_permissions_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     path: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions/{user_permissionsId}",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_get_partner_execute()` to send, or `cloudcontrolspartner_organizations_locations_get_partner` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_get_partner_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_get_partner_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/partner",
@@ -184,11 +188,14 @@ pub fn cloudcontrolspartner_organizations_locations_get_partner(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_create_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_create` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers",
@@ -359,10 +366,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_delete_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_delete` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}",
@@ -517,10 +527,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_get_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_get` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}",
@@ -675,14 +688,17 @@ pub fn cloudcontrolspartner_organizations_locations_customers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_list_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_list` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers",
@@ -875,11 +891,14 @@ pub fn cloudcontrolspartner_organizations_locations_customers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_patch_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_patch` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}",
@@ -1050,10 +1069,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_get_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_get` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}",
@@ -1209,10 +1231,15 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/ekmConnections",
@@ -1375,10 +1402,15 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/partnerPermissions",
@@ -1538,14 +1570,17 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_part
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_list_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_list` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}/workloads",
@@ -1738,14 +1773,19 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/accessApprovalRequests",
@@ -1936,10 +1976,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_a
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_violations_get_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_violations_get` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations/{violationsId}",
@@ -2099,8 +2142,8 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_violations_list` for simplest API.
 
-pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     interval_endTime: &Option<Option<String>>,
@@ -2108,7 +2151,10 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcontrolspartner.googleapis.com/v1/organizations/{}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations",

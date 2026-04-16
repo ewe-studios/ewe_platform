@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_get_execute()` to send, or `apim_projects_locations_get` for simplest API.
 
-pub fn apim_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn apim_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_get_entitlement_execute()` to send, or `apim_projects_locations_get_entitlement` for simplest API.
 
-pub fn apim_projects_locations_get_entitlement_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_get_entitlement_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/entitlement",
@@ -340,14 +347,17 @@ pub fn apim_projects_locations_get_entitlement(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_list_execute()` to send, or `apim_projects_locations_list` for simplest API.
 
-pub fn apim_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations",
@@ -540,12 +550,15 @@ pub fn apim_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_list_api_observation_tags_execute()` to send, or `apim_projects_locations_list_api_observation_tags` for simplest API.
 
-pub fn apim_projects_locations_list_api_observation_tags_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_list_api_observation_tags_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}:listApiObservationTags",
@@ -730,12 +743,15 @@ pub fn apim_projects_locations_list_api_observation_tags(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_create_execute()` to send, or `apim_projects_locations_observation_jobs_create` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     observationJobId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs",
@@ -912,10 +928,13 @@ pub fn apim_projects_locations_observation_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_delete_execute()` to send, or `apim_projects_locations_observation_jobs_delete` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}",
@@ -1069,10 +1088,13 @@ pub fn apim_projects_locations_observation_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_disable_execute()` to send, or `apim_projects_locations_observation_jobs_disable` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_disable_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}:disable",
@@ -1226,10 +1248,13 @@ pub fn apim_projects_locations_observation_jobs_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_enable_execute()` to send, or `apim_projects_locations_observation_jobs_enable` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_enable_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}:enable",
@@ -1383,10 +1408,13 @@ pub fn apim_projects_locations_observation_jobs_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_get_execute()` to send, or `apim_projects_locations_observation_jobs_get` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}",
@@ -1544,12 +1572,15 @@ pub fn apim_projects_locations_observation_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_list_execute()` to send, or `apim_projects_locations_observation_jobs_list` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs",
@@ -1734,10 +1765,13 @@ pub fn apim_projects_locations_observation_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_api_observations_batch_edit_tags_execute()` to send, or `apim_projects_locations_observation_jobs_api_observations_batch_edit_tags` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_api_observations_batch_edit_tags_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_api_observations_batch_edit_tags_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations:batchEditTags",
@@ -1904,10 +1938,13 @@ pub fn apim_projects_locations_observation_jobs_api_observations_batch_edit_tags
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_api_observations_get_execute()` to send, or `apim_projects_locations_observation_jobs_api_observations_get` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_api_observations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_api_observations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations/{apiObservationsId}",
@@ -2066,12 +2103,15 @@ pub fn apim_projects_locations_observation_jobs_api_observations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_api_observations_list_execute()` to send, or `apim_projects_locations_observation_jobs_api_observations_list` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_api_observations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_api_observations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations",
@@ -2256,10 +2296,13 @@ pub fn apim_projects_locations_observation_jobs_api_observations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_api_observations_api_operations_get_execute()` to send, or `apim_projects_locations_observation_jobs_api_observations_api_operations_get` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations/{apiObservationsId}/apiOperations/{apiOperationsId}",
@@ -2421,12 +2464,15 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_jobs_api_observations_api_operations_list_execute()` to send, or `apim_projects_locations_observation_jobs_api_observations_api_operations_list` for simplest API.
 
-pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations/{apiObservationsId}/apiOperations",
@@ -2610,12 +2656,15 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_sources_create_execute()` to send, or `apim_projects_locations_observation_sources_create` for simplest API.
 
-pub fn apim_projects_locations_observation_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     observationSourceId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationSources",
@@ -2792,10 +2841,13 @@ pub fn apim_projects_locations_observation_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_sources_delete_execute()` to send, or `apim_projects_locations_observation_sources_delete` for simplest API.
 
-pub fn apim_projects_locations_observation_sources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_sources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationSources/{observationSourcesId}",
@@ -2949,10 +3001,13 @@ pub fn apim_projects_locations_observation_sources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_sources_get_execute()` to send, or `apim_projects_locations_observation_sources_get` for simplest API.
 
-pub fn apim_projects_locations_observation_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationSources/{observationSourcesId}",
@@ -3110,12 +3165,15 @@ pub fn apim_projects_locations_observation_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_observation_sources_list_execute()` to send, or `apim_projects_locations_observation_sources_list` for simplest API.
 
-pub fn apim_projects_locations_observation_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_observation_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/observationSources",
@@ -3300,10 +3358,13 @@ pub fn apim_projects_locations_observation_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_operations_cancel_execute()` to send, or `apim_projects_locations_operations_cancel` for simplest API.
 
-pub fn apim_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -3457,10 +3518,13 @@ pub fn apim_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_operations_delete_execute()` to send, or `apim_projects_locations_operations_delete` for simplest API.
 
-pub fn apim_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3614,10 +3678,13 @@ pub fn apim_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_operations_get_execute()` to send, or `apim_projects_locations_operations_get` for simplest API.
 
-pub fn apim_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3771,14 +3838,17 @@ pub fn apim_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apim_projects_locations_operations_list_execute()` to send, or `apim_projects_locations_operations_list` for simplest API.
 
-pub fn apim_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apim_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apim.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations",

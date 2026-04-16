@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_get_execute()` to send, or `workflows_projects_locations_get` for simplest API.
 
-pub fn workflows_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn workflows_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_list_execute()` to send, or `workflows_projects_locations_list` for simplest API.
 
-pub fn workflows_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn workflows_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_operations_delete_execute()` to send, or `workflows_projects_locations_operations_delete` for simplest API.
 
-pub fn workflows_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -540,10 +550,13 @@ pub fn workflows_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_operations_get_execute()` to send, or `workflows_projects_locations_operations_get` for simplest API.
 
-pub fn workflows_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -697,14 +710,17 @@ pub fn workflows_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_operations_list_execute()` to send, or `workflows_projects_locations_operations_list` for simplest API.
 
-pub fn workflows_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -897,11 +913,14 @@ pub fn workflows_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_workflows_create_execute()` to send, or `workflows_projects_locations_workflows_create` for simplest API.
 
-pub fn workflows_projects_locations_workflows_create_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_workflows_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     workflowId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/workflows",
@@ -1072,10 +1091,13 @@ pub fn workflows_projects_locations_workflows_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_workflows_delete_execute()` to send, or `workflows_projects_locations_workflows_delete` for simplest API.
 
-pub fn workflows_projects_locations_workflows_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_workflows_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/workflows/{workflowsId}",
@@ -1229,11 +1251,14 @@ pub fn workflows_projects_locations_workflows_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_workflows_get_execute()` to send, or `workflows_projects_locations_workflows_get` for simplest API.
 
-pub fn workflows_projects_locations_workflows_get_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_workflows_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     revisionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/workflows/{workflowsId}",
@@ -1401,14 +1426,17 @@ pub fn workflows_projects_locations_workflows_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_workflows_list_execute()` to send, or `workflows_projects_locations_workflows_list` for simplest API.
 
-pub fn workflows_projects_locations_workflows_list_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_workflows_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/workflows",
@@ -1601,12 +1629,15 @@ pub fn workflows_projects_locations_workflows_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_workflows_list_revisions_execute()` to send, or `workflows_projects_locations_workflows_list_revisions` for simplest API.
 
-pub fn workflows_projects_locations_workflows_list_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_workflows_list_revisions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/workflows/{workflowsId}:listRevisions",
@@ -1791,11 +1822,14 @@ pub fn workflows_projects_locations_workflows_list_revisions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workflows_projects_locations_workflows_patch_execute()` to send, or `workflows_projects_locations_workflows_patch` for simplest API.
 
-pub fn workflows_projects_locations_workflows_patch_builder(
-    client: &SimpleHttpClient,
+pub fn workflows_projects_locations_workflows_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workflows.googleapis.com/v1/projects/{}/locations/{locationsId}/workflows/{workflowsId}",

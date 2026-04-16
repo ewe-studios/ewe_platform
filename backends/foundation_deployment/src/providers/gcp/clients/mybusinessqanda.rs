@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessqanda_locations_questions_create_execute()` to send, or `mybusinessqanda_locations_questions_create` for simplest API.
 
-pub fn mybusinessqanda_locations_questions_create_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessqanda_locations_questions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions",
@@ -183,10 +187,13 @@ pub fn mybusinessqanda_locations_questions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessqanda_locations_questions_delete_execute()` to send, or `mybusinessqanda_locations_questions_delete` for simplest API.
 
-pub fn mybusinessqanda_locations_questions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessqanda_locations_questions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}",
@@ -340,15 +347,18 @@ pub fn mybusinessqanda_locations_questions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessqanda_locations_questions_list_execute()` to send, or `mybusinessqanda_locations_questions_list` for simplest API.
 
-pub fn mybusinessqanda_locations_questions_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessqanda_locations_questions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     answersPerQuestion: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions",
@@ -547,11 +557,14 @@ pub fn mybusinessqanda_locations_questions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessqanda_locations_questions_patch_execute()` to send, or `mybusinessqanda_locations_questions_patch` for simplest API.
 
-pub fn mybusinessqanda_locations_questions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessqanda_locations_questions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}",
@@ -719,10 +732,13 @@ pub fn mybusinessqanda_locations_questions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessqanda_locations_questions_answers_delete_execute()` to send, or `mybusinessqanda_locations_questions_answers_delete` for simplest API.
 
-pub fn mybusinessqanda_locations_questions_answers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessqanda_locations_questions_answers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}/answers:delete",
@@ -876,13 +892,16 @@ pub fn mybusinessqanda_locations_questions_answers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessqanda_locations_questions_answers_list_execute()` to send, or `mybusinessqanda_locations_questions_answers_list` for simplest API.
 
-pub fn mybusinessqanda_locations_questions_answers_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessqanda_locations_questions_answers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}/answers",
@@ -1069,10 +1088,13 @@ pub fn mybusinessqanda_locations_questions_answers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessqanda_locations_questions_answers_upsert_execute()` to send, or `mybusinessqanda_locations_questions_answers_upsert` for simplest API.
 
-pub fn mybusinessqanda_locations_questions_answers_upsert_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessqanda_locations_questions_answers_upsert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}/answers:upsert",

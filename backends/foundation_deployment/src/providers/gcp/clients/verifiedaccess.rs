@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `verifiedaccess_challenge_generate_execute()` to send, or `verifiedaccess_challenge_generate` for simplest API.
 
-pub fn verifiedaccess_challenge_generate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn verifiedaccess_challenge_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://verifiedaccess.googleapis.com/v2/challenge:generate",);
 
@@ -171,9 +175,12 @@ pub fn verifiedaccess_challenge_generate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `verifiedaccess_challenge_verify_execute()` to send, or `verifiedaccess_challenge_verify` for simplest API.
 
-pub fn verifiedaccess_challenge_verify_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn verifiedaccess_challenge_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://verifiedaccess.googleapis.com/v2/challenge:verify",);
 

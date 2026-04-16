@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_create_auth_uri_execute()` to send, or `identitytoolkit_relyingparty_create_auth_uri` for simplest API.
 
-pub fn identitytoolkit_relyingparty_create_auth_uri_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_create_auth_uri_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuthUri",);
@@ -176,9 +180,12 @@ pub fn identitytoolkit_relyingparty_create_auth_uri(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_delete_account_execute()` to send, or `identitytoolkit_relyingparty_delete_account` for simplest API.
 
-pub fn identitytoolkit_relyingparty_delete_account_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_delete_account_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/deleteAccount",);
@@ -326,9 +333,12 @@ pub fn identitytoolkit_relyingparty_delete_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_download_account_execute()` to send, or `identitytoolkit_relyingparty_download_account` for simplest API.
 
-pub fn identitytoolkit_relyingparty_download_account_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_download_account_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/downloadAccount",);
@@ -476,9 +486,12 @@ pub fn identitytoolkit_relyingparty_download_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_email_link_signin_execute()` to send, or `identitytoolkit_relyingparty_email_link_signin` for simplest API.
 
-pub fn identitytoolkit_relyingparty_email_link_signin_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_email_link_signin_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSignin",);
@@ -626,9 +639,12 @@ pub fn identitytoolkit_relyingparty_email_link_signin(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_get_account_info_execute()` to send, or `identitytoolkit_relyingparty_get_account_info` for simplest API.
 
-pub fn identitytoolkit_relyingparty_get_account_info_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_get_account_info_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo",);
@@ -776,9 +792,12 @@ pub fn identitytoolkit_relyingparty_get_account_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_get_oob_confirmation_code_execute()` to send, or `identitytoolkit_relyingparty_get_oob_confirmation_code` for simplest API.
 
-pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode",
@@ -931,11 +950,14 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_get_project_config_execute()` to send, or `identitytoolkit_relyingparty_get_project_config` for simplest API.
 
-pub fn identitytoolkit_relyingparty_get_project_config_builder(
-    client: &SimpleHttpClient,
+pub fn identitytoolkit_relyingparty_get_project_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     delegatedProjectNumber: &Option<Option<String>>,
     projectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig",);
@@ -1119,9 +1141,12 @@ pub fn identitytoolkit_relyingparty_get_project_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_get_public_keys_execute()` to send, or `identitytoolkit_relyingparty_get_public_keys` for simplest API.
 
-pub fn identitytoolkit_relyingparty_get_public_keys_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_get_public_keys_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys",);
@@ -1274,9 +1299,12 @@ pub fn identitytoolkit_relyingparty_get_public_keys(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_get_recaptcha_param_execute()` to send, or `identitytoolkit_relyingparty_get_recaptcha_param` for simplest API.
 
-pub fn identitytoolkit_relyingparty_get_recaptcha_param_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_get_recaptcha_param_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getRecaptchaParam",);
@@ -1424,9 +1452,12 @@ pub fn identitytoolkit_relyingparty_get_recaptcha_param(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_reset_password_execute()` to send, or `identitytoolkit_relyingparty_reset_password` for simplest API.
 
-pub fn identitytoolkit_relyingparty_reset_password_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_reset_password_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword",);
@@ -1574,9 +1605,12 @@ pub fn identitytoolkit_relyingparty_reset_password(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_send_verification_code_execute()` to send, or `identitytoolkit_relyingparty_send_verification_code` for simplest API.
 
-pub fn identitytoolkit_relyingparty_send_verification_code_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_send_verification_code_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/sendVerificationCode",);
@@ -1738,9 +1772,12 @@ pub fn identitytoolkit_relyingparty_send_verification_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_set_account_info_execute()` to send, or `identitytoolkit_relyingparty_set_account_info` for simplest API.
 
-pub fn identitytoolkit_relyingparty_set_account_info_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_set_account_info_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo",);
@@ -1888,9 +1925,12 @@ pub fn identitytoolkit_relyingparty_set_account_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_set_project_config_execute()` to send, or `identitytoolkit_relyingparty_set_project_config` for simplest API.
 
-pub fn identitytoolkit_relyingparty_set_project_config_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_set_project_config_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/setProjectConfig",);
@@ -2046,9 +2086,12 @@ pub fn identitytoolkit_relyingparty_set_project_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_sign_out_user_execute()` to send, or `identitytoolkit_relyingparty_sign_out_user` for simplest API.
 
-pub fn identitytoolkit_relyingparty_sign_out_user_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_sign_out_user_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/signOutUser",);
@@ -2201,9 +2244,12 @@ pub fn identitytoolkit_relyingparty_sign_out_user(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_signup_new_user_execute()` to send, or `identitytoolkit_relyingparty_signup_new_user` for simplest API.
 
-pub fn identitytoolkit_relyingparty_signup_new_user_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_signup_new_user_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser",);
@@ -2351,9 +2397,12 @@ pub fn identitytoolkit_relyingparty_signup_new_user(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_upload_account_execute()` to send, or `identitytoolkit_relyingparty_upload_account` for simplest API.
 
-pub fn identitytoolkit_relyingparty_upload_account_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_upload_account_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/uploadAccount",);
@@ -2501,9 +2550,12 @@ pub fn identitytoolkit_relyingparty_upload_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_verify_assertion_execute()` to send, or `identitytoolkit_relyingparty_verify_assertion` for simplest API.
 
-pub fn identitytoolkit_relyingparty_verify_assertion_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_verify_assertion_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAssertion",);
@@ -2651,9 +2703,12 @@ pub fn identitytoolkit_relyingparty_verify_assertion(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_verify_custom_token_execute()` to send, or `identitytoolkit_relyingparty_verify_custom_token` for simplest API.
 
-pub fn identitytoolkit_relyingparty_verify_custom_token_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_verify_custom_token_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken",);
@@ -2801,9 +2856,12 @@ pub fn identitytoolkit_relyingparty_verify_custom_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_verify_password_execute()` to send, or `identitytoolkit_relyingparty_verify_password` for simplest API.
 
-pub fn identitytoolkit_relyingparty_verify_password_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_verify_password_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword",);
@@ -2951,9 +3009,12 @@ pub fn identitytoolkit_relyingparty_verify_password(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `identitytoolkit_relyingparty_verify_phone_number_execute()` to send, or `identitytoolkit_relyingparty_verify_phone_number` for simplest API.
 
-pub fn identitytoolkit_relyingparty_verify_phone_number_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn identitytoolkit_relyingparty_verify_phone_number_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPhoneNumber",);

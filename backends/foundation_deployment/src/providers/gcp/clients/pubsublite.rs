@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_operations_cancel_execute()` to send, or `pubsublite_admin_projects_locations_operations_cancel` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -184,10 +188,13 @@ pub fn pubsublite_admin_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_operations_delete_execute()` to send, or `pubsublite_admin_projects_locations_operations_delete` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -342,10 +349,13 @@ pub fn pubsublite_admin_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_operations_get_execute()` to send, or `pubsublite_admin_projects_locations_operations_get` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -499,14 +509,17 @@ pub fn pubsublite_admin_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_operations_list_execute()` to send, or `pubsublite_admin_projects_locations_operations_list` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/operations",
@@ -699,11 +712,14 @@ pub fn pubsublite_admin_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_reservations_create_execute()` to send, or `pubsublite_admin_projects_locations_reservations_create` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_reservations_create_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_reservations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     reservationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/reservations",
@@ -874,10 +890,13 @@ pub fn pubsublite_admin_projects_locations_reservations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_reservations_delete_execute()` to send, or `pubsublite_admin_projects_locations_reservations_delete` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_reservations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_reservations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/reservations/{reservationsId}",
@@ -1032,10 +1051,13 @@ pub fn pubsublite_admin_projects_locations_reservations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_reservations_get_execute()` to send, or `pubsublite_admin_projects_locations_reservations_get` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_reservations_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_reservations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/reservations/{reservationsId}",
@@ -1189,12 +1211,15 @@ pub fn pubsublite_admin_projects_locations_reservations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_reservations_list_execute()` to send, or `pubsublite_admin_projects_locations_reservations_list` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_reservations_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_reservations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/reservations",
@@ -1375,11 +1400,14 @@ pub fn pubsublite_admin_projects_locations_reservations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_reservations_patch_execute()` to send, or `pubsublite_admin_projects_locations_reservations_patch` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_reservations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_reservations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/reservations/{reservationsId}",
@@ -1550,12 +1578,15 @@ pub fn pubsublite_admin_projects_locations_reservations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_reservations_topics_list_execute()` to send, or `pubsublite_admin_projects_locations_reservations_topics_list` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_reservations_topics_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_reservations_topics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/reservations/{reservationsId}/topics",
@@ -1740,12 +1771,15 @@ pub fn pubsublite_admin_projects_locations_reservations_topics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_subscriptions_create_execute()` to send, or `pubsublite_admin_projects_locations_subscriptions_create` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_subscriptions_create_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_subscriptions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     skipBacklog: &Option<Option<String>>,
     subscriptionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/subscriptions",
@@ -1926,10 +1960,13 @@ pub fn pubsublite_admin_projects_locations_subscriptions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_subscriptions_delete_execute()` to send, or `pubsublite_admin_projects_locations_subscriptions_delete` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_subscriptions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}",
@@ -2084,10 +2121,13 @@ pub fn pubsublite_admin_projects_locations_subscriptions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_subscriptions_get_execute()` to send, or `pubsublite_admin_projects_locations_subscriptions_get` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}",
@@ -2246,12 +2286,15 @@ pub fn pubsublite_admin_projects_locations_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_subscriptions_list_execute()` to send, or `pubsublite_admin_projects_locations_subscriptions_list` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/subscriptions",
@@ -2432,11 +2475,14 @@ pub fn pubsublite_admin_projects_locations_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_subscriptions_patch_execute()` to send, or `pubsublite_admin_projects_locations_subscriptions_patch` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_subscriptions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_subscriptions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}",
@@ -2611,10 +2657,13 @@ pub fn pubsublite_admin_projects_locations_subscriptions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_subscriptions_seek_execute()` to send, or `pubsublite_admin_projects_locations_subscriptions_seek` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_subscriptions_seek_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_subscriptions_seek_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}:seek",
@@ -2769,11 +2818,14 @@ pub fn pubsublite_admin_projects_locations_subscriptions_seek(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_topics_create_execute()` to send, or `pubsublite_admin_projects_locations_topics_create` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_topics_create_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_topics_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     topicId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/topics",
@@ -2944,10 +2996,13 @@ pub fn pubsublite_admin_projects_locations_topics_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_topics_delete_execute()` to send, or `pubsublite_admin_projects_locations_topics_delete` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_topics_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_topics_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/topics/{topicsId}",
@@ -3101,10 +3156,13 @@ pub fn pubsublite_admin_projects_locations_topics_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_topics_get_execute()` to send, or `pubsublite_admin_projects_locations_topics_get` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_topics_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_topics_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/topics/{topicsId}",
@@ -3258,10 +3316,13 @@ pub fn pubsublite_admin_projects_locations_topics_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_topics_get_partitions_execute()` to send, or `pubsublite_admin_projects_locations_topics_get_partitions` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_topics_get_partitions_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_topics_get_partitions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/topics/{topicsId}/partitions",
@@ -3420,12 +3481,15 @@ pub fn pubsublite_admin_projects_locations_topics_get_partitions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_topics_list_execute()` to send, or `pubsublite_admin_projects_locations_topics_list` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_topics_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_topics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/topics",
@@ -3606,11 +3670,14 @@ pub fn pubsublite_admin_projects_locations_topics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_topics_patch_execute()` to send, or `pubsublite_admin_projects_locations_topics_patch` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_topics_patch_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_topics_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/topics/{topicsId}",
@@ -3781,12 +3848,15 @@ pub fn pubsublite_admin_projects_locations_topics_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_admin_projects_locations_topics_subscriptions_list_execute()` to send, or `pubsublite_admin_projects_locations_topics_subscriptions_list` for simplest API.
 
-pub fn pubsublite_admin_projects_locations_topics_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_admin_projects_locations_topics_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/admin/projects/{}/locations/{locationsId}/topics/{topicsId}/subscriptions",
@@ -3971,10 +4041,13 @@ pub fn pubsublite_admin_projects_locations_topics_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_cursor_projects_locations_subscriptions_commit_cursor_execute()` to send, or `pubsublite_cursor_projects_locations_subscriptions_commit_cursor` for simplest API.
 
-pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/cursor/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}:commitCursor",
@@ -4135,12 +4208,15 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_cursor_projects_locations_subscriptions_cursors_list_execute()` to send, or `pubsublite_cursor_projects_locations_subscriptions_cursors_list` for simplest API.
 
-pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/cursor/projects/{}/locations/{locationsId}/subscriptions/{subscriptionsId}/cursors",
@@ -4325,10 +4401,13 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_topic_stats_projects_locations_topics_compute_head_cursor_execute()` to send, or `pubsublite_topic_stats_projects_locations_topics_compute_head_cursor` for simplest API.
 
-pub fn pubsublite_topic_stats_projects_locations_topics_compute_head_cursor_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_topic_stats_projects_locations_topics_compute_head_cursor_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/topicStats/projects/{}/locations/{locationsId}/topics/{topicsId}:computeHeadCursor",
@@ -4489,10 +4568,13 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_head_cursor(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_topic_stats_projects_locations_topics_compute_message_stats_execute()` to send, or `pubsublite_topic_stats_projects_locations_topics_compute_message_stats` for simplest API.
 
-pub fn pubsublite_topic_stats_projects_locations_topics_compute_message_stats_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_topic_stats_projects_locations_topics_compute_message_stats_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/topicStats/projects/{}/locations/{locationsId}/topics/{topicsId}:computeMessageStats",
@@ -4658,10 +4740,13 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_message_stats(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsublite_topic_stats_projects_locations_topics_compute_time_cursor_execute()` to send, or `pubsublite_topic_stats_projects_locations_topics_compute_time_cursor` for simplest API.
 
-pub fn pubsublite_topic_stats_projects_locations_topics_compute_time_cursor_builder(
-    client: &SimpleHttpClient,
+pub fn pubsublite_topic_stats_projects_locations_topics_compute_time_cursor_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsublite.googleapis.com/v1/topicStats/projects/{}/locations/{locationsId}/topics/{topicsId}:computeTimeCursor",

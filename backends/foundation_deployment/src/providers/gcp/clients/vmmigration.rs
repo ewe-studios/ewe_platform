@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_get_execute()` to send, or `vmmigration_projects_locations_get` for simplest API.
 
-pub fn vmmigration_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn vmmigration_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_list_execute()` to send, or `vmmigration_projects_locations_list` for simplest API.
 
-pub fn vmmigration_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn vmmigration_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_groups_add_group_migration_execute()` to send, or `vmmigration_projects_locations_groups_add_group_migration` for simplest API.
 
-pub fn vmmigration_projects_locations_groups_add_group_migration_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_groups_add_group_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     group: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}:addGroupMigration",
@@ -541,12 +551,15 @@ pub fn vmmigration_projects_locations_groups_add_group_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_groups_create_execute()` to send, or `vmmigration_projects_locations_groups_create` for simplest API.
 
-pub fn vmmigration_projects_locations_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     groupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/groups",
@@ -723,11 +736,14 @@ pub fn vmmigration_projects_locations_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_groups_delete_execute()` to send, or `vmmigration_projects_locations_groups_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}",
@@ -895,10 +911,13 @@ pub fn vmmigration_projects_locations_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_groups_get_execute()` to send, or `vmmigration_projects_locations_groups_get` for simplest API.
 
-pub fn vmmigration_projects_locations_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}",
@@ -1052,14 +1071,17 @@ pub fn vmmigration_projects_locations_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_groups_list_execute()` to send, or `vmmigration_projects_locations_groups_list` for simplest API.
 
-pub fn vmmigration_projects_locations_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/groups",
@@ -1252,12 +1274,15 @@ pub fn vmmigration_projects_locations_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_groups_patch_execute()` to send, or `vmmigration_projects_locations_groups_patch` for simplest API.
 
-pub fn vmmigration_projects_locations_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}",
@@ -1434,10 +1459,13 @@ pub fn vmmigration_projects_locations_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_groups_remove_group_migration_execute()` to send, or `vmmigration_projects_locations_groups_remove_group_migration` for simplest API.
 
-pub fn vmmigration_projects_locations_groups_remove_group_migration_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_groups_remove_group_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     group: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}:removeGroupMigration",
@@ -1592,12 +1620,15 @@ pub fn vmmigration_projects_locations_groups_remove_group_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_image_imports_create_execute()` to send, or `vmmigration_projects_locations_image_imports_create` for simplest API.
 
-pub fn vmmigration_projects_locations_image_imports_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_image_imports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     imageImportId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/imageImports",
@@ -1774,11 +1805,14 @@ pub fn vmmigration_projects_locations_image_imports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_image_imports_delete_execute()` to send, or `vmmigration_projects_locations_image_imports_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_image_imports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_image_imports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/imageImports/{imageImportsId}",
@@ -1949,10 +1983,13 @@ pub fn vmmigration_projects_locations_image_imports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_image_imports_get_execute()` to send, or `vmmigration_projects_locations_image_imports_get` for simplest API.
 
-pub fn vmmigration_projects_locations_image_imports_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_image_imports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/imageImports/{imageImportsId}",
@@ -2106,14 +2143,17 @@ pub fn vmmigration_projects_locations_image_imports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_image_imports_list_execute()` to send, or `vmmigration_projects_locations_image_imports_list` for simplest API.
 
-pub fn vmmigration_projects_locations_image_imports_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_image_imports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/imageImports",
@@ -2306,10 +2346,13 @@ pub fn vmmigration_projects_locations_image_imports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_image_imports_image_import_jobs_cancel_execute()` to send, or `vmmigration_projects_locations_image_imports_image_import_jobs_cancel` for simplest API.
 
-pub fn vmmigration_projects_locations_image_imports_image_import_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_image_imports_image_import_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/imageImports/{imageImportsId}/imageImportJobs/{imageImportJobsId}:cancel",
@@ -2465,10 +2508,13 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_image_imports_image_import_jobs_get_execute()` to send, or `vmmigration_projects_locations_image_imports_image_import_jobs_get` for simplest API.
 
-pub fn vmmigration_projects_locations_image_imports_image_import_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_image_imports_image_import_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/imageImports/{imageImportsId}/imageImportJobs/{imageImportJobsId}",
@@ -2628,14 +2674,17 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_image_imports_image_import_jobs_list_execute()` to send, or `vmmigration_projects_locations_image_imports_image_import_jobs_list` for simplest API.
 
-pub fn vmmigration_projects_locations_image_imports_image_import_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_image_imports_image_import_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/imageImports/{imageImportsId}/imageImportJobs",
@@ -2832,10 +2881,13 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_operations_cancel_execute()` to send, or `vmmigration_projects_locations_operations_cancel` for simplest API.
 
-pub fn vmmigration_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2989,10 +3041,13 @@ pub fn vmmigration_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_operations_delete_execute()` to send, or `vmmigration_projects_locations_operations_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3146,10 +3201,13 @@ pub fn vmmigration_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_operations_get_execute()` to send, or `vmmigration_projects_locations_operations_get` for simplest API.
 
-pub fn vmmigration_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3303,14 +3361,17 @@ pub fn vmmigration_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_operations_list_execute()` to send, or `vmmigration_projects_locations_operations_list` for simplest API.
 
-pub fn vmmigration_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -3503,12 +3564,15 @@ pub fn vmmigration_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_create_execute()` to send, or `vmmigration_projects_locations_sources_create` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     sourceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources",
@@ -3685,11 +3749,14 @@ pub fn vmmigration_projects_locations_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_delete_execute()` to send, or `vmmigration_projects_locations_sources_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}",
@@ -3857,13 +3924,16 @@ pub fn vmmigration_projects_locations_sources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_fetch_inventory_execute()` to send, or `vmmigration_projects_locations_sources_fetch_inventory` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_fetch_inventory_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_fetch_inventory_builder<R>(
+    client: &SimpleHttpClient<R>,
     source: &String,
     forceRefresh: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}:fetchInventory",
@@ -4050,14 +4120,17 @@ pub fn vmmigration_projects_locations_sources_fetch_inventory(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_fetch_storage_inventory_execute()` to send, or `vmmigration_projects_locations_sources_fetch_storage_inventory` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_fetch_storage_inventory_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_fetch_storage_inventory_builder<R>(
+    client: &SimpleHttpClient<R>,
     source: &String,
     forceRefresh: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}:fetchStorageInventory",
@@ -4254,10 +4327,13 @@ pub fn vmmigration_projects_locations_sources_fetch_storage_inventory(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_get_execute()` to send, or `vmmigration_projects_locations_sources_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}",
@@ -4411,14 +4487,17 @@ pub fn vmmigration_projects_locations_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_list_execute()` to send, or `vmmigration_projects_locations_sources_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources",
@@ -4611,12 +4690,15 @@ pub fn vmmigration_projects_locations_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_patch_execute()` to send, or `vmmigration_projects_locations_sources_patch` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}",
@@ -4793,12 +4875,15 @@ pub fn vmmigration_projects_locations_sources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_datacenter_connectors_create_execute()` to send, or `vmmigration_projects_locations_sources_datacenter_connectors_create` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_datacenter_connectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_datacenter_connectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     datacenterConnectorId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors",
@@ -4975,11 +5060,14 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_datacenter_connectors_delete_execute()` to send, or `vmmigration_projects_locations_sources_datacenter_connectors_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_datacenter_connectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_datacenter_connectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors/{datacenterConnectorsId}",
@@ -5150,10 +5238,13 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_datacenter_connectors_get_execute()` to send, or `vmmigration_projects_locations_sources_datacenter_connectors_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_datacenter_connectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_datacenter_connectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors/{datacenterConnectorsId}",
@@ -5313,14 +5404,17 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_datacenter_connectors_list_execute()` to send, or `vmmigration_projects_locations_sources_datacenter_connectors_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_datacenter_connectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_datacenter_connectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors",
@@ -5517,10 +5611,13 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance_execute()` to send, or `vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance_builder<R>(
+    client: &SimpleHttpClient<R>,
     datacenterConnector: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors/{datacenterConnectorsId}:upgradeAppliance",
@@ -5680,10 +5777,13 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appl
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_disk_migration_jobs_cancel_execute()` to send, or `vmmigration_projects_locations_sources_disk_migration_jobs_cancel` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_disk_migration_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_disk_migration_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}:cancel",
@@ -5839,12 +5939,15 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_disk_migration_jobs_create_execute()` to send, or `vmmigration_projects_locations_sources_disk_migration_jobs_create` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_disk_migration_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_disk_migration_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     diskMigrationJobId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs",
@@ -6021,10 +6124,13 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_disk_migration_jobs_delete_execute()` to send, or `vmmigration_projects_locations_sources_disk_migration_jobs_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_disk_migration_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_disk_migration_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}",
@@ -6180,10 +6286,13 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_disk_migration_jobs_get_execute()` to send, or `vmmigration_projects_locations_sources_disk_migration_jobs_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_disk_migration_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_disk_migration_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}",
@@ -6342,14 +6451,17 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_disk_migration_jobs_list_execute()` to send, or `vmmigration_projects_locations_sources_disk_migration_jobs_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_disk_migration_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_disk_migration_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs",
@@ -6546,12 +6658,15 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_disk_migration_jobs_patch_execute()` to send, or `vmmigration_projects_locations_sources_disk_migration_jobs_patch` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_disk_migration_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_disk_migration_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}",
@@ -6728,10 +6843,13 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_disk_migration_jobs_run_execute()` to send, or `vmmigration_projects_locations_sources_disk_migration_jobs_run` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_disk_migration_jobs_run_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_disk_migration_jobs_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}:run",
@@ -6886,12 +7004,15 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_create_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_create` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     migratingVmId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms",
@@ -7068,10 +7189,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_delete_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}",
@@ -7226,10 +7350,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_extend_migration_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_extend_migration` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_extend_migration_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_extend_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     migratingVm: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:extendMigration",
@@ -7386,10 +7513,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_extend_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_finalize_migration_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_finalize_migration` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_finalize_migration_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_finalize_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     migratingVm: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:finalizeMigration",
@@ -7547,11 +7677,14 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_finalize_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_get_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}",
@@ -7720,15 +7853,18 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_list_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms",
@@ -7927,12 +8063,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_patch_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_patch` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}",
@@ -8109,10 +8248,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_pause_migration_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_pause_migration` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_pause_migration_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_pause_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     migratingVm: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:pauseMigration",
@@ -8269,10 +8411,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_pause_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_resume_migration_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_resume_migration` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_resume_migration_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_resume_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     migratingVm: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:resumeMigration",
@@ -8429,10 +8574,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_resume_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_start_migration_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_start_migration` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_start_migration_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_start_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     migratingVm: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:startMigration",
@@ -8589,10 +8737,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_start_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs/{cloneJobsId}:cancel",
@@ -8749,12 +8900,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cloneJobId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs",
@@ -8932,10 +9086,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs/{cloneJobsId}",
@@ -9091,14 +9248,17 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs",
@@ -9291,10 +9451,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs/{cutoverJobsId}:cancel",
@@ -9451,12 +9614,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cutoverJobId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs",
@@ -9634,10 +9800,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs/{cutoverJobsId}",
@@ -9793,14 +9962,17 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs",
@@ -9994,10 +10166,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/replicationCycles/{replicationCyclesId}",
@@ -10159,14 +10334,17 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list_execute()` to send, or `vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/replicationCycles",
@@ -10365,12 +10543,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_utilization_reports_create_execute()` to send, or `vmmigration_projects_locations_sources_utilization_reports_create` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_utilization_reports_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_utilization_reports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     utilizationReportId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/utilizationReports",
@@ -10547,11 +10728,14 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_utilization_reports_delete_execute()` to send, or `vmmigration_projects_locations_sources_utilization_reports_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_utilization_reports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_utilization_reports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/utilizationReports/{utilizationReportsId}",
@@ -10722,11 +10906,14 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_utilization_reports_get_execute()` to send, or `vmmigration_projects_locations_sources_utilization_reports_get` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_utilization_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_utilization_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/utilizationReports/{utilizationReportsId}",
@@ -10899,15 +11086,18 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_sources_utilization_reports_list_execute()` to send, or `vmmigration_projects_locations_sources_utilization_reports_list` for simplest API.
 
-pub fn vmmigration_projects_locations_sources_utilization_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_sources_utilization_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/utilizationReports",
@@ -11110,12 +11300,15 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_target_projects_create_execute()` to send, or `vmmigration_projects_locations_target_projects_create` for simplest API.
 
-pub fn vmmigration_projects_locations_target_projects_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_target_projects_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     targetProjectId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/targetProjects",
@@ -11292,11 +11485,14 @@ pub fn vmmigration_projects_locations_target_projects_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_target_projects_delete_execute()` to send, or `vmmigration_projects_locations_target_projects_delete` for simplest API.
 
-pub fn vmmigration_projects_locations_target_projects_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_target_projects_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/targetProjects/{targetProjectsId}",
@@ -11467,10 +11663,13 @@ pub fn vmmigration_projects_locations_target_projects_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_target_projects_get_execute()` to send, or `vmmigration_projects_locations_target_projects_get` for simplest API.
 
-pub fn vmmigration_projects_locations_target_projects_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_target_projects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/targetProjects/{targetProjectsId}",
@@ -11628,14 +11827,17 @@ pub fn vmmigration_projects_locations_target_projects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_target_projects_list_execute()` to send, or `vmmigration_projects_locations_target_projects_list` for simplest API.
 
-pub fn vmmigration_projects_locations_target_projects_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_target_projects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/targetProjects",
@@ -11832,12 +12034,15 @@ pub fn vmmigration_projects_locations_target_projects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmmigration_projects_locations_target_projects_patch_execute()` to send, or `vmmigration_projects_locations_target_projects_patch` for simplest API.
 
-pub fn vmmigration_projects_locations_target_projects_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmmigration_projects_locations_target_projects_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmmigration.googleapis.com/v1/projects/{}/locations/{locationsId}/targetProjects/{targetProjectsId}",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `smartdevicemanagement_enterprises_devices_execute_command_execute()` to send, or `smartdevicemanagement_enterprises_devices_execute_command` for simplest API.
 
-pub fn smartdevicemanagement_enterprises_devices_execute_command_builder(
-    client: &SimpleHttpClient,
+pub fn smartdevicemanagement_enterprises_devices_execute_command_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}:executeCommand",
@@ -202,10 +206,13 @@ pub fn smartdevicemanagement_enterprises_devices_execute_command(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `smartdevicemanagement_enterprises_devices_get_execute()` to send, or `smartdevicemanagement_enterprises_devices_get` for simplest API.
 
-pub fn smartdevicemanagement_enterprises_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn smartdevicemanagement_enterprises_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}",
@@ -367,11 +374,14 @@ pub fn smartdevicemanagement_enterprises_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `smartdevicemanagement_enterprises_devices_list_execute()` to send, or `smartdevicemanagement_enterprises_devices_list` for simplest API.
 
-pub fn smartdevicemanagement_enterprises_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn smartdevicemanagement_enterprises_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/devices",
@@ -548,10 +558,13 @@ pub fn smartdevicemanagement_enterprises_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `smartdevicemanagement_enterprises_structures_get_execute()` to send, or `smartdevicemanagement_enterprises_structures_get` for simplest API.
 
-pub fn smartdevicemanagement_enterprises_structures_get_builder(
-    client: &SimpleHttpClient,
+pub fn smartdevicemanagement_enterprises_structures_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures/{structuresId}",
@@ -713,11 +726,14 @@ pub fn smartdevicemanagement_enterprises_structures_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `smartdevicemanagement_enterprises_structures_list_execute()` to send, or `smartdevicemanagement_enterprises_structures_list` for simplest API.
 
-pub fn smartdevicemanagement_enterprises_structures_list_builder(
-    client: &SimpleHttpClient,
+pub fn smartdevicemanagement_enterprises_structures_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures",
@@ -897,10 +913,13 @@ pub fn smartdevicemanagement_enterprises_structures_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `smartdevicemanagement_enterprises_structures_rooms_get_execute()` to send, or `smartdevicemanagement_enterprises_structures_rooms_get` for simplest API.
 
-pub fn smartdevicemanagement_enterprises_structures_rooms_get_builder(
-    client: &SimpleHttpClient,
+pub fn smartdevicemanagement_enterprises_structures_rooms_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures/{structuresId}/rooms/{roomsId}",
@@ -1063,10 +1082,13 @@ pub fn smartdevicemanagement_enterprises_structures_rooms_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `smartdevicemanagement_enterprises_structures_rooms_list_execute()` to send, or `smartdevicemanagement_enterprises_structures_rooms_list` for simplest API.
 
-pub fn smartdevicemanagement_enterprises_structures_rooms_list_builder(
-    client: &SimpleHttpClient,
+pub fn smartdevicemanagement_enterprises_structures_rooms_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures/{structuresId}/rooms",

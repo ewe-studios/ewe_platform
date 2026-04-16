@@ -86,7 +86,6 @@ use crate::providers::gcp::clients::chat::SpaceNotificationSetting;
 use crate::providers::gcp::clients::chat::SpaceReadState;
 use crate::providers::gcp::clients::chat::ThreadReadState;
 use crate::providers::gcp::clients::chat::UploadAttachmentResponse;
-use crate::providers::gcp::clients::chat::ChatCustomEmojisCreateArgs;
 use crate::providers::gcp::clients::chat::ChatCustomEmojisDeleteArgs;
 use crate::providers::gcp::clients::chat::ChatCustomEmojisGetArgs;
 use crate::providers::gcp::clients::chat::ChatCustomEmojisListArgs;
@@ -116,7 +115,6 @@ use crate::providers::gcp::clients::chat::ChatSpacesMessagesReactionsListArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMessagesUpdateArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesPatchArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesSearchArgs;
-use crate::providers::gcp::clients::chat::ChatSpacesSetupArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesSpaceEventsGetArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesSpaceEventsListArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSectionsCreateArgs;
@@ -133,7 +131,7 @@ use crate::providers::gcp::clients::chat::ChatUsersSpacesThreadsGetThreadReadSta
 use crate::providers::gcp::clients::chat::ChatUsersSpacesUpdateSpaceReadStateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -142,34 +140,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = ChatProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = ChatProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct ChatProvider<S>
+pub struct ChatProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> ChatProvider<S>
+impl<S, R> ChatProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new ChatProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new ChatProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Chat custom emojis create.

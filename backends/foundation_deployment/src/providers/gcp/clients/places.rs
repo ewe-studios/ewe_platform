@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `places_places_autocomplete_execute()` to send, or `places_places_autocomplete` for simplest API.
 
-pub fn places_places_autocomplete_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn places_places_autocomplete_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places:autocomplete",);
 
@@ -180,13 +184,16 @@ pub fn places_places_autocomplete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `places_places_get_execute()` to send, or `places_places_get` for simplest API.
 
-pub fn places_places_get_builder(
-    client: &SimpleHttpClient,
+pub fn places_places_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     regionCode: &Option<Option<String>>,
     sessionToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places/{}", name,);
 
@@ -370,9 +377,12 @@ pub fn places_places_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `places_places_search_nearby_execute()` to send, or `places_places_search_nearby` for simplest API.
 
-pub fn places_places_search_nearby_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn places_places_search_nearby_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places:searchNearby",);
 
@@ -523,9 +533,12 @@ pub fn places_places_search_nearby(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `places_places_search_text_execute()` to send, or `places_places_search_text` for simplest API.
 
-pub fn places_places_search_text_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn places_places_search_text_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places:searchText",);
 
@@ -676,13 +689,16 @@ pub fn places_places_search_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `places_places_photos_get_media_execute()` to send, or `places_places_photos_get_media` for simplest API.
 
-pub fn places_places_photos_get_media_builder(
-    client: &SimpleHttpClient,
+pub fn places_places_photos_get_media_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     maxHeightPx: &Option<Option<String>>,
     maxWidthPx: &Option<Option<String>>,
     skipHttpRedirect: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://places.googleapis.com/v1/places/{}/photos/{photosId}/media",

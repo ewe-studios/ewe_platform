@@ -86,7 +86,7 @@ use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConne
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsToolsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -95,34 +95,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = ConnectorsProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = ConnectorsProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct ConnectorsProvider<S>
+pub struct ConnectorsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> ConnectorsProvider<S>
+impl<S, R> ConnectorsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new ConnectorsProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new ConnectorsProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Connectors projects locations connections check readiness.
@@ -192,7 +202,7 @@ where
         let builder = connectors_projects_locations_connections_check_status_builder(
             &self.http_client,
             &args.name,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -522,7 +532,7 @@ where
         let builder = connectors_projects_locations_connections_actions_get_builder(
             &self.http_client,
             &args.name,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
             &args.view,
         )
         .map_err(ProviderError::Api)?;
@@ -562,7 +572,7 @@ where
         let builder = connectors_projects_locations_connections_actions_list_builder(
             &self.http_client,
             &args.parent,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
             &args.pageSize,
             &args.pageToken,
             &args.view,
@@ -605,7 +615,7 @@ where
             &self.http_client,
             &args.name,
             &args.contextMetadata,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
             &args.view,
         )
         .map_err(ProviderError::Api)?;
@@ -645,7 +655,7 @@ where
         let builder = connectors_projects_locations_connections_entity_types_list_builder(
             &self.http_client,
             &args.parent,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
             &args.pageSize,
             &args.pageToken,
             &args.view,
@@ -687,7 +697,7 @@ where
         let builder = connectors_projects_locations_connections_entity_types_entities_create_builder(
             &self.http_client,
             &args.parent,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -731,7 +741,7 @@ where
         let builder = connectors_projects_locations_connections_entity_types_entities_delete_builder(
             &self.http_client,
             &args.name,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -776,7 +786,7 @@ where
             &self.http_client,
             &args.entityType,
             &args.conditions,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -820,7 +830,7 @@ where
         let builder = connectors_projects_locations_connections_entity_types_entities_get_builder(
             &self.http_client,
             &args.name,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -860,7 +870,7 @@ where
             &self.http_client,
             &args.parent,
             &args.conditions,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
             &args.pageSize,
             &args.pageToken,
             &args.sortBy,
@@ -903,7 +913,7 @@ where
         let builder = connectors_projects_locations_connections_entity_types_entities_patch_builder(
             &self.http_client,
             &args.name,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -948,7 +958,7 @@ where
             &self.http_client,
             &args.entityType,
             &args.conditions,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -992,7 +1002,7 @@ where
         let builder = connectors_projects_locations_connections_resources_get_builder(
             &self.http_client,
             &args.name,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1069,7 +1079,7 @@ where
         let builder = connectors_projects_locations_connections_resources_list_builder(
             &self.http_client,
             &args.parent,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
             &args.pageSize,
             &args.pageToken,
         )
@@ -1153,7 +1163,7 @@ where
         let builder = connectors_projects_locations_connections_tools_list_builder(
             &self.http_client,
             &args.parent,
-            &args.executionConfig.headers,
+            &args.executionConfig_headers,
             &args.pageSize,
             &args.pageToken,
         )

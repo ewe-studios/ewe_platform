@@ -129,7 +129,7 @@ use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsService
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesTestIamPermissionsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -138,34 +138,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = MetastoreProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = MetastoreProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct MetastoreProvider<S>
+pub struct MetastoreProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> MetastoreProvider<S>
+impl<S, R> MetastoreProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new MetastoreProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new MetastoreProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Metastore projects locations get.
@@ -404,7 +414,7 @@ where
         let builder = metastore_projects_locations_federations_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1114,7 +1124,7 @@ where
         let builder = metastore_projects_locations_services_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1615,7 +1625,7 @@ where
         let builder = metastore_projects_locations_services_backups_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1739,7 +1749,7 @@ where
         let builder = metastore_projects_locations_services_databases_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1821,7 +1831,7 @@ where
         let builder = metastore_projects_locations_services_databases_tables_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 

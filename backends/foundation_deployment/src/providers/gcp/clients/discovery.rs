@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discovery_apis_get_rest_execute()` to send, or `discovery_apis_get_rest` for simplest API.
 
-pub fn discovery_apis_get_rest_builder(
-    client: &SimpleHttpClient,
+pub fn discovery_apis_get_rest_builder<R>(
+    client: &SimpleHttpClient<R>,
     api: &String,
     version: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/discovery/v1/apis/{}/{}/rest",
@@ -190,11 +194,14 @@ pub fn discovery_apis_get_rest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discovery_apis_list_execute()` to send, or `discovery_apis_list` for simplest API.
 
-pub fn discovery_apis_list_builder(
-    client: &SimpleHttpClient,
+pub fn discovery_apis_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &Option<Option<String>>,
     preferred: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/discovery/v1/apis",);
 

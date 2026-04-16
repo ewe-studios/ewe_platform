@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_audit_execute()` to send, or `displayvideo_advertisers_audit` for simplest API.
 
-pub fn displayvideo_advertisers_audit_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_audit_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}:audit",
@@ -202,9 +206,12 @@ pub fn displayvideo_advertisers_audit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_create_execute()` to send, or `displayvideo_advertisers_create` for simplest API.
 
-pub fn displayvideo_advertisers_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn displayvideo_advertisers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers",);
 
@@ -347,10 +354,13 @@ pub fn displayvideo_advertisers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_delete_execute()` to send, or `displayvideo_advertisers_delete` for simplest API.
 
-pub fn displayvideo_advertisers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}",
@@ -504,10 +514,13 @@ pub fn displayvideo_advertisers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_edit_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_edit_assigned_targeting_options` for simplest API.
 
-pub fn displayvideo_advertisers_edit_assigned_targeting_options_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_edit_assigned_targeting_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}:editAssignedTargetingOptions",
@@ -676,10 +689,13 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_get_execute()` to send, or `displayvideo_advertisers_get` for simplest API.
 
-pub fn displayvideo_advertisers_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}",
@@ -833,14 +849,17 @@ pub fn displayvideo_advertisers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_list_execute()` to send, or `displayvideo_advertisers_list` for simplest API.
 
-pub fn displayvideo_advertisers_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers",);
 
@@ -1033,14 +1052,17 @@ pub fn displayvideo_advertisers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_list_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_list_assigned_targeting_options` for simplest API.
 
-pub fn displayvideo_advertisers_list_assigned_targeting_options_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_list_assigned_targeting_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}:listAssignedTargetingOptions",
@@ -1241,11 +1263,14 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_patch_execute()` to send, or `displayvideo_advertisers_patch` for simplest API.
 
-pub fn displayvideo_advertisers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}",
@@ -1413,10 +1438,13 @@ pub fn displayvideo_advertisers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_assets_bulk_create_execute()` to send, or `displayvideo_advertisers_ad_assets_bulk_create` for simplest API.
 
-pub fn displayvideo_advertisers_ad_assets_bulk_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_assets_bulk_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets:bulkCreate",
@@ -1579,10 +1607,13 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_assets_create_execute()` to send, or `displayvideo_advertisers_ad_assets_create` for simplest API.
 
-pub fn displayvideo_advertisers_ad_assets_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_assets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets",
@@ -1736,11 +1767,14 @@ pub fn displayvideo_advertisers_ad_assets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_assets_get_execute()` to send, or `displayvideo_advertisers_ad_assets_get` for simplest API.
 
-pub fn displayvideo_advertisers_ad_assets_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_assets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adAssetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets/{}",
@@ -1900,14 +1934,17 @@ pub fn displayvideo_advertisers_ad_assets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_assets_list_execute()` to send, or `displayvideo_advertisers_ad_assets_list` for simplest API.
 
-pub fn displayvideo_advertisers_ad_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets",
@@ -2100,10 +2137,13 @@ pub fn displayvideo_advertisers_ad_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_assets_upload_execute()` to send, or `displayvideo_advertisers_ad_assets_upload` for simplest API.
 
-pub fn displayvideo_advertisers_ad_assets_upload_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_assets_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets:uploadAdAsset",
@@ -2261,10 +2301,13 @@ pub fn displayvideo_advertisers_ad_assets_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_group_ads_create_execute()` to send, or `displayvideo_advertisers_ad_group_ads_create` for simplest API.
 
-pub fn displayvideo_advertisers_ad_group_ads_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_group_ads_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds",
@@ -2418,11 +2461,14 @@ pub fn displayvideo_advertisers_ad_group_ads_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_group_ads_delete_execute()` to send, or `displayvideo_advertisers_ad_group_ads_delete` for simplest API.
 
-pub fn displayvideo_advertisers_ad_group_ads_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_group_ads_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupAdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds/{}",
@@ -2582,11 +2628,14 @@ pub fn displayvideo_advertisers_ad_group_ads_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_group_ads_get_execute()` to send, or `displayvideo_advertisers_ad_group_ads_get` for simplest API.
 
-pub fn displayvideo_advertisers_ad_group_ads_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_group_ads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupAdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds/{}",
@@ -2746,14 +2795,17 @@ pub fn displayvideo_advertisers_ad_group_ads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_group_ads_list_execute()` to send, or `displayvideo_advertisers_ad_group_ads_list` for simplest API.
 
-pub fn displayvideo_advertisers_ad_group_ads_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_group_ads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds",
@@ -2946,12 +2998,15 @@ pub fn displayvideo_advertisers_ad_group_ads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_group_ads_patch_execute()` to send, or `displayvideo_advertisers_ad_group_ads_patch` for simplest API.
 
-pub fn displayvideo_advertisers_ad_group_ads_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_group_ads_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupAdId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds/{}",
@@ -3125,10 +3180,13 @@ pub fn displayvideo_advertisers_ad_group_ads_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups:bulkEditAssignedTargetingOptions",
@@ -3295,15 +3353,18 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupIds: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups:bulkListAssignedTargetingOptions",
@@ -3508,10 +3569,13 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_create_execute()` to send, or `displayvideo_advertisers_ad_groups_create` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups",
@@ -3665,11 +3729,14 @@ pub fn displayvideo_advertisers_ad_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_delete_execute()` to send, or `displayvideo_advertisers_ad_groups_delete` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}",
@@ -3829,11 +3896,14 @@ pub fn displayvideo_advertisers_ad_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_get_execute()` to send, or `displayvideo_advertisers_ad_groups_get` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}",
@@ -3993,14 +4063,17 @@ pub fn displayvideo_advertisers_ad_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_list_execute()` to send, or `displayvideo_advertisers_ad_groups_list` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups",
@@ -4193,12 +4266,15 @@ pub fn displayvideo_advertisers_ad_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_patch_execute()` to send, or `displayvideo_advertisers_ad_groups_patch` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}",
@@ -4372,12 +4448,17 @@ pub fn displayvideo_advertisers_ad_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     targetingType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -4546,13 +4627,18 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -4720,13 +4806,18 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -4905,8 +4996,10 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     targetingType: &String,
@@ -4914,7 +5007,10 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -5126,13 +5222,18 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_execute()` to send, or `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     youtubeAssetType: &String,
     linkedEntity_lineItemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
@@ -5311,14 +5412,19 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_execute()` to send, or `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     youtubeAssetType: &String,
     youtubeAssetAssociationId: &String,
     linkedEntity_lineItemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/youtubeAssetTypes/{}/youtubeAssetAssociations/{}",
@@ -5496,8 +5602,10 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_execute()` to send, or `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
     youtubeAssetType: &String,
@@ -5505,7 +5613,10 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
@@ -5703,10 +5814,13 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_assets_upload_execute()` to send, or `displayvideo_advertisers_assets_upload` for simplest API.
 
-pub fn displayvideo_advertisers_assets_upload_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_assets_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/assets",
@@ -5864,10 +5978,13 @@ pub fn displayvideo_advertisers_assets_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_campaigns_create_execute()` to send, or `displayvideo_advertisers_campaigns_create` for simplest API.
 
-pub fn displayvideo_advertisers_campaigns_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_campaigns_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns",
@@ -6021,11 +6138,14 @@ pub fn displayvideo_advertisers_campaigns_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_campaigns_delete_execute()` to send, or `displayvideo_advertisers_campaigns_delete` for simplest API.
 
-pub fn displayvideo_advertisers_campaigns_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_campaigns_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     campaignId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns/{}",
@@ -6185,11 +6305,14 @@ pub fn displayvideo_advertisers_campaigns_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_campaigns_get_execute()` to send, or `displayvideo_advertisers_campaigns_get` for simplest API.
 
-pub fn displayvideo_advertisers_campaigns_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_campaigns_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     campaignId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns/{}",
@@ -6349,14 +6472,17 @@ pub fn displayvideo_advertisers_campaigns_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_campaigns_list_execute()` to send, or `displayvideo_advertisers_campaigns_list` for simplest API.
 
-pub fn displayvideo_advertisers_campaigns_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_campaigns_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns",
@@ -6549,12 +6675,15 @@ pub fn displayvideo_advertisers_campaigns_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_campaigns_patch_execute()` to send, or `displayvideo_advertisers_campaigns_patch` for simplest API.
 
-pub fn displayvideo_advertisers_campaigns_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_campaigns_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     campaignId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns/{}",
@@ -6728,11 +6857,14 @@ pub fn displayvideo_advertisers_campaigns_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_create_execute()` to send, or `displayvideo_advertisers_channels_create` for simplest API.
 
-pub fn displayvideo_advertisers_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels",
@@ -6903,12 +7035,15 @@ pub fn displayvideo_advertisers_channels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_get_execute()` to send, or `displayvideo_advertisers_channels_get` for simplest API.
 
-pub fn displayvideo_advertisers_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}",
@@ -7082,15 +7217,18 @@ pub fn displayvideo_advertisers_channels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_list_execute()` to send, or `displayvideo_advertisers_channels_list` for simplest API.
 
-pub fn displayvideo_advertisers_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels",
@@ -7289,13 +7427,16 @@ pub fn displayvideo_advertisers_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_patch_execute()` to send, or `displayvideo_advertisers_channels_patch` for simplest API.
 
-pub fn displayvideo_advertisers_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
     partnerId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}",
@@ -7475,11 +7616,14 @@ pub fn displayvideo_advertisers_channels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_sites_bulk_edit_execute()` to send, or `displayvideo_advertisers_channels_sites_bulk_edit` for simplest API.
 
-pub fn displayvideo_advertisers_channels_sites_bulk_edit_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_sites_bulk_edit_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites:bulkEdit",
@@ -7643,12 +7787,15 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_sites_create_execute()` to send, or `displayvideo_advertisers_channels_sites_create` for simplest API.
 
-pub fn displayvideo_advertisers_channels_sites_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_sites_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites",
@@ -7822,13 +7969,16 @@ pub fn displayvideo_advertisers_channels_sites_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_sites_delete_execute()` to send, or `displayvideo_advertisers_channels_sites_delete` for simplest API.
 
-pub fn displayvideo_advertisers_channels_sites_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_sites_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
     urlOrAppId: &String,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites/{}",
@@ -8005,8 +8155,8 @@ pub fn displayvideo_advertisers_channels_sites_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_sites_list_execute()` to send, or `displayvideo_advertisers_channels_sites_list` for simplest API.
 
-pub fn displayvideo_advertisers_channels_sites_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_sites_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
     filter: &Option<Option<String>>,
@@ -8014,7 +8164,10 @@ pub fn displayvideo_advertisers_channels_sites_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites",
@@ -8216,11 +8369,14 @@ pub fn displayvideo_advertisers_channels_sites_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_channels_sites_replace_execute()` to send, or `displayvideo_advertisers_channels_sites_replace` for simplest API.
 
-pub fn displayvideo_advertisers_channels_sites_replace_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_channels_sites_replace_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites:replace",
@@ -8384,10 +8540,13 @@ pub fn displayvideo_advertisers_channels_sites_replace(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_creatives_create_execute()` to send, or `displayvideo_advertisers_creatives_create` for simplest API.
 
-pub fn displayvideo_advertisers_creatives_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_creatives_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives",
@@ -8541,11 +8700,14 @@ pub fn displayvideo_advertisers_creatives_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_creatives_delete_execute()` to send, or `displayvideo_advertisers_creatives_delete` for simplest API.
 
-pub fn displayvideo_advertisers_creatives_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_creatives_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives/{}",
@@ -8705,11 +8867,14 @@ pub fn displayvideo_advertisers_creatives_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_creatives_get_execute()` to send, or `displayvideo_advertisers_creatives_get` for simplest API.
 
-pub fn displayvideo_advertisers_creatives_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_creatives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives/{}",
@@ -8869,14 +9034,17 @@ pub fn displayvideo_advertisers_creatives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_creatives_list_execute()` to send, or `displayvideo_advertisers_creatives_list` for simplest API.
 
-pub fn displayvideo_advertisers_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives",
@@ -9069,12 +9237,15 @@ pub fn displayvideo_advertisers_creatives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_creatives_patch_execute()` to send, or `displayvideo_advertisers_creatives_patch` for simplest API.
 
-pub fn displayvideo_advertisers_creatives_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_creatives_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     creativeId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives/{}",
@@ -9248,10 +9419,13 @@ pub fn displayvideo_advertisers_creatives_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_insertion_orders_create_execute()` to send, or `displayvideo_advertisers_insertion_orders_create` for simplest API.
 
-pub fn displayvideo_advertisers_insertion_orders_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_insertion_orders_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders",
@@ -9410,11 +9584,14 @@ pub fn displayvideo_advertisers_insertion_orders_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_insertion_orders_delete_execute()` to send, or `displayvideo_advertisers_insertion_orders_delete` for simplest API.
 
-pub fn displayvideo_advertisers_insertion_orders_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_insertion_orders_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     insertionOrderId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders/{}",
@@ -9574,11 +9751,14 @@ pub fn displayvideo_advertisers_insertion_orders_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_insertion_orders_get_execute()` to send, or `displayvideo_advertisers_insertion_orders_get` for simplest API.
 
-pub fn displayvideo_advertisers_insertion_orders_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_insertion_orders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     insertionOrderId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders/{}",
@@ -9742,14 +9922,17 @@ pub fn displayvideo_advertisers_insertion_orders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_insertion_orders_list_execute()` to send, or `displayvideo_advertisers_insertion_orders_list` for simplest API.
 
-pub fn displayvideo_advertisers_insertion_orders_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_insertion_orders_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders",
@@ -9946,12 +10129,15 @@ pub fn displayvideo_advertisers_insertion_orders_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_insertion_orders_patch_execute()` to send, or `displayvideo_advertisers_insertion_orders_patch` for simplest API.
 
-pub fn displayvideo_advertisers_insertion_orders_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_insertion_orders_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     insertionOrderId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders/{}",
@@ -10129,14 +10315,17 @@ pub fn displayvideo_advertisers_insertion_orders_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_invoices_list_execute()` to send, or `displayvideo_advertisers_invoices_list` for simplest API.
 
-pub fn displayvideo_advertisers_invoices_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_invoices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     issueMonth: &Option<Option<String>>,
     loiSapinInvoiceType: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/invoices",
@@ -10329,11 +10518,14 @@ pub fn displayvideo_advertisers_invoices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_invoices_lookup_invoice_currency_execute()` to send, or `displayvideo_advertisers_invoices_lookup_invoice_currency` for simplest API.
 
-pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     invoiceMonth: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/invoices:lookupInvoiceCurrency",
@@ -10512,10 +10704,13 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems:bulkEditAssignedTargetingOptions",
@@ -10681,15 +10876,18 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     lineItemIds: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems:bulkListAssignedTargetingOptions",
@@ -10893,10 +11091,13 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_bulk_update_execute()` to send, or `displayvideo_advertisers_line_items_bulk_update` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_bulk_update_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_bulk_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems:bulkUpdate",
@@ -11059,10 +11260,13 @@ pub fn displayvideo_advertisers_line_items_bulk_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_create_execute()` to send, or `displayvideo_advertisers_line_items_create` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems",
@@ -11216,11 +11420,14 @@ pub fn displayvideo_advertisers_line_items_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_delete_execute()` to send, or `displayvideo_advertisers_line_items_delete` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}",
@@ -11380,11 +11587,14 @@ pub fn displayvideo_advertisers_line_items_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_duplicate_execute()` to send, or `displayvideo_advertisers_line_items_duplicate` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_duplicate_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_duplicate_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}:duplicate",
@@ -11548,11 +11758,14 @@ pub fn displayvideo_advertisers_line_items_duplicate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_get_execute()` to send, or `displayvideo_advertisers_line_items_get` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}",
@@ -11712,14 +11925,17 @@ pub fn displayvideo_advertisers_line_items_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_list_execute()` to send, or `displayvideo_advertisers_line_items_list` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems",
@@ -11912,12 +12128,15 @@ pub fn displayvideo_advertisers_line_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_patch_execute()` to send, or `displayvideo_advertisers_line_items_patch` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}",
@@ -12091,12 +12310,17 @@ pub fn displayvideo_advertisers_line_items_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_execute()` to send, or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     targetingType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -12265,13 +12489,18 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_execute()` to send, or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -12439,13 +12668,18 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -12624,8 +12858,10 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     targetingType: &String,
@@ -12633,7 +12869,10 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -12835,13 +13074,18 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_execute()` to send, or `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     youtubeAssetType: &String,
     linkedEntity_adGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
@@ -13018,14 +13262,19 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_execute()` to send, or `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     youtubeAssetType: &String,
     youtubeAssetAssociationId: &String,
     linkedEntity_adGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/youtubeAssetTypes/{}/youtubeAssetAssociations/{}",
@@ -13201,8 +13450,10 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_execute()` to send, or `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list` for simplest API.
 
-pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
     youtubeAssetType: &String,
@@ -13210,7 +13461,10 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
@@ -13408,10 +13662,13 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_create_execute()` to send, or `displayvideo_advertisers_location_lists_create` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists",
@@ -13570,11 +13827,14 @@ pub fn displayvideo_advertisers_location_lists_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_get_execute()` to send, or `displayvideo_advertisers_location_lists_get` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}",
@@ -13738,14 +13998,17 @@ pub fn displayvideo_advertisers_location_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_list_execute()` to send, or `displayvideo_advertisers_location_lists_list` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists",
@@ -13938,12 +14201,15 @@ pub fn displayvideo_advertisers_location_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_patch_execute()` to send, or `displayvideo_advertisers_location_lists_patch` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}",
@@ -14121,11 +14387,14 @@ pub fn displayvideo_advertisers_location_lists_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_execute()` to send, or `displayvideo_advertisers_location_lists_assigned_locations_bulk_edit` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations:bulkEdit",
@@ -14294,11 +14563,14 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_assigned_locations_create_execute()` to send, or `displayvideo_advertisers_location_lists_assigned_locations_create` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_assigned_locations_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_assigned_locations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations",
@@ -14462,12 +14734,15 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_assigned_locations_delete_execute()` to send, or `displayvideo_advertisers_location_lists_assigned_locations_delete` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_assigned_locations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_assigned_locations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
     assignedLocationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations/{}",
@@ -14632,15 +14907,18 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_location_lists_assigned_locations_list_execute()` to send, or `displayvideo_advertisers_location_lists_assigned_locations_list` for simplest API.
 
-pub fn displayvideo_advertisers_location_lists_assigned_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_location_lists_assigned_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations",
@@ -14840,10 +15118,13 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_create_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_create` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists",
@@ -15002,11 +15283,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_delete_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_delete` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",
@@ -15166,11 +15450,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_get_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_get` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",
@@ -15334,12 +15621,15 @@ pub fn displayvideo_advertisers_negative_keyword_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_list_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_list` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists",
@@ -15524,12 +15814,15 @@ pub fn displayvideo_advertisers_negative_keyword_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_patch_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_patch` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",
@@ -15707,11 +16000,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords:bulkEdit",
@@ -15882,11 +16178,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_negative_keywords_create` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords",
@@ -16052,12 +16351,15 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
     keywordValue: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords/{}",
@@ -16223,15 +16525,18 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_negative_keywords_list` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords",
@@ -16433,11 +16738,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace` for simplest API.
 
-pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords:replace",
@@ -16608,11 +16916,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_targeting_types_assigned_targeting_options_create_execute()` to send, or `displayvideo_advertisers_targeting_types_assigned_targeting_options_create` for simplest API.
 
-pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     targetingType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -16779,12 +17090,15 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_execute()` to send, or `displayvideo_advertisers_targeting_types_assigned_targeting_options_delete` for simplest API.
 
-pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -16951,12 +17265,15 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_advertisers_targeting_types_assigned_targeting_options_get` for simplest API.
 
-pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -17126,15 +17443,18 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_advertisers_targeting_types_assigned_targeting_options_list` for simplest API.
 
-pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &String,
     targetingType: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -17337,12 +17657,15 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_combined_audiences_get_execute()` to send, or `displayvideo_combined_audiences_get` for simplest API.
 
-pub fn displayvideo_combined_audiences_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_combined_audiences_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     combinedAudienceId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/combinedAudiences/{}",
@@ -17523,15 +17846,18 @@ pub fn displayvideo_combined_audiences_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_combined_audiences_list_execute()` to send, or `displayvideo_combined_audiences_list` for simplest API.
 
-pub fn displayvideo_combined_audiences_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_combined_audiences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/combinedAudiences",);
 
@@ -17734,9 +18060,12 @@ pub fn displayvideo_combined_audiences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_create_execute()` to send, or `displayvideo_custom_bidding_algorithms_create` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn displayvideo_custom_bidding_algorithms_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms",);
 
@@ -17883,12 +18212,15 @@ pub fn displayvideo_custom_bidding_algorithms_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_get_execute()` to send, or `displayvideo_custom_bidding_algorithms_get` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}",
@@ -18069,15 +18401,18 @@ pub fn displayvideo_custom_bidding_algorithms_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_list_execute()` to send, or `displayvideo_custom_bidding_algorithms_list` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms",);
 
@@ -18280,11 +18615,14 @@ pub fn displayvideo_custom_bidding_algorithms_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_patch_execute()` to send, or `displayvideo_custom_bidding_algorithms_patch` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}",
@@ -18459,12 +18797,15 @@ pub fn displayvideo_custom_bidding_algorithms_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_upload_rules_execute()` to send, or `displayvideo_custom_bidding_algorithms_upload_rules` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_upload_rules_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_upload_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}:uploadRules",
@@ -18649,12 +18990,15 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_upload_script_execute()` to send, or `displayvideo_custom_bidding_algorithms_upload_script` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_upload_script_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_upload_script_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}:uploadScript",
@@ -18835,12 +19179,15 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_rules_create_execute()` to send, or `displayvideo_custom_bidding_algorithms_rules_create` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules",
@@ -19025,13 +19372,16 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_rules_get_execute()` to send, or `displayvideo_custom_bidding_algorithms_rules_get` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     customBiddingAlgorithmRulesId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules/{}",
@@ -19219,15 +19569,18 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_rules_list_execute()` to send, or `displayvideo_custom_bidding_algorithms_rules_list` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     advertiserId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules",
@@ -19431,12 +19784,15 @@ pub fn displayvideo_custom_bidding_algorithms_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_scripts_create_execute()` to send, or `displayvideo_custom_bidding_algorithms_scripts_create` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_scripts_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_scripts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts",
@@ -19617,13 +19973,16 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_scripts_get_execute()` to send, or `displayvideo_custom_bidding_algorithms_scripts_get` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_scripts_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_scripts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     customBiddingScriptId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts/{}",
@@ -19807,15 +20166,18 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_bidding_algorithms_scripts_list_execute()` to send, or `displayvideo_custom_bidding_algorithms_scripts_list` for simplest API.
 
-pub fn displayvideo_custom_bidding_algorithms_scripts_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_bidding_algorithms_scripts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     advertiserId: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts",
@@ -20018,11 +20380,14 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_lists_get_execute()` to send, or `displayvideo_custom_lists_get` for simplest API.
 
-pub fn displayvideo_custom_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     customListId: &String,
     advertiserId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/customLists/{}",
@@ -20190,14 +20555,17 @@ pub fn displayvideo_custom_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_custom_lists_list_execute()` to send, or `displayvideo_custom_lists_list` for simplest API.
 
-pub fn displayvideo_custom_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_custom_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customLists",);
 
@@ -20390,10 +20758,13 @@ pub fn displayvideo_custom_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_first_party_and_partner_audiences_create_execute()` to send, or `displayvideo_first_party_and_partner_audiences_create` for simplest API.
 
-pub fn displayvideo_first_party_and_partner_audiences_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_first_party_and_partner_audiences_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences",);
@@ -20565,10 +20936,13 @@ pub fn displayvideo_first_party_and_partner_audiences_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_first_party_and_partner_audiences_edit_customer_match_members_execute()` to send, or `displayvideo_first_party_and_partner_audiences_edit_customer_match_members` for simplest API.
 
-pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_members_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_members_builder<R>(
+    client: &SimpleHttpClient<R>,
     firstPartyAndPartnerAudienceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences/{}:editCustomerMatchMembers",
@@ -20735,12 +21109,15 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_first_party_and_partner_audiences_get_execute()` to send, or `displayvideo_first_party_and_partner_audiences_get` for simplest API.
 
-pub fn displayvideo_first_party_and_partner_audiences_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_first_party_and_partner_audiences_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     firstPartyAndPartnerAudienceId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences/{}",
@@ -20925,15 +21302,18 @@ pub fn displayvideo_first_party_and_partner_audiences_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_first_party_and_partner_audiences_list_execute()` to send, or `displayvideo_first_party_and_partner_audiences_list` for simplest API.
 
-pub fn displayvideo_first_party_and_partner_audiences_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_first_party_and_partner_audiences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences",);
@@ -21137,12 +21517,15 @@ pub fn displayvideo_first_party_and_partner_audiences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_first_party_and_partner_audiences_patch_execute()` to send, or `displayvideo_first_party_and_partner_audiences_patch` for simplest API.
 
-pub fn displayvideo_first_party_and_partner_audiences_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_first_party_and_partner_audiences_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     firstPartyAndPartnerAudienceId: &String,
     advertiserId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences/{}",
@@ -21327,11 +21710,14 @@ pub fn displayvideo_first_party_and_partner_audiences_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_floodlight_groups_get_execute()` to send, or `displayvideo_floodlight_groups_get` for simplest API.
 
-pub fn displayvideo_floodlight_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_floodlight_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/floodlightGroups/{}",
@@ -21506,12 +21892,15 @@ pub fn displayvideo_floodlight_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_floodlight_groups_patch_execute()` to send, or `displayvideo_floodlight_groups_patch` for simplest API.
 
-pub fn displayvideo_floodlight_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_floodlight_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
     partnerId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/floodlightGroups/{}",
@@ -21692,12 +22081,15 @@ pub fn displayvideo_floodlight_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_floodlight_groups_floodlight_activities_get_execute()` to send, or `displayvideo_floodlight_groups_floodlight_activities_get` for simplest API.
 
-pub fn displayvideo_floodlight_groups_floodlight_activities_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_floodlight_groups_floodlight_activities_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
     floodlightActivityId: &String,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/floodlightGroups/{}/floodlightActivities/{}",
@@ -21875,14 +22267,17 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_floodlight_groups_floodlight_activities_list_execute()` to send, or `displayvideo_floodlight_groups_floodlight_activities_list` for simplest API.
 
-pub fn displayvideo_floodlight_groups_floodlight_activities_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_floodlight_groups_floodlight_activities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/floodlightGroups/{}/floodlightActivities",
@@ -22079,12 +22474,15 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_google_audiences_get_execute()` to send, or `displayvideo_google_audiences_get` for simplest API.
 
-pub fn displayvideo_google_audiences_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_google_audiences_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     googleAudienceId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/googleAudiences/{}",
@@ -22265,15 +22663,18 @@ pub fn displayvideo_google_audiences_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_google_audiences_list_execute()` to send, or `displayvideo_google_audiences_list` for simplest API.
 
-pub fn displayvideo_google_audiences_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_google_audiences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/googleAudiences",);
 
@@ -22476,11 +22877,14 @@ pub fn displayvideo_google_audiences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_guaranteed_orders_create_execute()` to send, or `displayvideo_guaranteed_orders_create` for simplest API.
 
-pub fn displayvideo_guaranteed_orders_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_guaranteed_orders_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/guaranteedOrders",);
 
@@ -22652,10 +23056,13 @@ pub fn displayvideo_guaranteed_orders_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_execute()` to send, or `displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors` for simplest API.
 
-pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_builder<R>(
+    client: &SimpleHttpClient<R>,
     guaranteedOrderId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/guaranteedOrders/{}:editGuaranteedOrderReadAccessors",
@@ -22820,12 +23227,15 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_guaranteed_orders_get_execute()` to send, or `displayvideo_guaranteed_orders_get` for simplest API.
 
-pub fn displayvideo_guaranteed_orders_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_guaranteed_orders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     guaranteedOrderId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/guaranteedOrders/{}",
@@ -23006,15 +23416,18 @@ pub fn displayvideo_guaranteed_orders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_guaranteed_orders_list_execute()` to send, or `displayvideo_guaranteed_orders_list` for simplest API.
 
-pub fn displayvideo_guaranteed_orders_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_guaranteed_orders_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/guaranteedOrders",);
 
@@ -23217,13 +23630,16 @@ pub fn displayvideo_guaranteed_orders_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_guaranteed_orders_patch_execute()` to send, or `displayvideo_guaranteed_orders_patch` for simplest API.
 
-pub fn displayvideo_guaranteed_orders_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_guaranteed_orders_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     guaranteedOrderId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/guaranteedOrders/{}",
@@ -23410,11 +23826,14 @@ pub fn displayvideo_guaranteed_orders_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_create_execute()` to send, or `displayvideo_inventory_source_groups_create` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySourceGroups",);
 
@@ -23589,12 +24008,15 @@ pub fn displayvideo_inventory_source_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_delete_execute()` to send, or `displayvideo_inventory_source_groups_delete` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",
@@ -23771,12 +24193,15 @@ pub fn displayvideo_inventory_source_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_get_execute()` to send, or `displayvideo_inventory_source_groups_get` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",
@@ -23957,15 +24382,18 @@ pub fn displayvideo_inventory_source_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_list_execute()` to send, or `displayvideo_inventory_source_groups_list` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySourceGroups",);
 
@@ -24168,13 +24596,16 @@ pub fn displayvideo_inventory_source_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_patch_execute()` to send, or `displayvideo_inventory_source_groups_patch` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",
@@ -24361,10 +24792,13 @@ pub fn displayvideo_inventory_source_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_execute()` to send, or `displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources:bulkEdit",
@@ -24531,12 +24965,15 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_assigned_inventory_sources_create_execute()` to send, or `displayvideo_inventory_source_groups_assigned_inventory_sources_create` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources",
@@ -24718,13 +25155,16 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_assigned_inventory_sources_delete_execute()` to send, or `displayvideo_inventory_source_groups_assigned_inventory_sources_delete` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
     assignedInventorySourceId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources/{}",
@@ -24906,8 +25346,8 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_source_groups_assigned_inventory_sources_list_execute()` to send, or `displayvideo_inventory_source_groups_assigned_inventory_sources_list` for simplest API.
 
-pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
@@ -24915,7 +25355,10 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_buil
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources",
@@ -25124,11 +25567,14 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_sources_create_execute()` to send, or `displayvideo_inventory_sources_create` for simplest API.
 
-pub fn displayvideo_inventory_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySources",);
 
@@ -25300,10 +25746,13 @@ pub fn displayvideo_inventory_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_execute()` to send, or `displayvideo_inventory_sources_edit_inventory_source_read_write_accessors` for simplest API.
 
-pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySources/{}:editInventorySourceReadWriteAccessors",
@@ -25466,12 +25915,15 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_sources_get_execute()` to send, or `displayvideo_inventory_sources_get` for simplest API.
 
-pub fn displayvideo_inventory_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySources/{}",
@@ -25652,15 +26104,18 @@ pub fn displayvideo_inventory_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_sources_list_execute()` to send, or `displayvideo_inventory_sources_list` for simplest API.
 
-pub fn displayvideo_inventory_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySources",);
 
@@ -25863,13 +26318,16 @@ pub fn displayvideo_inventory_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_inventory_sources_patch_execute()` to send, or `displayvideo_inventory_sources_patch` for simplest API.
 
-pub fn displayvideo_inventory_sources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_inventory_sources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     inventorySourceId: &String,
     advertiserId: &Option<Option<String>>,
     partnerId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySources/{}",
@@ -26056,10 +26514,13 @@ pub fn displayvideo_inventory_sources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_media_download_execute()` to send, or `displayvideo_media_download` for simplest API.
 
-pub fn displayvideo_media_download_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_media_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/download/{}",
@@ -26217,10 +26678,13 @@ pub fn displayvideo_media_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_media_upload_execute()` to send, or `displayvideo_media_upload` for simplest API.
 
-pub fn displayvideo_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/media/{}", resourceName,);
 
@@ -26375,10 +26839,13 @@ pub fn displayvideo_media_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_edit_assigned_targeting_options_execute()` to send, or `displayvideo_partners_edit_assigned_targeting_options` for simplest API.
 
-pub fn displayvideo_partners_edit_assigned_targeting_options_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_edit_assigned_targeting_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}:editAssignedTargetingOptions",
@@ -26542,10 +27009,13 @@ pub fn displayvideo_partners_edit_assigned_targeting_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_get_execute()` to send, or `displayvideo_partners_get` for simplest API.
 
-pub fn displayvideo_partners_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}",
@@ -26699,13 +27169,16 @@ pub fn displayvideo_partners_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_list_execute()` to send, or `displayvideo_partners_list` for simplest API.
 
-pub fn displayvideo_partners_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners",);
 
@@ -26892,11 +27365,14 @@ pub fn displayvideo_partners_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_create_execute()` to send, or `displayvideo_partners_channels_create` for simplest API.
 
-pub fn displayvideo_partners_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     advertiserId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels",
@@ -27064,12 +27540,15 @@ pub fn displayvideo_partners_channels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_get_execute()` to send, or `displayvideo_partners_channels_get` for simplest API.
 
-pub fn displayvideo_partners_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
     advertiserId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}",
@@ -27243,15 +27722,18 @@ pub fn displayvideo_partners_channels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_list_execute()` to send, or `displayvideo_partners_channels_list` for simplest API.
 
-pub fn displayvideo_partners_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels",
@@ -27450,13 +27932,16 @@ pub fn displayvideo_partners_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_patch_execute()` to send, or `displayvideo_partners_channels_patch` for simplest API.
 
-pub fn displayvideo_partners_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
     advertiserId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}",
@@ -27636,11 +28121,14 @@ pub fn displayvideo_partners_channels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_sites_bulk_edit_execute()` to send, or `displayvideo_partners_channels_sites_bulk_edit` for simplest API.
 
-pub fn displayvideo_partners_channels_sites_bulk_edit_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_sites_bulk_edit_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites:bulkEdit",
@@ -27804,12 +28292,15 @@ pub fn displayvideo_partners_channels_sites_bulk_edit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_sites_create_execute()` to send, or `displayvideo_partners_channels_sites_create` for simplest API.
 
-pub fn displayvideo_partners_channels_sites_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_sites_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
     advertiserId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites",
@@ -27983,13 +28474,16 @@ pub fn displayvideo_partners_channels_sites_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_sites_delete_execute()` to send, or `displayvideo_partners_channels_sites_delete` for simplest API.
 
-pub fn displayvideo_partners_channels_sites_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_sites_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
     urlOrAppId: &String,
     advertiserId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites/{}",
@@ -28166,8 +28660,8 @@ pub fn displayvideo_partners_channels_sites_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_sites_list_execute()` to send, or `displayvideo_partners_channels_sites_list` for simplest API.
 
-pub fn displayvideo_partners_channels_sites_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_sites_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
     advertiserId: &Option<Option<String>>,
@@ -28175,7 +28669,10 @@ pub fn displayvideo_partners_channels_sites_list_builder(
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites",
@@ -28377,11 +28874,14 @@ pub fn displayvideo_partners_channels_sites_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_channels_sites_replace_execute()` to send, or `displayvideo_partners_channels_sites_replace` for simplest API.
 
-pub fn displayvideo_partners_channels_sites_replace_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_channels_sites_replace_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites:replace",
@@ -28545,11 +29045,14 @@ pub fn displayvideo_partners_channels_sites_replace(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_targeting_types_assigned_targeting_options_create_execute()` to send, or `displayvideo_partners_targeting_types_assigned_targeting_options_create` for simplest API.
 
-pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     targetingType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -28715,12 +29218,15 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_targeting_types_assigned_targeting_options_delete_execute()` to send, or `displayvideo_partners_targeting_types_assigned_targeting_options_delete` for simplest API.
 
-pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -28886,12 +29392,15 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_partners_targeting_types_assigned_targeting_options_get` for simplest API.
 
-pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     targetingType: &String,
     assignedTargetingOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions/{}",
@@ -29060,15 +29569,18 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_partners_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_partners_targeting_types_assigned_targeting_options_list` for simplest API.
 
-pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     partnerId: &String,
     targetingType: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions",
@@ -29270,9 +29782,12 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_sdfdownloadtasks_create_execute()` to send, or `displayvideo_sdfdownloadtasks_create` for simplest API.
 
-pub fn displayvideo_sdfdownloadtasks_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn displayvideo_sdfdownloadtasks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/sdfdownloadtasks",);
 
@@ -29415,10 +29930,13 @@ pub fn displayvideo_sdfdownloadtasks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_sdfdownloadtasks_operations_get_execute()` to send, or `displayvideo_sdfdownloadtasks_operations_get` for simplest API.
 
-pub fn displayvideo_sdfdownloadtasks_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_sdfdownloadtasks_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/sdfdownloadtasks/operations/{}",
@@ -29572,10 +30090,13 @@ pub fn displayvideo_sdfdownloadtasks_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_sdfuploadtasks_operations_get_execute()` to send, or `displayvideo_sdfuploadtasks_operations_get` for simplest API.
 
-pub fn displayvideo_sdfuploadtasks_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_sdfuploadtasks_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/sdfuploadtasks/operations/{}",
@@ -29729,12 +30250,15 @@ pub fn displayvideo_sdfuploadtasks_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_targeting_types_targeting_options_get_execute()` to send, or `displayvideo_targeting_types_targeting_options_get` for simplest API.
 
-pub fn displayvideo_targeting_types_targeting_options_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_targeting_types_targeting_options_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     targetingType: &String,
     targetingOptionId: &String,
     advertiserId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions/{}",
@@ -29912,15 +30436,18 @@ pub fn displayvideo_targeting_types_targeting_options_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_targeting_types_targeting_options_list_execute()` to send, or `displayvideo_targeting_types_targeting_options_list` for simplest API.
 
-pub fn displayvideo_targeting_types_targeting_options_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_targeting_types_targeting_options_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     targetingType: &String,
     advertiserId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions",
@@ -30123,10 +30650,13 @@ pub fn displayvideo_targeting_types_targeting_options_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_targeting_types_targeting_options_search_execute()` to send, or `displayvideo_targeting_types_targeting_options_search` for simplest API.
 
-pub fn displayvideo_targeting_types_targeting_options_search_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_targeting_types_targeting_options_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     targetingType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions:search",
@@ -30289,10 +30819,13 @@ pub fn displayvideo_targeting_types_targeting_options_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_users_bulk_edit_assigned_user_roles_execute()` to send, or `displayvideo_users_bulk_edit_assigned_user_roles` for simplest API.
 
-pub fn displayvideo_users_bulk_edit_assigned_user_roles_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_users_bulk_edit_assigned_user_roles_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/users/{}:bulkEditAssignedUserRoles",
@@ -30454,9 +30987,12 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_users_create_execute()` to send, or `displayvideo_users_create` for simplest API.
 
-pub fn displayvideo_users_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn displayvideo_users_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users",);
 
@@ -30599,10 +31135,13 @@ pub fn displayvideo_users_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_users_delete_execute()` to send, or `displayvideo_users_delete` for simplest API.
 
-pub fn displayvideo_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}", userId,);
 
@@ -30753,10 +31292,13 @@ pub fn displayvideo_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_users_get_execute()` to send, or `displayvideo_users_get` for simplest API.
 
-pub fn displayvideo_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}", userId,);
 
@@ -30907,13 +31449,16 @@ pub fn displayvideo_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_users_list_execute()` to send, or `displayvideo_users_list` for simplest API.
 
-pub fn displayvideo_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users",);
 
@@ -31100,11 +31645,14 @@ pub fn displayvideo_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_users_patch_execute()` to send, or `displayvideo_users_patch` for simplest API.
 
-pub fn displayvideo_users_patch_builder(
-    client: &SimpleHttpClient,
+pub fn displayvideo_users_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}", userId,);
 

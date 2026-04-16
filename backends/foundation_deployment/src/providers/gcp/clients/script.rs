@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_processes_list_execute()` to send, or `script_processes_list` for simplest API.
 
-pub fn script_processes_list_builder(
-    client: &SimpleHttpClient,
+pub fn script_processes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     userProcessFilter_deploymentId: &Option<Option<String>>,
@@ -39,7 +40,10 @@ pub fn script_processes_list_builder(
     userProcessFilter_statuses: &Option<Option<String>>,
     userProcessFilter_types: &Option<Option<String>>,
     userProcessFilter_userAccessLevels: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://script.googleapis.com/v1/processes",);
 
@@ -268,8 +272,8 @@ pub fn script_processes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_processes_list_script_processes_execute()` to send, or `script_processes_list_script_processes` for simplest API.
 
-pub fn script_processes_list_script_processes_builder(
-    client: &SimpleHttpClient,
+pub fn script_processes_list_script_processes_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     scriptId: &Option<Option<String>>,
@@ -280,7 +284,10 @@ pub fn script_processes_list_script_processes_builder(
     scriptProcessFilter_statuses: &Option<Option<String>>,
     scriptProcessFilter_types: &Option<Option<String>>,
     scriptProcessFilter_userAccessLevels: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://script.googleapis.com/v1/processes:listScriptProcesses",);
 
@@ -507,9 +514,12 @@ pub fn script_processes_list_script_processes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_create_execute()` to send, or `script_projects_create` for simplest API.
 
-pub fn script_projects_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn script_projects_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://script.googleapis.com/v1/projects",);
 
@@ -652,10 +662,13 @@ pub fn script_projects_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_get_execute()` to send, or `script_projects_get` for simplest API.
 
-pub fn script_projects_get_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://script.googleapis.com/v1/projects/{}", scriptId,);
 
@@ -806,11 +819,14 @@ pub fn script_projects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_get_content_execute()` to send, or `script_projects_get_content` for simplest API.
 
-pub fn script_projects_get_content_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_get_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     versionNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/content",
@@ -977,12 +993,15 @@ pub fn script_projects_get_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_get_metrics_execute()` to send, or `script_projects_get_metrics` for simplest API.
 
-pub fn script_projects_get_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_get_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     metricsFilter_deploymentId: &Option<Option<String>>,
     metricsGranularity: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/metrics",
@@ -1159,10 +1178,13 @@ pub fn script_projects_get_metrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_update_content_execute()` to send, or `script_projects_update_content` for simplest API.
 
-pub fn script_projects_update_content_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_update_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/content",
@@ -1316,10 +1338,13 @@ pub fn script_projects_update_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_deployments_create_execute()` to send, or `script_projects_deployments_create` for simplest API.
 
-pub fn script_projects_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments",
@@ -1473,11 +1498,14 @@ pub fn script_projects_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_deployments_delete_execute()` to send, or `script_projects_deployments_delete` for simplest API.
 
-pub fn script_projects_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     deploymentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments/{}",
@@ -1634,11 +1662,14 @@ pub fn script_projects_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_deployments_get_execute()` to send, or `script_projects_deployments_get` for simplest API.
 
-pub fn script_projects_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     deploymentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments/{}",
@@ -1795,12 +1826,15 @@ pub fn script_projects_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_deployments_list_execute()` to send, or `script_projects_deployments_list` for simplest API.
 
-pub fn script_projects_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments",
@@ -1981,11 +2015,14 @@ pub fn script_projects_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_deployments_update_execute()` to send, or `script_projects_deployments_update` for simplest API.
 
-pub fn script_projects_deployments_update_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_deployments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     deploymentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments/{}",
@@ -2142,10 +2179,13 @@ pub fn script_projects_deployments_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_versions_create_execute()` to send, or `script_projects_versions_create` for simplest API.
 
-pub fn script_projects_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/versions",
@@ -2299,11 +2339,14 @@ pub fn script_projects_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_versions_get_execute()` to send, or `script_projects_versions_get` for simplest API.
 
-pub fn script_projects_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     versionNumber: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/versions/{}",
@@ -2460,12 +2503,15 @@ pub fn script_projects_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_versions_list_execute()` to send, or `script_projects_versions_list` for simplest API.
 
-pub fn script_projects_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn script_projects_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/versions",
@@ -2646,10 +2692,13 @@ pub fn script_projects_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_scripts_run_execute()` to send, or `script_scripts_run` for simplest API.
 
-pub fn script_scripts_run_builder(
-    client: &SimpleHttpClient,
+pub fn script_scripts_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     scriptId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://script.googleapis.com/v1/scripts/{}:run", scriptId,);
 

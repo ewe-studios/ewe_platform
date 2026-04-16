@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_get_identity_execute()` to send, or `health_users_get_identity` for simplest API.
 
-pub fn health_users_get_identity_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_get_identity_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/identity", name,);
 
@@ -180,10 +184,13 @@ pub fn health_users_get_identity(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_get_profile_execute()` to send, or `health_users_get_profile` for simplest API.
 
-pub fn health_users_get_profile_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_get_profile_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/profile", name,);
 
@@ -334,10 +341,13 @@ pub fn health_users_get_profile(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_get_settings_execute()` to send, or `health_users_get_settings` for simplest API.
 
-pub fn health_users_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/settings", name,);
 
@@ -488,11 +498,14 @@ pub fn health_users_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_update_profile_execute()` to send, or `health_users_update_profile` for simplest API.
 
-pub fn health_users_update_profile_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_update_profile_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/profile", name,);
 
@@ -656,11 +669,14 @@ pub fn health_users_update_profile(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_update_settings_execute()` to send, or `health_users_update_settings` for simplest API.
 
-pub fn health_users_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/settings", name,);
 
@@ -824,10 +840,13 @@ pub fn health_users_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_batch_delete_execute()` to send, or `health_users_data_types_data_points_batch_delete` for simplest API.
 
-pub fn health_users_data_types_data_points_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints:batchDelete",
@@ -981,10 +1000,13 @@ pub fn health_users_data_types_data_points_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_create_execute()` to send, or `health_users_data_types_data_points_create` for simplest API.
 
-pub fn health_users_data_types_data_points_create_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints",
@@ -1138,10 +1160,13 @@ pub fn health_users_data_types_data_points_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_daily_roll_up_execute()` to send, or `health_users_data_types_data_points_daily_roll_up` for simplest API.
 
-pub fn health_users_data_types_data_points_daily_roll_up_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_daily_roll_up_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints:dailyRollUp",
@@ -1303,11 +1328,14 @@ pub fn health_users_data_types_data_points_daily_roll_up(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_export_exercise_tcx_execute()` to send, or `health_users_data_types_data_points_export_exercise_tcx` for simplest API.
 
-pub fn health_users_data_types_data_points_export_exercise_tcx_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_export_exercise_tcx_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     partialData: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints/{dataPointsId}:exportExerciseTcx",
@@ -1482,13 +1510,16 @@ pub fn health_users_data_types_data_points_export_exercise_tcx(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_list_execute()` to send, or `health_users_data_types_data_points_list` for simplest API.
 
-pub fn health_users_data_types_data_points_list_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints",
@@ -1675,10 +1706,13 @@ pub fn health_users_data_types_data_points_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_patch_execute()` to send, or `health_users_data_types_data_points_patch` for simplest API.
 
-pub fn health_users_data_types_data_points_patch_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints/{dataPointsId}",
@@ -1832,14 +1866,17 @@ pub fn health_users_data_types_data_points_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_reconcile_execute()` to send, or `health_users_data_types_data_points_reconcile` for simplest API.
 
-pub fn health_users_data_types_data_points_reconcile_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_reconcile_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataSourceFamily: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints:reconcile",
@@ -2036,10 +2073,13 @@ pub fn health_users_data_types_data_points_reconcile(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_data_types_data_points_roll_up_execute()` to send, or `health_users_data_types_data_points_roll_up` for simplest API.
 
-pub fn health_users_data_types_data_points_roll_up_builder(
-    client: &SimpleHttpClient,
+pub fn health_users_data_types_data_points_roll_up_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://health.googleapis.com/v4/users/{}/dataTypes/{dataTypesId}/dataPoints:rollUp",

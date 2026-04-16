@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_create_execute()` to send, or `streetviewpublish_photo_create` for simplest API.
 
-pub fn streetviewpublish_photo_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn streetviewpublish_photo_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo",);
 
@@ -171,10 +175,13 @@ pub fn streetviewpublish_photo_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_delete_execute()` to send, or `streetviewpublish_photo_delete` for simplest API.
 
-pub fn streetviewpublish_photo_delete_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photo_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     photoId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photo/{}",
@@ -328,12 +335,15 @@ pub fn streetviewpublish_photo_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_get_execute()` to send, or `streetviewpublish_photo_get` for simplest API.
 
-pub fn streetviewpublish_photo_get_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photo_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     photoId: &String,
     languageCode: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photo/{}",
@@ -506,9 +516,12 @@ pub fn streetviewpublish_photo_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_start_upload_execute()` to send, or `streetviewpublish_photo_start_upload` for simplest API.
 
-pub fn streetviewpublish_photo_start_upload_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn streetviewpublish_photo_start_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo:startUpload",);
 
@@ -651,11 +664,14 @@ pub fn streetviewpublish_photo_start_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_update_execute()` to send, or `streetviewpublish_photo_update` for simplest API.
 
-pub fn streetviewpublish_photo_update_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photo_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo/{}", id,);
 
@@ -819,10 +835,13 @@ pub fn streetviewpublish_photo_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_sequence_create_execute()` to send, or `streetviewpublish_photo_sequence_create` for simplest API.
 
-pub fn streetviewpublish_photo_sequence_create_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photo_sequence_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     inputType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photoSequence",);
 
@@ -984,10 +1003,13 @@ pub fn streetviewpublish_photo_sequence_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_sequence_delete_execute()` to send, or `streetviewpublish_photo_sequence_delete` for simplest API.
 
-pub fn streetviewpublish_photo_sequence_delete_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photo_sequence_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     sequenceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photoSequence/{}",
@@ -1141,12 +1163,15 @@ pub fn streetviewpublish_photo_sequence_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_sequence_get_execute()` to send, or `streetviewpublish_photo_sequence_get` for simplest API.
 
-pub fn streetviewpublish_photo_sequence_get_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photo_sequence_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     sequenceId: &String,
     filter: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photoSequence/{}",
@@ -1323,9 +1348,12 @@ pub fn streetviewpublish_photo_sequence_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_sequence_start_upload_execute()` to send, or `streetviewpublish_photo_sequence_start_upload` for simplest API.
 
-pub fn streetviewpublish_photo_sequence_start_upload_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn streetviewpublish_photo_sequence_start_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://streetviewpublish.googleapis.com/v1/photoSequence:startUpload",);
@@ -1469,12 +1497,15 @@ pub fn streetviewpublish_photo_sequence_start_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photo_sequences_list_execute()` to send, or `streetviewpublish_photo_sequences_list` for simplest API.
 
-pub fn streetviewpublish_photo_sequences_list_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photo_sequences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photoSequences",);
 
@@ -1659,9 +1690,12 @@ pub fn streetviewpublish_photo_sequences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photos_batch_delete_execute()` to send, or `streetviewpublish_photos_batch_delete` for simplest API.
 
-pub fn streetviewpublish_photos_batch_delete_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn streetviewpublish_photos_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchDelete",);
 
@@ -1808,12 +1842,15 @@ pub fn streetviewpublish_photos_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photos_batch_get_execute()` to send, or `streetviewpublish_photos_batch_get` for simplest API.
 
-pub fn streetviewpublish_photos_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photos_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     languageCode: &Option<Option<String>>,
     photoIds: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchGet",);
 
@@ -1994,9 +2031,12 @@ pub fn streetviewpublish_photos_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photos_batch_update_execute()` to send, or `streetviewpublish_photos_batch_update` for simplest API.
 
-pub fn streetviewpublish_photos_batch_update_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn streetviewpublish_photos_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchUpdate",);
 
@@ -2143,14 +2183,17 @@ pub fn streetviewpublish_photos_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `streetviewpublish_photos_list_execute()` to send, or `streetviewpublish_photos_list` for simplest API.
 
-pub fn streetviewpublish_photos_list_builder(
-    client: &SimpleHttpClient,
+pub fn streetviewpublish_photos_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos",);
 

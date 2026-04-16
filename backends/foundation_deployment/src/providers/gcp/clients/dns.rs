@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_changes_create_execute()` to send, or `dns_changes_create` for simplest API.
 
-pub fn dns_changes_create_builder(
-    client: &SimpleHttpClient,
+pub fn dns_changes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/changes",
@@ -205,13 +209,16 @@ pub fn dns_changes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_changes_get_execute()` to send, or `dns_changes_get` for simplest API.
 
-pub fn dns_changes_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_changes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     changeId: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/changes/{}",
@@ -388,15 +395,18 @@ pub fn dns_changes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_changes_list_execute()` to send, or `dns_changes_list` for simplest API.
 
-pub fn dns_changes_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_changes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     sortBy: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/changes",
@@ -592,14 +602,17 @@ pub fn dns_changes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_dns_keys_get_execute()` to send, or `dns_dns_keys_get` for simplest API.
 
-pub fn dns_dns_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_dns_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     dnsKeyId: &String,
     clientOperationId: &Option<Option<String>>,
     digestType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/dnsKeys/{}",
@@ -782,14 +795,17 @@ pub fn dns_dns_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_dns_keys_list_execute()` to send, or `dns_dns_keys_list` for simplest API.
 
-pub fn dns_dns_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_dns_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     digestType: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/dnsKeys",
@@ -979,13 +995,16 @@ pub fn dns_dns_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zone_operations_get_execute()` to send, or `dns_managed_zone_operations_get` for simplest API.
 
-pub fn dns_managed_zone_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zone_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     operation: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/operations/{}",
@@ -1162,14 +1181,17 @@ pub fn dns_managed_zone_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zone_operations_list_execute()` to send, or `dns_managed_zone_operations_list` for simplest API.
 
-pub fn dns_managed_zone_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zone_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     sortBy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/operations",
@@ -1363,11 +1385,14 @@ pub fn dns_managed_zone_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_create_execute()` to send, or `dns_managed_zones_create` for simplest API.
 
-pub fn dns_managed_zones_create_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones",
@@ -1534,12 +1559,15 @@ pub fn dns_managed_zones_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_delete_execute()` to send, or `dns_managed_zones_delete` for simplest API.
 
-pub fn dns_managed_zones_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
@@ -1710,12 +1738,15 @@ pub fn dns_managed_zones_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_get_execute()` to send, or `dns_managed_zones_get` for simplest API.
 
-pub fn dns_managed_zones_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
@@ -1889,10 +1920,13 @@ pub fn dns_managed_zones_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_get_iam_policy_execute()` to send, or `dns_managed_zones_get_iam_policy` for simplest API.
 
-pub fn dns_managed_zones_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{managedZonesId}:getIamPolicy",
@@ -2050,13 +2084,16 @@ pub fn dns_managed_zones_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_list_execute()` to send, or `dns_managed_zones_list` for simplest API.
 
-pub fn dns_managed_zones_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     dnsName: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones",
@@ -2243,12 +2280,15 @@ pub fn dns_managed_zones_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_patch_execute()` to send, or `dns_managed_zones_patch` for simplest API.
 
-pub fn dns_managed_zones_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
@@ -2422,10 +2462,13 @@ pub fn dns_managed_zones_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_set_iam_policy_execute()` to send, or `dns_managed_zones_set_iam_policy` for simplest API.
 
-pub fn dns_managed_zones_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{managedZonesId}:setIamPolicy",
@@ -2583,10 +2626,13 @@ pub fn dns_managed_zones_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_test_iam_permissions_execute()` to send, or `dns_managed_zones_test_iam_permissions` for simplest API.
 
-pub fn dns_managed_zones_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{managedZonesId}:testIamPermissions",
@@ -2748,12 +2794,15 @@ pub fn dns_managed_zones_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_managed_zones_update_execute()` to send, or `dns_managed_zones_update` for simplest API.
 
-pub fn dns_managed_zones_update_builder(
-    client: &SimpleHttpClient,
+pub fn dns_managed_zones_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
@@ -2927,11 +2976,14 @@ pub fn dns_managed_zones_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_policies_create_execute()` to send, or `dns_policies_create` for simplest API.
 
-pub fn dns_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn dns_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies",
@@ -3098,12 +3150,15 @@ pub fn dns_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_policies_delete_execute()` to send, or `dns_policies_delete` for simplest API.
 
-pub fn dns_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dns_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
@@ -3270,12 +3325,15 @@ pub fn dns_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_policies_get_execute()` to send, or `dns_policies_get` for simplest API.
 
-pub fn dns_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
@@ -3445,12 +3503,15 @@ pub fn dns_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_policies_list_execute()` to send, or `dns_policies_list` for simplest API.
 
-pub fn dns_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies",
@@ -3627,12 +3688,15 @@ pub fn dns_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_policies_patch_execute()` to send, or `dns_policies_patch` for simplest API.
 
-pub fn dns_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dns_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
@@ -3806,12 +3870,15 @@ pub fn dns_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_policies_update_execute()` to send, or `dns_policies_update` for simplest API.
 
-pub fn dns_policies_update_builder(
-    client: &SimpleHttpClient,
+pub fn dns_policies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
@@ -3985,11 +4052,14 @@ pub fn dns_policies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_projects_get_execute()` to send, or `dns_projects_get` for simplest API.
 
-pub fn dns_projects_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_projects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://dns.googleapis.com/dns/v1/projects/{}", project,);
 
@@ -4153,12 +4223,15 @@ pub fn dns_projects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_resource_record_sets_create_execute()` to send, or `dns_resource_record_sets_create` for simplest API.
 
-pub fn dns_resource_record_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn dns_resource_record_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets",
@@ -4336,14 +4409,17 @@ pub fn dns_resource_record_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_resource_record_sets_delete_execute()` to send, or `dns_resource_record_sets_delete` for simplest API.
 
-pub fn dns_resource_record_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dns_resource_record_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     name: &String,
     type_rs: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets/{}/{}",
@@ -4531,14 +4607,17 @@ pub fn dns_resource_record_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_resource_record_sets_get_execute()` to send, or `dns_resource_record_sets_get` for simplest API.
 
-pub fn dns_resource_record_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_resource_record_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     name: &String,
     type_rs: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets/{}/{}",
@@ -4722,8 +4801,8 @@ pub fn dns_resource_record_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_resource_record_sets_list_execute()` to send, or `dns_resource_record_sets_list` for simplest API.
 
-pub fn dns_resource_record_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_resource_record_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     filter: &Option<Option<String>>,
@@ -4731,7 +4810,10 @@ pub fn dns_resource_record_sets_list_builder(
     name: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets",
@@ -4937,14 +5019,17 @@ pub fn dns_resource_record_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_resource_record_sets_patch_execute()` to send, or `dns_resource_record_sets_patch` for simplest API.
 
-pub fn dns_resource_record_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dns_resource_record_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
     name: &String,
     type_rs: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets/{}/{}",
@@ -5128,11 +5213,14 @@ pub fn dns_resource_record_sets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policies_create_execute()` to send, or `dns_response_policies_create` for simplest API.
 
-pub fn dns_response_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies",
@@ -5304,12 +5392,15 @@ pub fn dns_response_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policies_delete_execute()` to send, or `dns_response_policies_delete` for simplest API.
 
-pub fn dns_response_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
@@ -5480,12 +5571,15 @@ pub fn dns_response_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policies_get_execute()` to send, or `dns_response_policies_get` for simplest API.
 
-pub fn dns_response_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
@@ -5663,12 +5757,15 @@ pub fn dns_response_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policies_list_execute()` to send, or `dns_response_policies_list` for simplest API.
 
-pub fn dns_response_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies",
@@ -5853,12 +5950,15 @@ pub fn dns_response_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policies_patch_execute()` to send, or `dns_response_policies_patch` for simplest API.
 
-pub fn dns_response_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
@@ -6040,12 +6140,15 @@ pub fn dns_response_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policies_update_execute()` to send, or `dns_response_policies_update` for simplest API.
 
-pub fn dns_response_policies_update_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
@@ -6227,12 +6330,15 @@ pub fn dns_response_policies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policy_rules_create_execute()` to send, or `dns_response_policy_rules_create` for simplest API.
 
-pub fn dns_response_policy_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policy_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules",
@@ -6410,13 +6516,16 @@ pub fn dns_response_policy_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policy_rules_delete_execute()` to send, or `dns_response_policy_rules_delete` for simplest API.
 
-pub fn dns_response_policy_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policy_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",
@@ -6590,13 +6699,16 @@ pub fn dns_response_policy_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policy_rules_get_execute()` to send, or `dns_response_policy_rules_get` for simplest API.
 
-pub fn dns_response_policy_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policy_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",
@@ -6777,13 +6889,16 @@ pub fn dns_response_policy_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policy_rules_list_execute()` to send, or `dns_response_policy_rules_list` for simplest API.
 
-pub fn dns_response_policy_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policy_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules",
@@ -6971,13 +7086,16 @@ pub fn dns_response_policy_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policy_rules_patch_execute()` to send, or `dns_response_policy_rules_patch` for simplest API.
 
-pub fn dns_response_policy_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policy_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",
@@ -7162,13 +7280,16 @@ pub fn dns_response_policy_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dns_response_policy_rules_update_execute()` to send, or `dns_response_policy_rules_update` for simplest API.
 
-pub fn dns_response_policy_rules_update_builder(
-    client: &SimpleHttpClient,
+pub fn dns_response_policy_rules_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
     clientOperationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",

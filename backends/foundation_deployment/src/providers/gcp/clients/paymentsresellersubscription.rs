@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_products_list_execute()` to send, or `paymentsresellersubscription_partners_products_list` for simplest API.
 
-pub fn paymentsresellersubscription_partners_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/products",
@@ -219,10 +223,13 @@ pub fn paymentsresellersubscription_partners_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_promotions_find_eligible_execute()` to send, or `paymentsresellersubscription_partners_promotions_find_eligible` for simplest API.
 
-pub fn paymentsresellersubscription_partners_promotions_find_eligible_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_promotions_find_eligible_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/promotions:findEligible",
@@ -387,13 +394,16 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_promotions_list_execute()` to send, or `paymentsresellersubscription_partners_promotions_list` for simplest API.
 
-pub fn paymentsresellersubscription_partners_promotions_list_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_promotions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/promotions",
@@ -580,10 +590,13 @@ pub fn paymentsresellersubscription_partners_promotions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_cancel_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_cancel` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}:cancel",
@@ -746,11 +759,14 @@ pub fn paymentsresellersubscription_partners_subscriptions_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_create_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_create` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_create_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     subscriptionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions",
@@ -925,10 +941,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_entitle_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_entitle` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_entitle_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_entitle_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}:entitle",
@@ -1091,10 +1110,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_entitle(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_extend_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_extend` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_extend_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_extend_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}:extend",
@@ -1257,10 +1279,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_extend(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_get_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_get` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}",
@@ -1419,13 +1444,16 @@ pub fn paymentsresellersubscription_partners_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_provision_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_provision` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_provision_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_provision_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cycleOptions_initialCycleDuration_count: &Option<Option<String>>,
     cycleOptions_initialCycleDuration_unit: &Option<Option<String>>,
     subscriptionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions:provision",
@@ -1612,10 +1640,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_resume_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_resume` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_resume_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}:resume",
@@ -1778,10 +1809,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_suspend_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_suspend` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_suspend_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_suspend_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}:suspend",
@@ -1944,10 +1978,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_suspend(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_undo_cancel_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_undo_cancel` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}:undoCancel",
@@ -2111,11 +2148,14 @@ pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_subscriptions_line_items_patch_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_line_items_patch` for simplest API.
 
-pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{subscriptionsId}/lineItems/{lineItemsId}",
@@ -2290,10 +2330,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_user_sessions_generate_execute()` to send, or `paymentsresellersubscription_partners_user_sessions_generate` for simplest API.
 
-pub fn paymentsresellersubscription_partners_user_sessions_generate_builder(
-    client: &SimpleHttpClient,
+pub fn paymentsresellersubscription_partners_user_sessions_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/userSessions:generate",

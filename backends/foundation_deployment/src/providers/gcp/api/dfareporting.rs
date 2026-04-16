@@ -443,14 +443,10 @@ use crate::providers::gcp::clients::dfareporting::DfareportingDirectorySitesGetA
 use crate::providers::gcp::clients::dfareporting::DfareportingDirectorySitesInsertArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDirectorySitesListArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicFeedsGetArgs;
-use crate::providers::gcp::clients::dfareporting::DfareportingDynamicFeedsInsertArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicFeedsRetransformArgs;
-use crate::providers::gcp::clients::dfareporting::DfareportingDynamicFeedsUpdateArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicProfilesGenerateCodeArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicProfilesGetArgs;
-use crate::providers::gcp::clients::dfareporting::DfareportingDynamicProfilesInsertArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicProfilesPublishArgs;
-use crate::providers::gcp::clients::dfareporting::DfareportingDynamicProfilesUpdateArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicTargetingKeysDeleteArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicTargetingKeysInsertArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingDynamicTargetingKeysListArgs;
@@ -535,9 +531,7 @@ use crate::providers::gcp::clients::dfareporting::DfareportingSitesUpdateArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingSizesGetArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingSizesInsertArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingSizesListArgs;
-use crate::providers::gcp::clients::dfareporting::DfareportingStudioCreativeAssetsInsertArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingStudioCreativesGetArgs;
-use crate::providers::gcp::clients::dfareporting::DfareportingStudioCreativesInsertArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingStudioCreativesPublishArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingSubaccountsGetArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingSubaccountsInsertArgs;
@@ -554,7 +548,6 @@ use crate::providers::gcp::clients::dfareporting::DfareportingTargetingTemplates
 use crate::providers::gcp::clients::dfareporting::DfareportingTvCampaignDetailsGetArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingTvCampaignSummariesListArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingUserProfilesGetArgs;
-use crate::providers::gcp::clients::dfareporting::DfareportingUserProfilesListArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingUserRolePermissionGroupsGetArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingUserRolePermissionGroupsListArgs;
 use crate::providers::gcp::clients::dfareporting::DfareportingUserRolePermissionsGetArgs;
@@ -569,7 +562,7 @@ use crate::providers::gcp::clients::dfareporting::DfareportingVideoFormatsGetArg
 use crate::providers::gcp::clients::dfareporting::DfareportingVideoFormatsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -578,34 +571,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = DfareportingProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = DfareportingProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct DfareportingProvider<S>
+pub struct DfareportingProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> DfareportingProvider<S>
+impl<S, R> DfareportingProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new DfareportingProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new DfareportingProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Dfareporting account active ad summaries get.
@@ -6979,9 +6982,9 @@ where
             &args.campaignId,
             &args.placementIds,
             &args.tagFormats,
-            &args.tagProperties.dcDbmMacroIncluded,
-            &args.tagProperties.gppMacrosIncluded,
-            &args.tagProperties.tcfGdprMacrosIncluded,
+            &args.tagProperties_dcDbmMacroIncluded,
+            &args.tagProperties_gppMacrosIncluded,
+            &args.tagProperties_tcfGdprMacrosIncluded,
         )
         .map_err(ProviderError::Api)?;
 

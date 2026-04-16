@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_fetch_static_ips_execute()` to send, or `datamigration_projects_locations_fetch_static_ips` for simplest API.
 
-pub fn datamigration_projects_locations_fetch_static_ips_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_fetch_static_ips_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}:fetchStaticIps",
@@ -212,10 +216,13 @@ pub fn datamigration_projects_locations_fetch_static_ips(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_get_execute()` to send, or `datamigration_projects_locations_get` for simplest API.
 
-pub fn datamigration_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -369,14 +376,17 @@ pub fn datamigration_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_list_execute()` to send, or `datamigration_projects_locations_list` for simplest API.
 
-pub fn datamigration_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations",
@@ -569,14 +579,17 @@ pub fn datamigration_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_create_execute()` to send, or `datamigration_projects_locations_connection_profiles_create` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectionProfileId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     skipValidation: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles",
@@ -765,12 +778,15 @@ pub fn datamigration_projects_locations_connection_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_delete_execute()` to send, or `datamigration_projects_locations_connection_profiles_delete` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}",
@@ -947,10 +963,13 @@ pub fn datamigration_projects_locations_connection_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_get_execute()` to send, or `datamigration_projects_locations_connection_profiles_get` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}",
@@ -1109,11 +1128,14 @@ pub fn datamigration_projects_locations_connection_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_get_iam_policy_execute()` to send, or `datamigration_projects_locations_connection_profiles_get_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}:getIamPolicy",
@@ -1284,14 +1306,17 @@ pub fn datamigration_projects_locations_connection_profiles_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_list_execute()` to send, or `datamigration_projects_locations_connection_profiles_list` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles",
@@ -1488,14 +1513,17 @@ pub fn datamigration_projects_locations_connection_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_patch_execute()` to send, or `datamigration_projects_locations_connection_profiles_patch` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     skipValidation: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}",
@@ -1684,10 +1712,13 @@ pub fn datamigration_projects_locations_connection_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_set_iam_policy_execute()` to send, or `datamigration_projects_locations_connection_profiles_set_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}:setIamPolicy",
@@ -1844,10 +1875,13 @@ pub fn datamigration_projects_locations_connection_profiles_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_connection_profiles_test_iam_permissions_execute()` to send, or `datamigration_projects_locations_connection_profiles_test_iam_permissions` for simplest API.
 
-pub fn datamigration_projects_locations_connection_profiles_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_connection_profiles_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}:testIamPermissions",
@@ -2014,10 +2048,13 @@ pub fn datamigration_projects_locations_connection_profiles_test_iam_permissions
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_apply_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_apply` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_apply_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_apply_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:apply",
@@ -2172,10 +2209,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_apply(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_commit_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_commit` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_commit_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:commit",
@@ -2330,10 +2370,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_convert_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_convert` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_convert_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_convert_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:convert",
@@ -2488,12 +2531,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_convert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_create_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_create` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     conversionWorkspaceId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces",
@@ -2670,12 +2716,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_delete_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_delete` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}",
@@ -2852,11 +2901,16 @@ pub fn datamigration_projects_locations_conversion_workspaces_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     conversionWorkspace: &String,
     commitId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeConversionWorkspaceRevisions",
@@ -3033,8 +3087,10 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_conversio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_describe_database_entities_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_describe_database_entities` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_describe_database_entities_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_describe_database_entities_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     conversionWorkspace: &String,
     commitId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
@@ -3043,7 +3099,10 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_database_
     tree: &Option<Option<String>>,
     uncommitted: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeDatabaseEntities",
@@ -3264,10 +3323,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_database_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_get_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_get` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}",
@@ -3426,11 +3488,14 @@ pub fn datamigration_projects_locations_conversion_workspaces_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_get_iam_policy_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_get_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:getIamPolicy",
@@ -3601,13 +3666,16 @@ pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_list_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_list` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces",
@@ -3798,12 +3866,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_patch_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_patch` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}",
@@ -3980,10 +4051,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_rollback_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_rollback` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:rollback",
@@ -4139,13 +4213,16 @@ pub fn datamigration_projects_locations_conversion_workspaces_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_search_background_jobs_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_search_background_jobs` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_search_background_jobs_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_search_background_jobs_builder<R>(
+    client: &SimpleHttpClient<R>,
     conversionWorkspace: &String,
     completedUntilTime: &Option<Option<String>>,
     maxSize: &Option<Option<String>>,
     returnMostRecentPerJobType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:searchBackgroundJobs",
@@ -4339,10 +4416,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_search_background_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_seed_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_seed` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_seed_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_seed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:seed",
@@ -4497,10 +4577,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_seed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_set_iam_policy_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_set_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:setIamPolicy",
@@ -4657,10 +4740,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_test_iam_permissions_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_test_iam_permissions` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:testIamPermissions",
@@ -4827,12 +4913,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_mapping_rules_create_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_mapping_rules_create` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     mappingRuleId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules",
@@ -5011,11 +5100,14 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_crea
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_mapping_rules_delete_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_mapping_rules_delete` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules/{mappingRulesId}",
@@ -5188,10 +5280,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_dele
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_mapping_rules_get_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_mapping_rules_get` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules/{mappingRulesId}",
@@ -5348,10 +5443,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_mapping_rules_import_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_mapping_rules_import` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_import_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules:import",
@@ -5510,12 +5608,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_impo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_mapping_rules_list_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_mapping_rules_list` for simplest API.
 
-pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules",
@@ -5698,12 +5799,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_create_execute()` to send, or `datamigration_projects_locations_migration_jobs_create` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     migrationJobId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs",
@@ -5880,12 +5984,15 @@ pub fn datamigration_projects_locations_migration_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_delete_execute()` to send, or `datamigration_projects_locations_migration_jobs_delete` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}",
@@ -6062,10 +6169,13 @@ pub fn datamigration_projects_locations_migration_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_demote_destination_execute()` to send, or `datamigration_projects_locations_migration_jobs_demote_destination` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_demote_destination_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_demote_destination_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:demoteDestination",
@@ -6221,10 +6331,13 @@ pub fn datamigration_projects_locations_migration_jobs_demote_destination(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_fetch_source_objects_execute()` to send, or `datamigration_projects_locations_migration_jobs_fetch_source_objects` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_fetch_source_objects_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_fetch_source_objects_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:fetchSourceObjects",
@@ -6380,10 +6493,13 @@ pub fn datamigration_projects_locations_migration_jobs_fetch_source_objects(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_generate_ssh_script_execute()` to send, or `datamigration_projects_locations_migration_jobs_generate_ssh_script` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_generate_ssh_script_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_generate_ssh_script_builder<R>(
+    client: &SimpleHttpClient<R>,
     migrationJob: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:generateSshScript",
@@ -6540,10 +6656,13 @@ pub fn datamigration_projects_locations_migration_jobs_generate_ssh_script(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script_execute()` to send, or `datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script_builder<R>(
+    client: &SimpleHttpClient<R>,
     migrationJob: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:generateTcpProxyScript",
@@ -6706,10 +6825,13 @@ pub fn datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_get_execute()` to send, or `datamigration_projects_locations_migration_jobs_get` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}",
@@ -6867,11 +6989,14 @@ pub fn datamigration_projects_locations_migration_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_get_iam_policy_execute()` to send, or `datamigration_projects_locations_migration_jobs_get_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:getIamPolicy",
@@ -7042,14 +7167,17 @@ pub fn datamigration_projects_locations_migration_jobs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_list_execute()` to send, or `datamigration_projects_locations_migration_jobs_list` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs",
@@ -7242,12 +7370,15 @@ pub fn datamigration_projects_locations_migration_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_patch_execute()` to send, or `datamigration_projects_locations_migration_jobs_patch` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}",
@@ -7424,10 +7555,13 @@ pub fn datamigration_projects_locations_migration_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_promote_execute()` to send, or `datamigration_projects_locations_migration_jobs_promote` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_promote_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_promote_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:promote",
@@ -7582,10 +7716,13 @@ pub fn datamigration_projects_locations_migration_jobs_promote(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_restart_execute()` to send, or `datamigration_projects_locations_migration_jobs_restart` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_restart_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_restart_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:restart",
@@ -7740,10 +7877,13 @@ pub fn datamigration_projects_locations_migration_jobs_restart(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_resume_execute()` to send, or `datamigration_projects_locations_migration_jobs_resume` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_resume_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:resume",
@@ -7898,10 +8038,13 @@ pub fn datamigration_projects_locations_migration_jobs_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_set_iam_policy_execute()` to send, or `datamigration_projects_locations_migration_jobs_set_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:setIamPolicy",
@@ -8058,10 +8201,13 @@ pub fn datamigration_projects_locations_migration_jobs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_start_execute()` to send, or `datamigration_projects_locations_migration_jobs_start` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_start_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:start",
@@ -8216,10 +8362,13 @@ pub fn datamigration_projects_locations_migration_jobs_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_stop_execute()` to send, or `datamigration_projects_locations_migration_jobs_stop` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_stop_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:stop",
@@ -8373,10 +8522,13 @@ pub fn datamigration_projects_locations_migration_jobs_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_test_iam_permissions_execute()` to send, or `datamigration_projects_locations_migration_jobs_test_iam_permissions` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:testIamPermissions",
@@ -8541,10 +8693,13 @@ pub fn datamigration_projects_locations_migration_jobs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_verify_execute()` to send, or `datamigration_projects_locations_migration_jobs_verify` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_verify_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}:verify",
@@ -8699,10 +8854,13 @@ pub fn datamigration_projects_locations_migration_jobs_verify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_objects_get_execute()` to send, or `datamigration_projects_locations_migration_jobs_objects_get` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_objects_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_objects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}",
@@ -8861,11 +9019,14 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_objects_get_iam_policy_execute()` to send, or `datamigration_projects_locations_migration_jobs_objects_get_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}:getIamPolicy",
@@ -9037,12 +9198,15 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_objects_list_execute()` to send, or `datamigration_projects_locations_migration_jobs_objects_list` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_objects_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_objects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects",
@@ -9227,10 +9391,13 @@ pub fn datamigration_projects_locations_migration_jobs_objects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_objects_lookup_execute()` to send, or `datamigration_projects_locations_migration_jobs_objects_lookup` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_objects_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_objects_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects:lookup",
@@ -9391,10 +9558,13 @@ pub fn datamigration_projects_locations_migration_jobs_objects_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_objects_set_iam_policy_execute()` to send, or `datamigration_projects_locations_migration_jobs_objects_set_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_objects_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_objects_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}:setIamPolicy",
@@ -9552,10 +9722,13 @@ pub fn datamigration_projects_locations_migration_jobs_objects_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_migration_jobs_objects_test_iam_permissions_execute()` to send, or `datamigration_projects_locations_migration_jobs_objects_test_iam_permissions` for simplest API.
 
-pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}:testIamPermissions",
@@ -9722,10 +9895,13 @@ pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_operations_cancel_execute()` to send, or `datamigration_projects_locations_operations_cancel` for simplest API.
 
-pub fn datamigration_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -9879,10 +10055,13 @@ pub fn datamigration_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_operations_delete_execute()` to send, or `datamigration_projects_locations_operations_delete` for simplest API.
 
-pub fn datamigration_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10036,10 +10215,13 @@ pub fn datamigration_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_operations_get_execute()` to send, or `datamigration_projects_locations_operations_get` for simplest API.
 
-pub fn datamigration_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10193,14 +10375,17 @@ pub fn datamigration_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_operations_list_execute()` to send, or `datamigration_projects_locations_operations_list` for simplest API.
 
-pub fn datamigration_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -10393,14 +10578,17 @@ pub fn datamigration_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_private_connections_create_execute()` to send, or `datamigration_projects_locations_private_connections_create` for simplest API.
 
-pub fn datamigration_projects_locations_private_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_private_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     privateConnectionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     skipValidation: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
@@ -10589,11 +10777,14 @@ pub fn datamigration_projects_locations_private_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_private_connections_delete_execute()` to send, or `datamigration_projects_locations_private_connections_delete` for simplest API.
 
-pub fn datamigration_projects_locations_private_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_private_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
@@ -10764,10 +10955,13 @@ pub fn datamigration_projects_locations_private_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_private_connections_get_execute()` to send, or `datamigration_projects_locations_private_connections_get` for simplest API.
 
-pub fn datamigration_projects_locations_private_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_private_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
@@ -10926,11 +11120,14 @@ pub fn datamigration_projects_locations_private_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_private_connections_get_iam_policy_execute()` to send, or `datamigration_projects_locations_private_connections_get_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_private_connections_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_private_connections_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}:getIamPolicy",
@@ -11101,14 +11298,17 @@ pub fn datamigration_projects_locations_private_connections_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_private_connections_list_execute()` to send, or `datamigration_projects_locations_private_connections_list` for simplest API.
 
-pub fn datamigration_projects_locations_private_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_private_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
@@ -11305,10 +11505,13 @@ pub fn datamigration_projects_locations_private_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_private_connections_set_iam_policy_execute()` to send, or `datamigration_projects_locations_private_connections_set_iam_policy` for simplest API.
 
-pub fn datamigration_projects_locations_private_connections_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_private_connections_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}:setIamPolicy",
@@ -11465,10 +11668,13 @@ pub fn datamigration_projects_locations_private_connections_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_private_connections_test_iam_permissions_execute()` to send, or `datamigration_projects_locations_private_connections_test_iam_permissions` for simplest API.
 
-pub fn datamigration_projects_locations_private_connections_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn datamigration_projects_locations_private_connections_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamigration.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}:testIamPermissions",

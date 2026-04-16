@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_billing_accounts_billing_account_license_configs_distribute_license_config_execute()` to send, or `discoveryengine_billing_accounts_billing_account_license_configs_distribute_license_config` for simplest API.
 
-pub fn discoveryengine_billing_accounts_billing_account_license_configs_distribute_license_config_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_billing_accounts_billing_account_license_configs_distribute_license_config_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     billingAccountLicenseConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/billingAccounts/{}/billingAccountLicenseConfigs/{billingAccountLicenseConfigsId}:distributeLicenseConfig",
@@ -201,10 +207,15 @@ pub fn discoveryengine_billing_accounts_billing_account_license_configs_distribu
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_billing_accounts_billing_account_license_configs_retract_license_config_execute()` to send, or `discoveryengine_billing_accounts_billing_account_license_configs_retract_license_config` for simplest API.
 
-pub fn discoveryengine_billing_accounts_billing_account_license_configs_retract_license_config_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_billing_accounts_billing_account_license_configs_retract_license_config_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     billingAccountLicenseConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/billingAccounts/{}/billingAccountLicenseConfigs/{billingAccountLicenseConfigsId}:retractLicenseConfig",
@@ -378,10 +389,13 @@ pub fn discoveryengine_billing_accounts_billing_account_license_configs_retract_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_provision_execute()` to send, or `discoveryengine_projects_provision` for simplest API.
 
-pub fn discoveryengine_projects_provision_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_provision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}:provision",
@@ -543,10 +557,13 @@ pub fn discoveryengine_projects_provision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_get_acl_config_execute()` to send, or `discoveryengine_projects_locations_get_acl_config` for simplest API.
 
-pub fn discoveryengine_projects_locations_get_acl_config_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_get_acl_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/aclConfig",
@@ -708,10 +725,13 @@ pub fn discoveryengine_projects_locations_get_acl_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_get_cmek_config_execute()` to send, or `discoveryengine_projects_locations_get_cmek_config` for simplest API.
 
-pub fn discoveryengine_projects_locations_get_cmek_config_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_get_cmek_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfig",
@@ -873,10 +893,13 @@ pub fn discoveryengine_projects_locations_get_cmek_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_set_up_data_connector_execute()` to send, or `discoveryengine_projects_locations_set_up_data_connector` for simplest API.
 
-pub fn discoveryengine_projects_locations_set_up_data_connector_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_set_up_data_connector_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}:setUpDataConnector",
@@ -1039,12 +1062,15 @@ pub fn discoveryengine_projects_locations_set_up_data_connector(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_set_up_data_connector_v2_execute()` to send, or `discoveryengine_projects_locations_set_up_data_connector_v2` for simplest API.
 
-pub fn discoveryengine_projects_locations_set_up_data_connector_v2_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_set_up_data_connector_v2_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     collectionDisplayName: &Option<Option<String>>,
     collectionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}:setUpDataConnectorV2",
@@ -1229,10 +1255,13 @@ pub fn discoveryengine_projects_locations_set_up_data_connector_v2(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_update_acl_config_execute()` to send, or `discoveryengine_projects_locations_update_acl_config` for simplest API.
 
-pub fn discoveryengine_projects_locations_update_acl_config_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_update_acl_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/aclConfig",
@@ -1394,11 +1423,14 @@ pub fn discoveryengine_projects_locations_update_acl_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_update_cmek_config_execute()` to send, or `discoveryengine_projects_locations_update_cmek_config` for simplest API.
 
-pub fn discoveryengine_projects_locations_update_cmek_config_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_update_cmek_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     setDefault: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfig",
@@ -1577,10 +1609,13 @@ pub fn discoveryengine_projects_locations_update_cmek_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_cmek_configs_delete_execute()` to send, or `discoveryengine_projects_locations_cmek_configs_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_cmek_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_cmek_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}",
@@ -1743,10 +1778,13 @@ pub fn discoveryengine_projects_locations_cmek_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_cmek_configs_get_execute()` to send, or `discoveryengine_projects_locations_cmek_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_cmek_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_cmek_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}",
@@ -1908,10 +1946,13 @@ pub fn discoveryengine_projects_locations_cmek_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_cmek_configs_list_execute()` to send, or `discoveryengine_projects_locations_cmek_configs_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_cmek_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_cmek_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfigs",
@@ -2078,11 +2119,14 @@ pub fn discoveryengine_projects_locations_cmek_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_cmek_configs_patch_execute()` to send, or `discoveryengine_projects_locations_cmek_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_cmek_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_cmek_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     setDefault: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}",
@@ -2261,10 +2305,13 @@ pub fn discoveryengine_projects_locations_cmek_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_delete_execute()` to send, or `discoveryengine_projects_locations_collections_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}",
@@ -2427,10 +2474,13 @@ pub fn discoveryengine_projects_locations_collections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_get_data_connector_execute()` to send, or `discoveryengine_projects_locations_collections_get_data_connector` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_get_data_connector_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_get_data_connector_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataConnector",
@@ -2594,11 +2644,14 @@ pub fn discoveryengine_projects_locations_collections_get_data_connector(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_update_data_connector_execute()` to send, or `discoveryengine_projects_locations_collections_update_data_connector` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_update_data_connector_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_update_data_connector_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataConnector",
@@ -2777,15 +2830,18 @@ pub fn discoveryengine_projects_locations_collections_update_data_connector(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_connector_mcp_execute()` to send, or `discoveryengine_projects_locations_collections_data_connector_mcp` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_connector_mcp_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_connector_mcp_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectsId: &String,
     locationsId: &String,
     collectionsId: &String,
     contentType: &Option<Option<String>>,
     data: &Option<Option<String>>,
     extensions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{}/dataConnector/mcp",
@@ -2980,10 +3036,13 @@ pub fn discoveryengine_projects_locations_collections_data_connector_mcp(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_connector_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_connector_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_connector_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_connector_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations/{operationsId}",
@@ -3149,14 +3208,17 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_connector_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_connector_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_connector_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_connector_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations",
@@ -3357,14 +3419,17 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_complete_query_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_complete_query` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_complete_query_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_complete_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataStore: &String,
     includeTailSuggestions: &Option<Option<String>>,
     query: &Option<Option<String>>,
     queryModel: &Option<Option<String>>,
     userPseudoId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}:completeQuery",
@@ -3567,15 +3632,18 @@ pub fn discoveryengine_projects_locations_collections_data_stores_complete_query
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cmekConfigName: &Option<Option<String>>,
     createAdvancedSiteSearch: &Option<Option<String>>,
     dataStoreId: &Option<Option<String>>,
     disableCmek: &Option<Option<String>>,
     skipDefaultSchemaCreation: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores",
@@ -3778,10 +3846,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}",
@@ -3945,10 +4016,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}",
@@ -4111,10 +4185,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_get_site_search_engine_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_get_site_search_engine` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_get_site_search_engine_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_get_site_search_engine_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine",
@@ -4285,13 +4364,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get_site_searc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores",
@@ -4486,11 +4568,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}",
@@ -4669,10 +4754,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_train_custom_model_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_train_custom_model` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_train_custom_model_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_train_custom_model_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}:trainCustomModel",
@@ -4840,12 +4928,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_train_custom_m
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     matcher_fhirMatcher_fhirResources: &Option<Option<String>>,
     matcher_urisMatcher_uris: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/batchGetDocumentsMetadata",
@@ -5036,11 +5129,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_documents_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_documents_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     documentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents",
@@ -5220,10 +5318,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_documents_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_documents_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}",
@@ -5386,10 +5489,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_documents_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_documents_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}",
@@ -5559,10 +5667,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_documents_import_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_documents_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_import_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:import",
@@ -5729,12 +5842,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_documents_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_documents_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents",
@@ -5929,12 +6047,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_documents_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_documents_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}",
@@ -6119,10 +6242,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_documents_purge_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_documents_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_purge_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:purge",
@@ -6289,10 +6417,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel",
@@ -6455,10 +6588,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}",
@@ -6628,14 +6766,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations",
@@ -6831,10 +6974,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     completionConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/completionConfig:completeQuery",
@@ -7006,10 +7154,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_con
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/completionSuggestions:import",
@@ -7173,10 +7326,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/completionSuggestions:purge",
@@ -7340,11 +7498,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_controls_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_controls_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_controls_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_controls_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     controlId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls",
@@ -7525,10 +7686,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_creat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_controls_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_controls_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_controls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_controls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls/{controlsId}",
@@ -7690,10 +7854,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_controls_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_controls_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_controls_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_controls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls/{controlsId}",
@@ -7858,13 +8025,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_controls_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_controls_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_controls_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_controls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls",
@@ -8057,11 +8227,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_controls_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_controls_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls/{controlsId}",
@@ -8242,10 +8415,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_conversations_converse_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_conversations_converse` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_conversations_converse_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_conversations_converse_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}:converse",
@@ -8425,10 +8603,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_conversations_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_conversations_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_conversations_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_conversations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations",
@@ -8597,10 +8778,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_conversations_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_conversations_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_conversations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_conversations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}",
@@ -8764,10 +8948,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_conversations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_conversations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_conversations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_conversations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}",
@@ -8933,14 +9120,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_conversations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_conversations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_conversations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_conversations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations",
@@ -9150,11 +9340,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_conversations_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_conversations_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_conversations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_conversations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}",
@@ -9336,10 +9529,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_custom_models_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_custom_models_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_custom_models_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_custom_models_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/customModels",
@@ -9511,10 +9707,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_custom_models_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_models_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_models_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_models_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_models_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations/{operationsId}",
@@ -9684,14 +9883,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_models_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_models_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_models_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_models_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations",
@@ -9895,10 +10099,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations/{operationsId}",
@@ -10064,14 +10271,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations",
@@ -10271,11 +10481,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     schemaId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas",
@@ -10456,10 +10669,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_schemas_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_schemas_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}",
@@ -10625,10 +10841,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}",
@@ -10793,12 +11012,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas",
@@ -10985,11 +11207,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}",
@@ -11169,10 +11394,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations/{operationsId}",
@@ -11342,14 +11572,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations",
@@ -11553,10 +11788,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_answer_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_answer` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_answer_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_answer_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:answer",
@@ -11728,11 +11968,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     servingConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs",
@@ -11917,10 +12162,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}",
@@ -12086,10 +12336,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}",
@@ -12256,12 +12509,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs",
@@ -12460,11 +12716,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}",
@@ -12649,10 +12908,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:recommend",
@@ -12820,10 +13084,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_search_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_search` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_search_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_search_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:search",
@@ -12995,10 +13264,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:searchLite",
@@ -13163,10 +13437,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:streamAnswer",
@@ -13331,11 +13610,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_sessions_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_sessions_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_sessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_sessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     sessionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions",
@@ -13516,10 +13798,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_creat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_sessions_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_sessions_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}",
@@ -13681,11 +13966,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_sessions_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_sessions_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     includeAnswerDetails: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}",
@@ -13865,14 +14153,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_sessions_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_sessions_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions",
@@ -14071,11 +14362,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_sessions_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_sessions_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}",
@@ -14256,10 +14550,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_sessions_answers_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_sessions_answers_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answers_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}/answers/{answersId}",
@@ -14427,10 +14724,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answe
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:batchVerifyTargetSites",
@@ -14593,10 +14895,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:disableAdvancedSiteSearch",
@@ -14759,10 +15066,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:enableAdvancedSiteSearch",
@@ -14925,12 +15237,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:fetchDomainVerificationStatus",
@@ -15121,10 +15438,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:recrawlUris",
@@ -15286,10 +15608,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations/{operationsId}",
@@ -15451,14 +15778,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations",
@@ -15649,10 +15981,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps",
@@ -15814,10 +16151,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps/{sitemapsId}",
@@ -15979,11 +16321,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     matcher_urisMatcher_uris: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps:fetch",
@@ -16162,10 +16509,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites:batchCreate",
@@ -16328,10 +16680,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites",
@@ -16494,10 +16851,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}",
@@ -16660,10 +17022,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}",
@@ -16825,12 +17192,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites",
@@ -17015,10 +17387,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}",
@@ -17181,10 +17558,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations/{operationsId}",
@@ -17347,14 +17729,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations",
@@ -17546,10 +17933,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:import",
@@ -17712,10 +18104,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:purge",
@@ -17877,13 +18274,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_user_events_collect_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_user_events_collect` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_user_events_collect_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_user_events_collect_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     ets: &Option<Option<String>>,
     uri: &Option<Option<String>>,
     userEvent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:collect",
@@ -18073,10 +18473,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_co
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_user_events_import_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_user_events_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_user_events_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_user_events_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:import",
@@ -18244,10 +18647,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_im
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_user_events_purge_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_user_events_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_user_events_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_user_events_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:purge",
@@ -18414,11 +18820,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_pu
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_user_events_write_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_user_events_write` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_user_events_write_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_user_events_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     writeAsync: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:write",
@@ -18599,12 +19008,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_wr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_widget_configs_get_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_widget_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     acceptCache: &Option<Option<String>>,
     getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}",
@@ -18795,11 +19207,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_widget_configs_patch_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_widget_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}",
@@ -18982,11 +19397,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_create_execute()` to send, or `discoveryengine_projects_locations_collections_engines_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     engineId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines",
@@ -19165,10 +19583,13 @@ pub fn discoveryengine_projects_locations_collections_engines_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_delete_execute()` to send, or `discoveryengine_projects_locations_collections_engines_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}",
@@ -19331,10 +19752,13 @@ pub fn discoveryengine_projects_locations_collections_engines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}",
@@ -19497,11 +19921,14 @@ pub fn discoveryengine_projects_locations_collections_engines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_get_iam_policy_execute()` to send, or `discoveryengine_projects_locations_collections_engines_get_iam_policy` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}:getIamPolicy",
@@ -19676,13 +20103,16 @@ pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines",
@@ -19874,11 +20304,14 @@ pub fn discoveryengine_projects_locations_collections_engines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_patch_execute()` to send, or `discoveryengine_projects_locations_collections_engines_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}",
@@ -20057,10 +20490,13 @@ pub fn discoveryengine_projects_locations_collections_engines_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_set_iam_policy_execute()` to send, or `discoveryengine_projects_locations_collections_engines_set_iam_policy` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}:setIamPolicy",
@@ -20221,11 +20657,14 @@ pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_create_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     assistantId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants",
@@ -20405,10 +20844,13 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_delete_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}",
@@ -20569,10 +21011,13 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}",
@@ -20736,12 +21181,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants",
@@ -20931,11 +21379,14 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_patch_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}",
@@ -21115,10 +21566,13 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_stream_assist_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_stream_assist` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_stream_assist_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_stream_assist_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}:streamAssist",
@@ -21287,10 +21741,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_stream_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/card",
@@ -21413,7 +21872,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs {
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1GetCardArgs {
     /// Path parameter: tenant
     pub tenant: String,
 }
@@ -21431,7 +21890,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1GetCardArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1AgentCard>, ApiError>, P = ApiPending>
         + Send
@@ -21450,10 +21909,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/message:send",
@@ -21576,7 +22040,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs {
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageSendArgs {
     /// Path parameter: tenant
     pub tenant: String,
 }
@@ -21594,7 +22058,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageSendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1SendMessageResponse>, ApiError>, P = ApiPending>
         + Send
@@ -21611,10 +22075,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/message:stream",
@@ -21737,7 +22206,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageStreamArgs
 {
     /// Path parameter: tenant
     pub tenant: String,
@@ -21756,7 +22225,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageStreamArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1StreamResponse>, ApiError>, P = ApiPending>
         + Send
@@ -21773,11 +22242,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}:cancel",
@@ -21899,7 +22373,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs {
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksCancelArgs {
     /// Path parameter: tenant
     pub tenant: String,
     /// Path parameter: name
@@ -21919,7 +22393,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -21934,12 +22408,17 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     name: &String,
     historyLength: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}",
@@ -22072,7 +22551,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksGetArgs {
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksGetArgs {
     /// Path parameter: tenant
     pub tenant: String,
     /// Path parameter: name
@@ -22094,7 +22573,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksGetArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -22109,11 +22588,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}:subscribe",
@@ -22237,7 +22721,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksSubscribeArgs
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksSubscribeArgs
 {
     /// Path parameter: tenant
     pub tenant: String,
@@ -22258,7 +22742,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksSubscribeArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksSubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1StreamResponse>, ApiError>, P = ApiPending>
         + Send
@@ -22275,12 +22759,17 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     parent: &String,
     configId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs",
@@ -22417,7 +22906,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsCreateArgs
 {
     /// Path parameter: tenant
     pub tenant: String,
@@ -22440,7 +22929,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<A2aV1TaskPushNotificationConfig>, ApiError>,
@@ -22459,11 +22948,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}",
@@ -22587,7 +23081,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsDeleteArgs
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsDeleteArgs
 {
     /// Path parameter: tenant
     pub tenant: String,
@@ -22608,7 +23102,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsDeleteArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -22625,11 +23119,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}",
@@ -22755,7 +23254,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsGetArgs
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsGetArgs
 {
     /// Path parameter: tenant
     pub tenant: String,
@@ -22776,7 +23275,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsGetArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<A2aV1TaskPushNotificationConfig>, ApiError>,
@@ -22795,13 +23294,18 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs",
@@ -22942,7 +23446,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 /// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsListArgs
 {
     /// Path parameter: tenant
     pub tenant: String,
@@ -22967,7 +23471,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2a
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list(
     client: &SimpleHttpClient,
-    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<A2aV1ListTaskPushNotificationConfigResponse>, ApiError>,
@@ -22986,10 +23490,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/operations/{operationsId}",
@@ -23153,10 +23662,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_completion_config_complete_query_execute()` to send, or `discoveryengine_projects_locations_collections_engines_completion_config_complete_query` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_completion_config_complete_query_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_completion_config_complete_query_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     completionConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/completionConfig:completeQuery",
@@ -23330,11 +23844,14 @@ pub fn discoveryengine_projects_locations_collections_engines_completion_config_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_controls_create_execute()` to send, or `discoveryengine_projects_locations_collections_engines_controls_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_controls_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_controls_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     controlId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls",
@@ -23514,10 +24031,13 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_controls_delete_execute()` to send, or `discoveryengine_projects_locations_collections_engines_controls_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_controls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_controls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls/{controlsId}",
@@ -23678,10 +24198,13 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_controls_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_controls_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_controls_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_controls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls/{controlsId}",
@@ -23845,13 +24368,16 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_controls_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_controls_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_controls_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_controls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls",
@@ -24043,11 +24569,14 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_controls_patch_execute()` to send, or `discoveryengine_projects_locations_collections_engines_controls_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_controls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_controls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls/{controlsId}",
@@ -24226,10 +24755,13 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_conversations_converse_execute()` to send, or `discoveryengine_projects_locations_collections_engines_conversations_converse` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_conversations_converse_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_conversations_converse_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}:converse",
@@ -24406,10 +24938,13 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_conv
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_conversations_create_execute()` to send, or `discoveryengine_projects_locations_collections_engines_conversations_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_conversations_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_conversations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations",
@@ -24576,10 +25111,13 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_crea
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_conversations_delete_execute()` to send, or `discoveryengine_projects_locations_collections_engines_conversations_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_conversations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_conversations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}",
@@ -24741,10 +25279,13 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_dele
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_conversations_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_conversations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_conversations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_conversations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}",
@@ -24909,14 +25450,17 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_conversations_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_conversations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_conversations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_conversations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations",
@@ -25125,11 +25669,14 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_list
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_conversations_patch_execute()` to send, or `discoveryengine_projects_locations_collections_engines_conversations_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_conversations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_conversations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}",
@@ -25310,10 +25857,13 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_patc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_operations_cancel_execute()` to send, or `discoveryengine_projects_locations_collections_engines_operations_cancel` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}:cancel",
@@ -25474,10 +26024,13 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}",
@@ -25641,14 +26194,17 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations",
@@ -25847,10 +26403,13 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_answer_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_answer` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_answer_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_answer_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:answer",
@@ -26019,11 +26578,14 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_an
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_create_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     servingConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs",
@@ -26205,10 +26767,13 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_cr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_delete_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}",
@@ -26371,10 +26936,13 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_de
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}",
@@ -26540,12 +27108,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs",
@@ -26742,11 +27313,14 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_patch_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}",
@@ -26927,10 +27501,13 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_pa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_recommend_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_recommend` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_recommend_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_recommend_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:recommend",
@@ -27102,10 +27679,13 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_search_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_search` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_search_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:search",
@@ -27274,10 +27854,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_search_lite_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_search_lite` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_search_lite_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_search_lite_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:searchLite",
@@ -27449,10 +28034,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer_execute()` to send, or `discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:streamAnswer",
@@ -27620,11 +28210,14 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_st
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_sessions_create_execute()` to send, or `discoveryengine_projects_locations_collections_engines_sessions_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_sessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_sessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     sessionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions",
@@ -27804,10 +28397,13 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_sessions_delete_execute()` to send, or `discoveryengine_projects_locations_collections_engines_sessions_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_sessions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_sessions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}",
@@ -27968,11 +28564,14 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_sessions_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_sessions_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     includeAnswerDetails: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}",
@@ -28151,14 +28750,17 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_sessions_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_sessions_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions",
@@ -28356,11 +28958,14 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_sessions_patch_execute()` to send, or `discoveryengine_projects_locations_collections_engines_sessions_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_sessions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_sessions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}",
@@ -28539,10 +29144,13 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_sessions_answers_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_sessions_answers_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}/answers/{answersId}",
@@ -28708,12 +29316,15 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_widget_configs_get_execute()` to send, or `discoveryengine_projects_locations_collections_engines_widget_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     acceptCache: &Option<Option<String>>,
     getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/widgetConfigs/{widgetConfigsId}",
@@ -28903,11 +29514,14 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_widget_configs_patch_execute()` to send, or `discoveryengine_projects_locations_collections_engines_widget_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_engines_widget_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_engines_widget_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/widgetConfigs/{widgetConfigsId}",
@@ -29088,10 +29702,13 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_pat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_operations_get_execute()` to send, or `discoveryengine_projects_locations_collections_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/operations/{operationsId}",
@@ -29254,14 +29871,17 @@ pub fn discoveryengine_projects_locations_collections_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_collections_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_collections_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/collections/{collectionsId}/operations",
@@ -29459,14 +30079,17 @@ pub fn discoveryengine_projects_locations_collections_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_complete_query_execute()` to send, or `discoveryengine_projects_locations_data_stores_complete_query` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_complete_query_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_complete_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataStore: &String,
     includeTailSuggestions: &Option<Option<String>>,
     query: &Option<Option<String>>,
     queryModel: &Option<Option<String>>,
     userPseudoId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}:completeQuery",
@@ -29667,15 +30290,18 @@ pub fn discoveryengine_projects_locations_data_stores_complete_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cmekConfigName: &Option<Option<String>>,
     createAdvancedSiteSearch: &Option<Option<String>>,
     dataStoreId: &Option<Option<String>>,
     disableCmek: &Option<Option<String>>,
     skipDefaultSchemaCreation: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores",
@@ -29878,10 +30504,13 @@ pub fn discoveryengine_projects_locations_data_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}",
@@ -30044,10 +30673,13 @@ pub fn discoveryengine_projects_locations_data_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}",
@@ -30209,10 +30841,13 @@ pub fn discoveryengine_projects_locations_data_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_get_site_search_engine_execute()` to send, or `discoveryengine_projects_locations_data_stores_get_site_search_engine` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine",
@@ -30377,13 +31012,16 @@ pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores",
@@ -30578,11 +31216,14 @@ pub fn discoveryengine_projects_locations_data_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}",
@@ -30761,12 +31402,17 @@ pub fn discoveryengine_projects_locations_data_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     matcher_fhirMatcher_fhirResources: &Option<Option<String>>,
     matcher_urisMatcher_uris: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/batchGetDocumentsMetadata",
@@ -30961,11 +31607,14 @@ pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documen
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_documents_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_documents_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_documents_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_documents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     documentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents",
@@ -31145,10 +31794,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_documents_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_documents_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_documents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_documents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}",
@@ -31309,10 +31961,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_documents_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_documents_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_documents_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_documents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}",
@@ -31476,10 +32131,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_documents_import_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_documents_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_documents_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_documents_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:import",
@@ -31645,12 +32303,15 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_documents_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_documents_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_documents_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_documents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents",
@@ -31840,12 +32501,15 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_documents_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_documents_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}",
@@ -32031,10 +32695,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_documents_purge_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_documents_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:purge",
@@ -32200,10 +32867,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_operations_cancel_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_operations_cancel` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel",
@@ -32365,10 +33035,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_operations_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}",
@@ -32533,14 +33206,17 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_operations_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_branches_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_branches_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations",
@@ -32739,10 +33415,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_completion_config_complete_query_execute()` to send, or `discoveryengine_projects_locations_data_stores_completion_config_complete_query` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_completion_config_complete_query_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_completion_config_complete_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     completionConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/completionConfig:completeQuery",
@@ -32921,10 +33600,13 @@ pub fn discoveryengine_projects_locations_data_stores_completion_config_complete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_completion_suggestions_import_execute()` to send, or `discoveryengine_projects_locations_data_stores_completion_suggestions_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/completionSuggestions:import",
@@ -33091,10 +33773,13 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_imp
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_completion_suggestions_purge_execute()` to send, or `discoveryengine_projects_locations_data_stores_completion_suggestions_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/completionSuggestions:purge",
@@ -33261,11 +33946,14 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_pur
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_controls_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_controls_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_controls_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_controls_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     controlId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/controls",
@@ -33444,10 +34132,13 @@ pub fn discoveryengine_projects_locations_data_stores_controls_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_controls_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_controls_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_controls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_controls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/controls/{controlsId}",
@@ -33606,10 +34297,13 @@ pub fn discoveryengine_projects_locations_data_stores_controls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_controls_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_controls_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_controls_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_controls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/controls/{controlsId}",
@@ -33772,13 +34466,16 @@ pub fn discoveryengine_projects_locations_data_stores_controls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_controls_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_controls_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_controls_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_controls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/controls",
@@ -33970,11 +34667,14 @@ pub fn discoveryengine_projects_locations_data_stores_controls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_controls_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_controls_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_controls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_controls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/controls/{controlsId}",
@@ -34153,10 +34853,13 @@ pub fn discoveryengine_projects_locations_data_stores_controls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_conversations_converse_execute()` to send, or `discoveryengine_projects_locations_data_stores_conversations_converse` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_conversations_converse_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_conversations_converse_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}:converse",
@@ -34330,10 +35033,13 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_converse(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_conversations_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_conversations_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_conversations_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_conversations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/conversations",
@@ -34498,10 +35204,13 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_conversations_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_conversations_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_conversations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_conversations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}",
@@ -34661,10 +35370,13 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_conversations_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_conversations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_conversations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_conversations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}",
@@ -34828,14 +35540,17 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_conversations_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_conversations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_conversations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_conversations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/conversations",
@@ -35042,11 +35757,14 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_conversations_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_conversations_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_conversations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_conversations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}",
@@ -35225,10 +35943,13 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_models_operations_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_models_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_models_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_models_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations/{operationsId}",
@@ -35392,14 +36113,17 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_models_operations_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_models_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_models_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_models_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations",
@@ -35597,10 +36321,13 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_operations_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/operations/{operationsId}",
@@ -35763,14 +36490,17 @@ pub fn discoveryengine_projects_locations_data_stores_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_operations_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/operations",
@@ -35968,11 +36698,14 @@ pub fn discoveryengine_projects_locations_data_stores_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_schemas_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_schemas_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_schemas_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_schemas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     schemaId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/schemas",
@@ -36151,10 +36884,13 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_schemas_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_schemas_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_schemas_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_schemas_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/schemas/{schemasId}",
@@ -36317,10 +37053,13 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_schemas_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_schemas_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/schemas/{schemasId}",
@@ -36483,12 +37222,15 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_schemas_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_schemas_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/schemas",
@@ -36674,11 +37416,14 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_schemas_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_schemas_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_schemas_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_schemas_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/schemas/{schemasId}",
@@ -36857,10 +37602,13 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_answer_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_answer` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:answer",
@@ -37026,11 +37774,14 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     servingConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs",
@@ -37209,10 +37960,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}",
@@ -37372,10 +38126,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}",
@@ -37539,12 +38296,15 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs",
@@ -37739,11 +38499,14 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}",
@@ -37922,10 +38685,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_recommend_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_recommend` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_recommend_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_recommend_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:recommend",
@@ -38092,10 +38858,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_recommend(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_search_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_search` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:search",
@@ -38261,10 +39030,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_search_lite_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_search_lite` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_lite_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_lite_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:searchLite",
@@ -38432,10 +39204,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_lit
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_serving_configs_stream_answer_execute()` to send, or `discoveryengine_projects_locations_data_stores_serving_configs_stream_answer` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_answer_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_answer_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:streamAnswer",
@@ -38603,11 +39378,14 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_ans
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_sessions_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_sessions_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_sessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_sessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     sessionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/sessions",
@@ -38786,10 +39564,13 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_sessions_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_sessions_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_sessions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_sessions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}",
@@ -38948,11 +39729,14 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_sessions_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_sessions_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     includeAnswerDetails: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}",
@@ -39131,14 +39915,17 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_sessions_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_sessions_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/sessions",
@@ -39336,11 +40123,14 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_sessions_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_sessions_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_sessions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_sessions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}",
@@ -39519,10 +40309,13 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_sessions_answers_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_sessions_answers_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_sessions_answers_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_sessions_answers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}/answers/{answersId}",
@@ -39686,10 +40479,15 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_answers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine:disableAdvancedSiteSearch",
@@ -39851,10 +40649,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_disable
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine:enableAdvancedSiteSearch",
@@ -40016,10 +40819,13 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_enable_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine:recrawlUris",
@@ -40187,10 +40993,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_recrawl
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps",
@@ -40361,10 +41172,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps/{sitemapsId}",
@@ -40534,11 +41350,14 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     matcher_urisMatcher_uris: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps:fetch",
@@ -40727,10 +41546,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites:batchCreate",
@@ -40892,10 +41716,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites",
@@ -41062,10 +41891,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}",
@@ -41232,10 +42066,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}",
@@ -41405,12 +42244,17 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites",
@@ -41599,10 +42443,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}",
@@ -41769,10 +42618,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import_execute()` to send, or `discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:import",
@@ -41943,10 +42797,15 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge_execute()` to send, or `discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:purge",
@@ -42117,13 +42976,16 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_user_events_collect_execute()` to send, or `discoveryengine_projects_locations_data_stores_user_events_collect` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_user_events_collect_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_user_events_collect_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     ets: &Option<Option<String>>,
     uri: &Option<Option<String>>,
     userEvent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:collect",
@@ -42310,10 +43172,13 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_collect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_user_events_import_execute()` to send, or `discoveryengine_projects_locations_data_stores_user_events_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_user_events_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_user_events_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:import",
@@ -42478,10 +43343,13 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_user_events_purge_execute()` to send, or `discoveryengine_projects_locations_data_stores_user_events_purge` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_user_events_purge_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_user_events_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:purge",
@@ -42646,11 +43514,14 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_user_events_write_execute()` to send, or `discoveryengine_projects_locations_data_stores_user_events_write` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_user_events_write_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_user_events_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     writeAsync: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:write",
@@ -42829,12 +43700,15 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_widget_configs_get_execute()` to send, or `discoveryengine_projects_locations_data_stores_widget_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_widget_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_widget_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     acceptCache: &Option<Option<String>>,
     getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}",
@@ -43022,11 +43896,14 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_widget_configs_patch_execute()` to send, or `discoveryengine_projects_locations_data_stores_widget_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}",
@@ -43205,10 +44082,13 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_grounding_configs_check_execute()` to send, or `discoveryengine_projects_locations_grounding_configs_check` for simplest API.
 
-pub fn discoveryengine_projects_locations_grounding_configs_check_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_grounding_configs_check_builder<R>(
+    client: &SimpleHttpClient<R>,
     groundingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/groundingConfigs/{groundingConfigsId}:check",
@@ -43377,13 +44257,16 @@ pub fn discoveryengine_projects_locations_grounding_configs_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_create_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cmekConfigName: &Option<Option<String>>,
     disableCmek: &Option<Option<String>>,
     identityMappingStoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores",
@@ -43575,10 +44458,13 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_delete_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_delete` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}",
@@ -43742,10 +44628,13 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_get_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}",
@@ -43909,10 +44798,15 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     identityMappingStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}:importIdentityMappings",
@@ -44079,12 +44973,15 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identit
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_list_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores",
@@ -44279,12 +45176,17 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     identityMappingStore: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}:listIdentityMappings",
@@ -44485,10 +45387,15 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     identityMappingStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}:purgeIdentityMappings",
@@ -44659,10 +45566,13 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_purge_identity
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_operations_get_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations/{operationsId}",
@@ -44828,14 +45738,17 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_operations_list_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations",
@@ -45035,11 +45948,14 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_license_configs_create_execute()` to send, or `discoveryengine_projects_locations_license_configs_create` for simplest API.
 
-pub fn discoveryengine_projects_locations_license_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_license_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     licenseConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/licenseConfigs",
@@ -45218,10 +46134,13 @@ pub fn discoveryengine_projects_locations_license_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_license_configs_get_execute()` to send, or `discoveryengine_projects_locations_license_configs_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_license_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_license_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/licenseConfigs/{licenseConfigsId}",
@@ -45384,11 +46303,14 @@ pub fn discoveryengine_projects_locations_license_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_license_configs_patch_execute()` to send, or `discoveryengine_projects_locations_license_configs_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_license_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_license_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/licenseConfigs/{licenseConfigsId}",
@@ -45567,10 +46489,13 @@ pub fn discoveryengine_projects_locations_license_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_operations_get_execute()` to send, or `discoveryengine_projects_locations_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -45732,14 +46657,17 @@ pub fn discoveryengine_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_operations_list_execute()` to send, or `discoveryengine_projects_locations_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -45937,10 +46865,13 @@ pub fn discoveryengine_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_podcasts_operations_get_execute()` to send, or `discoveryengine_projects_locations_podcasts_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_podcasts_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_podcasts_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/podcasts/{podcastsId}/operations/{operationsId}",
@@ -46103,10 +47034,13 @@ pub fn discoveryengine_projects_locations_podcasts_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_ranking_configs_rank_execute()` to send, or `discoveryengine_projects_locations_ranking_configs_rank` for simplest API.
 
-pub fn discoveryengine_projects_locations_ranking_configs_rank_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_ranking_configs_rank_builder<R>(
+    client: &SimpleHttpClient<R>,
     rankingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/rankingConfigs/{rankingConfigsId}:rank",
@@ -46271,13 +47205,16 @@ pub fn discoveryengine_projects_locations_ranking_configs_rank(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_events_collect_execute()` to send, or `discoveryengine_projects_locations_user_events_collect` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_events_collect_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_events_collect_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     ets: &Option<Option<String>>,
     uri: &Option<Option<String>>,
     userEvent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userEvents:collect",
@@ -46464,10 +47401,13 @@ pub fn discoveryengine_projects_locations_user_events_collect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_events_import_execute()` to send, or `discoveryengine_projects_locations_user_events_import` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_events_import_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_events_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userEvents:import",
@@ -46630,11 +47570,14 @@ pub fn discoveryengine_projects_locations_user_events_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_events_write_execute()` to send, or `discoveryengine_projects_locations_user_events_write` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_events_write_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_events_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     writeAsync: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userEvents:write",
@@ -46813,10 +47756,13 @@ pub fn discoveryengine_projects_locations_user_events_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_stores_batch_update_user_licenses_execute()` to send, or `discoveryengine_projects_locations_user_stores_batch_update_user_licenses` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_stores_batch_update_user_licenses_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_stores_batch_update_user_licenses_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userStores/{userStoresId}:batchUpdateUserLicenses",
@@ -46983,10 +47929,13 @@ pub fn discoveryengine_projects_locations_user_stores_batch_update_user_licenses
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_stores_get_execute()` to send, or `discoveryengine_projects_locations_user_stores_get` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userStores/{userStoresId}",
@@ -47148,11 +48097,14 @@ pub fn discoveryengine_projects_locations_user_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_stores_patch_execute()` to send, or `discoveryengine_projects_locations_user_stores_patch` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userStores/{userStoresId}",
@@ -47331,10 +48283,13 @@ pub fn discoveryengine_projects_locations_user_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list_execute()` to send, or `discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userStores/{userStoresId}/licenseConfigsUsageStats",
@@ -47513,14 +48468,17 @@ pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_user_stores_user_licenses_list_execute()` to send, or `discoveryengine_projects_locations_user_stores_user_licenses_list` for simplest API.
 
-pub fn discoveryengine_projects_locations_user_stores_user_licenses_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_locations_user_stores_user_licenses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/locations/{locationsId}/userStores/{userStoresId}/userLicenses",
@@ -47721,10 +48679,13 @@ pub fn discoveryengine_projects_locations_user_stores_user_licenses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_operations_cancel_execute()` to send, or `discoveryengine_projects_operations_cancel` for simplest API.
 
-pub fn discoveryengine_projects_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/operations/{operationsId}:cancel",
@@ -47882,10 +48843,13 @@ pub fn discoveryengine_projects_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_operations_get_execute()` to send, or `discoveryengine_projects_operations_get` for simplest API.
 
-pub fn discoveryengine_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/operations/{operationsId}",
@@ -48047,14 +49011,17 @@ pub fn discoveryengine_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_operations_list_execute()` to send, or `discoveryengine_projects_operations_list` for simplest API.
 
-pub fn discoveryengine_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn discoveryengine_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://discoveryengine.googleapis.com/v1/projects/{}/operations",
@@ -51931,19 +52898,19 @@ impl
 // ResourceIdentifier implementation for A2aV1AgentCard
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1AgentCard with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs input.
+/// ResourceIdentifier implementation for A2aV1AgentCard with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1GetCardArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
 impl
     ResourceIdentifier<
-        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs,
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1GetCardArgs,
     > for A2aV1AgentCard
 {
     fn generate_resource_id(
         &self,
-        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1GetCardArgs,
     ) -> String {
         format!("gcp::discoveryengine::A2aV1AgentCard/{}", input.tenant)
     }
@@ -51961,19 +52928,19 @@ impl
 // ResourceIdentifier implementation for A2aV1SendMessageResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1SendMessageResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs input.
+/// ResourceIdentifier implementation for A2aV1SendMessageResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageSendArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
 impl
     ResourceIdentifier<
-        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs,
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageSendArgs,
     > for A2aV1SendMessageResponse
 {
     fn generate_resource_id(
         &self,
-        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageSendArgs,
     ) -> String {
         format!(
             "gcp::discoveryengine::A2aV1SendMessageResponse/{}",
@@ -51994,19 +52961,19 @@ impl
 // ResourceIdentifier implementation for A2aV1StreamResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1StreamResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs input.
+/// ResourceIdentifier implementation for A2aV1StreamResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageStreamArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
 impl
     ResourceIdentifier<
-        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs,
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageStreamArgs,
     > for A2aV1StreamResponse
 {
     fn generate_resource_id(
         &self,
-        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageStreamArgs,
     ) -> String {
         format!("gcp::discoveryengine::A2aV1StreamResponse/{}", input.tenant)
     }
@@ -52024,19 +52991,19 @@ impl
 // ResourceIdentifier implementation for A2aV1Task
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1Task with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs input.
+/// ResourceIdentifier implementation for A2aV1Task with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksCancelArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
 impl
     ResourceIdentifier<
-        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs,
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksCancelArgs,
     > for A2aV1Task
 {
     fn generate_resource_id(
         &self,
-        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksCancelArgs,
     ) -> String {
         format!(
             "gcp::discoveryengine::A2aV1Task/{}/{}",
@@ -52057,19 +53024,19 @@ impl
 // ResourceIdentifier implementation for A2aV1Task
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1Task with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksGetArgs input.
+/// ResourceIdentifier implementation for A2aV1Task with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksGetArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
 impl
     ResourceIdentifier<
-        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksGetArgs,
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksGetArgs,
     > for A2aV1Task
 {
     fn generate_resource_id(
         &self,
-        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksGetArgs,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksGetArgs,
     ) -> String {
         format!(
             "gcp::discoveryengine::A2aV1Task/{}/{}",
@@ -52090,19 +53057,19 @@ impl
 // ResourceIdentifier implementation for A2aV1StreamResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1StreamResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksSubscribeArgs input.
+/// ResourceIdentifier implementation for A2aV1StreamResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksSubscribeArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
 impl
     ResourceIdentifier<
-        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksSubscribeArgs,
+        DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksSubscribeArgs,
     > for A2aV1StreamResponse
 {
     fn generate_resource_id(
         &self,
-        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksSubscribeArgs,
+        input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksSubscribeArgs,
     ) -> String {
         format!(
             "gcp::discoveryengine::A2aV1StreamResponse/{}/{}",
@@ -52123,13 +53090,13 @@ impl
 // ResourceIdentifier implementation for A2aV1TaskPushNotificationConfig
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1TaskPushNotificationConfig with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs input.
+/// ResourceIdentifier implementation for A2aV1TaskPushNotificationConfig with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsCreateArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs> for A2aV1TaskPushNotificationConfig {
-    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs) -> String {
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsCreateArgs> for A2aV1TaskPushNotificationConfig {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsCreateArgs) -> String {
         format!("gcp::discoveryengine::A2aV1TaskPushNotificationConfig/{}/{}", input.tenant, input.parent)
     }
 
@@ -52146,13 +53113,13 @@ impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssist
 // ResourceIdentifier implementation for GoogleProtobufEmpty
 // =============================================================================
 
-/// ResourceIdentifier implementation for GoogleProtobufEmpty with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsDeleteArgs input.
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsDeleteArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsDeleteArgs> for GoogleProtobufEmpty {
-    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsDeleteArgs) -> String {
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsDeleteArgs) -> String {
         format!("gcp::discoveryengine::GoogleProtobufEmpty/{}/{}", input.tenant, input.name)
     }
 
@@ -52169,13 +53136,13 @@ impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssist
 // ResourceIdentifier implementation for A2aV1TaskPushNotificationConfig
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1TaskPushNotificationConfig with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsGetArgs input.
+/// ResourceIdentifier implementation for A2aV1TaskPushNotificationConfig with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsGetArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsGetArgs> for A2aV1TaskPushNotificationConfig {
-    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsGetArgs) -> String {
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsGetArgs> for A2aV1TaskPushNotificationConfig {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsGetArgs) -> String {
         format!("gcp::discoveryengine::A2aV1TaskPushNotificationConfig/{}/{}", input.tenant, input.name)
     }
 
@@ -52192,13 +53159,13 @@ impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssist
 // ResourceIdentifier implementation for A2aV1ListTaskPushNotificationConfigResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for A2aV1ListTaskPushNotificationConfigResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs input.
+/// ResourceIdentifier implementation for A2aV1ListTaskPushNotificationConfigResponse with DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsListArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs> for A2aV1ListTaskPushNotificationConfigResponse {
-    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs) -> String {
+impl ResourceIdentifier<DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsListArgs> for A2aV1ListTaskPushNotificationConfigResponse {
+    fn generate_resource_id(&self, input: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsListArgs) -> String {
         format!("gcp::discoveryengine::A2aV1ListTaskPushNotificationConfigResponse/{}/{}", input.tenant, input.parent)
     }
 

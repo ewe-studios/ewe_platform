@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudlocationfinder_projects_locations_get_execute()` to send, or `cloudlocationfinder_projects_locations_get` for simplest API.
 
-pub fn cloudlocationfinder_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudlocationfinder_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn cloudlocationfinder_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudlocationfinder_projects_locations_list_execute()` to send, or `cloudlocationfinder_projects_locations_list` for simplest API.
 
-pub fn cloudlocationfinder_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudlocationfinder_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn cloudlocationfinder_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudlocationfinder_projects_locations_cloud_locations_get_execute()` to send, or `cloudlocationfinder_projects_locations_cloud_locations_get` for simplest API.
 
-pub fn cloudlocationfinder_projects_locations_cloud_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudlocationfinder_projects_locations_cloud_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudLocations/{cloudLocationsId}",
@@ -545,13 +555,16 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudlocationfinder_projects_locations_cloud_locations_list_execute()` to send, or `cloudlocationfinder_projects_locations_cloud_locations_list` for simplest API.
 
-pub fn cloudlocationfinder_projects_locations_cloud_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudlocationfinder_projects_locations_cloud_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudLocations",
@@ -742,14 +755,17 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudlocationfinder_projects_locations_cloud_locations_search_execute()` to send, or `cloudlocationfinder_projects_locations_cloud_locations_search` for simplest API.
 
-pub fn cloudlocationfinder_projects_locations_cloud_locations_search_builder(
-    client: &SimpleHttpClient,
+pub fn cloudlocationfinder_projects_locations_cloud_locations_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
     sourceCloudLocation: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudLocations:search",

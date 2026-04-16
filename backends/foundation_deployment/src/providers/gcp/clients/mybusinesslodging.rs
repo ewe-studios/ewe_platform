@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinesslodging_locations_get_lodging_execute()` to send, or `mybusinesslodging_locations_get_lodging` for simplest API.
 
-pub fn mybusinesslodging_locations_get_lodging_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinesslodging_locations_get_lodging_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",
@@ -198,11 +202,14 @@ pub fn mybusinesslodging_locations_get_lodging(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinesslodging_locations_update_lodging_execute()` to send, or `mybusinesslodging_locations_update_lodging` for simplest API.
 
-pub fn mybusinesslodging_locations_update_lodging_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinesslodging_locations_update_lodging_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",
@@ -370,11 +377,14 @@ pub fn mybusinesslodging_locations_update_lodging(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinesslodging_locations_lodging_get_google_updated_execute()` to send, or `mybusinesslodging_locations_lodging_get_google_updated` for simplest API.
 
-pub fn mybusinesslodging_locations_lodging_get_google_updated_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinesslodging_locations_lodging_get_google_updated_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging:getGoogleUpdated",

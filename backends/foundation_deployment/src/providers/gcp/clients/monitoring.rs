@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_folders_time_series_list_execute()` to send, or `monitoring_folders_time_series_list` for simplest API.
 
-pub fn monitoring_folders_time_series_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_folders_time_series_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     aggregation_alignmentPeriod: &Option<Option<String>>,
     aggregation_crossSeriesReducer: &Option<Option<String>>,
@@ -44,7 +45,10 @@ pub fn monitoring_folders_time_series_list_builder(
     secondaryAggregation_groupByFields: &Option<Option<String>>,
     secondaryAggregation_perSeriesAligner: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/folders/{}/timeSeries",
@@ -303,8 +307,8 @@ pub fn monitoring_folders_time_series_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_organizations_time_series_list_execute()` to send, or `monitoring_organizations_time_series_list` for simplest API.
 
-pub fn monitoring_organizations_time_series_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_organizations_time_series_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     aggregation_alignmentPeriod: &Option<Option<String>>,
     aggregation_crossSeriesReducer: &Option<Option<String>>,
@@ -321,7 +325,10 @@ pub fn monitoring_organizations_time_series_list_builder(
     secondaryAggregation_groupByFields: &Option<Option<String>>,
     secondaryAggregation_perSeriesAligner: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/organizations/{}/timeSeries",
@@ -580,10 +587,13 @@ pub fn monitoring_organizations_time_series_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_alert_policies_create_execute()` to send, or `monitoring_projects_alert_policies_create` for simplest API.
 
-pub fn monitoring_projects_alert_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_alert_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies",
@@ -737,10 +747,13 @@ pub fn monitoring_projects_alert_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_alert_policies_delete_execute()` to send, or `monitoring_projects_alert_policies_delete` for simplest API.
 
-pub fn monitoring_projects_alert_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_alert_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies/{alertPoliciesId}",
@@ -894,10 +907,13 @@ pub fn monitoring_projects_alert_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_alert_policies_get_execute()` to send, or `monitoring_projects_alert_policies_get` for simplest API.
 
-pub fn monitoring_projects_alert_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_alert_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies/{alertPoliciesId}",
@@ -1051,14 +1067,17 @@ pub fn monitoring_projects_alert_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_alert_policies_list_execute()` to send, or `monitoring_projects_alert_policies_list` for simplest API.
 
-pub fn monitoring_projects_alert_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_alert_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies",
@@ -1251,11 +1270,14 @@ pub fn monitoring_projects_alert_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_alert_policies_patch_execute()` to send, or `monitoring_projects_alert_policies_patch` for simplest API.
 
-pub fn monitoring_projects_alert_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_alert_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies/{alertPoliciesId}",
@@ -1423,10 +1445,13 @@ pub fn monitoring_projects_alert_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_alerts_get_execute()` to send, or `monitoring_projects_alerts_get` for simplest API.
 
-pub fn monitoring_projects_alerts_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_alerts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/alerts/{alertsId}",
@@ -1580,14 +1605,17 @@ pub fn monitoring_projects_alerts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_alerts_list_execute()` to send, or `monitoring_projects_alerts_list` for simplest API.
 
-pub fn monitoring_projects_alerts_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_alerts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/alerts",
@@ -1780,10 +1808,13 @@ pub fn monitoring_projects_alerts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_collectd_time_series_create_execute()` to send, or `monitoring_projects_collectd_time_series_create` for simplest API.
 
-pub fn monitoring_projects_collectd_time_series_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_collectd_time_series_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/collectdTimeSeries",
@@ -1945,11 +1976,14 @@ pub fn monitoring_projects_collectd_time_series_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_groups_create_execute()` to send, or `monitoring_projects_groups_create` for simplest API.
 
-pub fn monitoring_projects_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/groups",
@@ -2117,11 +2151,14 @@ pub fn monitoring_projects_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_groups_delete_execute()` to send, or `monitoring_projects_groups_delete` for simplest API.
 
-pub fn monitoring_projects_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     recursive: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/groups/{groupsId}",
@@ -2288,10 +2325,13 @@ pub fn monitoring_projects_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_groups_get_execute()` to send, or `monitoring_projects_groups_get` for simplest API.
 
-pub fn monitoring_projects_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/groups/{groupsId}",
@@ -2445,15 +2485,18 @@ pub fn monitoring_projects_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_groups_list_execute()` to send, or `monitoring_projects_groups_list` for simplest API.
 
-pub fn monitoring_projects_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ancestorsOfGroup: &Option<Option<String>>,
     childrenOfGroup: &Option<Option<String>>,
     descendantsOfGroup: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/groups",
@@ -2652,11 +2695,14 @@ pub fn monitoring_projects_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_groups_update_execute()` to send, or `monitoring_projects_groups_update` for simplest API.
 
-pub fn monitoring_projects_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/groups/{groupsId}",
@@ -2824,15 +2870,18 @@ pub fn monitoring_projects_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_groups_members_list_execute()` to send, or `monitoring_projects_groups_members_list` for simplest API.
 
-pub fn monitoring_projects_groups_members_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_groups_members_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     interval_endTime: &Option<Option<String>>,
     interval_startTime: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/groups/{groupsId}/members",
@@ -3031,10 +3080,13 @@ pub fn monitoring_projects_groups_members_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_metric_descriptors_create_execute()` to send, or `monitoring_projects_metric_descriptors_create` for simplest API.
 
-pub fn monitoring_projects_metric_descriptors_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_metric_descriptors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors",
@@ -3192,10 +3244,13 @@ pub fn monitoring_projects_metric_descriptors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_metric_descriptors_delete_execute()` to send, or `monitoring_projects_metric_descriptors_delete` for simplest API.
 
-pub fn monitoring_projects_metric_descriptors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_metric_descriptors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors/{metricDescriptorsId}",
@@ -3349,10 +3404,13 @@ pub fn monitoring_projects_metric_descriptors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_metric_descriptors_get_execute()` to send, or `monitoring_projects_metric_descriptors_get` for simplest API.
 
-pub fn monitoring_projects_metric_descriptors_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_metric_descriptors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors/{metricDescriptorsId}",
@@ -3510,14 +3568,17 @@ pub fn monitoring_projects_metric_descriptors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_metric_descriptors_list_execute()` to send, or `monitoring_projects_metric_descriptors_list` for simplest API.
 
-pub fn monitoring_projects_metric_descriptors_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_metric_descriptors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     activeOnly: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors",
@@ -3714,10 +3775,13 @@ pub fn monitoring_projects_metric_descriptors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_monitored_resource_descriptors_get_execute()` to send, or `monitoring_projects_monitored_resource_descriptors_get` for simplest API.
 
-pub fn monitoring_projects_monitored_resource_descriptors_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_monitored_resource_descriptors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/monitoredResourceDescriptors/{monitoredResourceDescriptorsId}",
@@ -3880,13 +3944,16 @@ pub fn monitoring_projects_monitored_resource_descriptors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_monitored_resource_descriptors_list_execute()` to send, or `monitoring_projects_monitored_resource_descriptors_list` for simplest API.
 
-pub fn monitoring_projects_monitored_resource_descriptors_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_monitored_resource_descriptors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/monitoredResourceDescriptors",
@@ -4077,10 +4144,13 @@ pub fn monitoring_projects_monitored_resource_descriptors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channel_descriptors_get_execute()` to send, or `monitoring_projects_notification_channel_descriptors_get` for simplest API.
 
-pub fn monitoring_projects_notification_channel_descriptors_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channel_descriptors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannelDescriptors/{notificationChannelDescriptorsId}",
@@ -4243,12 +4313,15 @@ pub fn monitoring_projects_notification_channel_descriptors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channel_descriptors_list_execute()` to send, or `monitoring_projects_notification_channel_descriptors_list` for simplest API.
 
-pub fn monitoring_projects_notification_channel_descriptors_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channel_descriptors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannelDescriptors",
@@ -4434,10 +4507,13 @@ pub fn monitoring_projects_notification_channel_descriptors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_create_execute()` to send, or `monitoring_projects_notification_channels_create` for simplest API.
 
-pub fn monitoring_projects_notification_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels",
@@ -4595,11 +4671,14 @@ pub fn monitoring_projects_notification_channels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_delete_execute()` to send, or `monitoring_projects_notification_channels_delete` for simplest API.
 
-pub fn monitoring_projects_notification_channels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{notificationChannelsId}",
@@ -4767,10 +4846,13 @@ pub fn monitoring_projects_notification_channels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_get_execute()` to send, or `monitoring_projects_notification_channels_get` for simplest API.
 
-pub fn monitoring_projects_notification_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{notificationChannelsId}",
@@ -4928,10 +5010,13 @@ pub fn monitoring_projects_notification_channels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_get_verification_code_execute()` to send, or `monitoring_projects_notification_channels_get_verification_code` for simplest API.
 
-pub fn monitoring_projects_notification_channels_get_verification_code_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_get_verification_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{notificationChannelsId}:getVerificationCode",
@@ -5096,14 +5181,17 @@ pub fn monitoring_projects_notification_channels_get_verification_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_list_execute()` to send, or `monitoring_projects_notification_channels_list` for simplest API.
 
-pub fn monitoring_projects_notification_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels",
@@ -5300,11 +5388,14 @@ pub fn monitoring_projects_notification_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_patch_execute()` to send, or `monitoring_projects_notification_channels_patch` for simplest API.
 
-pub fn monitoring_projects_notification_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{notificationChannelsId}",
@@ -5479,10 +5570,13 @@ pub fn monitoring_projects_notification_channels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_send_verification_code_execute()` to send, or `monitoring_projects_notification_channels_send_verification_code` for simplest API.
 
-pub fn monitoring_projects_notification_channels_send_verification_code_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_send_verification_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{notificationChannelsId}:sendVerificationCode",
@@ -5638,10 +5732,13 @@ pub fn monitoring_projects_notification_channels_send_verification_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_notification_channels_verify_execute()` to send, or `monitoring_projects_notification_channels_verify` for simplest API.
 
-pub fn monitoring_projects_notification_channels_verify_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_notification_channels_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{notificationChannelsId}:verify",
@@ -5799,10 +5896,13 @@ pub fn monitoring_projects_notification_channels_verify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_snoozes_create_execute()` to send, or `monitoring_projects_snoozes_create` for simplest API.
 
-pub fn monitoring_projects_snoozes_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_snoozes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/snoozes",
@@ -5956,10 +6056,13 @@ pub fn monitoring_projects_snoozes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_snoozes_get_execute()` to send, or `monitoring_projects_snoozes_get` for simplest API.
 
-pub fn monitoring_projects_snoozes_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_snoozes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/snoozes/{snoozesId}",
@@ -6113,13 +6216,16 @@ pub fn monitoring_projects_snoozes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_snoozes_list_execute()` to send, or `monitoring_projects_snoozes_list` for simplest API.
 
-pub fn monitoring_projects_snoozes_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_snoozes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/snoozes",
@@ -6306,11 +6412,14 @@ pub fn monitoring_projects_snoozes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_snoozes_patch_execute()` to send, or `monitoring_projects_snoozes_patch` for simplest API.
 
-pub fn monitoring_projects_snoozes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_snoozes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/snoozes/{snoozesId}",
@@ -6477,10 +6586,13 @@ pub fn monitoring_projects_snoozes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_time_series_create_execute()` to send, or `monitoring_projects_time_series_create` for simplest API.
 
-pub fn monitoring_projects_time_series_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_time_series_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/timeSeries",
@@ -6634,10 +6746,13 @@ pub fn monitoring_projects_time_series_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_time_series_create_service_execute()` to send, or `monitoring_projects_time_series_create_service` for simplest API.
 
-pub fn monitoring_projects_time_series_create_service_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_time_series_create_service_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/timeSeries:createService",
@@ -6791,8 +6906,8 @@ pub fn monitoring_projects_time_series_create_service(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_time_series_list_execute()` to send, or `monitoring_projects_time_series_list` for simplest API.
 
-pub fn monitoring_projects_time_series_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_time_series_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     aggregation_alignmentPeriod: &Option<Option<String>>,
     aggregation_crossSeriesReducer: &Option<Option<String>>,
@@ -6809,7 +6924,10 @@ pub fn monitoring_projects_time_series_list_builder(
     secondaryAggregation_groupByFields: &Option<Option<String>>,
     secondaryAggregation_perSeriesAligner: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/timeSeries",
@@ -7068,10 +7186,13 @@ pub fn monitoring_projects_time_series_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_time_series_query_execute()` to send, or `monitoring_projects_time_series_query` for simplest API.
 
-pub fn monitoring_projects_time_series_query_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_time_series_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/timeSeries:query",
@@ -7229,10 +7350,13 @@ pub fn monitoring_projects_time_series_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_uptime_check_configs_create_execute()` to send, or `monitoring_projects_uptime_check_configs_create` for simplest API.
 
-pub fn monitoring_projects_uptime_check_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_uptime_check_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs",
@@ -7390,10 +7514,13 @@ pub fn monitoring_projects_uptime_check_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_uptime_check_configs_delete_execute()` to send, or `monitoring_projects_uptime_check_configs_delete` for simplest API.
 
-pub fn monitoring_projects_uptime_check_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_uptime_check_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs/{uptimeCheckConfigsId}",
@@ -7547,10 +7674,13 @@ pub fn monitoring_projects_uptime_check_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_uptime_check_configs_get_execute()` to send, or `monitoring_projects_uptime_check_configs_get` for simplest API.
 
-pub fn monitoring_projects_uptime_check_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_uptime_check_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs/{uptimeCheckConfigsId}",
@@ -7708,13 +7838,16 @@ pub fn monitoring_projects_uptime_check_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_uptime_check_configs_list_execute()` to send, or `monitoring_projects_uptime_check_configs_list` for simplest API.
 
-pub fn monitoring_projects_uptime_check_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_uptime_check_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs",
@@ -7905,11 +8038,14 @@ pub fn monitoring_projects_uptime_check_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_projects_uptime_check_configs_patch_execute()` to send, or `monitoring_projects_uptime_check_configs_patch` for simplest API.
 
-pub fn monitoring_projects_uptime_check_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_projects_uptime_check_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs/{uptimeCheckConfigsId}",
@@ -8084,11 +8220,14 @@ pub fn monitoring_projects_uptime_check_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_create_execute()` to send, or `monitoring_services_create` for simplest API.
 
-pub fn monitoring_services_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serviceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services",
@@ -8255,10 +8394,13 @@ pub fn monitoring_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_delete_execute()` to send, or `monitoring_services_delete` for simplest API.
 
-pub fn monitoring_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}",
@@ -8412,10 +8554,13 @@ pub fn monitoring_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_get_execute()` to send, or `monitoring_services_get` for simplest API.
 
-pub fn monitoring_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}",
@@ -8569,13 +8714,16 @@ pub fn monitoring_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_list_execute()` to send, or `monitoring_services_list` for simplest API.
 
-pub fn monitoring_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services",
@@ -8762,11 +8910,14 @@ pub fn monitoring_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_patch_execute()` to send, or `monitoring_services_patch` for simplest API.
 
-pub fn monitoring_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}",
@@ -8933,11 +9084,14 @@ pub fn monitoring_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_service_level_objectives_create_execute()` to send, or `monitoring_services_service_level_objectives_create` for simplest API.
 
-pub fn monitoring_services_service_level_objectives_create_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_service_level_objectives_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serviceLevelObjectiveId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}/serviceLevelObjectives",
@@ -9112,10 +9266,13 @@ pub fn monitoring_services_service_level_objectives_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_service_level_objectives_delete_execute()` to send, or `monitoring_services_service_level_objectives_delete` for simplest API.
 
-pub fn monitoring_services_service_level_objectives_delete_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_service_level_objectives_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}",
@@ -9269,11 +9426,14 @@ pub fn monitoring_services_service_level_objectives_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_service_level_objectives_get_execute()` to send, or `monitoring_services_service_level_objectives_get` for simplest API.
 
-pub fn monitoring_services_service_level_objectives_get_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_service_level_objectives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}",
@@ -9445,14 +9605,17 @@ pub fn monitoring_services_service_level_objectives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_service_level_objectives_list_execute()` to send, or `monitoring_services_service_level_objectives_list` for simplest API.
 
-pub fn monitoring_services_service_level_objectives_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_service_level_objectives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}/serviceLevelObjectives",
@@ -9649,11 +9812,14 @@ pub fn monitoring_services_service_level_objectives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_services_service_level_objectives_patch_execute()` to send, or `monitoring_services_service_level_objectives_patch` for simplest API.
 
-pub fn monitoring_services_service_level_objectives_patch_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_services_service_level_objectives_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://monitoring.googleapis.com/v3/{}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}",
@@ -9828,11 +9994,14 @@ pub fn monitoring_services_service_level_objectives_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `monitoring_uptime_check_ips_list_execute()` to send, or `monitoring_uptime_check_ips_list` for simplest API.
 
-pub fn monitoring_uptime_check_ips_list_builder(
-    client: &SimpleHttpClient,
+pub fn monitoring_uptime_check_ips_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://monitoring.googleapis.com/v3/uptimeCheckIps",);
 

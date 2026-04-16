@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_batch_prediction_jobs_create_execute()` to send, or `aiplatform_batch_prediction_jobs_create` for simplest API.
 
-pub fn aiplatform_batch_prediction_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_batch_prediction_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/batchPredictionJobs",);
 
@@ -199,10 +203,13 @@ pub fn aiplatform_batch_prediction_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_batch_prediction_jobs_get_execute()` to send, or `aiplatform_batch_prediction_jobs_get` for simplest API.
 
-pub fn aiplatform_batch_prediction_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_batch_prediction_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/batchPredictionJobs/{}",
@@ -364,14 +371,17 @@ pub fn aiplatform_batch_prediction_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_batch_prediction_jobs_list_execute()` to send, or `aiplatform_batch_prediction_jobs_list` for simplest API.
 
-pub fn aiplatform_batch_prediction_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_batch_prediction_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/batchPredictionJobs",);
 
@@ -578,10 +588,13 @@ pub fn aiplatform_batch_prediction_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_custom_jobs_operations_cancel_execute()` to send, or `aiplatform_custom_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_custom_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_custom_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/customJobs/{}/operations/{operationsId}:cancel",
@@ -739,10 +752,13 @@ pub fn aiplatform_custom_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_custom_jobs_operations_delete_execute()` to send, or `aiplatform_custom_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_custom_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_custom_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/customJobs/{}/operations/{operationsId}",
@@ -900,10 +916,13 @@ pub fn aiplatform_custom_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_custom_jobs_operations_get_execute()` to send, or `aiplatform_custom_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_custom_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_custom_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/customJobs/{}/operations/{operationsId}",
@@ -1065,14 +1084,17 @@ pub fn aiplatform_custom_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_custom_jobs_operations_list_execute()` to send, or `aiplatform_custom_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_custom_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_custom_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/customJobs/{}/operations",
@@ -1270,11 +1292,14 @@ pub fn aiplatform_custom_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_custom_jobs_operations_wait_execute()` to send, or `aiplatform_custom_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_custom_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_custom_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/customJobs/{}/operations/{operationsId}:wait",
@@ -1450,10 +1475,13 @@ pub fn aiplatform_custom_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_data_labeling_jobs_operations_cancel_execute()` to send, or `aiplatform_data_labeling_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_data_labeling_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_data_labeling_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/dataLabelingJobs/{}/operations/{operationsId}:cancel",
@@ -1611,10 +1639,13 @@ pub fn aiplatform_data_labeling_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_data_labeling_jobs_operations_delete_execute()` to send, or `aiplatform_data_labeling_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_data_labeling_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_data_labeling_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/dataLabelingJobs/{}/operations/{operationsId}",
@@ -1772,10 +1803,13 @@ pub fn aiplatform_data_labeling_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_data_labeling_jobs_operations_get_execute()` to send, or `aiplatform_data_labeling_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_data_labeling_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_data_labeling_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/dataLabelingJobs/{}/operations/{operationsId}",
@@ -1937,14 +1971,17 @@ pub fn aiplatform_data_labeling_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_data_labeling_jobs_operations_list_execute()` to send, or `aiplatform_data_labeling_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_data_labeling_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_data_labeling_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/dataLabelingJobs/{}/operations",
@@ -2142,11 +2179,14 @@ pub fn aiplatform_data_labeling_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_data_labeling_jobs_operations_wait_execute()` to send, or `aiplatform_data_labeling_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_data_labeling_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_data_labeling_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/dataLabelingJobs/{}/operations/{operationsId}:wait",
@@ -2322,10 +2362,13 @@ pub fn aiplatform_data_labeling_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_create_execute()` to send, or `aiplatform_datasets_create` for simplest API.
 
-pub fn aiplatform_datasets_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/datasets",);
 
@@ -2495,10 +2538,13 @@ pub fn aiplatform_datasets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_delete_execute()` to send, or `aiplatform_datasets_delete` for simplest API.
 
-pub fn aiplatform_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/datasets/{}", name,);
 
@@ -2657,11 +2703,14 @@ pub fn aiplatform_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_get_execute()` to send, or `aiplatform_datasets_get` for simplest API.
 
-pub fn aiplatform_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/datasets/{}", name,);
 
@@ -2833,15 +2882,18 @@ pub fn aiplatform_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_list_execute()` to send, or `aiplatform_datasets_list` for simplest API.
 
-pub fn aiplatform_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/datasets",);
 
@@ -3045,11 +3097,14 @@ pub fn aiplatform_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_patch_execute()` to send, or `aiplatform_datasets_patch` for simplest API.
 
-pub fn aiplatform_datasets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/datasets/{}", name,);
 
@@ -3221,10 +3276,13 @@ pub fn aiplatform_datasets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_annotation_specs_operations_cancel_execute()` to send, or `aiplatform_datasets_annotation_specs_operations_cancel` for simplest API.
 
-pub fn aiplatform_datasets_annotation_specs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_annotation_specs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}:cancel",
@@ -3383,10 +3441,13 @@ pub fn aiplatform_datasets_annotation_specs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_annotation_specs_operations_delete_execute()` to send, or `aiplatform_datasets_annotation_specs_operations_delete` for simplest API.
 
-pub fn aiplatform_datasets_annotation_specs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_annotation_specs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}",
@@ -3545,10 +3606,13 @@ pub fn aiplatform_datasets_annotation_specs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_annotation_specs_operations_get_execute()` to send, or `aiplatform_datasets_annotation_specs_operations_get` for simplest API.
 
-pub fn aiplatform_datasets_annotation_specs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_annotation_specs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}",
@@ -3710,14 +3774,17 @@ pub fn aiplatform_datasets_annotation_specs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_annotation_specs_operations_list_execute()` to send, or `aiplatform_datasets_annotation_specs_operations_list` for simplest API.
 
-pub fn aiplatform_datasets_annotation_specs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_annotation_specs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/annotationSpecs/{annotationSpecsId}/operations",
@@ -3915,11 +3982,14 @@ pub fn aiplatform_datasets_annotation_specs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_annotation_specs_operations_wait_execute()` to send, or `aiplatform_datasets_annotation_specs_operations_wait` for simplest API.
 
-pub fn aiplatform_datasets_annotation_specs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_annotation_specs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}:wait",
@@ -4098,10 +4168,13 @@ pub fn aiplatform_datasets_annotation_specs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_annotations_operations_cancel_execute()` to send, or `aiplatform_datasets_data_items_annotations_operations_cancel` for simplest API.
 
-pub fn aiplatform_datasets_data_items_annotations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_annotations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}:cancel",
@@ -4260,10 +4333,13 @@ pub fn aiplatform_datasets_data_items_annotations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_annotations_operations_delete_execute()` to send, or `aiplatform_datasets_data_items_annotations_operations_delete` for simplest API.
 
-pub fn aiplatform_datasets_data_items_annotations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_annotations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}",
@@ -4422,10 +4498,13 @@ pub fn aiplatform_datasets_data_items_annotations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_annotations_operations_get_execute()` to send, or `aiplatform_datasets_data_items_annotations_operations_get` for simplest API.
 
-pub fn aiplatform_datasets_data_items_annotations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_annotations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}",
@@ -4588,14 +4667,17 @@ pub fn aiplatform_datasets_data_items_annotations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_annotations_operations_list_execute()` to send, or `aiplatform_datasets_data_items_annotations_operations_list` for simplest API.
 
-pub fn aiplatform_datasets_data_items_annotations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_annotations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations",
@@ -4793,11 +4875,14 @@ pub fn aiplatform_datasets_data_items_annotations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_annotations_operations_wait_execute()` to send, or `aiplatform_datasets_data_items_annotations_operations_wait` for simplest API.
 
-pub fn aiplatform_datasets_data_items_annotations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_annotations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}:wait",
@@ -4976,10 +5061,13 @@ pub fn aiplatform_datasets_data_items_annotations_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_operations_cancel_execute()` to send, or `aiplatform_datasets_data_items_operations_cancel` for simplest API.
 
-pub fn aiplatform_datasets_data_items_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/operations/{operationsId}:cancel",
@@ -5137,10 +5225,13 @@ pub fn aiplatform_datasets_data_items_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_operations_delete_execute()` to send, or `aiplatform_datasets_data_items_operations_delete` for simplest API.
 
-pub fn aiplatform_datasets_data_items_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/operations/{operationsId}",
@@ -5298,10 +5389,13 @@ pub fn aiplatform_datasets_data_items_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_operations_get_execute()` to send, or `aiplatform_datasets_data_items_operations_get` for simplest API.
 
-pub fn aiplatform_datasets_data_items_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/operations/{operationsId}",
@@ -5463,14 +5557,17 @@ pub fn aiplatform_datasets_data_items_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_operations_list_execute()` to send, or `aiplatform_datasets_data_items_operations_list` for simplest API.
 
-pub fn aiplatform_datasets_data_items_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/operations",
@@ -5668,11 +5765,14 @@ pub fn aiplatform_datasets_data_items_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_data_items_operations_wait_execute()` to send, or `aiplatform_datasets_data_items_operations_wait` for simplest API.
 
-pub fn aiplatform_datasets_data_items_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_data_items_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/dataItems/{dataItemsId}/operations/{operationsId}:wait",
@@ -5848,10 +5948,13 @@ pub fn aiplatform_datasets_data_items_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_dataset_versions_create_execute()` to send, or `aiplatform_datasets_dataset_versions_create` for simplest API.
 
-pub fn aiplatform_datasets_dataset_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_dataset_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/datasetVersions",
@@ -6013,10 +6116,13 @@ pub fn aiplatform_datasets_dataset_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_dataset_versions_delete_execute()` to send, or `aiplatform_datasets_dataset_versions_delete` for simplest API.
 
-pub fn aiplatform_datasets_dataset_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_dataset_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/datasetVersions/{datasetVersionsId}",
@@ -6178,11 +6284,14 @@ pub fn aiplatform_datasets_dataset_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_dataset_versions_get_execute()` to send, or `aiplatform_datasets_dataset_versions_get` for simplest API.
 
-pub fn aiplatform_datasets_dataset_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_dataset_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/datasetVersions/{datasetVersionsId}",
@@ -6358,15 +6467,18 @@ pub fn aiplatform_datasets_dataset_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_dataset_versions_list_execute()` to send, or `aiplatform_datasets_dataset_versions_list` for simplest API.
 
-pub fn aiplatform_datasets_dataset_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_dataset_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/datasetVersions",
@@ -6573,11 +6685,14 @@ pub fn aiplatform_datasets_dataset_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_dataset_versions_patch_execute()` to send, or `aiplatform_datasets_dataset_versions_patch` for simplest API.
 
-pub fn aiplatform_datasets_dataset_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_dataset_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/datasetVersions/{datasetVersionsId}",
@@ -6753,10 +6868,13 @@ pub fn aiplatform_datasets_dataset_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_dataset_versions_restore_execute()` to send, or `aiplatform_datasets_dataset_versions_restore` for simplest API.
 
-pub fn aiplatform_datasets_dataset_versions_restore_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_dataset_versions_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/datasetVersions/{datasetVersionsId}:restore",
@@ -6918,10 +7036,13 @@ pub fn aiplatform_datasets_dataset_versions_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_operations_cancel_execute()` to send, or `aiplatform_datasets_operations_cancel` for simplest API.
 
-pub fn aiplatform_datasets_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/operations/{operationsId}:cancel",
@@ -7079,10 +7200,13 @@ pub fn aiplatform_datasets_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_operations_delete_execute()` to send, or `aiplatform_datasets_operations_delete` for simplest API.
 
-pub fn aiplatform_datasets_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/operations/{operationsId}",
@@ -7240,10 +7364,13 @@ pub fn aiplatform_datasets_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_operations_get_execute()` to send, or `aiplatform_datasets_operations_get` for simplest API.
 
-pub fn aiplatform_datasets_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/operations/{operationsId}",
@@ -7405,14 +7532,17 @@ pub fn aiplatform_datasets_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_operations_list_execute()` to send, or `aiplatform_datasets_operations_list` for simplest API.
 
-pub fn aiplatform_datasets_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/operations",
@@ -7610,11 +7740,14 @@ pub fn aiplatform_datasets_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_operations_wait_execute()` to send, or `aiplatform_datasets_operations_wait` for simplest API.
 
-pub fn aiplatform_datasets_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/operations/{operationsId}:wait",
@@ -7789,10 +7922,13 @@ pub fn aiplatform_datasets_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_saved_queries_operations_cancel_execute()` to send, or `aiplatform_datasets_saved_queries_operations_cancel` for simplest API.
 
-pub fn aiplatform_datasets_saved_queries_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_saved_queries_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/savedQueries/{savedQueriesId}/operations/{operationsId}:cancel",
@@ -7950,10 +8086,13 @@ pub fn aiplatform_datasets_saved_queries_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_saved_queries_operations_delete_execute()` to send, or `aiplatform_datasets_saved_queries_operations_delete` for simplest API.
 
-pub fn aiplatform_datasets_saved_queries_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_saved_queries_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/savedQueries/{savedQueriesId}/operations/{operationsId}",
@@ -8111,10 +8250,13 @@ pub fn aiplatform_datasets_saved_queries_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_saved_queries_operations_get_execute()` to send, or `aiplatform_datasets_saved_queries_operations_get` for simplest API.
 
-pub fn aiplatform_datasets_saved_queries_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_saved_queries_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/savedQueries/{savedQueriesId}/operations/{operationsId}",
@@ -8276,14 +8418,17 @@ pub fn aiplatform_datasets_saved_queries_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_saved_queries_operations_list_execute()` to send, or `aiplatform_datasets_saved_queries_operations_list` for simplest API.
 
-pub fn aiplatform_datasets_saved_queries_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_saved_queries_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/savedQueries/{savedQueriesId}/operations",
@@ -8481,11 +8626,14 @@ pub fn aiplatform_datasets_saved_queries_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_datasets_saved_queries_operations_wait_execute()` to send, or `aiplatform_datasets_saved_queries_operations_wait` for simplest API.
 
-pub fn aiplatform_datasets_saved_queries_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_datasets_saved_queries_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/datasets/{}/savedQueries/{savedQueriesId}/operations/{operationsId}:wait",
@@ -8664,10 +8812,13 @@ pub fn aiplatform_datasets_saved_queries_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_deployment_resource_pools_operations_cancel_execute()` to send, or `aiplatform_deployment_resource_pools_operations_cancel` for simplest API.
 
-pub fn aiplatform_deployment_resource_pools_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_deployment_resource_pools_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/deploymentResourcePools/{}/operations/{operationsId}:cancel",
@@ -8826,10 +8977,13 @@ pub fn aiplatform_deployment_resource_pools_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_deployment_resource_pools_operations_delete_execute()` to send, or `aiplatform_deployment_resource_pools_operations_delete` for simplest API.
 
-pub fn aiplatform_deployment_resource_pools_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_deployment_resource_pools_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/deploymentResourcePools/{}/operations/{operationsId}",
@@ -8988,10 +9142,13 @@ pub fn aiplatform_deployment_resource_pools_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_deployment_resource_pools_operations_get_execute()` to send, or `aiplatform_deployment_resource_pools_operations_get` for simplest API.
 
-pub fn aiplatform_deployment_resource_pools_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_deployment_resource_pools_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/deploymentResourcePools/{}/operations/{operationsId}",
@@ -9153,14 +9310,17 @@ pub fn aiplatform_deployment_resource_pools_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_deployment_resource_pools_operations_list_execute()` to send, or `aiplatform_deployment_resource_pools_operations_list` for simplest API.
 
-pub fn aiplatform_deployment_resource_pools_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_deployment_resource_pools_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/deploymentResourcePools/{}/operations",
@@ -9358,11 +9518,14 @@ pub fn aiplatform_deployment_resource_pools_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_deployment_resource_pools_operations_wait_execute()` to send, or `aiplatform_deployment_resource_pools_operations_wait` for simplest API.
 
-pub fn aiplatform_deployment_resource_pools_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_deployment_resource_pools_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/deploymentResourcePools/{}/operations/{operationsId}:wait",
@@ -9541,10 +9704,13 @@ pub fn aiplatform_deployment_resource_pools_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_compute_tokens_execute()` to send, or `aiplatform_endpoints_compute_tokens` for simplest API.
 
-pub fn aiplatform_endpoints_compute_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_compute_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}:computeTokens",
@@ -9707,10 +9873,13 @@ pub fn aiplatform_endpoints_compute_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_count_tokens_execute()` to send, or `aiplatform_endpoints_count_tokens` for simplest API.
 
-pub fn aiplatform_endpoints_count_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_count_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}:countTokens",
@@ -9873,10 +10042,13 @@ pub fn aiplatform_endpoints_count_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_fetch_predict_operation_execute()` to send, or `aiplatform_endpoints_fetch_predict_operation` for simplest API.
 
-pub fn aiplatform_endpoints_fetch_predict_operation_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_fetch_predict_operation_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}:fetchPredictOperation",
@@ -10038,10 +10210,13 @@ pub fn aiplatform_endpoints_fetch_predict_operation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_generate_content_execute()` to send, or `aiplatform_endpoints_generate_content` for simplest API.
 
-pub fn aiplatform_endpoints_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}:generateContent",
@@ -10204,10 +10379,13 @@ pub fn aiplatform_endpoints_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_predict_execute()` to send, or `aiplatform_endpoints_predict` for simplest API.
 
-pub fn aiplatform_endpoints_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}:predict",
@@ -10369,10 +10547,13 @@ pub fn aiplatform_endpoints_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_predict_long_running_execute()` to send, or `aiplatform_endpoints_predict_long_running` for simplest API.
 
-pub fn aiplatform_endpoints_predict_long_running_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_predict_long_running_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}:predictLongRunning",
@@ -10534,10 +10715,13 @@ pub fn aiplatform_endpoints_predict_long_running(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_stream_generate_content_execute()` to send, or `aiplatform_endpoints_stream_generate_content` for simplest API.
 
-pub fn aiplatform_endpoints_stream_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_stream_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}:streamGenerateContent",
@@ -10700,10 +10884,13 @@ pub fn aiplatform_endpoints_stream_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_chat_completions_execute()` to send, or `aiplatform_endpoints_chat_completions` for simplest API.
 
-pub fn aiplatform_endpoints_chat_completions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_chat_completions_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}/chat/completions",
@@ -10861,10 +11048,13 @@ pub fn aiplatform_endpoints_chat_completions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_operations_cancel_execute()` to send, or `aiplatform_endpoints_operations_cancel` for simplest API.
 
-pub fn aiplatform_endpoints_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}/operations/{operationsId}:cancel",
@@ -11022,10 +11212,13 @@ pub fn aiplatform_endpoints_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_operations_delete_execute()` to send, or `aiplatform_endpoints_operations_delete` for simplest API.
 
-pub fn aiplatform_endpoints_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}/operations/{operationsId}",
@@ -11183,10 +11376,13 @@ pub fn aiplatform_endpoints_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_operations_get_execute()` to send, or `aiplatform_endpoints_operations_get` for simplest API.
 
-pub fn aiplatform_endpoints_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}/operations/{operationsId}",
@@ -11348,14 +11544,17 @@ pub fn aiplatform_endpoints_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_operations_list_execute()` to send, or `aiplatform_endpoints_operations_list` for simplest API.
 
-pub fn aiplatform_endpoints_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}/operations",
@@ -11553,11 +11752,14 @@ pub fn aiplatform_endpoints_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_endpoints_operations_wait_execute()` to send, or `aiplatform_endpoints_operations_wait` for simplest API.
 
-pub fn aiplatform_endpoints_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_endpoints_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/endpoints/{}/operations/{operationsId}:wait",
@@ -11732,10 +11934,13 @@ pub fn aiplatform_endpoints_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_features_operations_delete_execute()` to send, or `aiplatform_feature_groups_features_operations_delete` for simplest API.
 
-pub fn aiplatform_feature_groups_features_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_features_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/features/{featuresId}/operations/{operationsId}",
@@ -11893,10 +12098,13 @@ pub fn aiplatform_feature_groups_features_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_features_operations_get_execute()` to send, or `aiplatform_feature_groups_features_operations_get` for simplest API.
 
-pub fn aiplatform_feature_groups_features_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_features_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/features/{featuresId}/operations/{operationsId}",
@@ -12058,14 +12266,17 @@ pub fn aiplatform_feature_groups_features_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_features_operations_list_wait_execute()` to send, or `aiplatform_feature_groups_features_operations_list_wait` for simplest API.
 
-pub fn aiplatform_feature_groups_features_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_features_operations_list_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/features/{featuresId}/operations/{operationsId}:wait",
@@ -12263,11 +12474,14 @@ pub fn aiplatform_feature_groups_features_operations_list_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_features_operations_wait_execute()` to send, or `aiplatform_feature_groups_features_operations_wait` for simplest API.
 
-pub fn aiplatform_feature_groups_features_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_features_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/features/{featuresId}/operations/{operationsId}:wait",
@@ -12446,10 +12660,13 @@ pub fn aiplatform_feature_groups_features_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_operations_delete_execute()` to send, or `aiplatform_feature_groups_operations_delete` for simplest API.
 
-pub fn aiplatform_feature_groups_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/operations/{operationsId}",
@@ -12607,10 +12824,13 @@ pub fn aiplatform_feature_groups_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_operations_get_execute()` to send, or `aiplatform_feature_groups_operations_get` for simplest API.
 
-pub fn aiplatform_feature_groups_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/operations/{operationsId}",
@@ -12772,14 +12992,17 @@ pub fn aiplatform_feature_groups_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_operations_list_wait_execute()` to send, or `aiplatform_feature_groups_operations_list_wait` for simplest API.
 
-pub fn aiplatform_feature_groups_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_operations_list_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/operations/{operationsId}:wait",
@@ -12977,11 +13200,14 @@ pub fn aiplatform_feature_groups_operations_list_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_groups_operations_wait_execute()` to send, or `aiplatform_feature_groups_operations_wait` for simplest API.
 
-pub fn aiplatform_feature_groups_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_groups_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureGroups/{}/operations/{operationsId}:wait",
@@ -13157,10 +13383,13 @@ pub fn aiplatform_feature_groups_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_feature_views_operations_delete_execute()` to send, or `aiplatform_feature_online_stores_feature_views_operations_delete` for simplest API.
 
-pub fn aiplatform_feature_online_stores_feature_views_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_feature_views_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/featureViews/{featureViewsId}/operations/{operationsId}",
@@ -13320,10 +13549,13 @@ pub fn aiplatform_feature_online_stores_feature_views_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_feature_views_operations_get_execute()` to send, or `aiplatform_feature_online_stores_feature_views_operations_get` for simplest API.
 
-pub fn aiplatform_feature_online_stores_feature_views_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_feature_views_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/featureViews/{featureViewsId}/operations/{operationsId}",
@@ -13486,14 +13718,17 @@ pub fn aiplatform_feature_online_stores_feature_views_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_feature_views_operations_list_wait_execute()` to send, or `aiplatform_feature_online_stores_feature_views_operations_list_wait` for simplest API.
 
-pub fn aiplatform_feature_online_stores_feature_views_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_feature_views_operations_list_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/featureViews/{featureViewsId}/operations/{operationsId}:wait",
@@ -13691,11 +13926,14 @@ pub fn aiplatform_feature_online_stores_feature_views_operations_list_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_feature_views_operations_wait_execute()` to send, or `aiplatform_feature_online_stores_feature_views_operations_wait` for simplest API.
 
-pub fn aiplatform_feature_online_stores_feature_views_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_feature_views_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/featureViews/{featureViewsId}/operations/{operationsId}:wait",
@@ -13874,10 +14112,13 @@ pub fn aiplatform_feature_online_stores_feature_views_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_operations_delete_execute()` to send, or `aiplatform_feature_online_stores_operations_delete` for simplest API.
 
-pub fn aiplatform_feature_online_stores_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/operations/{operationsId}",
@@ -14035,10 +14276,13 @@ pub fn aiplatform_feature_online_stores_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_operations_get_execute()` to send, or `aiplatform_feature_online_stores_operations_get` for simplest API.
 
-pub fn aiplatform_feature_online_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/operations/{operationsId}",
@@ -14200,14 +14444,17 @@ pub fn aiplatform_feature_online_stores_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_operations_list_wait_execute()` to send, or `aiplatform_feature_online_stores_operations_list_wait` for simplest API.
 
-pub fn aiplatform_feature_online_stores_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_operations_list_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/operations/{operationsId}:wait",
@@ -14405,11 +14652,14 @@ pub fn aiplatform_feature_online_stores_operations_list_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_feature_online_stores_operations_wait_execute()` to send, or `aiplatform_feature_online_stores_operations_wait` for simplest API.
 
-pub fn aiplatform_feature_online_stores_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_feature_online_stores_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featureOnlineStores/{}/operations/{operationsId}:wait",
@@ -14588,10 +14838,13 @@ pub fn aiplatform_feature_online_stores_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_features_operations_cancel_execute()` to send, or `aiplatform_featurestores_entity_types_features_operations_cancel` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_features_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_features_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}:cancel",
@@ -14751,10 +15004,13 @@ pub fn aiplatform_featurestores_entity_types_features_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_features_operations_delete_execute()` to send, or `aiplatform_featurestores_entity_types_features_operations_delete` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_features_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_features_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}",
@@ -14914,10 +15170,13 @@ pub fn aiplatform_featurestores_entity_types_features_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_features_operations_get_execute()` to send, or `aiplatform_featurestores_entity_types_features_operations_get` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_features_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_features_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}",
@@ -15080,14 +15339,17 @@ pub fn aiplatform_featurestores_entity_types_features_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_features_operations_list_execute()` to send, or `aiplatform_featurestores_entity_types_features_operations_list` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_features_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_features_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/features/{featuresId}/operations",
@@ -15285,11 +15547,14 @@ pub fn aiplatform_featurestores_entity_types_features_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_features_operations_wait_execute()` to send, or `aiplatform_featurestores_entity_types_features_operations_wait` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_features_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_features_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}:wait",
@@ -15468,10 +15733,13 @@ pub fn aiplatform_featurestores_entity_types_features_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_operations_cancel_execute()` to send, or `aiplatform_featurestores_entity_types_operations_cancel` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/operations/{operationsId}:cancel",
@@ -15630,10 +15898,13 @@ pub fn aiplatform_featurestores_entity_types_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_operations_delete_execute()` to send, or `aiplatform_featurestores_entity_types_operations_delete` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/operations/{operationsId}",
@@ -15792,10 +16063,13 @@ pub fn aiplatform_featurestores_entity_types_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_operations_get_execute()` to send, or `aiplatform_featurestores_entity_types_operations_get` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/operations/{operationsId}",
@@ -15957,14 +16231,17 @@ pub fn aiplatform_featurestores_entity_types_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_operations_list_execute()` to send, or `aiplatform_featurestores_entity_types_operations_list` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/operations",
@@ -16162,11 +16439,14 @@ pub fn aiplatform_featurestores_entity_types_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_entity_types_operations_wait_execute()` to send, or `aiplatform_featurestores_entity_types_operations_wait` for simplest API.
 
-pub fn aiplatform_featurestores_entity_types_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_entity_types_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/entityTypes/{entityTypesId}/operations/{operationsId}:wait",
@@ -16345,10 +16625,13 @@ pub fn aiplatform_featurestores_entity_types_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_operations_cancel_execute()` to send, or `aiplatform_featurestores_operations_cancel` for simplest API.
 
-pub fn aiplatform_featurestores_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/operations/{operationsId}:cancel",
@@ -16506,10 +16789,13 @@ pub fn aiplatform_featurestores_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_operations_delete_execute()` to send, or `aiplatform_featurestores_operations_delete` for simplest API.
 
-pub fn aiplatform_featurestores_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/operations/{operationsId}",
@@ -16667,10 +16953,13 @@ pub fn aiplatform_featurestores_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_operations_get_execute()` to send, or `aiplatform_featurestores_operations_get` for simplest API.
 
-pub fn aiplatform_featurestores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/operations/{operationsId}",
@@ -16832,14 +17121,17 @@ pub fn aiplatform_featurestores_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_operations_list_execute()` to send, or `aiplatform_featurestores_operations_list` for simplest API.
 
-pub fn aiplatform_featurestores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/operations",
@@ -17037,11 +17329,14 @@ pub fn aiplatform_featurestores_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_featurestores_operations_wait_execute()` to send, or `aiplatform_featurestores_operations_wait` for simplest API.
 
-pub fn aiplatform_featurestores_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_featurestores_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/featurestores/{}/operations/{operationsId}:wait",
@@ -17217,10 +17512,13 @@ pub fn aiplatform_featurestores_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_hyperparameter_tuning_jobs_operations_cancel_execute()` to send, or `aiplatform_hyperparameter_tuning_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_hyperparameter_tuning_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_hyperparameter_tuning_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/hyperparameterTuningJobs/{}/operations/{operationsId}:cancel",
@@ -17379,10 +17677,13 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_hyperparameter_tuning_jobs_operations_delete_execute()` to send, or `aiplatform_hyperparameter_tuning_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_hyperparameter_tuning_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_hyperparameter_tuning_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/hyperparameterTuningJobs/{}/operations/{operationsId}",
@@ -17541,10 +17842,13 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_hyperparameter_tuning_jobs_operations_get_execute()` to send, or `aiplatform_hyperparameter_tuning_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_hyperparameter_tuning_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_hyperparameter_tuning_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/hyperparameterTuningJobs/{}/operations/{operationsId}",
@@ -17706,14 +18010,17 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_hyperparameter_tuning_jobs_operations_list_execute()` to send, or `aiplatform_hyperparameter_tuning_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_hyperparameter_tuning_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_hyperparameter_tuning_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/hyperparameterTuningJobs/{}/operations",
@@ -17911,11 +18218,14 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_hyperparameter_tuning_jobs_operations_wait_execute()` to send, or `aiplatform_hyperparameter_tuning_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_hyperparameter_tuning_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_hyperparameter_tuning_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/hyperparameterTuningJobs/{}/operations/{operationsId}:wait",
@@ -18094,10 +18404,13 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_index_endpoints_operations_cancel_execute()` to send, or `aiplatform_index_endpoints_operations_cancel` for simplest API.
 
-pub fn aiplatform_index_endpoints_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_index_endpoints_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexEndpoints/{}/operations/{operationsId}:cancel",
@@ -18255,10 +18568,13 @@ pub fn aiplatform_index_endpoints_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_index_endpoints_operations_delete_execute()` to send, or `aiplatform_index_endpoints_operations_delete` for simplest API.
 
-pub fn aiplatform_index_endpoints_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_index_endpoints_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexEndpoints/{}/operations/{operationsId}",
@@ -18416,10 +18732,13 @@ pub fn aiplatform_index_endpoints_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_index_endpoints_operations_get_execute()` to send, or `aiplatform_index_endpoints_operations_get` for simplest API.
 
-pub fn aiplatform_index_endpoints_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_index_endpoints_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexEndpoints/{}/operations/{operationsId}",
@@ -18581,14 +18900,17 @@ pub fn aiplatform_index_endpoints_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_index_endpoints_operations_list_execute()` to send, or `aiplatform_index_endpoints_operations_list` for simplest API.
 
-pub fn aiplatform_index_endpoints_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_index_endpoints_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexEndpoints/{}/operations",
@@ -18786,11 +19108,14 @@ pub fn aiplatform_index_endpoints_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_index_endpoints_operations_wait_execute()` to send, or `aiplatform_index_endpoints_operations_wait` for simplest API.
 
-pub fn aiplatform_index_endpoints_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_index_endpoints_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexEndpoints/{}/operations/{operationsId}:wait",
@@ -18966,10 +19291,13 @@ pub fn aiplatform_index_endpoints_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_indexes_operations_cancel_execute()` to send, or `aiplatform_indexes_operations_cancel` for simplest API.
 
-pub fn aiplatform_indexes_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_indexes_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexes/{}/operations/{operationsId}:cancel",
@@ -19127,10 +19455,13 @@ pub fn aiplatform_indexes_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_indexes_operations_delete_execute()` to send, or `aiplatform_indexes_operations_delete` for simplest API.
 
-pub fn aiplatform_indexes_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_indexes_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexes/{}/operations/{operationsId}",
@@ -19288,10 +19619,13 @@ pub fn aiplatform_indexes_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_indexes_operations_get_execute()` to send, or `aiplatform_indexes_operations_get` for simplest API.
 
-pub fn aiplatform_indexes_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_indexes_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexes/{}/operations/{operationsId}",
@@ -19453,14 +19787,17 @@ pub fn aiplatform_indexes_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_indexes_operations_list_execute()` to send, or `aiplatform_indexes_operations_list` for simplest API.
 
-pub fn aiplatform_indexes_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_indexes_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexes/{}/operations",
@@ -19658,11 +19995,14 @@ pub fn aiplatform_indexes_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_indexes_operations_wait_execute()` to send, or `aiplatform_indexes_operations_wait` for simplest API.
 
-pub fn aiplatform_indexes_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_indexes_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/indexes/{}/operations/{operationsId}:wait",
@@ -19837,10 +20177,13 @@ pub fn aiplatform_indexes_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_media_upload_execute()` to send, or `aiplatform_media_upload` for simplest API.
 
-pub fn aiplatform_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles:upload",
@@ -20003,10 +20346,13 @@ pub fn aiplatform_media_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_artifacts_operations_cancel_execute()` to send, or `aiplatform_metadata_stores_artifacts_operations_cancel` for simplest API.
 
-pub fn aiplatform_metadata_stores_artifacts_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_artifacts_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/artifacts/{artifactsId}/operations/{operationsId}:cancel",
@@ -20165,10 +20511,13 @@ pub fn aiplatform_metadata_stores_artifacts_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_artifacts_operations_delete_execute()` to send, or `aiplatform_metadata_stores_artifacts_operations_delete` for simplest API.
 
-pub fn aiplatform_metadata_stores_artifacts_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_artifacts_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/artifacts/{artifactsId}/operations/{operationsId}",
@@ -20327,10 +20676,13 @@ pub fn aiplatform_metadata_stores_artifacts_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_artifacts_operations_get_execute()` to send, or `aiplatform_metadata_stores_artifacts_operations_get` for simplest API.
 
-pub fn aiplatform_metadata_stores_artifacts_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_artifacts_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/artifacts/{artifactsId}/operations/{operationsId}",
@@ -20492,14 +20844,17 @@ pub fn aiplatform_metadata_stores_artifacts_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_artifacts_operations_list_execute()` to send, or `aiplatform_metadata_stores_artifacts_operations_list` for simplest API.
 
-pub fn aiplatform_metadata_stores_artifacts_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_artifacts_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/artifacts/{artifactsId}/operations",
@@ -20697,11 +21052,14 @@ pub fn aiplatform_metadata_stores_artifacts_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_artifacts_operations_wait_execute()` to send, or `aiplatform_metadata_stores_artifacts_operations_wait` for simplest API.
 
-pub fn aiplatform_metadata_stores_artifacts_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_artifacts_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/artifacts/{artifactsId}/operations/{operationsId}:wait",
@@ -20880,10 +21238,13 @@ pub fn aiplatform_metadata_stores_artifacts_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_contexts_operations_cancel_execute()` to send, or `aiplatform_metadata_stores_contexts_operations_cancel` for simplest API.
 
-pub fn aiplatform_metadata_stores_contexts_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_contexts_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/contexts/{contextsId}/operations/{operationsId}:cancel",
@@ -21042,10 +21403,13 @@ pub fn aiplatform_metadata_stores_contexts_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_contexts_operations_delete_execute()` to send, or `aiplatform_metadata_stores_contexts_operations_delete` for simplest API.
 
-pub fn aiplatform_metadata_stores_contexts_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_contexts_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/contexts/{contextsId}/operations/{operationsId}",
@@ -21204,10 +21568,13 @@ pub fn aiplatform_metadata_stores_contexts_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_contexts_operations_get_execute()` to send, or `aiplatform_metadata_stores_contexts_operations_get` for simplest API.
 
-pub fn aiplatform_metadata_stores_contexts_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_contexts_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/contexts/{contextsId}/operations/{operationsId}",
@@ -21369,14 +21736,17 @@ pub fn aiplatform_metadata_stores_contexts_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_contexts_operations_list_execute()` to send, or `aiplatform_metadata_stores_contexts_operations_list` for simplest API.
 
-pub fn aiplatform_metadata_stores_contexts_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_contexts_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/contexts/{contextsId}/operations",
@@ -21574,11 +21944,14 @@ pub fn aiplatform_metadata_stores_contexts_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_contexts_operations_wait_execute()` to send, or `aiplatform_metadata_stores_contexts_operations_wait` for simplest API.
 
-pub fn aiplatform_metadata_stores_contexts_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_contexts_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/contexts/{contextsId}/operations/{operationsId}:wait",
@@ -21757,10 +22130,13 @@ pub fn aiplatform_metadata_stores_contexts_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_executions_operations_cancel_execute()` to send, or `aiplatform_metadata_stores_executions_operations_cancel` for simplest API.
 
-pub fn aiplatform_metadata_stores_executions_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_executions_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/executions/{executionsId}/operations/{operationsId}:cancel",
@@ -21919,10 +22295,13 @@ pub fn aiplatform_metadata_stores_executions_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_executions_operations_delete_execute()` to send, or `aiplatform_metadata_stores_executions_operations_delete` for simplest API.
 
-pub fn aiplatform_metadata_stores_executions_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_executions_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/executions/{executionsId}/operations/{operationsId}",
@@ -22081,10 +22460,13 @@ pub fn aiplatform_metadata_stores_executions_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_executions_operations_get_execute()` to send, or `aiplatform_metadata_stores_executions_operations_get` for simplest API.
 
-pub fn aiplatform_metadata_stores_executions_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_executions_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/executions/{executionsId}/operations/{operationsId}",
@@ -22246,14 +22628,17 @@ pub fn aiplatform_metadata_stores_executions_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_executions_operations_list_execute()` to send, or `aiplatform_metadata_stores_executions_operations_list` for simplest API.
 
-pub fn aiplatform_metadata_stores_executions_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_executions_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/executions/{executionsId}/operations",
@@ -22451,11 +22836,14 @@ pub fn aiplatform_metadata_stores_executions_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_executions_operations_wait_execute()` to send, or `aiplatform_metadata_stores_executions_operations_wait` for simplest API.
 
-pub fn aiplatform_metadata_stores_executions_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_executions_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/executions/{executionsId}/operations/{operationsId}:wait",
@@ -22634,10 +23022,13 @@ pub fn aiplatform_metadata_stores_executions_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_operations_cancel_execute()` to send, or `aiplatform_metadata_stores_operations_cancel` for simplest API.
 
-pub fn aiplatform_metadata_stores_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/operations/{operationsId}:cancel",
@@ -22795,10 +23186,13 @@ pub fn aiplatform_metadata_stores_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_operations_delete_execute()` to send, or `aiplatform_metadata_stores_operations_delete` for simplest API.
 
-pub fn aiplatform_metadata_stores_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/operations/{operationsId}",
@@ -22956,10 +23350,13 @@ pub fn aiplatform_metadata_stores_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_operations_get_execute()` to send, or `aiplatform_metadata_stores_operations_get` for simplest API.
 
-pub fn aiplatform_metadata_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/operations/{operationsId}",
@@ -23121,14 +23518,17 @@ pub fn aiplatform_metadata_stores_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_operations_list_execute()` to send, or `aiplatform_metadata_stores_operations_list` for simplest API.
 
-pub fn aiplatform_metadata_stores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/operations",
@@ -23326,11 +23726,14 @@ pub fn aiplatform_metadata_stores_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_metadata_stores_operations_wait_execute()` to send, or `aiplatform_metadata_stores_operations_wait` for simplest API.
 
-pub fn aiplatform_metadata_stores_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_metadata_stores_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/metadataStores/{}/operations/{operationsId}:wait",
@@ -23506,10 +23909,13 @@ pub fn aiplatform_metadata_stores_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_migratable_resources_operations_cancel_execute()` to send, or `aiplatform_migratable_resources_operations_cancel` for simplest API.
 
-pub fn aiplatform_migratable_resources_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_migratable_resources_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/migratableResources/{}/operations/{operationsId}:cancel",
@@ -23667,10 +24073,13 @@ pub fn aiplatform_migratable_resources_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_migratable_resources_operations_delete_execute()` to send, or `aiplatform_migratable_resources_operations_delete` for simplest API.
 
-pub fn aiplatform_migratable_resources_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_migratable_resources_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/migratableResources/{}/operations/{operationsId}",
@@ -23828,10 +24237,13 @@ pub fn aiplatform_migratable_resources_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_migratable_resources_operations_get_execute()` to send, or `aiplatform_migratable_resources_operations_get` for simplest API.
 
-pub fn aiplatform_migratable_resources_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_migratable_resources_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/migratableResources/{}/operations/{operationsId}",
@@ -23993,14 +24405,17 @@ pub fn aiplatform_migratable_resources_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_migratable_resources_operations_list_execute()` to send, or `aiplatform_migratable_resources_operations_list` for simplest API.
 
-pub fn aiplatform_migratable_resources_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_migratable_resources_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/migratableResources/{}/operations",
@@ -24198,11 +24613,14 @@ pub fn aiplatform_migratable_resources_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_migratable_resources_operations_wait_execute()` to send, or `aiplatform_migratable_resources_operations_wait` for simplest API.
 
-pub fn aiplatform_migratable_resources_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_migratable_resources_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/migratableResources/{}/operations/{operationsId}:wait",
@@ -24378,10 +24796,13 @@ pub fn aiplatform_migratable_resources_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_model_deployment_monitoring_jobs_operations_cancel_execute()` to send, or `aiplatform_model_deployment_monitoring_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_model_deployment_monitoring_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_model_deployment_monitoring_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/modelDeploymentMonitoringJobs/{}/operations/{operationsId}:cancel",
@@ -24540,10 +24961,13 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_model_deployment_monitoring_jobs_operations_delete_execute()` to send, or `aiplatform_model_deployment_monitoring_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_model_deployment_monitoring_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_model_deployment_monitoring_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/modelDeploymentMonitoringJobs/{}/operations/{operationsId}",
@@ -24702,10 +25126,13 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_model_deployment_monitoring_jobs_operations_get_execute()` to send, or `aiplatform_model_deployment_monitoring_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_model_deployment_monitoring_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_model_deployment_monitoring_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/modelDeploymentMonitoringJobs/{}/operations/{operationsId}",
@@ -24868,14 +25295,17 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_model_deployment_monitoring_jobs_operations_list_execute()` to send, or `aiplatform_model_deployment_monitoring_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_model_deployment_monitoring_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_model_deployment_monitoring_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/modelDeploymentMonitoringJobs/{}/operations",
@@ -25073,11 +25503,14 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_model_deployment_monitoring_jobs_operations_wait_execute()` to send, or `aiplatform_model_deployment_monitoring_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_model_deployment_monitoring_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_model_deployment_monitoring_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/modelDeploymentMonitoringJobs/{}/operations/{operationsId}:wait",
@@ -25256,10 +25689,13 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_evaluations_operations_cancel_execute()` to send, or `aiplatform_models_evaluations_operations_cancel` for simplest API.
 
-pub fn aiplatform_models_evaluations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_evaluations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/evaluations/{evaluationsId}/operations/{operationsId}:cancel",
@@ -25417,10 +25853,13 @@ pub fn aiplatform_models_evaluations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_evaluations_operations_delete_execute()` to send, or `aiplatform_models_evaluations_operations_delete` for simplest API.
 
-pub fn aiplatform_models_evaluations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_evaluations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/evaluations/{evaluationsId}/operations/{operationsId}",
@@ -25578,10 +26017,13 @@ pub fn aiplatform_models_evaluations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_evaluations_operations_get_execute()` to send, or `aiplatform_models_evaluations_operations_get` for simplest API.
 
-pub fn aiplatform_models_evaluations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_evaluations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/evaluations/{evaluationsId}/operations/{operationsId}",
@@ -25743,14 +26185,17 @@ pub fn aiplatform_models_evaluations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_evaluations_operations_list_execute()` to send, or `aiplatform_models_evaluations_operations_list` for simplest API.
 
-pub fn aiplatform_models_evaluations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_evaluations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/evaluations/{evaluationsId}/operations",
@@ -25948,11 +26393,14 @@ pub fn aiplatform_models_evaluations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_evaluations_operations_wait_execute()` to send, or `aiplatform_models_evaluations_operations_wait` for simplest API.
 
-pub fn aiplatform_models_evaluations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_evaluations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/evaluations/{evaluationsId}/operations/{operationsId}:wait",
@@ -26128,10 +26576,13 @@ pub fn aiplatform_models_evaluations_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_operations_cancel_execute()` to send, or `aiplatform_models_operations_cancel` for simplest API.
 
-pub fn aiplatform_models_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/operations/{operationsId}:cancel",
@@ -26289,10 +26740,13 @@ pub fn aiplatform_models_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_operations_delete_execute()` to send, or `aiplatform_models_operations_delete` for simplest API.
 
-pub fn aiplatform_models_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/operations/{operationsId}",
@@ -26450,10 +26904,13 @@ pub fn aiplatform_models_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_operations_get_execute()` to send, or `aiplatform_models_operations_get` for simplest API.
 
-pub fn aiplatform_models_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/operations/{operationsId}",
@@ -26615,14 +27072,17 @@ pub fn aiplatform_models_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_operations_list_execute()` to send, or `aiplatform_models_operations_list` for simplest API.
 
-pub fn aiplatform_models_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/operations",
@@ -26820,11 +27280,14 @@ pub fn aiplatform_models_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_models_operations_wait_execute()` to send, or `aiplatform_models_operations_wait` for simplest API.
 
-pub fn aiplatform_models_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_models_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/models/{}/operations/{operationsId}:wait",
@@ -26999,10 +27462,13 @@ pub fn aiplatform_models_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_execution_jobs_operations_cancel_execute()` to send, or `aiplatform_notebook_execution_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_notebook_execution_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_execution_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookExecutionJobs/{}/operations/{operationsId}:cancel",
@@ -27160,10 +27626,13 @@ pub fn aiplatform_notebook_execution_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_execution_jobs_operations_delete_execute()` to send, or `aiplatform_notebook_execution_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_notebook_execution_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_execution_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookExecutionJobs/{}/operations/{operationsId}",
@@ -27321,10 +27790,13 @@ pub fn aiplatform_notebook_execution_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_execution_jobs_operations_get_execute()` to send, or `aiplatform_notebook_execution_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_notebook_execution_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_execution_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookExecutionJobs/{}/operations/{operationsId}",
@@ -27486,14 +27958,17 @@ pub fn aiplatform_notebook_execution_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_execution_jobs_operations_list_execute()` to send, or `aiplatform_notebook_execution_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_notebook_execution_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_execution_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookExecutionJobs/{}/operations",
@@ -27691,11 +28166,14 @@ pub fn aiplatform_notebook_execution_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_execution_jobs_operations_wait_execute()` to send, or `aiplatform_notebook_execution_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_notebook_execution_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_execution_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookExecutionJobs/{}/operations/{operationsId}:wait",
@@ -27874,10 +28352,13 @@ pub fn aiplatform_notebook_execution_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtime_templates_operations_cancel_execute()` to send, or `aiplatform_notebook_runtime_templates_operations_cancel` for simplest API.
 
-pub fn aiplatform_notebook_runtime_templates_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtime_templates_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimeTemplates/{}/operations/{operationsId}:cancel",
@@ -28036,10 +28517,13 @@ pub fn aiplatform_notebook_runtime_templates_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtime_templates_operations_delete_execute()` to send, or `aiplatform_notebook_runtime_templates_operations_delete` for simplest API.
 
-pub fn aiplatform_notebook_runtime_templates_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtime_templates_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimeTemplates/{}/operations/{operationsId}",
@@ -28198,10 +28682,13 @@ pub fn aiplatform_notebook_runtime_templates_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtime_templates_operations_get_execute()` to send, or `aiplatform_notebook_runtime_templates_operations_get` for simplest API.
 
-pub fn aiplatform_notebook_runtime_templates_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtime_templates_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimeTemplates/{}/operations/{operationsId}",
@@ -28363,14 +28850,17 @@ pub fn aiplatform_notebook_runtime_templates_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtime_templates_operations_list_execute()` to send, or `aiplatform_notebook_runtime_templates_operations_list` for simplest API.
 
-pub fn aiplatform_notebook_runtime_templates_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtime_templates_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimeTemplates/{}/operations",
@@ -28568,11 +29058,14 @@ pub fn aiplatform_notebook_runtime_templates_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtime_templates_operations_wait_execute()` to send, or `aiplatform_notebook_runtime_templates_operations_wait` for simplest API.
 
-pub fn aiplatform_notebook_runtime_templates_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtime_templates_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimeTemplates/{}/operations/{operationsId}:wait",
@@ -28751,10 +29244,13 @@ pub fn aiplatform_notebook_runtime_templates_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtimes_operations_cancel_execute()` to send, or `aiplatform_notebook_runtimes_operations_cancel` for simplest API.
 
-pub fn aiplatform_notebook_runtimes_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtimes_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimes/{}/operations/{operationsId}:cancel",
@@ -28912,10 +29408,13 @@ pub fn aiplatform_notebook_runtimes_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtimes_operations_delete_execute()` to send, or `aiplatform_notebook_runtimes_operations_delete` for simplest API.
 
-pub fn aiplatform_notebook_runtimes_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtimes_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimes/{}/operations/{operationsId}",
@@ -29073,10 +29572,13 @@ pub fn aiplatform_notebook_runtimes_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtimes_operations_get_execute()` to send, or `aiplatform_notebook_runtimes_operations_get` for simplest API.
 
-pub fn aiplatform_notebook_runtimes_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtimes_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimes/{}/operations/{operationsId}",
@@ -29238,14 +29740,17 @@ pub fn aiplatform_notebook_runtimes_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtimes_operations_list_execute()` to send, or `aiplatform_notebook_runtimes_operations_list` for simplest API.
 
-pub fn aiplatform_notebook_runtimes_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtimes_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimes/{}/operations",
@@ -29443,11 +29948,14 @@ pub fn aiplatform_notebook_runtimes_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_notebook_runtimes_operations_wait_execute()` to send, or `aiplatform_notebook_runtimes_operations_wait` for simplest API.
 
-pub fn aiplatform_notebook_runtimes_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_notebook_runtimes_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/notebookRuntimes/{}/operations/{operationsId}:wait",
@@ -29623,10 +30131,13 @@ pub fn aiplatform_notebook_runtimes_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_operations_cancel_execute()` to send, or `aiplatform_operations_cancel` for simplest API.
 
-pub fn aiplatform_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/operations/{}:cancel",
@@ -29784,10 +30295,13 @@ pub fn aiplatform_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_operations_delete_execute()` to send, or `aiplatform_operations_delete` for simplest API.
 
-pub fn aiplatform_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/operations/{}", name,);
 
@@ -29942,10 +30456,13 @@ pub fn aiplatform_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_operations_get_execute()` to send, or `aiplatform_operations_get` for simplest API.
 
-pub fn aiplatform_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/operations/{}", name,);
 
@@ -30104,14 +30621,17 @@ pub fn aiplatform_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_operations_list_execute()` to send, or `aiplatform_operations_list` for simplest API.
 
-pub fn aiplatform_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     name: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/operations",);
 
@@ -30309,11 +30829,14 @@ pub fn aiplatform_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_operations_wait_execute()` to send, or `aiplatform_operations_wait` for simplest API.
 
-pub fn aiplatform_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/operations/{}:wait",
@@ -30488,10 +31011,13 @@ pub fn aiplatform_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_persistent_resources_operations_cancel_execute()` to send, or `aiplatform_persistent_resources_operations_cancel` for simplest API.
 
-pub fn aiplatform_persistent_resources_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_persistent_resources_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/persistentResources/{}/operations/{operationsId}:cancel",
@@ -30649,10 +31175,13 @@ pub fn aiplatform_persistent_resources_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_persistent_resources_operations_delete_execute()` to send, or `aiplatform_persistent_resources_operations_delete` for simplest API.
 
-pub fn aiplatform_persistent_resources_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_persistent_resources_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/persistentResources/{}/operations/{operationsId}",
@@ -30810,10 +31339,13 @@ pub fn aiplatform_persistent_resources_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_persistent_resources_operations_get_execute()` to send, or `aiplatform_persistent_resources_operations_get` for simplest API.
 
-pub fn aiplatform_persistent_resources_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_persistent_resources_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/persistentResources/{}/operations/{operationsId}",
@@ -30975,14 +31507,17 @@ pub fn aiplatform_persistent_resources_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_persistent_resources_operations_list_execute()` to send, or `aiplatform_persistent_resources_operations_list` for simplest API.
 
-pub fn aiplatform_persistent_resources_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_persistent_resources_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/persistentResources/{}/operations",
@@ -31180,11 +31715,14 @@ pub fn aiplatform_persistent_resources_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_persistent_resources_operations_wait_execute()` to send, or `aiplatform_persistent_resources_operations_wait` for simplest API.
 
-pub fn aiplatform_persistent_resources_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_persistent_resources_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/persistentResources/{}/operations/{operationsId}:wait",
@@ -31360,10 +31898,13 @@ pub fn aiplatform_persistent_resources_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_pipeline_jobs_operations_cancel_execute()` to send, or `aiplatform_pipeline_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_pipeline_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_pipeline_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/pipelineJobs/{}/operations/{operationsId}:cancel",
@@ -31521,10 +32062,13 @@ pub fn aiplatform_pipeline_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_pipeline_jobs_operations_delete_execute()` to send, or `aiplatform_pipeline_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_pipeline_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_pipeline_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/pipelineJobs/{}/operations/{operationsId}",
@@ -31682,10 +32226,13 @@ pub fn aiplatform_pipeline_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_pipeline_jobs_operations_get_execute()` to send, or `aiplatform_pipeline_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_pipeline_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_pipeline_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/pipelineJobs/{}/operations/{operationsId}",
@@ -31847,14 +32394,17 @@ pub fn aiplatform_pipeline_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_pipeline_jobs_operations_list_execute()` to send, or `aiplatform_pipeline_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_pipeline_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_pipeline_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/pipelineJobs/{}/operations",
@@ -32052,11 +32602,14 @@ pub fn aiplatform_pipeline_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_pipeline_jobs_operations_wait_execute()` to send, or `aiplatform_pipeline_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_pipeline_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_pipeline_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/pipelineJobs/{}/operations/{operationsId}:wait",
@@ -32232,10 +32785,13 @@ pub fn aiplatform_pipeline_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_get_cache_config_execute()` to send, or `aiplatform_projects_get_cache_config` for simplest API.
 
-pub fn aiplatform_projects_get_cache_config_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_get_cache_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/cacheConfig",
@@ -32397,10 +32953,13 @@ pub fn aiplatform_projects_get_cache_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_update_cache_config_execute()` to send, or `aiplatform_projects_update_cache_config` for simplest API.
 
-pub fn aiplatform_projects_update_cache_config_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_update_cache_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/cacheConfig",
@@ -32562,10 +33121,13 @@ pub fn aiplatform_projects_update_cache_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_ask_contexts_execute()` to send, or `aiplatform_projects_locations_ask_contexts` for simplest API.
 
-pub fn aiplatform_projects_locations_ask_contexts_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_ask_contexts_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:askContexts",
@@ -32728,10 +33290,13 @@ pub fn aiplatform_projects_locations_ask_contexts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_async_retrieve_contexts_execute()` to send, or `aiplatform_projects_locations_async_retrieve_contexts` for simplest API.
 
-pub fn aiplatform_projects_locations_async_retrieve_contexts_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_async_retrieve_contexts_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:asyncRetrieveContexts",
@@ -32894,10 +33459,13 @@ pub fn aiplatform_projects_locations_async_retrieve_contexts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_augment_prompt_execute()` to send, or `aiplatform_projects_locations_augment_prompt` for simplest API.
 
-pub fn aiplatform_projects_locations_augment_prompt_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_augment_prompt_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:augmentPrompt",
@@ -33060,10 +33628,13 @@ pub fn aiplatform_projects_locations_augment_prompt(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_corroborate_content_execute()` to send, or `aiplatform_projects_locations_corroborate_content` for simplest API.
 
-pub fn aiplatform_projects_locations_corroborate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_corroborate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:corroborateContent",
@@ -33229,10 +33800,13 @@ pub fn aiplatform_projects_locations_corroborate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deploy_execute()` to send, or `aiplatform_projects_locations_deploy` for simplest API.
 
-pub fn aiplatform_projects_locations_deploy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     destination: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:deploy",
@@ -33394,10 +33968,13 @@ pub fn aiplatform_projects_locations_deploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluate_dataset_execute()` to send, or `aiplatform_projects_locations_evaluate_dataset` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluate_dataset_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluate_dataset_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:evaluateDataset",
@@ -33559,10 +34136,13 @@ pub fn aiplatform_projects_locations_evaluate_dataset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluate_instances_execute()` to send, or `aiplatform_projects_locations_evaluate_instances` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluate_instances_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluate_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:evaluateInstances",
@@ -33725,10 +34305,13 @@ pub fn aiplatform_projects_locations_evaluate_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_generate_instance_rubrics_execute()` to send, or `aiplatform_projects_locations_generate_instance_rubrics` for simplest API.
 
-pub fn aiplatform_projects_locations_generate_instance_rubrics_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_generate_instance_rubrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:generateInstanceRubrics",
@@ -33901,10 +34484,13 @@ pub fn aiplatform_projects_locations_generate_instance_rubrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_generate_synthetic_data_execute()` to send, or `aiplatform_projects_locations_generate_synthetic_data` for simplest API.
 
-pub fn aiplatform_projects_locations_generate_synthetic_data_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_generate_synthetic_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:generateSyntheticData",
@@ -34071,10 +34657,13 @@ pub fn aiplatform_projects_locations_generate_synthetic_data(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_get_execute()` to send, or `aiplatform_projects_locations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -34236,10 +34825,13 @@ pub fn aiplatform_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_get_rag_engine_config_execute()` to send, or `aiplatform_projects_locations_get_rag_engine_config` for simplest API.
 
-pub fn aiplatform_projects_locations_get_rag_engine_config_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_get_rag_engine_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragEngineConfig",
@@ -34401,14 +34993,17 @@ pub fn aiplatform_projects_locations_get_rag_engine_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_list_execute()` to send, or `aiplatform_projects_locations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations",
@@ -34605,10 +35200,13 @@ pub fn aiplatform_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_retrieve_contexts_execute()` to send, or `aiplatform_projects_locations_retrieve_contexts` for simplest API.
 
-pub fn aiplatform_projects_locations_retrieve_contexts_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_retrieve_contexts_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}:retrieveContexts",
@@ -34771,10 +35369,13 @@ pub fn aiplatform_projects_locations_retrieve_contexts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_update_rag_engine_config_execute()` to send, or `aiplatform_projects_locations_update_rag_engine_config` for simplest API.
 
-pub fn aiplatform_projects_locations_update_rag_engine_config_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_update_rag_engine_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragEngineConfig",
@@ -34937,10 +35538,13 @@ pub fn aiplatform_projects_locations_update_rag_engine_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_batch_prediction_jobs_cancel_execute()` to send, or `aiplatform_projects_locations_batch_prediction_jobs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_batch_prediction_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_batch_prediction_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/batchPredictionJobs/{batchPredictionJobsId}:cancel",
@@ -35099,10 +35703,13 @@ pub fn aiplatform_projects_locations_batch_prediction_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_batch_prediction_jobs_create_execute()` to send, or `aiplatform_projects_locations_batch_prediction_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_batch_prediction_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_batch_prediction_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/batchPredictionJobs",
@@ -35265,10 +35872,13 @@ pub fn aiplatform_projects_locations_batch_prediction_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_batch_prediction_jobs_delete_execute()` to send, or `aiplatform_projects_locations_batch_prediction_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_batch_prediction_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_batch_prediction_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/batchPredictionJobs/{batchPredictionJobsId}",
@@ -35431,10 +36041,13 @@ pub fn aiplatform_projects_locations_batch_prediction_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_batch_prediction_jobs_get_execute()` to send, or `aiplatform_projects_locations_batch_prediction_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_batch_prediction_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_batch_prediction_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/batchPredictionJobs/{batchPredictionJobsId}",
@@ -35597,14 +36210,17 @@ pub fn aiplatform_projects_locations_batch_prediction_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_batch_prediction_jobs_list_execute()` to send, or `aiplatform_projects_locations_batch_prediction_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_batch_prediction_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_batch_prediction_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/batchPredictionJobs",
@@ -35811,10 +36427,13 @@ pub fn aiplatform_projects_locations_batch_prediction_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_cached_contents_create_execute()` to send, or `aiplatform_projects_locations_cached_contents_create` for simplest API.
 
-pub fn aiplatform_projects_locations_cached_contents_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_cached_contents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/cachedContents",
@@ -35977,10 +36596,13 @@ pub fn aiplatform_projects_locations_cached_contents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_cached_contents_delete_execute()` to send, or `aiplatform_projects_locations_cached_contents_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_cached_contents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_cached_contents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/cachedContents/{cachedContentsId}",
@@ -36138,10 +36760,13 @@ pub fn aiplatform_projects_locations_cached_contents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_cached_contents_get_execute()` to send, or `aiplatform_projects_locations_cached_contents_get` for simplest API.
 
-pub fn aiplatform_projects_locations_cached_contents_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_cached_contents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/cachedContents/{cachedContentsId}",
@@ -36303,12 +36928,15 @@ pub fn aiplatform_projects_locations_cached_contents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_cached_contents_list_execute()` to send, or `aiplatform_projects_locations_cached_contents_list` for simplest API.
 
-pub fn aiplatform_projects_locations_cached_contents_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_cached_contents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/cachedContents",
@@ -36497,11 +37125,14 @@ pub fn aiplatform_projects_locations_cached_contents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_cached_contents_patch_execute()` to send, or `aiplatform_projects_locations_cached_contents_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_cached_contents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_cached_contents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/cachedContents/{cachedContentsId}",
@@ -36680,10 +37311,13 @@ pub fn aiplatform_projects_locations_cached_contents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_cancel_execute()` to send, or `aiplatform_projects_locations_custom_jobs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}:cancel",
@@ -36841,10 +37475,13 @@ pub fn aiplatform_projects_locations_custom_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_create_execute()` to send, or `aiplatform_projects_locations_custom_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs",
@@ -37006,10 +37643,13 @@ pub fn aiplatform_projects_locations_custom_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_delete_execute()` to send, or `aiplatform_projects_locations_custom_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}",
@@ -37171,10 +37811,13 @@ pub fn aiplatform_projects_locations_custom_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_get_execute()` to send, or `aiplatform_projects_locations_custom_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}",
@@ -37336,14 +37979,17 @@ pub fn aiplatform_projects_locations_custom_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_list_execute()` to send, or `aiplatform_projects_locations_custom_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs",
@@ -37541,10 +38187,13 @@ pub fn aiplatform_projects_locations_custom_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_custom_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}/operations/{operationsId}:cancel",
@@ -37703,10 +38352,13 @@ pub fn aiplatform_projects_locations_custom_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_operations_delete_execute()` to send, or `aiplatform_projects_locations_custom_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}/operations/{operationsId}",
@@ -37865,10 +38517,13 @@ pub fn aiplatform_projects_locations_custom_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_operations_get_execute()` to send, or `aiplatform_projects_locations_custom_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}/operations/{operationsId}",
@@ -38031,14 +38686,17 @@ pub fn aiplatform_projects_locations_custom_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_operations_list_execute()` to send, or `aiplatform_projects_locations_custom_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}/operations",
@@ -38236,11 +38894,14 @@ pub fn aiplatform_projects_locations_custom_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_custom_jobs_operations_wait_execute()` to send, or `aiplatform_projects_locations_custom_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_custom_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_custom_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/customJobs/{customJobsId}/operations/{operationsId}:wait",
@@ -38419,10 +39080,13 @@ pub fn aiplatform_projects_locations_custom_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_cancel_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}:cancel",
@@ -38581,10 +39245,13 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_create_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs",
@@ -38747,10 +39414,13 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_delete_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}",
@@ -38913,10 +39583,13 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_get_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}",
@@ -39078,15 +39751,18 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_list_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs",
@@ -39293,10 +39969,13 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}/operations/{operationsId}:cancel",
@@ -39456,10 +40135,13 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_operations_delete_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}/operations/{operationsId}",
@@ -39619,10 +40301,13 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_operations_get_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}/operations/{operationsId}",
@@ -39786,14 +40471,17 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_operations_list_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}/operations",
@@ -39991,11 +40679,14 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_data_labeling_jobs_operations_wait_execute()` to send, or `aiplatform_projects_locations_data_labeling_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_data_labeling_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_data_labeling_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}/operations/{operationsId}:wait",
@@ -40174,10 +40865,13 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_create_execute()` to send, or `aiplatform_projects_locations_datasets_create` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets",
@@ -40339,10 +41033,13 @@ pub fn aiplatform_projects_locations_datasets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_delete_execute()` to send, or `aiplatform_projects_locations_datasets_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -40504,10 +41201,13 @@ pub fn aiplatform_projects_locations_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_export_execute()` to send, or `aiplatform_projects_locations_datasets_export` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_export_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:export",
@@ -40669,11 +41369,14 @@ pub fn aiplatform_projects_locations_datasets_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_get_execute()` to send, or `aiplatform_projects_locations_datasets_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -40849,11 +41552,14 @@ pub fn aiplatform_projects_locations_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_datasets_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:getIamPolicy",
@@ -41028,10 +41734,13 @@ pub fn aiplatform_projects_locations_datasets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_import_execute()` to send, or `aiplatform_projects_locations_datasets_import` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_import_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:import",
@@ -41193,15 +41902,18 @@ pub fn aiplatform_projects_locations_datasets_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_list_execute()` to send, or `aiplatform_projects_locations_datasets_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets",
@@ -41405,11 +42117,14 @@ pub fn aiplatform_projects_locations_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_patch_execute()` to send, or `aiplatform_projects_locations_datasets_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -41585,8 +42300,8 @@ pub fn aiplatform_projects_locations_datasets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_search_data_items_execute()` to send, or `aiplatform_projects_locations_datasets_search_data_items` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_search_data_items_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_search_data_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataset: &String,
     annotationFilters: &Option<Option<String>>,
     annotationsFilter: &Option<Option<String>>,
@@ -41601,7 +42316,10 @@ pub fn aiplatform_projects_locations_datasets_search_data_items_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     savedQuery: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:searchDataItems",
@@ -41853,10 +42571,13 @@ pub fn aiplatform_projects_locations_datasets_search_data_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_datasets_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:setIamPolicy",
@@ -42015,11 +42736,14 @@ pub fn aiplatform_projects_locations_datasets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_datasets_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:testIamPermissions",
@@ -42198,11 +42922,14 @@ pub fn aiplatform_projects_locations_datasets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_annotation_specs_get_execute()` to send, or `aiplatform_projects_locations_datasets_annotation_specs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_annotation_specs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_annotation_specs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}",
@@ -42381,10 +43108,13 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_annotation_specs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_datasets_annotation_specs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}:cancel",
@@ -42546,10 +43276,13 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_cancel
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_annotation_specs_operations_delete_execute()` to send, or `aiplatform_projects_locations_datasets_annotation_specs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}",
@@ -42711,10 +43444,13 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_annotation_specs_operations_get_execute()` to send, or `aiplatform_projects_locations_datasets_annotation_specs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}",
@@ -42879,14 +43615,17 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_annotation_specs_operations_list_execute()` to send, or `aiplatform_projects_locations_datasets_annotation_specs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations",
@@ -43085,11 +43824,14 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_annotation_specs_operations_wait_execute()` to send, or `aiplatform_projects_locations_datasets_annotation_specs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}:wait",
@@ -43269,15 +44011,18 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_list_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems",
@@ -43481,15 +44226,18 @@ pub fn aiplatform_projects_locations_datasets_data_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_annotations_list_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_annotations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_annotations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_annotations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations",
@@ -43693,10 +44441,13 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_annotations_operations_cancel_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_annotations_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}:cancel",
@@ -43860,10 +44611,13 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_annotations_operations_delete_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_annotations_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}",
@@ -44027,10 +44781,13 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_annotations_operations_get_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_annotations_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}",
@@ -44196,14 +44953,17 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_annotations_operations_list_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_annotations_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations",
@@ -44404,11 +45164,14 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_annotations_operations_wait_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_annotations_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}:wait",
@@ -44590,10 +45353,13 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_operations_cancel_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/operations/{operationsId}:cancel",
@@ -44753,10 +45519,13 @@ pub fn aiplatform_projects_locations_datasets_data_items_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_operations_delete_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/operations/{operationsId}",
@@ -44916,10 +45685,13 @@ pub fn aiplatform_projects_locations_datasets_data_items_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_operations_get_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/operations/{operationsId}",
@@ -45083,14 +45855,17 @@ pub fn aiplatform_projects_locations_datasets_data_items_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_operations_list_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/operations",
@@ -45288,11 +46063,14 @@ pub fn aiplatform_projects_locations_datasets_data_items_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_data_items_operations_wait_execute()` to send, or `aiplatform_projects_locations_datasets_data_items_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_data_items_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_data_items_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/operations/{operationsId}:wait",
@@ -45471,10 +46249,13 @@ pub fn aiplatform_projects_locations_datasets_data_items_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_dataset_versions_create_execute()` to send, or `aiplatform_projects_locations_datasets_dataset_versions_create` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_dataset_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_dataset_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions",
@@ -45639,10 +46420,13 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_dataset_versions_delete_execute()` to send, or `aiplatform_projects_locations_datasets_dataset_versions_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_dataset_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_dataset_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}",
@@ -45805,11 +46589,14 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_dataset_versions_get_execute()` to send, or `aiplatform_projects_locations_datasets_dataset_versions_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_dataset_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_dataset_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}",
@@ -45988,15 +46775,18 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_dataset_versions_list_execute()` to send, or `aiplatform_projects_locations_datasets_dataset_versions_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_dataset_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_dataset_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions",
@@ -46203,11 +46993,14 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_dataset_versions_patch_execute()` to send, or `aiplatform_projects_locations_datasets_dataset_versions_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_dataset_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_dataset_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}",
@@ -46386,10 +47179,13 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_dataset_versions_restore_execute()` to send, or `aiplatform_projects_locations_datasets_dataset_versions_restore` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_dataset_versions_restore_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_dataset_versions_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}:restore",
@@ -46553,10 +47349,13 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_operations_cancel_execute()` to send, or `aiplatform_projects_locations_datasets_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}:cancel",
@@ -46715,10 +47514,13 @@ pub fn aiplatform_projects_locations_datasets_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_operations_delete_execute()` to send, or `aiplatform_projects_locations_datasets_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}",
@@ -46877,10 +47679,13 @@ pub fn aiplatform_projects_locations_datasets_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_operations_get_execute()` to send, or `aiplatform_projects_locations_datasets_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}",
@@ -47043,14 +47848,17 @@ pub fn aiplatform_projects_locations_datasets_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_operations_list_execute()` to send, or `aiplatform_projects_locations_datasets_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations",
@@ -47248,11 +48056,14 @@ pub fn aiplatform_projects_locations_datasets_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_operations_wait_execute()` to send, or `aiplatform_projects_locations_datasets_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}:wait",
@@ -47431,10 +48242,13 @@ pub fn aiplatform_projects_locations_datasets_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_saved_queries_delete_execute()` to send, or `aiplatform_projects_locations_datasets_saved_queries_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_saved_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_saved_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}",
@@ -47597,15 +48411,18 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_saved_queries_list_execute()` to send, or `aiplatform_projects_locations_datasets_saved_queries_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_saved_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_saved_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/savedQueries",
@@ -47809,10 +48626,13 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_saved_queries_operations_cancel_execute()` to send, or `aiplatform_projects_locations_datasets_saved_queries_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_saved_queries_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_saved_queries_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations/{operationsId}:cancel",
@@ -47973,10 +48793,13 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_saved_queries_operations_delete_execute()` to send, or `aiplatform_projects_locations_datasets_saved_queries_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_saved_queries_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_saved_queries_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations/{operationsId}",
@@ -48137,10 +48960,13 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_saved_queries_operations_get_execute()` to send, or `aiplatform_projects_locations_datasets_saved_queries_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_saved_queries_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_saved_queries_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations/{operationsId}",
@@ -48304,14 +49130,17 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_saved_queries_operations_list_execute()` to send, or `aiplatform_projects_locations_datasets_saved_queries_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_saved_queries_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_saved_queries_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations",
@@ -48509,11 +49338,14 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_datasets_saved_queries_operations_wait_execute()` to send, or `aiplatform_projects_locations_datasets_saved_queries_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_datasets_saved_queries_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_datasets_saved_queries_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations/{operationsId}:wait",
@@ -48692,10 +49524,13 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_create_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_create` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools",
@@ -48860,10 +49695,13 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_delete_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}",
@@ -49026,10 +49864,13 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_get_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_get` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}",
@@ -49193,12 +50034,15 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_list_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_list` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools",
@@ -49393,11 +50237,14 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_patch_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}",
@@ -49576,12 +50423,15 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_query_deployed_models_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_query_deployed_models` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_query_deployed_models_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_query_deployed_models_builder<R>(
+    client: &SimpleHttpClient<R>,
     deploymentResourcePool: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}:queryDeployedModels",
@@ -49773,10 +50623,13 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_query_deployed_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_operations_cancel_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}/operations/{operationsId}:cancel",
@@ -49938,10 +50791,13 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_operations_cancel
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_operations_delete_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}/operations/{operationsId}",
@@ -50103,10 +50959,13 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_operations_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_operations_get_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}/operations/{operationsId}",
@@ -50271,14 +51130,17 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_operations_list_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}/operations",
@@ -50477,11 +51339,14 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_deployment_resource_pools_operations_wait_execute()` to send, or `aiplatform_projects_locations_deployment_resource_pools_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_deployment_resource_pools_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_deployment_resource_pools_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}/operations/{operationsId}:wait",
@@ -50661,10 +51526,13 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_compute_tokens_execute()` to send, or `aiplatform_projects_locations_endpoints_compute_tokens` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_compute_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_compute_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:computeTokens",
@@ -50828,10 +51696,13 @@ pub fn aiplatform_projects_locations_endpoints_compute_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_count_tokens_execute()` to send, or `aiplatform_projects_locations_endpoints_count_tokens` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_count_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_count_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:countTokens",
@@ -50995,11 +51866,14 @@ pub fn aiplatform_projects_locations_endpoints_count_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_create_execute()` to send, or `aiplatform_projects_locations_endpoints_create` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     endpointId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints",
@@ -51178,10 +52052,13 @@ pub fn aiplatform_projects_locations_endpoints_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_delete_execute()` to send, or `aiplatform_projects_locations_endpoints_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}",
@@ -51343,10 +52220,13 @@ pub fn aiplatform_projects_locations_endpoints_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_deploy_model_execute()` to send, or `aiplatform_projects_locations_endpoints_deploy_model` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_deploy_model_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_deploy_model_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:deployModel",
@@ -51509,10 +52389,13 @@ pub fn aiplatform_projects_locations_endpoints_deploy_model(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_direct_predict_execute()` to send, or `aiplatform_projects_locations_endpoints_direct_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_direct_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_direct_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:directPredict",
@@ -51676,10 +52559,13 @@ pub fn aiplatform_projects_locations_endpoints_direct_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_direct_raw_predict_execute()` to send, or `aiplatform_projects_locations_endpoints_direct_raw_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_direct_raw_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_direct_raw_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:directRawPredict",
@@ -51843,10 +52729,13 @@ pub fn aiplatform_projects_locations_endpoints_direct_raw_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_explain_execute()` to send, or `aiplatform_projects_locations_endpoints_explain` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_explain_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_explain_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:explain",
@@ -52008,10 +52897,13 @@ pub fn aiplatform_projects_locations_endpoints_explain(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_fetch_predict_operation_execute()` to send, or `aiplatform_projects_locations_endpoints_fetch_predict_operation` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_fetch_predict_operation_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_fetch_predict_operation_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:fetchPredictOperation",
@@ -52176,10 +53068,13 @@ pub fn aiplatform_projects_locations_endpoints_fetch_predict_operation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_generate_content_execute()` to send, or `aiplatform_projects_locations_endpoints_generate_content` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:generateContent",
@@ -52343,10 +53238,13 @@ pub fn aiplatform_projects_locations_endpoints_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_get_execute()` to send, or `aiplatform_projects_locations_endpoints_get` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}",
@@ -52508,8 +53406,8 @@ pub fn aiplatform_projects_locations_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_list_execute()` to send, or `aiplatform_projects_locations_endpoints_list` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     gdcZone: &Option<Option<String>>,
@@ -52517,7 +53415,10 @@ pub fn aiplatform_projects_locations_endpoints_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints",
@@ -52727,10 +53628,13 @@ pub fn aiplatform_projects_locations_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_mutate_deployed_model_execute()` to send, or `aiplatform_projects_locations_endpoints_mutate_deployed_model` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_mutate_deployed_model_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_mutate_deployed_model_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:mutateDeployedModel",
@@ -52895,11 +53799,14 @@ pub fn aiplatform_projects_locations_endpoints_mutate_deployed_model(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_patch_execute()` to send, or `aiplatform_projects_locations_endpoints_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}",
@@ -53078,10 +53985,13 @@ pub fn aiplatform_projects_locations_endpoints_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_predict_execute()` to send, or `aiplatform_projects_locations_endpoints_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:predict",
@@ -53243,10 +54153,13 @@ pub fn aiplatform_projects_locations_endpoints_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_predict_long_running_execute()` to send, or `aiplatform_projects_locations_endpoints_predict_long_running` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_predict_long_running_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_predict_long_running_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:predictLongRunning",
@@ -53411,10 +54324,13 @@ pub fn aiplatform_projects_locations_endpoints_predict_long_running(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_raw_predict_execute()` to send, or `aiplatform_projects_locations_endpoints_raw_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_raw_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_raw_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:rawPredict",
@@ -53573,10 +54489,13 @@ pub fn aiplatform_projects_locations_endpoints_raw_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_server_streaming_predict_execute()` to send, or `aiplatform_projects_locations_endpoints_server_streaming_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_server_streaming_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_server_streaming_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:serverStreamingPredict",
@@ -53742,10 +54661,13 @@ pub fn aiplatform_projects_locations_endpoints_server_streaming_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_stream_generate_content_execute()` to send, or `aiplatform_projects_locations_endpoints_stream_generate_content` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_stream_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_stream_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:streamGenerateContent",
@@ -53911,10 +54833,13 @@ pub fn aiplatform_projects_locations_endpoints_stream_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_stream_raw_predict_execute()` to send, or `aiplatform_projects_locations_endpoints_stream_raw_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_stream_raw_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_stream_raw_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:streamRawPredict",
@@ -54073,10 +54998,13 @@ pub fn aiplatform_projects_locations_endpoints_stream_raw_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_undeploy_model_execute()` to send, or `aiplatform_projects_locations_endpoints_undeploy_model` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_undeploy_model_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_undeploy_model_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:undeployModel",
@@ -54239,10 +55167,13 @@ pub fn aiplatform_projects_locations_endpoints_undeploy_model(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_update_execute()` to send, or `aiplatform_projects_locations_endpoints_update` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_update_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}:update",
@@ -54404,10 +55335,13 @@ pub fn aiplatform_projects_locations_endpoints_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_chat_completions_execute()` to send, or `aiplatform_projects_locations_endpoints_chat_completions` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_chat_completions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_chat_completions_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}/chat/completions",
@@ -54566,12 +55500,15 @@ pub fn aiplatform_projects_locations_endpoints_chat_completions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_deployed_models_invoke_invoke_execute()` to send, or `aiplatform_projects_locations_endpoints_deployed_models_invoke_invoke` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_deployed_models_invoke_invoke_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_deployed_models_invoke_invoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
     deployedModelId: &String,
     invokeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{}/endpoints/{}/deployedModels/{deployedModelId}/invoke/{invokeId}",
@@ -54740,11 +55677,14 @@ pub fn aiplatform_projects_locations_endpoints_deployed_models_invoke_invoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_google_science_inference_execute()` to send, or `aiplatform_projects_locations_endpoints_google_science_inference` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_google_science_inference_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_google_science_inference_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
     deployedModelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/google/science/inference",
@@ -54919,11 +55859,14 @@ pub fn aiplatform_projects_locations_endpoints_google_science_inference(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_invoke_invoke_execute()` to send, or `aiplatform_projects_locations_endpoints_invoke_invoke` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_invoke_invoke_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_invoke_invoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
     invokeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{}/endpoints/{endpointsId}/invoke/{invokeId}",
@@ -55088,11 +56031,14 @@ pub fn aiplatform_projects_locations_endpoints_invoke_invoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_openapi_completions_execute()` to send, or `aiplatform_projects_locations_endpoints_openapi_completions` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_openapi_completions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_openapi_completions_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
     deployedModelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/openapi/completions",
@@ -55267,11 +56213,14 @@ pub fn aiplatform_projects_locations_endpoints_openapi_completions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_openapi_embeddings_execute()` to send, or `aiplatform_projects_locations_endpoints_openapi_embeddings` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_openapi_embeddings_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_openapi_embeddings_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
     deployedModelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/openapi/embeddings",
@@ -55446,11 +56395,14 @@ pub fn aiplatform_projects_locations_endpoints_openapi_embeddings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_openapi_responses_execute()` to send, or `aiplatform_projects_locations_endpoints_openapi_responses` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_openapi_responses_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_openapi_responses_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
     deployedModelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/openapi/responses",
@@ -55625,10 +56577,13 @@ pub fn aiplatform_projects_locations_endpoints_openapi_responses(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_operations_cancel_execute()` to send, or `aiplatform_projects_locations_endpoints_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}/operations/{operationsId}:cancel",
@@ -55787,10 +56742,13 @@ pub fn aiplatform_projects_locations_endpoints_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_operations_delete_execute()` to send, or `aiplatform_projects_locations_endpoints_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}/operations/{operationsId}",
@@ -55949,10 +56907,13 @@ pub fn aiplatform_projects_locations_endpoints_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_operations_get_execute()` to send, or `aiplatform_projects_locations_endpoints_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}/operations/{operationsId}",
@@ -56115,14 +57076,17 @@ pub fn aiplatform_projects_locations_endpoints_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_operations_list_execute()` to send, or `aiplatform_projects_locations_endpoints_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}/operations",
@@ -56320,11 +57284,14 @@ pub fn aiplatform_projects_locations_endpoints_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_endpoints_operations_wait_execute()` to send, or `aiplatform_projects_locations_endpoints_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_endpoints_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_endpoints_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/endpoints/{endpointsId}/operations/{operationsId}:wait",
@@ -56503,10 +57470,13 @@ pub fn aiplatform_projects_locations_endpoints_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_items_create_execute()` to send, or `aiplatform_projects_locations_evaluation_items_create` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_items_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_items_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationItems",
@@ -56669,10 +57639,13 @@ pub fn aiplatform_projects_locations_evaluation_items_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_items_delete_execute()` to send, or `aiplatform_projects_locations_evaluation_items_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_items_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_items_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationItems/{evaluationItemsId}",
@@ -56835,10 +57808,13 @@ pub fn aiplatform_projects_locations_evaluation_items_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_items_get_execute()` to send, or `aiplatform_projects_locations_evaluation_items_get` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_items_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_items_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationItems/{evaluationItemsId}",
@@ -57000,14 +57976,17 @@ pub fn aiplatform_projects_locations_evaluation_items_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_items_list_execute()` to send, or `aiplatform_projects_locations_evaluation_items_list` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationItems",
@@ -57208,10 +58187,13 @@ pub fn aiplatform_projects_locations_evaluation_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_runs_cancel_execute()` to send, or `aiplatform_projects_locations_evaluation_runs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_runs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_runs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationRuns/{evaluationRunsId}:cancel",
@@ -57369,10 +58351,13 @@ pub fn aiplatform_projects_locations_evaluation_runs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_runs_create_execute()` to send, or `aiplatform_projects_locations_evaluation_runs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_runs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_runs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationRuns",
@@ -57535,10 +58520,13 @@ pub fn aiplatform_projects_locations_evaluation_runs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_runs_delete_execute()` to send, or `aiplatform_projects_locations_evaluation_runs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_runs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_runs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationRuns/{evaluationRunsId}",
@@ -57700,10 +58688,13 @@ pub fn aiplatform_projects_locations_evaluation_runs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_runs_get_execute()` to send, or `aiplatform_projects_locations_evaluation_runs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationRuns/{evaluationRunsId}",
@@ -57865,14 +58856,17 @@ pub fn aiplatform_projects_locations_evaluation_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_runs_list_execute()` to send, or `aiplatform_projects_locations_evaluation_runs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationRuns",
@@ -58073,10 +59067,13 @@ pub fn aiplatform_projects_locations_evaluation_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_sets_create_execute()` to send, or `aiplatform_projects_locations_evaluation_sets_create` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationSets",
@@ -58239,10 +59236,13 @@ pub fn aiplatform_projects_locations_evaluation_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_sets_delete_execute()` to send, or `aiplatform_projects_locations_evaluation_sets_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationSets/{evaluationSetsId}",
@@ -58404,10 +59404,13 @@ pub fn aiplatform_projects_locations_evaluation_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_sets_get_execute()` to send, or `aiplatform_projects_locations_evaluation_sets_get` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationSets/{evaluationSetsId}",
@@ -58569,14 +59572,17 @@ pub fn aiplatform_projects_locations_evaluation_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_sets_list_execute()` to send, or `aiplatform_projects_locations_evaluation_sets_list` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationSets",
@@ -58777,11 +59783,14 @@ pub fn aiplatform_projects_locations_evaluation_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_evaluation_sets_patch_execute()` to send, or `aiplatform_projects_locations_evaluation_sets_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_evaluation_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_evaluation_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluationSets/{evaluationSetsId}",
@@ -58960,11 +59969,14 @@ pub fn aiplatform_projects_locations_evaluation_sets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_create_execute()` to send, or `aiplatform_projects_locations_feature_groups_create` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     featureGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups",
@@ -59143,11 +60155,14 @@ pub fn aiplatform_projects_locations_feature_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_delete_execute()` to send, or `aiplatform_projects_locations_feature_groups_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}",
@@ -59326,10 +60341,13 @@ pub fn aiplatform_projects_locations_feature_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_get_execute()` to send, or `aiplatform_projects_locations_feature_groups_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}",
@@ -59491,11 +60509,14 @@ pub fn aiplatform_projects_locations_feature_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_feature_groups_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}:getIamPolicy",
@@ -59670,14 +60691,17 @@ pub fn aiplatform_projects_locations_feature_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_list_execute()` to send, or `aiplatform_projects_locations_feature_groups_list` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups",
@@ -59875,11 +60899,14 @@ pub fn aiplatform_projects_locations_feature_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_patch_execute()` to send, or `aiplatform_projects_locations_feature_groups_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}",
@@ -60058,10 +61085,13 @@ pub fn aiplatform_projects_locations_feature_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_feature_groups_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}:setIamPolicy",
@@ -60222,11 +61252,14 @@ pub fn aiplatform_projects_locations_feature_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_feature_groups_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}:testIamPermissions",
@@ -60405,10 +61438,13 @@ pub fn aiplatform_projects_locations_feature_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_batch_create_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_batch_create` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features:batchCreate",
@@ -60573,11 +61609,14 @@ pub fn aiplatform_projects_locations_feature_groups_features_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_create_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_create` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     featureId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features",
@@ -60756,10 +61795,13 @@ pub fn aiplatform_projects_locations_feature_groups_features_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_delete_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}",
@@ -60922,10 +61964,13 @@ pub fn aiplatform_projects_locations_feature_groups_features_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_get_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}",
@@ -61088,8 +62133,8 @@ pub fn aiplatform_projects_locations_feature_groups_features_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_list_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_list` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     latestStatsCount: &Option<Option<String>>,
@@ -61097,7 +62142,10 @@ pub fn aiplatform_projects_locations_feature_groups_features_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features",
@@ -61307,11 +62355,14 @@ pub fn aiplatform_projects_locations_feature_groups_features_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_patch_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}",
@@ -61490,10 +62541,13 @@ pub fn aiplatform_projects_locations_feature_groups_features_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_operations_delete_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}",
@@ -61654,10 +62708,13 @@ pub fn aiplatform_projects_locations_feature_groups_features_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_operations_get_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}",
@@ -61821,14 +62878,17 @@ pub fn aiplatform_projects_locations_feature_groups_features_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_operations_list_wait_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_operations_list_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_operations_list_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}:wait",
@@ -62028,11 +63088,14 @@ pub fn aiplatform_projects_locations_feature_groups_features_operations_list_wai
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_features_operations_wait_execute()` to send, or `aiplatform_projects_locations_feature_groups_features_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_features_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_features_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}:wait",
@@ -62211,10 +63274,13 @@ pub fn aiplatform_projects_locations_feature_groups_features_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_operations_delete_execute()` to send, or `aiplatform_projects_locations_feature_groups_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/operations/{operationsId}",
@@ -62373,10 +63439,13 @@ pub fn aiplatform_projects_locations_feature_groups_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_operations_get_execute()` to send, or `aiplatform_projects_locations_feature_groups_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/operations/{operationsId}",
@@ -62539,14 +63608,17 @@ pub fn aiplatform_projects_locations_feature_groups_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_operations_list_wait_execute()` to send, or `aiplatform_projects_locations_feature_groups_operations_list_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_operations_list_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/operations/{operationsId}:wait",
@@ -62744,11 +63816,14 @@ pub fn aiplatform_projects_locations_feature_groups_operations_list_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_groups_operations_wait_execute()` to send, or `aiplatform_projects_locations_feature_groups_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_groups_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_groups_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureGroups/{featureGroupsId}/operations/{operationsId}:wait",
@@ -62927,11 +64002,14 @@ pub fn aiplatform_projects_locations_feature_groups_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_create_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_create` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     featureOnlineStoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores",
@@ -63110,11 +64188,14 @@ pub fn aiplatform_projects_locations_feature_online_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_delete_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}",
@@ -63293,10 +64374,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_get_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}",
@@ -63459,11 +64543,14 @@ pub fn aiplatform_projects_locations_feature_online_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}:getIamPolicy",
@@ -63638,14 +64725,17 @@ pub fn aiplatform_projects_locations_feature_online_stores_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_list_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_list` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores",
@@ -63852,11 +64942,14 @@ pub fn aiplatform_projects_locations_feature_online_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_patch_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}",
@@ -64035,10 +65128,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}:setIamPolicy",
@@ -64199,11 +65295,14 @@ pub fn aiplatform_projects_locations_feature_online_stores_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}:testIamPermissions",
@@ -64383,12 +65482,15 @@ pub fn aiplatform_projects_locations_feature_online_stores_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_create_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_create` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     featureViewId: &Option<Option<String>>,
     runSyncImmediately: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews",
@@ -64574,10 +65676,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_delete_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}",
@@ -64742,10 +65847,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_direct_write_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_direct_write` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_direct_write_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_direct_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     featureView: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:directWrite",
@@ -64923,10 +66031,15 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_direct_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_fetch_feature_values_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_fetch_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_fetch_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_fetch_feature_values_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     featureView: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:fetchFeatureValues",
@@ -65094,10 +66207,15 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_fetch_f
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_generate_fetch_access_token_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_generate_fetch_access_token` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_generate_fetch_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_generate_fetch_access_token_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     featureView: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:generateFetchAccessToken",
@@ -65269,10 +66387,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_generat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_get_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}",
@@ -65436,11 +66557,14 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:getIamPolicy",
@@ -65621,14 +66745,17 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get_iam
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_list_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_list` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews",
@@ -65827,11 +66954,14 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_patch_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}",
@@ -66011,10 +67141,15 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_search_nearest_entities_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_search_nearest_entities` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_search_nearest_entities_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_search_nearest_entities_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     featureView: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:searchNearestEntities",
@@ -66180,10 +67315,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_search_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:setIamPolicy",
@@ -66350,10 +67488,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_set_iam
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_sync_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_sync` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_sync_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_sync_builder<R>(
+    client: &SimpleHttpClient<R>,
     featureView: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:sync",
@@ -66520,11 +67661,16 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_sync(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:testIamPermissions",
@@ -66701,10 +67847,15 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_test_ia
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_get_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/featureViewSyncs/{featureViewSyncsId}",
@@ -66868,14 +68019,19 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_feature
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_list_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_feature_view_syncs_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/featureViewSyncs",
@@ -67069,10 +68225,15 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_feature
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_operations_delete_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}",
@@ -67235,10 +68396,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_operations_get_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}",
@@ -67408,14 +68572,19 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_operations_list_wait_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_operations_list_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_list_wait_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}:wait",
@@ -67608,11 +68777,16 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_feature_views_operations_wait_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_feature_views_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operations_wait_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}:wait",
@@ -67797,10 +68971,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_operations_delete_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}",
@@ -67960,10 +69137,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_operations_get_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}",
@@ -68127,14 +69307,17 @@ pub fn aiplatform_projects_locations_feature_online_stores_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_operations_list_wait_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_operations_list_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_operations_list_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_operations_list_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}:wait",
@@ -68333,11 +69516,14 @@ pub fn aiplatform_projects_locations_feature_online_stores_operations_list_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_feature_online_stores_operations_wait_execute()` to send, or `aiplatform_projects_locations_feature_online_stores_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_feature_online_stores_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_feature_online_stores_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}:wait",
@@ -68516,10 +69702,13 @@ pub fn aiplatform_projects_locations_feature_online_stores_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_batch_read_feature_values_execute()` to send, or `aiplatform_projects_locations_featurestores_batch_read_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_batch_read_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_batch_read_feature_values_builder<R>(
+    client: &SimpleHttpClient<R>,
     featurestore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}:batchReadFeatureValues",
@@ -68684,11 +69873,14 @@ pub fn aiplatform_projects_locations_featurestores_batch_read_feature_values(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_create_execute()` to send, or `aiplatform_projects_locations_featurestores_create` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     featurestoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores",
@@ -68867,11 +70059,14 @@ pub fn aiplatform_projects_locations_featurestores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_delete_execute()` to send, or `aiplatform_projects_locations_featurestores_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}",
@@ -69050,10 +70245,13 @@ pub fn aiplatform_projects_locations_featurestores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_get_execute()` to send, or `aiplatform_projects_locations_featurestores_get` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}",
@@ -69215,11 +70413,14 @@ pub fn aiplatform_projects_locations_featurestores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_featurestores_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}:getIamPolicy",
@@ -69394,15 +70595,18 @@ pub fn aiplatform_projects_locations_featurestores_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_list_execute()` to send, or `aiplatform_projects_locations_featurestores_list` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores",
@@ -69606,11 +70810,14 @@ pub fn aiplatform_projects_locations_featurestores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_patch_execute()` to send, or `aiplatform_projects_locations_featurestores_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}",
@@ -69789,13 +70996,16 @@ pub fn aiplatform_projects_locations_featurestores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_search_features_execute()` to send, or `aiplatform_projects_locations_featurestores_search_features` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_search_features_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_search_features_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores:searchFeatures",
@@ -69987,10 +71197,13 @@ pub fn aiplatform_projects_locations_featurestores_search_features(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_featurestores_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}:setIamPolicy",
@@ -70149,11 +71362,14 @@ pub fn aiplatform_projects_locations_featurestores_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_featurestores_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}:testIamPermissions",
@@ -70332,11 +71548,14 @@ pub fn aiplatform_projects_locations_featurestores_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_create_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_create` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     entityTypeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes",
@@ -70515,11 +71734,14 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_delete_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}",
@@ -70698,10 +71920,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_delete_feature_values_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_delete_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_delete_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_delete_feature_values_builder<R>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:deleteFeatureValues",
@@ -70869,10 +72094,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_delete_feature_v
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_export_feature_values_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_export_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_export_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_export_feature_values_builder<R>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:exportFeatureValues",
@@ -71040,10 +72268,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_export_feature_v
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_get_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_get` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}",
@@ -71206,11 +72437,14 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:getIamPolicy",
@@ -71386,10 +72620,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_import_feature_values_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_import_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_import_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_import_feature_values_builder<R>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:importFeatureValues",
@@ -71557,15 +72794,18 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_import_feature_v
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_list_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_list` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes",
@@ -71769,11 +73009,14 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_patch_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}",
@@ -71952,10 +73195,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_read_feature_values_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_read_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_read_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_read_feature_values_builder<R>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:readFeatureValues",
@@ -72123,10 +73369,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_read_feature_val
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:setIamPolicy",
@@ -72288,10 +73537,15 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_streaming_read_feature_values_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_streaming_read_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_streaming_read_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_streaming_read_feature_values_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:streamingReadFeatureValues",
@@ -72456,11 +73710,14 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_streaming_read_f
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:testIamPermissions",
@@ -72642,10 +73899,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_test_iam_permiss
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_write_feature_values_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_write_feature_values` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_write_feature_values_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_write_feature_values_builder<R>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:writeFeatureValues",
@@ -72817,10 +74077,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_write_feature_va
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_batch_create_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_batch_create` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features:batchCreate",
@@ -72988,11 +74251,14 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_batch_c
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_create_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_create` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     featureId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features",
@@ -73172,10 +74438,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_delete_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}",
@@ -73340,10 +74609,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_get_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_get` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}",
@@ -73507,8 +74779,8 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_list_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_list` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     latestStatsCount: &Option<Option<String>>,
@@ -73516,7 +74788,10 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_list_bu
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features",
@@ -73727,11 +75002,14 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_patch_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}",
@@ -73911,10 +75189,15 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_operations_cancel_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_cancel_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}:cancel",
@@ -74077,10 +75360,15 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_operations_delete_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}",
@@ -74243,10 +75531,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_operations_get_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}",
@@ -74416,14 +75707,19 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_operations_list_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations",
@@ -74627,11 +75923,16 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_features_operations_wait_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_features_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_features_operations_wait_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}:wait",
@@ -74816,10 +76117,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_operations_cancel_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations/{operationsId}:cancel",
@@ -74981,10 +76285,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_operations_cance
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_operations_delete_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations/{operationsId}",
@@ -75146,10 +76453,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_operations_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_operations_get_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations/{operationsId}",
@@ -75314,14 +76624,17 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_operations_list_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations",
@@ -75520,11 +76833,14 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_entity_types_operations_wait_execute()` to send, or `aiplatform_projects_locations_featurestores_entity_types_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_entity_types_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_entity_types_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations/{operationsId}:wait",
@@ -75704,10 +77020,13 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_operations_cancel_execute()` to send, or `aiplatform_projects_locations_featurestores_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/operations/{operationsId}:cancel",
@@ -75866,10 +77185,13 @@ pub fn aiplatform_projects_locations_featurestores_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_operations_delete_execute()` to send, or `aiplatform_projects_locations_featurestores_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/operations/{operationsId}",
@@ -76028,10 +77350,13 @@ pub fn aiplatform_projects_locations_featurestores_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_operations_get_execute()` to send, or `aiplatform_projects_locations_featurestores_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/operations/{operationsId}",
@@ -76194,14 +77519,17 @@ pub fn aiplatform_projects_locations_featurestores_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_operations_list_execute()` to send, or `aiplatform_projects_locations_featurestores_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/operations",
@@ -76399,11 +77727,14 @@ pub fn aiplatform_projects_locations_featurestores_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_featurestores_operations_wait_execute()` to send, or `aiplatform_projects_locations_featurestores_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_featurestores_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_featurestores_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/featurestores/{featurestoresId}/operations/{operationsId}:wait",
@@ -76582,10 +77913,13 @@ pub fn aiplatform_projects_locations_featurestores_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_cancel_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}:cancel",
@@ -76745,10 +78079,13 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_create_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs",
@@ -76914,10 +78251,13 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_delete_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}",
@@ -77081,10 +78421,13 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_get_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}",
@@ -77248,14 +78591,17 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_list_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs",
@@ -77462,10 +78808,13 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations/{operationsId}:cancel",
@@ -77627,10 +78976,13 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_cance
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_delete_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations/{operationsId}",
@@ -77792,10 +79144,13 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_get_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations/{operationsId}",
@@ -77960,14 +79315,17 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_list_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations",
@@ -78166,11 +79524,14 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_wait_execute()` to send, or `aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations/{operationsId}:wait",
@@ -78350,10 +79711,13 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_create_execute()` to send, or `aiplatform_projects_locations_index_endpoints_create` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints",
@@ -78516,10 +79880,13 @@ pub fn aiplatform_projects_locations_index_endpoints_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_delete_execute()` to send, or `aiplatform_projects_locations_index_endpoints_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}",
@@ -78681,10 +80048,13 @@ pub fn aiplatform_projects_locations_index_endpoints_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_deploy_index_execute()` to send, or `aiplatform_projects_locations_index_endpoints_deploy_index` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_deploy_index_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_deploy_index_builder<R>(
+    client: &SimpleHttpClient<R>,
     indexEndpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}:deployIndex",
@@ -78849,10 +80219,13 @@ pub fn aiplatform_projects_locations_index_endpoints_deploy_index(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_find_neighbors_execute()` to send, or `aiplatform_projects_locations_index_endpoints_find_neighbors` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_find_neighbors_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_find_neighbors_builder<R>(
+    client: &SimpleHttpClient<R>,
     indexEndpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}:findNeighbors",
@@ -79018,10 +80391,13 @@ pub fn aiplatform_projects_locations_index_endpoints_find_neighbors(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_get_execute()` to send, or `aiplatform_projects_locations_index_endpoints_get` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}",
@@ -79183,14 +80559,17 @@ pub fn aiplatform_projects_locations_index_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_list_execute()` to send, or `aiplatform_projects_locations_index_endpoints_list` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints",
@@ -79391,10 +80770,13 @@ pub fn aiplatform_projects_locations_index_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_mutate_deployed_index_execute()` to send, or `aiplatform_projects_locations_index_endpoints_mutate_deployed_index` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_mutate_deployed_index_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_mutate_deployed_index_builder<R>(
+    client: &SimpleHttpClient<R>,
     indexEndpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}:mutateDeployedIndex",
@@ -79559,11 +80941,14 @@ pub fn aiplatform_projects_locations_index_endpoints_mutate_deployed_index(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_patch_execute()` to send, or `aiplatform_projects_locations_index_endpoints_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}",
@@ -79742,10 +81127,13 @@ pub fn aiplatform_projects_locations_index_endpoints_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_read_index_datapoints_execute()` to send, or `aiplatform_projects_locations_index_endpoints_read_index_datapoints` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_read_index_datapoints_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_read_index_datapoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     indexEndpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}:readIndexDatapoints",
@@ -79914,10 +81302,13 @@ pub fn aiplatform_projects_locations_index_endpoints_read_index_datapoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_undeploy_index_execute()` to send, or `aiplatform_projects_locations_index_endpoints_undeploy_index` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_undeploy_index_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_undeploy_index_builder<R>(
+    client: &SimpleHttpClient<R>,
     indexEndpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}:undeployIndex",
@@ -80082,10 +81473,13 @@ pub fn aiplatform_projects_locations_index_endpoints_undeploy_index(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_operations_cancel_execute()` to send, or `aiplatform_projects_locations_index_endpoints_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}/operations/{operationsId}:cancel",
@@ -80245,10 +81639,13 @@ pub fn aiplatform_projects_locations_index_endpoints_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_operations_delete_execute()` to send, or `aiplatform_projects_locations_index_endpoints_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}/operations/{operationsId}",
@@ -80408,10 +81805,13 @@ pub fn aiplatform_projects_locations_index_endpoints_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_operations_get_execute()` to send, or `aiplatform_projects_locations_index_endpoints_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}/operations/{operationsId}",
@@ -80574,14 +81974,17 @@ pub fn aiplatform_projects_locations_index_endpoints_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_operations_list_execute()` to send, or `aiplatform_projects_locations_index_endpoints_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}/operations",
@@ -80779,11 +82182,14 @@ pub fn aiplatform_projects_locations_index_endpoints_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_index_endpoints_operations_wait_execute()` to send, or `aiplatform_projects_locations_index_endpoints_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_index_endpoints_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_index_endpoints_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}/operations/{operationsId}:wait",
@@ -80962,10 +82368,13 @@ pub fn aiplatform_projects_locations_index_endpoints_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_create_execute()` to send, or `aiplatform_projects_locations_indexes_create` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes",
@@ -81127,10 +82536,13 @@ pub fn aiplatform_projects_locations_indexes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_delete_execute()` to send, or `aiplatform_projects_locations_indexes_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}",
@@ -81292,10 +82704,13 @@ pub fn aiplatform_projects_locations_indexes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_get_execute()` to send, or `aiplatform_projects_locations_indexes_get` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}",
@@ -81457,14 +82872,17 @@ pub fn aiplatform_projects_locations_indexes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_list_execute()` to send, or `aiplatform_projects_locations_indexes_list` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes",
@@ -81662,11 +83080,14 @@ pub fn aiplatform_projects_locations_indexes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_patch_execute()` to send, or `aiplatform_projects_locations_indexes_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}",
@@ -81842,10 +83263,13 @@ pub fn aiplatform_projects_locations_indexes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_remove_datapoints_execute()` to send, or `aiplatform_projects_locations_indexes_remove_datapoints` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_remove_datapoints_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_remove_datapoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     index: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}:removeDatapoints",
@@ -82009,10 +83433,13 @@ pub fn aiplatform_projects_locations_indexes_remove_datapoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_upsert_datapoints_execute()` to send, or `aiplatform_projects_locations_indexes_upsert_datapoints` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_upsert_datapoints_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_upsert_datapoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     index: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}:upsertDatapoints",
@@ -82176,10 +83603,13 @@ pub fn aiplatform_projects_locations_indexes_upsert_datapoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_operations_cancel_execute()` to send, or `aiplatform_projects_locations_indexes_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}/operations/{operationsId}:cancel",
@@ -82338,10 +83768,13 @@ pub fn aiplatform_projects_locations_indexes_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_operations_delete_execute()` to send, or `aiplatform_projects_locations_indexes_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}/operations/{operationsId}",
@@ -82500,10 +83933,13 @@ pub fn aiplatform_projects_locations_indexes_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_operations_get_execute()` to send, or `aiplatform_projects_locations_indexes_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}/operations/{operationsId}",
@@ -82665,14 +84101,17 @@ pub fn aiplatform_projects_locations_indexes_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_operations_list_execute()` to send, or `aiplatform_projects_locations_indexes_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}/operations",
@@ -82870,11 +84309,14 @@ pub fn aiplatform_projects_locations_indexes_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_indexes_operations_wait_execute()` to send, or `aiplatform_projects_locations_indexes_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_indexes_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_indexes_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/indexes/{indexesId}/operations/{operationsId}:wait",
@@ -83053,11 +84495,14 @@ pub fn aiplatform_projects_locations_indexes_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_create_execute()` to send, or `aiplatform_projects_locations_metadata_stores_create` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     metadataStoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores",
@@ -83236,11 +84681,14 @@ pub fn aiplatform_projects_locations_metadata_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}",
@@ -83419,10 +84867,13 @@ pub fn aiplatform_projects_locations_metadata_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}",
@@ -83584,12 +85035,15 @@ pub fn aiplatform_projects_locations_metadata_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores",
@@ -83778,11 +85232,14 @@ pub fn aiplatform_projects_locations_metadata_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_create_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_create` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     artifactId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts",
@@ -83961,11 +85418,14 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}",
@@ -84142,10 +85602,13 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}",
@@ -84308,14 +85771,17 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts",
@@ -84513,12 +85979,15 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_patch_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}",
@@ -84703,10 +86172,13 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_purge_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_purge` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_purge_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts:purge",
@@ -84871,12 +86343,17 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_query_artifact_lineage_subgraph_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_query_artifact_lineage_subgraph` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_query_artifact_lineage_subgraph_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_query_artifact_lineage_subgraph_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     artifact: &String,
     filter: &Option<Option<String>>,
     maxHops: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}:queryArtifactLineageSubgraph",
@@ -85058,10 +86535,13 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_query_artifact_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_operations_cancel_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations/{operationsId}:cancel",
@@ -85223,10 +86703,13 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_cancel
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_operations_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations/{operationsId}",
@@ -85388,10 +86871,13 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_operations_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations/{operationsId}",
@@ -85556,14 +87042,17 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_operations_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations",
@@ -85762,11 +87251,14 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_artifacts_operations_wait_execute()` to send, or `aiplatform_projects_locations_metadata_stores_artifacts_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations/{operationsId}:wait",
@@ -85946,10 +87438,15 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_add_context_artifacts_and_executions_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_add_context_artifacts_and_executions` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_add_context_artifacts_and_executions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_add_context_artifacts_and_executions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     context: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}:addContextArtifactsAndExecutions",
@@ -86121,10 +87618,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_add_context_artifa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_add_context_children_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_add_context_children` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_add_context_children_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_add_context_children_builder<R>(
+    client: &SimpleHttpClient<R>,
     context: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}:addContextChildren",
@@ -86295,11 +87795,14 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_add_context_childr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_create_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_create` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     contextId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts",
@@ -86478,12 +87981,15 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}",
@@ -86668,10 +88174,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}",
@@ -86834,14 +88343,17 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts",
@@ -87039,12 +88551,15 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_patch_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}",
@@ -87229,10 +88744,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_purge_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_purge` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_purge_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts:purge",
@@ -87395,10 +88913,15 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_query_context_lineage_subgraph_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_query_context_lineage_subgraph` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_query_context_lineage_subgraph_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_query_context_lineage_subgraph_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     context: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}:queryContextLineageSubgraph",
@@ -87565,10 +89088,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_query_context_line
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_remove_context_children_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_remove_context_children` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_remove_context_children_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_remove_context_children_builder<R>(
+    client: &SimpleHttpClient<R>,
     context: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}:removeContextChildren",
@@ -87740,10 +89266,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_remove_context_chi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_operations_cancel_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations/{operationsId}:cancel",
@@ -87904,10 +89433,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_operations_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations/{operationsId}",
@@ -88068,10 +89600,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_operations_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations/{operationsId}",
@@ -88235,14 +89770,17 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_operations_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations",
@@ -88441,11 +89979,14 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_contexts_operations_wait_execute()` to send, or `aiplatform_projects_locations_metadata_stores_contexts_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations/{operationsId}:wait",
@@ -88625,10 +90166,13 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_add_execution_events_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_add_execution_events` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_add_execution_events_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_add_execution_events_builder<R>(
+    client: &SimpleHttpClient<R>,
     execution: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}:addExecutionEvents",
@@ -88800,11 +90344,14 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_add_execution_ev
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_create_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_create` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     executionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions",
@@ -88983,11 +90530,14 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}",
@@ -89164,10 +90714,13 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}",
@@ -89330,14 +90883,17 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions",
@@ -89535,12 +91091,15 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_patch_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}",
@@ -89725,10 +91284,13 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_purge_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_purge` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_purge_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions:purge",
@@ -89893,10 +91455,15 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_query_execution_inputs_and_outputs_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_query_execution_inputs_and_outputs` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_query_execution_inputs_and_outputs_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_query_execution_inputs_and_outputs_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     execution: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}:queryExecutionInputsAndOutputs",
@@ -90058,10 +91625,13 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_query_execution_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_operations_cancel_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}/operations/{operationsId}:cancel",
@@ -90223,10 +91793,13 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_cance
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_operations_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}/operations/{operationsId}",
@@ -90388,10 +91961,13 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_operations_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}/operations/{operationsId}",
@@ -90556,14 +92132,17 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_operations_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}/operations",
@@ -90762,11 +92341,14 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_executions_operations_wait_execute()` to send, or `aiplatform_projects_locations_metadata_stores_executions_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_executions_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_executions_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}/operations/{operationsId}:wait",
@@ -90946,11 +92528,14 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_metadata_schemas_create_execute()` to send, or `aiplatform_projects_locations_metadata_stores_metadata_schemas_create` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     metadataSchemaId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/metadataSchemas",
@@ -91129,10 +92714,13 @@ pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_metadata_schemas_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_metadata_schemas_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/metadataSchemas/{metadataSchemasId}",
@@ -91296,13 +92884,16 @@ pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_metadata_schemas_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_metadata_schemas_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/metadataSchemas",
@@ -91497,10 +93088,13 @@ pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_operations_cancel_execute()` to send, or `aiplatform_projects_locations_metadata_stores_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/operations/{operationsId}:cancel",
@@ -91660,10 +93254,13 @@ pub fn aiplatform_projects_locations_metadata_stores_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_operations_delete_execute()` to send, or `aiplatform_projects_locations_metadata_stores_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/operations/{operationsId}",
@@ -91823,10 +93420,13 @@ pub fn aiplatform_projects_locations_metadata_stores_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_operations_get_execute()` to send, or `aiplatform_projects_locations_metadata_stores_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/operations/{operationsId}",
@@ -91989,14 +93589,17 @@ pub fn aiplatform_projects_locations_metadata_stores_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_operations_list_execute()` to send, or `aiplatform_projects_locations_metadata_stores_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/operations",
@@ -92194,11 +93797,14 @@ pub fn aiplatform_projects_locations_metadata_stores_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_metadata_stores_operations_wait_execute()` to send, or `aiplatform_projects_locations_metadata_stores_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_metadata_stores_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_metadata_stores_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataStores/{metadataStoresId}/operations/{operationsId}:wait",
@@ -92377,10 +93983,13 @@ pub fn aiplatform_projects_locations_metadata_stores_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_migratable_resources_batch_migrate_execute()` to send, or `aiplatform_projects_locations_migratable_resources_batch_migrate` for simplest API.
 
-pub fn aiplatform_projects_locations_migratable_resources_batch_migrate_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_migratable_resources_batch_migrate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/migratableResources:batchMigrate",
@@ -92545,10 +94154,13 @@ pub fn aiplatform_projects_locations_migratable_resources_batch_migrate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_migratable_resources_search_execute()` to send, or `aiplatform_projects_locations_migratable_resources_search` for simplest API.
 
-pub fn aiplatform_projects_locations_migratable_resources_search_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_migratable_resources_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/migratableResources:search",
@@ -92721,10 +94333,13 @@ pub fn aiplatform_projects_locations_migratable_resources_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_migratable_resources_operations_cancel_execute()` to send, or `aiplatform_projects_locations_migratable_resources_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_migratable_resources_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_migratable_resources_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/migratableResources/{migratableResourcesId}/operations/{operationsId}:cancel",
@@ -92884,10 +94499,13 @@ pub fn aiplatform_projects_locations_migratable_resources_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_migratable_resources_operations_delete_execute()` to send, or `aiplatform_projects_locations_migratable_resources_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_migratable_resources_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_migratable_resources_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/migratableResources/{migratableResourcesId}/operations/{operationsId}",
@@ -93047,10 +94665,13 @@ pub fn aiplatform_projects_locations_migratable_resources_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_migratable_resources_operations_get_execute()` to send, or `aiplatform_projects_locations_migratable_resources_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_migratable_resources_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_migratable_resources_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/migratableResources/{migratableResourcesId}/operations/{operationsId}",
@@ -93214,14 +94835,17 @@ pub fn aiplatform_projects_locations_migratable_resources_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_migratable_resources_operations_list_execute()` to send, or `aiplatform_projects_locations_migratable_resources_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_migratable_resources_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_migratable_resources_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/migratableResources/{migratableResourcesId}/operations",
@@ -93419,11 +95043,14 @@ pub fn aiplatform_projects_locations_migratable_resources_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_migratable_resources_operations_wait_execute()` to send, or `aiplatform_projects_locations_migratable_resources_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_migratable_resources_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_migratable_resources_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/migratableResources/{migratableResourcesId}/operations/{operationsId}:wait",
@@ -93602,10 +95229,13 @@ pub fn aiplatform_projects_locations_migratable_resources_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_create_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs",
@@ -93774,10 +95404,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_delete_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}",
@@ -93941,10 +95574,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_get_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}",
@@ -94112,14 +95748,17 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_list_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs",
@@ -94326,11 +95965,14 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_patch_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}",
@@ -94509,10 +96151,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_pause_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_pause` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_pause_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}:pause",
@@ -94672,10 +96317,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_resume_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_resume` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_resume_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}:resume",
@@ -94835,10 +96483,15 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_search_model_deployment_monitoring_stats_anomalies_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_search_model_deployment_monitoring_stats_anomalies` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_search_model_deployment_monitoring_stats_anomalies_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_search_model_deployment_monitoring_stats_anomalies_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     modelDeploymentMonitoringJob: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}:searchModelDeploymentMonitoringStatsAnomalies",
@@ -95011,10 +96664,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_search_mod
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations/{operationsId}:cancel",
@@ -95180,10 +96836,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_delete_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations/{operationsId}",
@@ -95349,10 +97008,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_get_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations/{operationsId}",
@@ -95519,14 +97181,17 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_list_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations",
@@ -95727,11 +97392,14 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_wait_execute()` to send, or `aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations/{operationsId}:wait",
@@ -95913,10 +97581,13 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_copy_execute()` to send, or `aiplatform_projects_locations_models_copy` for simplest API.
 
-pub fn aiplatform_projects_locations_models_copy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_copy_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models:copy",
@@ -96078,10 +97749,13 @@ pub fn aiplatform_projects_locations_models_copy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_delete_execute()` to send, or `aiplatform_projects_locations_models_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_models_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}",
@@ -96243,10 +97917,13 @@ pub fn aiplatform_projects_locations_models_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_delete_version_execute()` to send, or `aiplatform_projects_locations_models_delete_version` for simplest API.
 
-pub fn aiplatform_projects_locations_models_delete_version_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_delete_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:deleteVersion",
@@ -96408,10 +98085,13 @@ pub fn aiplatform_projects_locations_models_delete_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_export_execute()` to send, or `aiplatform_projects_locations_models_export` for simplest API.
 
-pub fn aiplatform_projects_locations_models_export_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:export",
@@ -96573,10 +98253,13 @@ pub fn aiplatform_projects_locations_models_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_get_execute()` to send, or `aiplatform_projects_locations_models_get` for simplest API.
 
-pub fn aiplatform_projects_locations_models_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}",
@@ -96738,11 +98421,14 @@ pub fn aiplatform_projects_locations_models_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_models_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_models_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:getIamPolicy",
@@ -96917,15 +98603,18 @@ pub fn aiplatform_projects_locations_models_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_list_execute()` to send, or `aiplatform_projects_locations_models_list` for simplest API.
 
-pub fn aiplatform_projects_locations_models_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models",
@@ -97128,12 +98817,15 @@ pub fn aiplatform_projects_locations_models_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_list_checkpoints_execute()` to send, or `aiplatform_projects_locations_models_list_checkpoints` for simplest API.
 
-pub fn aiplatform_projects_locations_models_list_checkpoints_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_list_checkpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:listCheckpoints",
@@ -97328,15 +99020,18 @@ pub fn aiplatform_projects_locations_models_list_checkpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_list_versions_execute()` to send, or `aiplatform_projects_locations_models_list_versions` for simplest API.
 
-pub fn aiplatform_projects_locations_models_list_versions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_list_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:listVersions",
@@ -97540,10 +99235,13 @@ pub fn aiplatform_projects_locations_models_list_versions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_merge_version_aliases_execute()` to send, or `aiplatform_projects_locations_models_merge_version_aliases` for simplest API.
 
-pub fn aiplatform_projects_locations_models_merge_version_aliases_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_merge_version_aliases_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:mergeVersionAliases",
@@ -97706,11 +99404,14 @@ pub fn aiplatform_projects_locations_models_merge_version_aliases(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_patch_execute()` to send, or `aiplatform_projects_locations_models_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_models_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}",
@@ -97886,10 +99587,13 @@ pub fn aiplatform_projects_locations_models_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_models_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_models_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:setIamPolicy",
@@ -98048,11 +99752,14 @@ pub fn aiplatform_projects_locations_models_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_models_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_models_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:testIamPermissions",
@@ -98231,10 +99938,13 @@ pub fn aiplatform_projects_locations_models_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_update_explanation_dataset_execute()` to send, or `aiplatform_projects_locations_models_update_explanation_dataset` for simplest API.
 
-pub fn aiplatform_projects_locations_models_update_explanation_dataset_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_update_explanation_dataset_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}:updateExplanationDataset",
@@ -98399,10 +100109,13 @@ pub fn aiplatform_projects_locations_models_update_explanation_dataset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_upload_execute()` to send, or `aiplatform_projects_locations_models_upload` for simplest API.
 
-pub fn aiplatform_projects_locations_models_upload_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models:upload",
@@ -98564,10 +100277,13 @@ pub fn aiplatform_projects_locations_models_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_get_execute()` to send, or `aiplatform_projects_locations_models_evaluations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}",
@@ -98729,10 +100445,13 @@ pub fn aiplatform_projects_locations_models_evaluations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_import_execute()` to send, or `aiplatform_projects_locations_models_evaluations_import` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_import_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations:import",
@@ -98895,14 +100614,17 @@ pub fn aiplatform_projects_locations_models_evaluations_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_list_execute()` to send, or `aiplatform_projects_locations_models_evaluations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations",
@@ -99103,10 +100825,13 @@ pub fn aiplatform_projects_locations_models_evaluations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_operations_cancel_execute()` to send, or `aiplatform_projects_locations_models_evaluations_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/operations/{operationsId}:cancel",
@@ -99266,10 +100991,13 @@ pub fn aiplatform_projects_locations_models_evaluations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_operations_delete_execute()` to send, or `aiplatform_projects_locations_models_evaluations_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/operations/{operationsId}",
@@ -99429,10 +101157,13 @@ pub fn aiplatform_projects_locations_models_evaluations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_operations_get_execute()` to send, or `aiplatform_projects_locations_models_evaluations_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/operations/{operationsId}",
@@ -99596,14 +101327,17 @@ pub fn aiplatform_projects_locations_models_evaluations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_operations_list_execute()` to send, or `aiplatform_projects_locations_models_evaluations_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/operations",
@@ -99801,11 +101535,14 @@ pub fn aiplatform_projects_locations_models_evaluations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_operations_wait_execute()` to send, or `aiplatform_projects_locations_models_evaluations_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/operations/{operationsId}:wait",
@@ -99984,10 +101721,13 @@ pub fn aiplatform_projects_locations_models_evaluations_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_slices_batch_import_execute()` to send, or `aiplatform_projects_locations_models_evaluations_slices_batch_import` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_slices_batch_import_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_slices_batch_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/slices/{slicesId}:batchImport",
@@ -100162,10 +101902,13 @@ pub fn aiplatform_projects_locations_models_evaluations_slices_batch_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_slices_get_execute()` to send, or `aiplatform_projects_locations_models_evaluations_slices_get` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_slices_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_slices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/slices/{slicesId}",
@@ -100329,14 +102072,17 @@ pub fn aiplatform_projects_locations_models_evaluations_slices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_evaluations_slices_list_execute()` to send, or `aiplatform_projects_locations_models_evaluations_slices_list` for simplest API.
 
-pub fn aiplatform_projects_locations_models_evaluations_slices_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_evaluations_slices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/slices",
@@ -100543,10 +102289,13 @@ pub fn aiplatform_projects_locations_models_evaluations_slices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_operations_cancel_execute()` to send, or `aiplatform_projects_locations_models_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_models_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/operations/{operationsId}:cancel",
@@ -100705,10 +102454,13 @@ pub fn aiplatform_projects_locations_models_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_operations_delete_execute()` to send, or `aiplatform_projects_locations_models_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_models_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/operations/{operationsId}",
@@ -100867,10 +102619,13 @@ pub fn aiplatform_projects_locations_models_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_operations_get_execute()` to send, or `aiplatform_projects_locations_models_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_models_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/operations/{operationsId}",
@@ -101032,14 +102787,17 @@ pub fn aiplatform_projects_locations_models_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_operations_list_execute()` to send, or `aiplatform_projects_locations_models_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_models_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/operations",
@@ -101237,11 +102995,14 @@ pub fn aiplatform_projects_locations_models_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_models_operations_wait_execute()` to send, or `aiplatform_projects_locations_models_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_models_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_models_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/models/{modelsId}/operations/{operationsId}:wait",
@@ -101420,10 +103181,13 @@ pub fn aiplatform_projects_locations_models_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_nas_jobs_cancel_execute()` to send, or `aiplatform_projects_locations_nas_jobs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_nas_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_nas_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/nasJobs/{nasJobsId}:cancel",
@@ -101581,10 +103345,13 @@ pub fn aiplatform_projects_locations_nas_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_nas_jobs_create_execute()` to send, or `aiplatform_projects_locations_nas_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_nas_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_nas_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/nasJobs",
@@ -101746,10 +103513,13 @@ pub fn aiplatform_projects_locations_nas_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_nas_jobs_delete_execute()` to send, or `aiplatform_projects_locations_nas_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_nas_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_nas_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/nasJobs/{nasJobsId}",
@@ -101911,10 +103681,13 @@ pub fn aiplatform_projects_locations_nas_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_nas_jobs_get_execute()` to send, or `aiplatform_projects_locations_nas_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_nas_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_nas_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/nasJobs/{nasJobsId}",
@@ -102076,14 +103849,17 @@ pub fn aiplatform_projects_locations_nas_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_nas_jobs_list_execute()` to send, or `aiplatform_projects_locations_nas_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_nas_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_nas_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/nasJobs",
@@ -102281,10 +104057,13 @@ pub fn aiplatform_projects_locations_nas_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_nas_jobs_nas_trial_details_get_execute()` to send, or `aiplatform_projects_locations_nas_jobs_nas_trial_details_get` for simplest API.
 
-pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/nasJobs/{nasJobsId}/nasTrialDetails/{nasTrialDetailsId}",
@@ -102447,12 +104226,15 @@ pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_nas_jobs_nas_trial_details_list_execute()` to send, or `aiplatform_projects_locations_nas_jobs_nas_trial_details_list` for simplest API.
 
-pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/nasJobs/{nasJobsId}/nasTrialDetails",
@@ -102641,11 +104423,14 @@ pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_create_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     notebookExecutionJobId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs",
@@ -102824,10 +104609,13 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_delete_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}",
@@ -102990,11 +104778,14 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_get_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}",
@@ -103172,15 +104963,18 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_list_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs",
@@ -103393,10 +105187,13 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}/operations/{operationsId}:cancel",
@@ -103557,10 +105354,13 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_operations_delete_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}/operations/{operationsId}",
@@ -103721,10 +105521,13 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_operations_get_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}/operations/{operationsId}",
@@ -103888,14 +105691,17 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_operations_list_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}/operations",
@@ -104093,11 +105899,14 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_execution_jobs_operations_wait_execute()` to send, or `aiplatform_projects_locations_notebook_execution_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}/operations/{operationsId}:wait",
@@ -104276,11 +106085,14 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_create_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_create` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     notebookRuntimeTemplateId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates",
@@ -104459,10 +106271,13 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_delete_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}",
@@ -104626,10 +106441,13 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_get_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_get` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}",
@@ -104793,11 +106611,14 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}:getIamPolicy",
@@ -104973,15 +106794,18 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_list_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_list` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates",
@@ -105194,11 +107018,14 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_patch_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}",
@@ -105378,10 +107205,13 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}:setIamPolicy",
@@ -105543,11 +107373,14 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}:testIamPermissions",
@@ -105729,10 +107562,13 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_test_iam_permiss
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_operations_cancel_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations/{operationsId}:cancel",
@@ -105894,10 +107730,13 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_cance
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_operations_delete_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations/{operationsId}",
@@ -106059,10 +107898,13 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_operations_get_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations/{operationsId}",
@@ -106227,14 +108069,17 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_operations_list_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations",
@@ -106433,11 +108278,14 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtime_templates_operations_wait_execute()` to send, or `aiplatform_projects_locations_notebook_runtime_templates_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations/{operationsId}:wait",
@@ -106617,10 +108465,13 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_assign_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_assign` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_assign_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_assign_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes:assign",
@@ -106783,10 +108634,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_assign(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_delete_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}",
@@ -106949,10 +108803,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_get_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_get` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}",
@@ -107114,15 +108971,18 @@ pub fn aiplatform_projects_locations_notebook_runtimes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_list_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_list` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes",
@@ -107329,10 +109189,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_start_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_start` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_start_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}:start",
@@ -107495,10 +109358,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_stop_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_stop` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_stop_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}:stop",
@@ -107660,10 +109526,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_upgrade_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_upgrade` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}:upgrade",
@@ -107826,10 +109695,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_operations_cancel_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}/operations/{operationsId}:cancel",
@@ -107989,10 +109861,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_operations_delete_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}/operations/{operationsId}",
@@ -108152,10 +110027,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_operations_get_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}/operations/{operationsId}",
@@ -108318,14 +110196,17 @@ pub fn aiplatform_projects_locations_notebook_runtimes_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_operations_list_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}/operations",
@@ -108523,11 +110404,14 @@ pub fn aiplatform_projects_locations_notebook_runtimes_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_notebook_runtimes_operations_wait_execute()` to send, or `aiplatform_projects_locations_notebook_runtimes_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_notebook_runtimes_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_notebook_runtimes_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}/operations/{operationsId}:wait",
@@ -108706,10 +110590,13 @@ pub fn aiplatform_projects_locations_notebook_runtimes_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_operations_cancel_execute()` to send, or `aiplatform_projects_locations_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -108867,10 +110754,13 @@ pub fn aiplatform_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_operations_delete_execute()` to send, or `aiplatform_projects_locations_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -109028,10 +110918,13 @@ pub fn aiplatform_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_operations_get_execute()` to send, or `aiplatform_projects_locations_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -109193,14 +111086,17 @@ pub fn aiplatform_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_operations_list_execute()` to send, or `aiplatform_projects_locations_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -109398,11 +111294,14 @@ pub fn aiplatform_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_operations_wait_execute()` to send, or `aiplatform_projects_locations_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:wait",
@@ -109578,11 +111477,14 @@ pub fn aiplatform_projects_locations_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_create_execute()` to send, or `aiplatform_projects_locations_persistent_resources_create` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     persistentResourceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources",
@@ -109761,10 +111663,13 @@ pub fn aiplatform_projects_locations_persistent_resources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_delete_execute()` to send, or `aiplatform_projects_locations_persistent_resources_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}",
@@ -109927,10 +111832,13 @@ pub fn aiplatform_projects_locations_persistent_resources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_get_execute()` to send, or `aiplatform_projects_locations_persistent_resources_get` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}",
@@ -110093,12 +112001,15 @@ pub fn aiplatform_projects_locations_persistent_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_list_execute()` to send, or `aiplatform_projects_locations_persistent_resources_list` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources",
@@ -110293,11 +112204,14 @@ pub fn aiplatform_projects_locations_persistent_resources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_patch_execute()` to send, or `aiplatform_projects_locations_persistent_resources_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}",
@@ -110476,10 +112390,13 @@ pub fn aiplatform_projects_locations_persistent_resources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_reboot_execute()` to send, or `aiplatform_projects_locations_persistent_resources_reboot` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_reboot_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_reboot_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}:reboot",
@@ -110642,10 +112559,13 @@ pub fn aiplatform_projects_locations_persistent_resources_reboot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_operations_cancel_execute()` to send, or `aiplatform_projects_locations_persistent_resources_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}/operations/{operationsId}:cancel",
@@ -110805,10 +112725,13 @@ pub fn aiplatform_projects_locations_persistent_resources_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_operations_delete_execute()` to send, or `aiplatform_projects_locations_persistent_resources_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}/operations/{operationsId}",
@@ -110968,10 +112891,13 @@ pub fn aiplatform_projects_locations_persistent_resources_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_operations_get_execute()` to send, or `aiplatform_projects_locations_persistent_resources_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}/operations/{operationsId}",
@@ -111135,14 +113061,17 @@ pub fn aiplatform_projects_locations_persistent_resources_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_operations_list_execute()` to send, or `aiplatform_projects_locations_persistent_resources_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}/operations",
@@ -111340,11 +113269,14 @@ pub fn aiplatform_projects_locations_persistent_resources_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_persistent_resources_operations_wait_execute()` to send, or `aiplatform_projects_locations_persistent_resources_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_persistent_resources_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_persistent_resources_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/persistentResources/{persistentResourcesId}/operations/{operationsId}:wait",
@@ -111523,10 +113455,13 @@ pub fn aiplatform_projects_locations_persistent_resources_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_batch_cancel_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_batch_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_batch_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_batch_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs:batchCancel",
@@ -111689,10 +113624,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_batch_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_batch_delete_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_batch_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs:batchDelete",
@@ -111855,10 +113793,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_cancel_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}:cancel",
@@ -112016,11 +113957,14 @@ pub fn aiplatform_projects_locations_pipeline_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_create_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pipelineJobId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs",
@@ -112199,10 +114143,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_delete_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}",
@@ -112364,10 +114311,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_get_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}",
@@ -112529,15 +114479,18 @@ pub fn aiplatform_projects_locations_pipeline_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_list_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs",
@@ -112741,10 +114694,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}/operations/{operationsId}:cancel",
@@ -112903,10 +114859,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_operations_delete_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}/operations/{operationsId}",
@@ -113065,10 +115024,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_operations_get_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}/operations/{operationsId}",
@@ -113231,14 +115193,17 @@ pub fn aiplatform_projects_locations_pipeline_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_operations_list_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}/operations",
@@ -113436,11 +115401,14 @@ pub fn aiplatform_projects_locations_pipeline_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_pipeline_jobs_operations_wait_execute()` to send, or `aiplatform_projects_locations_pipeline_jobs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_pipeline_jobs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_pipeline_jobs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}/operations/{operationsId}:wait",
@@ -113619,10 +115587,13 @@ pub fn aiplatform_projects_locations_pipeline_jobs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_compute_tokens_execute()` to send, or `aiplatform_projects_locations_publishers_models_compute_tokens` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_compute_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_compute_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:computeTokens",
@@ -113788,10 +115759,13 @@ pub fn aiplatform_projects_locations_publishers_models_compute_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_count_tokens_execute()` to send, or `aiplatform_projects_locations_publishers_models_count_tokens` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_count_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_count_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:countTokens",
@@ -113957,10 +115931,13 @@ pub fn aiplatform_projects_locations_publishers_models_count_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_embed_content_execute()` to send, or `aiplatform_projects_locations_publishers_models_embed_content` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_embed_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_embed_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:embedContent",
@@ -114124,10 +116101,13 @@ pub fn aiplatform_projects_locations_publishers_models_embed_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_fetch_predict_operation_execute()` to send, or `aiplatform_projects_locations_publishers_models_fetch_predict_operation` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_fetch_predict_operation_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_fetch_predict_operation_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:fetchPredictOperation",
@@ -114293,10 +116273,13 @@ pub fn aiplatform_projects_locations_publishers_models_fetch_predict_operation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_generate_content_execute()` to send, or `aiplatform_projects_locations_publishers_models_generate_content` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:generateContent",
@@ -114462,10 +116445,13 @@ pub fn aiplatform_projects_locations_publishers_models_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_predict_execute()` to send, or `aiplatform_projects_locations_publishers_models_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:predict",
@@ -114628,10 +116614,13 @@ pub fn aiplatform_projects_locations_publishers_models_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_predict_long_running_execute()` to send, or `aiplatform_projects_locations_publishers_models_predict_long_running` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_predict_long_running_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_predict_long_running_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:predictLongRunning",
@@ -114796,10 +116785,13 @@ pub fn aiplatform_projects_locations_publishers_models_predict_long_running(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_raw_predict_execute()` to send, or `aiplatform_projects_locations_publishers_models_raw_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_raw_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_raw_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:rawPredict",
@@ -114960,10 +116952,13 @@ pub fn aiplatform_projects_locations_publishers_models_raw_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_server_streaming_predict_execute()` to send, or `aiplatform_projects_locations_publishers_models_server_streaming_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_server_streaming_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_server_streaming_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:serverStreamingPredict",
@@ -115130,10 +117125,13 @@ pub fn aiplatform_projects_locations_publishers_models_server_streaming_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_stream_generate_content_execute()` to send, or `aiplatform_projects_locations_publishers_models_stream_generate_content` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_stream_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_stream_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:streamGenerateContent",
@@ -115300,10 +117298,13 @@ pub fn aiplatform_projects_locations_publishers_models_stream_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_stream_raw_predict_execute()` to send, or `aiplatform_projects_locations_publishers_models_stream_raw_predict` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_stream_raw_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_stream_raw_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/publishers/{publishersId}/models/{modelsId}:streamRawPredict",
@@ -115464,11 +117465,14 @@ pub fn aiplatform_projects_locations_publishers_models_stream_raw_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_publishers_models_invoke_invoke_execute()` to send, or `aiplatform_projects_locations_publishers_models_invoke_invoke` for simplest API.
 
-pub fn aiplatform_projects_locations_publishers_models_invoke_invoke_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_publishers_models_invoke_invoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
     invokeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{}/publishers/{publishersId}/models/{modelsId}/invoke/{invokeId}",
@@ -115633,10 +117637,13 @@ pub fn aiplatform_projects_locations_publishers_models_invoke_invoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_create_execute()` to send, or `aiplatform_projects_locations_rag_corpora_create` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora",
@@ -115798,11 +117805,14 @@ pub fn aiplatform_projects_locations_rag_corpora_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_delete_execute()` to send, or `aiplatform_projects_locations_rag_corpora_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}",
@@ -115978,10 +117988,13 @@ pub fn aiplatform_projects_locations_rag_corpora_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_get_execute()` to send, or `aiplatform_projects_locations_rag_corpora_get` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}",
@@ -116143,12 +118156,15 @@ pub fn aiplatform_projects_locations_rag_corpora_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_list_execute()` to send, or `aiplatform_projects_locations_rag_corpora_list` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora",
@@ -116334,10 +118350,13 @@ pub fn aiplatform_projects_locations_rag_corpora_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_patch_execute()` to send, or `aiplatform_projects_locations_rag_corpora_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}",
@@ -116499,10 +118518,13 @@ pub fn aiplatform_projects_locations_rag_corpora_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_operations_cancel_execute()` to send, or `aiplatform_projects_locations_rag_corpora_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/operations/{operationsId}:cancel",
@@ -116661,10 +118683,13 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_operations_delete_execute()` to send, or `aiplatform_projects_locations_rag_corpora_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/operations/{operationsId}",
@@ -116823,10 +118848,13 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_operations_get_execute()` to send, or `aiplatform_projects_locations_rag_corpora_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/operations/{operationsId}",
@@ -116989,14 +119017,17 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_operations_list_execute()` to send, or `aiplatform_projects_locations_rag_corpora_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/operations",
@@ -117194,11 +119225,14 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_operations_wait_execute()` to send, or `aiplatform_projects_locations_rag_corpora_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/operations/{operationsId}:wait",
@@ -117377,11 +119411,14 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_delete_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     forceDelete: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}",
@@ -117560,10 +119597,13 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_get_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_get` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}",
@@ -117726,10 +119766,13 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_import_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_import` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_import_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles:import",
@@ -117892,12 +119935,15 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_list_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_list` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles",
@@ -118083,10 +120129,13 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_operations_cancel_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations/{operationsId}:cancel",
@@ -118246,10 +120295,13 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_operations_delete_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations/{operationsId}",
@@ -118409,10 +120461,13 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_operations_get_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations/{operationsId}",
@@ -118576,14 +120631,17 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_operations_list_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations",
@@ -118781,11 +120839,14 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_corpora_rag_files_operations_wait_execute()` to send, or `aiplatform_projects_locations_rag_corpora_rag_files_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations/{operationsId}:wait",
@@ -118964,10 +121025,13 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_engine_config_operations_cancel_execute()` to send, or `aiplatform_projects_locations_rag_engine_config_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_engine_config_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_engine_config_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragEngineConfig/operations/{operationsId}:cancel",
@@ -119127,10 +121191,13 @@ pub fn aiplatform_projects_locations_rag_engine_config_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_engine_config_operations_delete_execute()` to send, or `aiplatform_projects_locations_rag_engine_config_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_engine_config_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_engine_config_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragEngineConfig/operations/{operationsId}",
@@ -119290,10 +121357,13 @@ pub fn aiplatform_projects_locations_rag_engine_config_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_engine_config_operations_get_execute()` to send, or `aiplatform_projects_locations_rag_engine_config_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_engine_config_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_engine_config_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragEngineConfig/operations/{operationsId}",
@@ -119456,14 +121526,17 @@ pub fn aiplatform_projects_locations_rag_engine_config_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_engine_config_operations_list_execute()` to send, or `aiplatform_projects_locations_rag_engine_config_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_engine_config_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_engine_config_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragEngineConfig/operations",
@@ -119661,11 +121734,14 @@ pub fn aiplatform_projects_locations_rag_engine_config_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_rag_engine_config_operations_wait_execute()` to send, or `aiplatform_projects_locations_rag_engine_config_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_rag_engine_config_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_rag_engine_config_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/ragEngineConfig/operations/{operationsId}:wait",
@@ -119844,10 +121920,13 @@ pub fn aiplatform_projects_locations_rag_engine_config_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_create_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_create` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines",
@@ -120010,11 +122089,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}",
@@ -120193,10 +122275,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_execute_code_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_execute_code` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_execute_code_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_execute_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:executeCode",
@@ -120360,10 +122445,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_execute_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}",
@@ -120525,11 +122613,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_get_iam_policy_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_get_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:getIamPolicy",
@@ -120704,13 +122795,16 @@ pub fn aiplatform_projects_locations_reasoning_engines_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines",
@@ -120905,11 +122999,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_patch_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}",
@@ -121088,10 +123185,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_query_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_query` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_query_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:query",
@@ -121258,10 +123358,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_set_iam_policy_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_set_iam_policy` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:setIamPolicy",
@@ -121422,10 +123525,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_stream_query_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_stream_query` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_stream_query_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_stream_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:streamQuery",
@@ -121584,11 +123690,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_stream_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_test_iam_permissions_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_test_iam_permissions` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     permissions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:testIamPermissions",
@@ -121767,11 +123876,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_create_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_create` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     memoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories",
@@ -121950,10 +124062,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}",
@@ -122117,10 +124232,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_generate_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_generate` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_generate_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories:generate",
@@ -122285,10 +124403,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_generate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}",
@@ -122451,14 +124572,17 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories",
@@ -122656,11 +124780,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_patch_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}",
@@ -122839,10 +124966,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_purge_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_purge` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_purge_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories:purge",
@@ -123007,10 +125137,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_retrieve_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_retrieve` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_retrieve_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_retrieve_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories:retrieve",
@@ -123176,10 +125309,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_retrieve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_rollback_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_rollback` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}:rollback",
@@ -123343,10 +125479,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_operations_cancel_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations/{operationsId}:cancel",
@@ -123508,10 +125647,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_cance
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_operations_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations/{operationsId}",
@@ -123673,10 +125815,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_operations_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations/{operationsId}",
@@ -123841,14 +125986,17 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_operations_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations",
@@ -124047,11 +126195,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_operations_wait_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations/{operationsId}:wait",
@@ -124231,10 +126382,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_revisions_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_revisions_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/revisions/{revisionsId}",
@@ -124399,13 +126553,16 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_memories_revisions_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_memories_revisions_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/revisions",
@@ -124601,10 +126758,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_operations_cancel_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/operations/{operationsId}:cancel",
@@ -124764,10 +126924,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_operations_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/operations/{operationsId}",
@@ -124927,10 +127090,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_operations_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/operations/{operationsId}",
@@ -125093,14 +127259,17 @@ pub fn aiplatform_projects_locations_reasoning_engines_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_operations_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/operations",
@@ -125298,11 +127467,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_operations_wait_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/operations/{operationsId}:wait",
@@ -125481,10 +127653,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_create_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_create` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments",
@@ -125651,10 +127826,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_crea
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}",
@@ -125820,10 +127998,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_dele
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_execute_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_execute` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_execute_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_execute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}:execute",
@@ -125999,10 +128180,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_exec
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}",
@@ -126167,13 +128351,16 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments",
@@ -126376,10 +128563,15 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_list
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_cancel_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_cancel_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}:cancel",
@@ -126539,10 +128731,15 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_oper
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}",
@@ -126702,10 +128899,15 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_oper
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}",
@@ -126872,11 +129074,16 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_oper
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_wait_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_operations_wait_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}:wait",
@@ -127056,10 +129263,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_oper
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_append_event_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_append_event` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_append_event_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_append_event_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}:appendEvent",
@@ -127224,11 +129434,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_append_event(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_create_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_create` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     sessionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions",
@@ -127407,10 +129620,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}",
@@ -127574,10 +129790,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}",
@@ -127740,14 +129959,17 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions",
@@ -127945,11 +130167,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_patch_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}",
@@ -128128,14 +130353,17 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_events_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_events_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/events",
@@ -128332,10 +130560,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_operations_cancel_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations/{operationsId}:cancel",
@@ -128497,10 +130728,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_cance
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_operations_delete_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations/{operationsId}",
@@ -128662,10 +130896,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_operations_get_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations/{operationsId}",
@@ -128830,14 +131067,17 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_operations_list_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations",
@@ -129036,11 +131276,14 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_reasoning_engines_sessions_operations_wait_execute()` to send, or `aiplatform_projects_locations_reasoning_engines_sessions_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations/{operationsId}:wait",
@@ -129220,10 +131463,13 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_create_execute()` to send, or `aiplatform_projects_locations_schedules_create` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules",
@@ -129385,10 +131631,13 @@ pub fn aiplatform_projects_locations_schedules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_delete_execute()` to send, or `aiplatform_projects_locations_schedules_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}",
@@ -129550,10 +131799,13 @@ pub fn aiplatform_projects_locations_schedules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_get_execute()` to send, or `aiplatform_projects_locations_schedules_get` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}",
@@ -129715,14 +131967,17 @@ pub fn aiplatform_projects_locations_schedules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_list_execute()` to send, or `aiplatform_projects_locations_schedules_list` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules",
@@ -129920,11 +132175,14 @@ pub fn aiplatform_projects_locations_schedules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_patch_execute()` to send, or `aiplatform_projects_locations_schedules_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}",
@@ -130103,10 +132361,13 @@ pub fn aiplatform_projects_locations_schedules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_pause_execute()` to send, or `aiplatform_projects_locations_schedules_pause` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_pause_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}:pause",
@@ -130264,10 +132525,13 @@ pub fn aiplatform_projects_locations_schedules_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_resume_execute()` to send, or `aiplatform_projects_locations_schedules_resume` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_resume_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}:resume",
@@ -130425,10 +132689,13 @@ pub fn aiplatform_projects_locations_schedules_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_operations_cancel_execute()` to send, or `aiplatform_projects_locations_schedules_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}/operations/{operationsId}:cancel",
@@ -130587,10 +132854,13 @@ pub fn aiplatform_projects_locations_schedules_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_operations_delete_execute()` to send, or `aiplatform_projects_locations_schedules_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}/operations/{operationsId}",
@@ -130749,10 +133019,13 @@ pub fn aiplatform_projects_locations_schedules_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_operations_get_execute()` to send, or `aiplatform_projects_locations_schedules_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}/operations/{operationsId}",
@@ -130915,14 +133188,17 @@ pub fn aiplatform_projects_locations_schedules_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_operations_list_execute()` to send, or `aiplatform_projects_locations_schedules_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}/operations",
@@ -131120,11 +133396,14 @@ pub fn aiplatform_projects_locations_schedules_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_schedules_operations_wait_execute()` to send, or `aiplatform_projects_locations_schedules_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_schedules_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_schedules_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/schedules/{schedulesId}/operations/{operationsId}:wait",
@@ -131303,10 +133582,13 @@ pub fn aiplatform_projects_locations_schedules_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_create_execute()` to send, or `aiplatform_projects_locations_specialist_pools_create` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools",
@@ -131469,11 +133751,14 @@ pub fn aiplatform_projects_locations_specialist_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_delete_execute()` to send, or `aiplatform_projects_locations_specialist_pools_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}",
@@ -131652,10 +133937,13 @@ pub fn aiplatform_projects_locations_specialist_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_get_execute()` to send, or `aiplatform_projects_locations_specialist_pools_get` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}",
@@ -131817,13 +134105,16 @@ pub fn aiplatform_projects_locations_specialist_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_list_execute()` to send, or `aiplatform_projects_locations_specialist_pools_list` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools",
@@ -132018,11 +134309,14 @@ pub fn aiplatform_projects_locations_specialist_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_patch_execute()` to send, or `aiplatform_projects_locations_specialist_pools_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}",
@@ -132201,10 +134495,13 @@ pub fn aiplatform_projects_locations_specialist_pools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_operations_cancel_execute()` to send, or `aiplatform_projects_locations_specialist_pools_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}/operations/{operationsId}:cancel",
@@ -132364,10 +134661,13 @@ pub fn aiplatform_projects_locations_specialist_pools_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_operations_delete_execute()` to send, or `aiplatform_projects_locations_specialist_pools_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}/operations/{operationsId}",
@@ -132527,10 +134827,13 @@ pub fn aiplatform_projects_locations_specialist_pools_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_operations_get_execute()` to send, or `aiplatform_projects_locations_specialist_pools_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}/operations/{operationsId}",
@@ -132693,14 +134996,17 @@ pub fn aiplatform_projects_locations_specialist_pools_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_operations_list_execute()` to send, or `aiplatform_projects_locations_specialist_pools_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}/operations",
@@ -132898,11 +135204,14 @@ pub fn aiplatform_projects_locations_specialist_pools_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_specialist_pools_operations_wait_execute()` to send, or `aiplatform_projects_locations_specialist_pools_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_specialist_pools_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_specialist_pools_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/specialistPools/{specialistPoolsId}/operations/{operationsId}:wait",
@@ -133081,10 +135390,13 @@ pub fn aiplatform_projects_locations_specialist_pools_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_create_execute()` to send, or `aiplatform_projects_locations_studies_create` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies",
@@ -133246,10 +135558,13 @@ pub fn aiplatform_projects_locations_studies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_delete_execute()` to send, or `aiplatform_projects_locations_studies_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}",
@@ -133407,10 +135722,13 @@ pub fn aiplatform_projects_locations_studies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_get_execute()` to send, or `aiplatform_projects_locations_studies_get` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}",
@@ -133572,12 +135890,15 @@ pub fn aiplatform_projects_locations_studies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_list_execute()` to send, or `aiplatform_projects_locations_studies_list` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies",
@@ -133763,10 +136084,13 @@ pub fn aiplatform_projects_locations_studies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_lookup_execute()` to send, or `aiplatform_projects_locations_studies_lookup` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies:lookup",
@@ -133928,10 +136252,13 @@ pub fn aiplatform_projects_locations_studies_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_operations_cancel_execute()` to send, or `aiplatform_projects_locations_studies_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/operations/{operationsId}:cancel",
@@ -134090,10 +136417,13 @@ pub fn aiplatform_projects_locations_studies_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_operations_delete_execute()` to send, or `aiplatform_projects_locations_studies_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/operations/{operationsId}",
@@ -134252,10 +136582,13 @@ pub fn aiplatform_projects_locations_studies_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_operations_get_execute()` to send, or `aiplatform_projects_locations_studies_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/operations/{operationsId}",
@@ -134417,14 +136750,17 @@ pub fn aiplatform_projects_locations_studies_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_operations_list_execute()` to send, or `aiplatform_projects_locations_studies_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/operations",
@@ -134622,11 +136958,14 @@ pub fn aiplatform_projects_locations_studies_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_operations_wait_execute()` to send, or `aiplatform_projects_locations_studies_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/operations/{operationsId}:wait",
@@ -134805,10 +137144,13 @@ pub fn aiplatform_projects_locations_studies_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_add_trial_measurement_execute()` to send, or `aiplatform_projects_locations_studies_trials_add_trial_measurement` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_add_trial_measurement_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_add_trial_measurement_builder<R>(
+    client: &SimpleHttpClient<R>,
     trialName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:addTrialMeasurement",
@@ -134973,10 +137315,13 @@ pub fn aiplatform_projects_locations_studies_trials_add_trial_measurement(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_check_trial_early_stopping_state_execute()` to send, or `aiplatform_projects_locations_studies_trials_check_trial_early_stopping_state` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_check_trial_early_stopping_state_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_check_trial_early_stopping_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     trialName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:checkTrialEarlyStoppingState",
@@ -135144,10 +137489,13 @@ pub fn aiplatform_projects_locations_studies_trials_check_trial_early_stopping_s
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_complete_execute()` to send, or `aiplatform_projects_locations_studies_trials_complete` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_complete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_complete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:complete",
@@ -135310,10 +137658,13 @@ pub fn aiplatform_projects_locations_studies_trials_complete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_create_execute()` to send, or `aiplatform_projects_locations_studies_trials_create` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials",
@@ -135476,10 +137827,13 @@ pub fn aiplatform_projects_locations_studies_trials_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_delete_execute()` to send, or `aiplatform_projects_locations_studies_trials_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}",
@@ -135637,10 +137991,13 @@ pub fn aiplatform_projects_locations_studies_trials_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_get_execute()` to send, or `aiplatform_projects_locations_studies_trials_get` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}",
@@ -135802,12 +138159,15 @@ pub fn aiplatform_projects_locations_studies_trials_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_list_execute()` to send, or `aiplatform_projects_locations_studies_trials_list` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials",
@@ -135992,10 +138352,13 @@ pub fn aiplatform_projects_locations_studies_trials_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_list_optimal_trials_execute()` to send, or `aiplatform_projects_locations_studies_trials_list_optimal_trials` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_list_optimal_trials_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_list_optimal_trials_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials:listOptimalTrials",
@@ -136161,10 +138524,13 @@ pub fn aiplatform_projects_locations_studies_trials_list_optimal_trials(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_stop_execute()` to send, or `aiplatform_projects_locations_studies_trials_stop` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_stop_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:stop",
@@ -136326,10 +138692,13 @@ pub fn aiplatform_projects_locations_studies_trials_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_suggest_execute()` to send, or `aiplatform_projects_locations_studies_trials_suggest` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_suggest_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_suggest_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials:suggest",
@@ -136492,10 +138861,13 @@ pub fn aiplatform_projects_locations_studies_trials_suggest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_operations_cancel_execute()` to send, or `aiplatform_projects_locations_studies_trials_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}/operations/{operationsId}:cancel",
@@ -136654,10 +139026,13 @@ pub fn aiplatform_projects_locations_studies_trials_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_operations_delete_execute()` to send, or `aiplatform_projects_locations_studies_trials_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}/operations/{operationsId}",
@@ -136816,10 +139191,13 @@ pub fn aiplatform_projects_locations_studies_trials_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_operations_get_execute()` to send, or `aiplatform_projects_locations_studies_trials_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}/operations/{operationsId}",
@@ -136982,14 +139360,17 @@ pub fn aiplatform_projects_locations_studies_trials_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_operations_list_execute()` to send, or `aiplatform_projects_locations_studies_trials_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}/operations",
@@ -137187,11 +139568,14 @@ pub fn aiplatform_projects_locations_studies_trials_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_studies_trials_operations_wait_execute()` to send, or `aiplatform_projects_locations_studies_trials_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_studies_trials_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_studies_trials_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}/operations/{operationsId}:wait",
@@ -137370,11 +139754,14 @@ pub fn aiplatform_projects_locations_studies_trials_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_batch_read_execute()` to send, or `aiplatform_projects_locations_tensorboards_batch_read` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_batch_read_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_batch_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     tensorboard: &String,
     timeSeries: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}:batchRead",
@@ -137563,10 +139950,13 @@ pub fn aiplatform_projects_locations_tensorboards_batch_read(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_create_execute()` to send, or `aiplatform_projects_locations_tensorboards_create` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards",
@@ -137728,10 +140118,13 @@ pub fn aiplatform_projects_locations_tensorboards_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}",
@@ -137893,10 +140286,13 @@ pub fn aiplatform_projects_locations_tensorboards_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}",
@@ -138058,15 +140454,18 @@ pub fn aiplatform_projects_locations_tensorboards_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards",
@@ -138270,11 +140669,14 @@ pub fn aiplatform_projects_locations_tensorboards_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_patch_execute()` to send, or `aiplatform_projects_locations_tensorboards_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}",
@@ -138453,10 +140855,13 @@ pub fn aiplatform_projects_locations_tensorboards_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_read_size_execute()` to send, or `aiplatform_projects_locations_tensorboards_read_size` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_read_size_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_read_size_builder<R>(
+    client: &SimpleHttpClient<R>,
     tensorboard: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}:readSize",
@@ -138623,10 +141028,13 @@ pub fn aiplatform_projects_locations_tensorboards_read_size(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_read_usage_execute()` to send, or `aiplatform_projects_locations_tensorboards_read_usage` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_read_usage_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_read_usage_builder<R>(
+    client: &SimpleHttpClient<R>,
     tensorboard: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}:readUsage",
@@ -138793,10 +141201,13 @@ pub fn aiplatform_projects_locations_tensorboards_read_usage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_batch_create_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_batch_create` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}:batchCreate",
@@ -138971,11 +141382,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_create_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_create` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tensorboardExperimentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments",
@@ -139155,10 +141569,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}",
@@ -139321,10 +141738,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}",
@@ -139488,15 +141908,18 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments",
@@ -139709,11 +142132,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_patch_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}",
@@ -139893,10 +142319,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_write_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_write` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_write_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     tensorboardExperiment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}:write",
@@ -140071,10 +142500,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_operations_cancel_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations/{operationsId}:cancel",
@@ -140235,10 +142667,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_operations_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations/{operationsId}",
@@ -140399,10 +142834,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_operations_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations/{operationsId}",
@@ -140566,14 +143004,17 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_operations_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations",
@@ -140772,11 +143213,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_operations_wait_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations/{operationsId}:wait",
@@ -140956,10 +143400,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_batch_create_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_batch_create` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs:batchCreate",
@@ -141135,11 +143582,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_create_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tensorboardRunId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs",
@@ -141318,10 +143768,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}",
@@ -141485,10 +143938,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}",
@@ -141652,15 +144108,18 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs",
@@ -141867,11 +144326,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_patch_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}",
@@ -142050,10 +144512,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_write_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_write` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_write_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     tensorboardRun: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}:write",
@@ -142228,10 +144693,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}:cancel",
@@ -142394,10 +144862,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_ca
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_operations_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}",
@@ -142560,10 +145031,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_de
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_operations_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}",
@@ -142729,14 +145203,17 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_operations_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations",
@@ -142936,11 +145413,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_operations_wait_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}:wait",
@@ -143121,11 +145601,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_wa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_create_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_create` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tensorboardTimeSeriesId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries",
@@ -143308,10 +145791,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_c
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}",
@@ -143478,10 +145964,15 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_export_tensorboard_time_series_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_export_tensorboard_time_series` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_export_tensorboard_time_series_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_export_tensorboard_time_series_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     tensorboardTimeSeries: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}:exportTensorboardTimeSeries",
@@ -143654,10 +146145,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_e
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}",
@@ -143824,15 +146318,18 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries",
@@ -144047,11 +146544,14 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_patch_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_patch` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}",
@@ -144234,12 +146734,15 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     tensorboardTimeSeries: &String,
     filter: &Option<Option<String>>,
     maxDataPoints: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}:read",
@@ -144436,11 +146939,16 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_r
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_blob_data_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_blob_data` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_blob_data_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_blob_data_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     timeSeries: &String,
     blobIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}:readBlobData",
@@ -144627,10 +147135,15 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_r
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_cancel_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_cancel_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}:cancel",
@@ -144788,10 +147301,15 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_o
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}",
@@ -144949,10 +147467,15 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_o
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}",
@@ -145116,14 +147639,19 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_o
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations",
@@ -145316,11 +147844,16 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_o
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_wait_execute()` to send, or `aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_operations_wait_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}:wait",
@@ -145497,10 +148030,13 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_o
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_operations_cancel_execute()` to send, or `aiplatform_projects_locations_tensorboards_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/operations/{operationsId}:cancel",
@@ -145659,10 +148195,13 @@ pub fn aiplatform_projects_locations_tensorboards_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_operations_delete_execute()` to send, or `aiplatform_projects_locations_tensorboards_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/operations/{operationsId}",
@@ -145821,10 +148360,13 @@ pub fn aiplatform_projects_locations_tensorboards_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_operations_get_execute()` to send, or `aiplatform_projects_locations_tensorboards_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/operations/{operationsId}",
@@ -145987,14 +148529,17 @@ pub fn aiplatform_projects_locations_tensorboards_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_operations_list_execute()` to send, or `aiplatform_projects_locations_tensorboards_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/operations",
@@ -146192,11 +148737,14 @@ pub fn aiplatform_projects_locations_tensorboards_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tensorboards_operations_wait_execute()` to send, or `aiplatform_projects_locations_tensorboards_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_tensorboards_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tensorboards_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tensorboards/{tensorboardsId}/operations/{operationsId}:wait",
@@ -146375,10 +148923,13 @@ pub fn aiplatform_projects_locations_tensorboards_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_cancel_execute()` to send, or `aiplatform_projects_locations_training_pipelines_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}:cancel",
@@ -146537,10 +149088,13 @@ pub fn aiplatform_projects_locations_training_pipelines_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_create_execute()` to send, or `aiplatform_projects_locations_training_pipelines_create` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines",
@@ -146704,10 +149258,13 @@ pub fn aiplatform_projects_locations_training_pipelines_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_delete_execute()` to send, or `aiplatform_projects_locations_training_pipelines_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}",
@@ -146870,10 +149427,13 @@ pub fn aiplatform_projects_locations_training_pipelines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_get_execute()` to send, or `aiplatform_projects_locations_training_pipelines_get` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}",
@@ -147036,14 +149596,17 @@ pub fn aiplatform_projects_locations_training_pipelines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_list_execute()` to send, or `aiplatform_projects_locations_training_pipelines_list` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines",
@@ -147244,10 +149807,13 @@ pub fn aiplatform_projects_locations_training_pipelines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_operations_cancel_execute()` to send, or `aiplatform_projects_locations_training_pipelines_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}/operations/{operationsId}:cancel",
@@ -147407,10 +149973,13 @@ pub fn aiplatform_projects_locations_training_pipelines_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_operations_delete_execute()` to send, or `aiplatform_projects_locations_training_pipelines_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}/operations/{operationsId}",
@@ -147570,10 +150139,13 @@ pub fn aiplatform_projects_locations_training_pipelines_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_operations_get_execute()` to send, or `aiplatform_projects_locations_training_pipelines_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}/operations/{operationsId}",
@@ -147737,14 +150309,17 @@ pub fn aiplatform_projects_locations_training_pipelines_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_operations_list_execute()` to send, or `aiplatform_projects_locations_training_pipelines_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}/operations",
@@ -147942,11 +150517,14 @@ pub fn aiplatform_projects_locations_training_pipelines_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_training_pipelines_operations_wait_execute()` to send, or `aiplatform_projects_locations_training_pipelines_operations_wait` for simplest API.
 
-pub fn aiplatform_projects_locations_training_pipelines_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_training_pipelines_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}/operations/{operationsId}:wait",
@@ -148125,10 +150703,13 @@ pub fn aiplatform_projects_locations_training_pipelines_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_cancel_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs/{tuningJobsId}:cancel",
@@ -148286,10 +150867,13 @@ pub fn aiplatform_projects_locations_tuning_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_create_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_create` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs",
@@ -148451,10 +151035,13 @@ pub fn aiplatform_projects_locations_tuning_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_get_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs/{tuningJobsId}",
@@ -148616,13 +151203,16 @@ pub fn aiplatform_projects_locations_tuning_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_list_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs",
@@ -148814,10 +151404,13 @@ pub fn aiplatform_projects_locations_tuning_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_rebase_tuned_model_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_rebase_tuned_model` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_rebase_tuned_model_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_rebase_tuned_model_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs:rebaseTunedModel",
@@ -148980,10 +151573,13 @@ pub fn aiplatform_projects_locations_tuning_jobs_rebase_tuned_model(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_operations_cancel_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs/{tuningJobsId}/operations/{operationsId}:cancel",
@@ -149142,10 +151738,13 @@ pub fn aiplatform_projects_locations_tuning_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_operations_delete_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs/{tuningJobsId}/operations/{operationsId}",
@@ -149304,10 +151903,13 @@ pub fn aiplatform_projects_locations_tuning_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_operations_get_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs/{tuningJobsId}/operations/{operationsId}",
@@ -149470,14 +152072,17 @@ pub fn aiplatform_projects_locations_tuning_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_projects_locations_tuning_jobs_operations_list_execute()` to send, or `aiplatform_projects_locations_tuning_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_projects_locations_tuning_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_projects_locations_tuning_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/projects/{}/locations/{locationsId}/tuningJobs/{tuningJobsId}/operations",
@@ -149675,10 +152280,13 @@ pub fn aiplatform_projects_locations_tuning_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_compute_tokens_execute()` to send, or `aiplatform_publishers_models_compute_tokens` for simplest API.
 
-pub fn aiplatform_publishers_models_compute_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_compute_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}:computeTokens",
@@ -149841,10 +152449,13 @@ pub fn aiplatform_publishers_models_compute_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_count_tokens_execute()` to send, or `aiplatform_publishers_models_count_tokens` for simplest API.
 
-pub fn aiplatform_publishers_models_count_tokens_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_count_tokens_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}:countTokens",
@@ -150007,10 +152618,13 @@ pub fn aiplatform_publishers_models_count_tokens(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_fetch_predict_operation_execute()` to send, or `aiplatform_publishers_models_fetch_predict_operation` for simplest API.
 
-pub fn aiplatform_publishers_models_fetch_predict_operation_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_fetch_predict_operation_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}:fetchPredictOperation",
@@ -150173,10 +152787,13 @@ pub fn aiplatform_publishers_models_fetch_predict_operation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_generate_content_execute()` to send, or `aiplatform_publishers_models_generate_content` for simplest API.
 
-pub fn aiplatform_publishers_models_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}:generateContent",
@@ -150339,14 +152956,17 @@ pub fn aiplatform_publishers_models_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_get_execute()` to send, or `aiplatform_publishers_models_get` for simplest API.
 
-pub fn aiplatform_publishers_models_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     huggingFaceToken: &Option<Option<String>>,
     isHuggingFaceModel: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}",
@@ -150543,10 +153163,13 @@ pub fn aiplatform_publishers_models_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_predict_execute()` to send, or `aiplatform_publishers_models_predict` for simplest API.
 
-pub fn aiplatform_publishers_models_predict_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}:predict",
@@ -150708,10 +153331,13 @@ pub fn aiplatform_publishers_models_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_predict_long_running_execute()` to send, or `aiplatform_publishers_models_predict_long_running` for simplest API.
 
-pub fn aiplatform_publishers_models_predict_long_running_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_predict_long_running_builder<R>(
+    client: &SimpleHttpClient<R>,
     endpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}:predictLongRunning",
@@ -150874,10 +153500,13 @@ pub fn aiplatform_publishers_models_predict_long_running(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_publishers_models_stream_generate_content_execute()` to send, or `aiplatform_publishers_models_stream_generate_content` for simplest API.
 
-pub fn aiplatform_publishers_models_stream_generate_content_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_publishers_models_stream_generate_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     model: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/publishers/{}/models/{modelsId}:streamGenerateContent",
@@ -151041,10 +153670,13 @@ pub fn aiplatform_publishers_models_stream_generate_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_operations_cancel_execute()` to send, or `aiplatform_rag_corpora_operations_cancel` for simplest API.
 
-pub fn aiplatform_rag_corpora_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/operations/{operationsId}:cancel",
@@ -151202,10 +153834,13 @@ pub fn aiplatform_rag_corpora_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_operations_delete_execute()` to send, or `aiplatform_rag_corpora_operations_delete` for simplest API.
 
-pub fn aiplatform_rag_corpora_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/operations/{operationsId}",
@@ -151363,10 +153998,13 @@ pub fn aiplatform_rag_corpora_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_operations_get_execute()` to send, or `aiplatform_rag_corpora_operations_get` for simplest API.
 
-pub fn aiplatform_rag_corpora_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/operations/{operationsId}",
@@ -151528,14 +154166,17 @@ pub fn aiplatform_rag_corpora_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_operations_list_execute()` to send, or `aiplatform_rag_corpora_operations_list` for simplest API.
 
-pub fn aiplatform_rag_corpora_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/operations",
@@ -151733,11 +154374,14 @@ pub fn aiplatform_rag_corpora_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_operations_wait_execute()` to send, or `aiplatform_rag_corpora_operations_wait` for simplest API.
 
-pub fn aiplatform_rag_corpora_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/operations/{operationsId}:wait",
@@ -151913,10 +154557,13 @@ pub fn aiplatform_rag_corpora_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_rag_files_operations_cancel_execute()` to send, or `aiplatform_rag_corpora_rag_files_operations_cancel` for simplest API.
 
-pub fn aiplatform_rag_corpora_rag_files_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_rag_files_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/ragFiles/{ragFilesId}/operations/{operationsId}:cancel",
@@ -152074,10 +154721,13 @@ pub fn aiplatform_rag_corpora_rag_files_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_rag_files_operations_delete_execute()` to send, or `aiplatform_rag_corpora_rag_files_operations_delete` for simplest API.
 
-pub fn aiplatform_rag_corpora_rag_files_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_rag_files_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/ragFiles/{ragFilesId}/operations/{operationsId}",
@@ -152235,10 +154885,13 @@ pub fn aiplatform_rag_corpora_rag_files_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_rag_files_operations_get_execute()` to send, or `aiplatform_rag_corpora_rag_files_operations_get` for simplest API.
 
-pub fn aiplatform_rag_corpora_rag_files_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_rag_files_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/ragFiles/{ragFilesId}/operations/{operationsId}",
@@ -152400,14 +155053,17 @@ pub fn aiplatform_rag_corpora_rag_files_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_rag_files_operations_list_execute()` to send, or `aiplatform_rag_corpora_rag_files_operations_list` for simplest API.
 
-pub fn aiplatform_rag_corpora_rag_files_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_rag_files_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/ragFiles/{ragFilesId}/operations",
@@ -152605,11 +155261,14 @@ pub fn aiplatform_rag_corpora_rag_files_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_corpora_rag_files_operations_wait_execute()` to send, or `aiplatform_rag_corpora_rag_files_operations_wait` for simplest API.
 
-pub fn aiplatform_rag_corpora_rag_files_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_corpora_rag_files_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragCorpora/{}/ragFiles/{ragFilesId}/operations/{operationsId}:wait",
@@ -152788,10 +155447,13 @@ pub fn aiplatform_rag_corpora_rag_files_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_engine_config_operations_cancel_execute()` to send, or `aiplatform_rag_engine_config_operations_cancel` for simplest API.
 
-pub fn aiplatform_rag_engine_config_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_engine_config_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragEngineConfig/operations/{}:cancel",
@@ -152949,10 +155611,13 @@ pub fn aiplatform_rag_engine_config_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_engine_config_operations_delete_execute()` to send, or `aiplatform_rag_engine_config_operations_delete` for simplest API.
 
-pub fn aiplatform_rag_engine_config_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_engine_config_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragEngineConfig/operations/{}",
@@ -153110,10 +155775,13 @@ pub fn aiplatform_rag_engine_config_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_engine_config_operations_get_execute()` to send, or `aiplatform_rag_engine_config_operations_get` for simplest API.
 
-pub fn aiplatform_rag_engine_config_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_engine_config_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragEngineConfig/operations/{}",
@@ -153275,13 +155943,16 @@ pub fn aiplatform_rag_engine_config_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_engine_config_operations_list_execute()` to send, or `aiplatform_rag_engine_config_operations_list` for simplest API.
 
-pub fn aiplatform_rag_engine_config_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_engine_config_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/ragEngineConfig/operations",);
 
@@ -153473,11 +156144,14 @@ pub fn aiplatform_rag_engine_config_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_rag_engine_config_operations_wait_execute()` to send, or `aiplatform_rag_engine_config_operations_wait` for simplest API.
 
-pub fn aiplatform_rag_engine_config_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_rag_engine_config_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/ragEngineConfig/operations/{}:wait",
@@ -153653,10 +156327,13 @@ pub fn aiplatform_rag_engine_config_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_create_execute()` to send, or `aiplatform_reasoning_engines_create` for simplest API.
 
-pub fn aiplatform_reasoning_engines_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/reasoningEngines",);
 
@@ -153826,11 +156503,14 @@ pub fn aiplatform_reasoning_engines_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_delete_execute()` to send, or `aiplatform_reasoning_engines_delete` for simplest API.
 
-pub fn aiplatform_reasoning_engines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}",
@@ -154005,10 +156685,13 @@ pub fn aiplatform_reasoning_engines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_execute_code_execute()` to send, or `aiplatform_reasoning_engines_execute_code` for simplest API.
 
-pub fn aiplatform_reasoning_engines_execute_code_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_execute_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}:executeCode",
@@ -154171,10 +156854,13 @@ pub fn aiplatform_reasoning_engines_execute_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_get_execute()` to send, or `aiplatform_reasoning_engines_get` for simplest API.
 
-pub fn aiplatform_reasoning_engines_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}",
@@ -154336,13 +157022,16 @@ pub fn aiplatform_reasoning_engines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_list_execute()` to send, or `aiplatform_reasoning_engines_list` for simplest API.
 
-pub fn aiplatform_reasoning_engines_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/reasoningEngines",);
 
@@ -154537,11 +157226,14 @@ pub fn aiplatform_reasoning_engines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_patch_execute()` to send, or `aiplatform_reasoning_engines_patch` for simplest API.
 
-pub fn aiplatform_reasoning_engines_patch_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}",
@@ -154716,10 +157408,13 @@ pub fn aiplatform_reasoning_engines_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_query_execute()` to send, or `aiplatform_reasoning_engines_query` for simplest API.
 
-pub fn aiplatform_reasoning_engines_query_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}:query",
@@ -154885,10 +157580,13 @@ pub fn aiplatform_reasoning_engines_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_stream_query_execute()` to send, or `aiplatform_reasoning_engines_stream_query` for simplest API.
 
-pub fn aiplatform_reasoning_engines_stream_query_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_stream_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}:streamQuery",
@@ -155046,10 +157744,13 @@ pub fn aiplatform_reasoning_engines_stream_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_memories_operations_cancel_execute()` to send, or `aiplatform_reasoning_engines_memories_operations_cancel` for simplest API.
 
-pub fn aiplatform_reasoning_engines_memories_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_memories_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/memories/{memoriesId}/operations/{operationsId}:cancel",
@@ -155208,10 +157909,13 @@ pub fn aiplatform_reasoning_engines_memories_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_memories_operations_delete_execute()` to send, or `aiplatform_reasoning_engines_memories_operations_delete` for simplest API.
 
-pub fn aiplatform_reasoning_engines_memories_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_memories_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/memories/{memoriesId}/operations/{operationsId}",
@@ -155370,10 +158074,13 @@ pub fn aiplatform_reasoning_engines_memories_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_memories_operations_get_execute()` to send, or `aiplatform_reasoning_engines_memories_operations_get` for simplest API.
 
-pub fn aiplatform_reasoning_engines_memories_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_memories_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/memories/{memoriesId}/operations/{operationsId}",
@@ -155535,14 +158242,17 @@ pub fn aiplatform_reasoning_engines_memories_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_memories_operations_list_execute()` to send, or `aiplatform_reasoning_engines_memories_operations_list` for simplest API.
 
-pub fn aiplatform_reasoning_engines_memories_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_memories_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/memories/{memoriesId}/operations",
@@ -155740,11 +158450,14 @@ pub fn aiplatform_reasoning_engines_memories_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_memories_operations_wait_execute()` to send, or `aiplatform_reasoning_engines_memories_operations_wait` for simplest API.
 
-pub fn aiplatform_reasoning_engines_memories_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_memories_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/memories/{memoriesId}/operations/{operationsId}:wait",
@@ -155923,10 +158636,13 @@ pub fn aiplatform_reasoning_engines_memories_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_operations_cancel_execute()` to send, or `aiplatform_reasoning_engines_operations_cancel` for simplest API.
 
-pub fn aiplatform_reasoning_engines_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/operations/{operationsId}:cancel",
@@ -156084,10 +158800,13 @@ pub fn aiplatform_reasoning_engines_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_operations_delete_execute()` to send, or `aiplatform_reasoning_engines_operations_delete` for simplest API.
 
-pub fn aiplatform_reasoning_engines_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/operations/{operationsId}",
@@ -156245,10 +158964,13 @@ pub fn aiplatform_reasoning_engines_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_operations_get_execute()` to send, or `aiplatform_reasoning_engines_operations_get` for simplest API.
 
-pub fn aiplatform_reasoning_engines_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/operations/{operationsId}",
@@ -156410,14 +159132,17 @@ pub fn aiplatform_reasoning_engines_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_operations_list_execute()` to send, or `aiplatform_reasoning_engines_operations_list` for simplest API.
 
-pub fn aiplatform_reasoning_engines_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/operations",
@@ -156615,11 +159340,14 @@ pub fn aiplatform_reasoning_engines_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_operations_wait_execute()` to send, or `aiplatform_reasoning_engines_operations_wait` for simplest API.
 
-pub fn aiplatform_reasoning_engines_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/operations/{operationsId}:wait",
@@ -156795,10 +159523,13 @@ pub fn aiplatform_reasoning_engines_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_create_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_create` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_create_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments",
@@ -156961,10 +159692,13 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_delete_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_delete` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments/{sandboxEnvironmentsId}",
@@ -157127,10 +159861,13 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_execute_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_execute` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_execute_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_execute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments/{sandboxEnvironmentsId}:execute",
@@ -157303,10 +160040,13 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_execute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_get_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_get` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments/{sandboxEnvironmentsId}",
@@ -157469,13 +160209,16 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_list_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_list` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments",
@@ -157676,10 +160419,13 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_operations_cancel_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_operations_cancel` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}:cancel",
@@ -157839,10 +160585,13 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_operations_delete_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_operations_delete` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}",
@@ -158002,10 +160751,13 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_operations_get_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_operations_get` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}",
@@ -158169,11 +160921,14 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sandbox_environments_operations_wait_execute()` to send, or `aiplatform_reasoning_engines_sandbox_environments_operations_wait` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sandbox_environments_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sandbox_environments_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}:wait",
@@ -158352,10 +161107,13 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sessions_operations_cancel_execute()` to send, or `aiplatform_reasoning_engines_sessions_operations_cancel` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sessions_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sessions_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sessions/{sessionsId}/operations/{operationsId}:cancel",
@@ -158514,10 +161272,13 @@ pub fn aiplatform_reasoning_engines_sessions_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sessions_operations_delete_execute()` to send, or `aiplatform_reasoning_engines_sessions_operations_delete` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sessions_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sessions_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sessions/{sessionsId}/operations/{operationsId}",
@@ -158676,10 +161437,13 @@ pub fn aiplatform_reasoning_engines_sessions_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sessions_operations_get_execute()` to send, or `aiplatform_reasoning_engines_sessions_operations_get` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sessions_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sessions_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sessions/{sessionsId}/operations/{operationsId}",
@@ -158841,14 +161605,17 @@ pub fn aiplatform_reasoning_engines_sessions_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sessions_operations_list_execute()` to send, or `aiplatform_reasoning_engines_sessions_operations_list` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sessions_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sessions_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sessions/{sessionsId}/operations",
@@ -159046,11 +161813,14 @@ pub fn aiplatform_reasoning_engines_sessions_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_reasoning_engines_sessions_operations_wait_execute()` to send, or `aiplatform_reasoning_engines_sessions_operations_wait` for simplest API.
 
-pub fn aiplatform_reasoning_engines_sessions_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_reasoning_engines_sessions_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/reasoningEngines/{}/sessions/{sessionsId}/operations/{operationsId}:wait",
@@ -159229,10 +161999,13 @@ pub fn aiplatform_reasoning_engines_sessions_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_schedules_operations_cancel_execute()` to send, or `aiplatform_schedules_operations_cancel` for simplest API.
 
-pub fn aiplatform_schedules_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_schedules_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/schedules/{}/operations/{operationsId}:cancel",
@@ -159390,10 +162163,13 @@ pub fn aiplatform_schedules_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_schedules_operations_delete_execute()` to send, or `aiplatform_schedules_operations_delete` for simplest API.
 
-pub fn aiplatform_schedules_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_schedules_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/schedules/{}/operations/{operationsId}",
@@ -159551,10 +162327,13 @@ pub fn aiplatform_schedules_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_schedules_operations_get_execute()` to send, or `aiplatform_schedules_operations_get` for simplest API.
 
-pub fn aiplatform_schedules_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_schedules_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/schedules/{}/operations/{operationsId}",
@@ -159716,14 +162495,17 @@ pub fn aiplatform_schedules_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_schedules_operations_list_execute()` to send, or `aiplatform_schedules_operations_list` for simplest API.
 
-pub fn aiplatform_schedules_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_schedules_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/schedules/{}/operations",
@@ -159921,11 +162703,14 @@ pub fn aiplatform_schedules_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_schedules_operations_wait_execute()` to send, or `aiplatform_schedules_operations_wait` for simplest API.
 
-pub fn aiplatform_schedules_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_schedules_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/schedules/{}/operations/{operationsId}:wait",
@@ -160100,10 +162885,13 @@ pub fn aiplatform_schedules_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_specialist_pools_operations_cancel_execute()` to send, or `aiplatform_specialist_pools_operations_cancel` for simplest API.
 
-pub fn aiplatform_specialist_pools_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_specialist_pools_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/specialistPools/{}/operations/{operationsId}:cancel",
@@ -160261,10 +163049,13 @@ pub fn aiplatform_specialist_pools_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_specialist_pools_operations_delete_execute()` to send, or `aiplatform_specialist_pools_operations_delete` for simplest API.
 
-pub fn aiplatform_specialist_pools_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_specialist_pools_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/specialistPools/{}/operations/{operationsId}",
@@ -160422,10 +163213,13 @@ pub fn aiplatform_specialist_pools_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_specialist_pools_operations_get_execute()` to send, or `aiplatform_specialist_pools_operations_get` for simplest API.
 
-pub fn aiplatform_specialist_pools_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_specialist_pools_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/specialistPools/{}/operations/{operationsId}",
@@ -160587,14 +163381,17 @@ pub fn aiplatform_specialist_pools_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_specialist_pools_operations_list_execute()` to send, or `aiplatform_specialist_pools_operations_list` for simplest API.
 
-pub fn aiplatform_specialist_pools_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_specialist_pools_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/specialistPools/{}/operations",
@@ -160792,11 +163589,14 @@ pub fn aiplatform_specialist_pools_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_specialist_pools_operations_wait_execute()` to send, or `aiplatform_specialist_pools_operations_wait` for simplest API.
 
-pub fn aiplatform_specialist_pools_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_specialist_pools_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/specialistPools/{}/operations/{operationsId}:wait",
@@ -160972,10 +163772,13 @@ pub fn aiplatform_specialist_pools_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_operations_cancel_execute()` to send, or `aiplatform_studies_operations_cancel` for simplest API.
 
-pub fn aiplatform_studies_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/operations/{operationsId}:cancel",
@@ -161133,10 +163936,13 @@ pub fn aiplatform_studies_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_operations_delete_execute()` to send, or `aiplatform_studies_operations_delete` for simplest API.
 
-pub fn aiplatform_studies_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/operations/{operationsId}",
@@ -161294,10 +164100,13 @@ pub fn aiplatform_studies_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_operations_get_execute()` to send, or `aiplatform_studies_operations_get` for simplest API.
 
-pub fn aiplatform_studies_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/operations/{operationsId}",
@@ -161459,14 +164268,17 @@ pub fn aiplatform_studies_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_operations_list_execute()` to send, or `aiplatform_studies_operations_list` for simplest API.
 
-pub fn aiplatform_studies_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/operations",
@@ -161664,11 +164476,14 @@ pub fn aiplatform_studies_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_operations_wait_execute()` to send, or `aiplatform_studies_operations_wait` for simplest API.
 
-pub fn aiplatform_studies_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/operations/{operationsId}:wait",
@@ -161843,10 +164658,13 @@ pub fn aiplatform_studies_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_trials_operations_cancel_execute()` to send, or `aiplatform_studies_trials_operations_cancel` for simplest API.
 
-pub fn aiplatform_studies_trials_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_trials_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/trials/{trialsId}/operations/{operationsId}:cancel",
@@ -162004,10 +164822,13 @@ pub fn aiplatform_studies_trials_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_trials_operations_delete_execute()` to send, or `aiplatform_studies_trials_operations_delete` for simplest API.
 
-pub fn aiplatform_studies_trials_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_trials_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/trials/{trialsId}/operations/{operationsId}",
@@ -162165,10 +164986,13 @@ pub fn aiplatform_studies_trials_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_trials_operations_get_execute()` to send, or `aiplatform_studies_trials_operations_get` for simplest API.
 
-pub fn aiplatform_studies_trials_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_trials_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/trials/{trialsId}/operations/{operationsId}",
@@ -162330,14 +165154,17 @@ pub fn aiplatform_studies_trials_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_trials_operations_list_execute()` to send, or `aiplatform_studies_trials_operations_list` for simplest API.
 
-pub fn aiplatform_studies_trials_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_trials_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/trials/{trialsId}/operations",
@@ -162535,11 +165362,14 @@ pub fn aiplatform_studies_trials_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_studies_trials_operations_wait_execute()` to send, or `aiplatform_studies_trials_operations_wait` for simplest API.
 
-pub fn aiplatform_studies_trials_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_studies_trials_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/studies/{}/trials/{trialsId}/operations/{operationsId}:wait",
@@ -162715,10 +165545,13 @@ pub fn aiplatform_studies_trials_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_operations_cancel_execute()` to send, or `aiplatform_tensorboards_experiments_operations_cancel` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/operations/{operationsId}:cancel",
@@ -162877,10 +165710,13 @@ pub fn aiplatform_tensorboards_experiments_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_operations_delete_execute()` to send, or `aiplatform_tensorboards_experiments_operations_delete` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/operations/{operationsId}",
@@ -163039,10 +165875,13 @@ pub fn aiplatform_tensorboards_experiments_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_operations_get_execute()` to send, or `aiplatform_tensorboards_experiments_operations_get` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/operations/{operationsId}",
@@ -163204,14 +166043,17 @@ pub fn aiplatform_tensorboards_experiments_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_operations_list_execute()` to send, or `aiplatform_tensorboards_experiments_operations_list` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/operations",
@@ -163409,11 +166251,14 @@ pub fn aiplatform_tensorboards_experiments_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_operations_wait_execute()` to send, or `aiplatform_tensorboards_experiments_operations_wait` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/operations/{operationsId}:wait",
@@ -163592,10 +166437,13 @@ pub fn aiplatform_tensorboards_experiments_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_operations_cancel_execute()` to send, or `aiplatform_tensorboards_experiments_runs_operations_cancel` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}:cancel",
@@ -163754,10 +166602,13 @@ pub fn aiplatform_tensorboards_experiments_runs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_operations_delete_execute()` to send, or `aiplatform_tensorboards_experiments_runs_operations_delete` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}",
@@ -163916,10 +166767,13 @@ pub fn aiplatform_tensorboards_experiments_runs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_operations_get_execute()` to send, or `aiplatform_tensorboards_experiments_runs_operations_get` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}",
@@ -164082,14 +166936,17 @@ pub fn aiplatform_tensorboards_experiments_runs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_operations_list_execute()` to send, or `aiplatform_tensorboards_experiments_runs_operations_list` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/operations",
@@ -164287,11 +167144,14 @@ pub fn aiplatform_tensorboards_experiments_runs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_operations_wait_execute()` to send, or `aiplatform_tensorboards_experiments_runs_operations_wait` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}:wait",
@@ -164470,10 +167330,13 @@ pub fn aiplatform_tensorboards_experiments_runs_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_time_series_operations_cancel_execute()` to send, or `aiplatform_tensorboards_experiments_runs_time_series_operations_cancel` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}:cancel",
@@ -164634,10 +167497,13 @@ pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_time_series_operations_delete_execute()` to send, or `aiplatform_tensorboards_experiments_runs_time_series_operations_delete` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}",
@@ -164798,10 +167664,13 @@ pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_time_series_operations_get_execute()` to send, or `aiplatform_tensorboards_experiments_runs_time_series_operations_get` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}",
@@ -164965,14 +167834,17 @@ pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_time_series_operations_list_execute()` to send, or `aiplatform_tensorboards_experiments_runs_time_series_operations_list` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations",
@@ -165170,11 +168042,14 @@ pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_experiments_runs_time_series_operations_wait_execute()` to send, or `aiplatform_tensorboards_experiments_runs_time_series_operations_wait` for simplest API.
 
-pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}:wait",
@@ -165353,10 +168228,13 @@ pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_operations_cancel_execute()` to send, or `aiplatform_tensorboards_operations_cancel` for simplest API.
 
-pub fn aiplatform_tensorboards_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/operations/{operationsId}:cancel",
@@ -165514,10 +168392,13 @@ pub fn aiplatform_tensorboards_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_operations_delete_execute()` to send, or `aiplatform_tensorboards_operations_delete` for simplest API.
 
-pub fn aiplatform_tensorboards_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/operations/{operationsId}",
@@ -165675,10 +168556,13 @@ pub fn aiplatform_tensorboards_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_operations_get_execute()` to send, or `aiplatform_tensorboards_operations_get` for simplest API.
 
-pub fn aiplatform_tensorboards_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/operations/{operationsId}",
@@ -165840,14 +168724,17 @@ pub fn aiplatform_tensorboards_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_operations_list_execute()` to send, or `aiplatform_tensorboards_operations_list` for simplest API.
 
-pub fn aiplatform_tensorboards_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/operations",
@@ -166045,11 +168932,14 @@ pub fn aiplatform_tensorboards_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tensorboards_operations_wait_execute()` to send, or `aiplatform_tensorboards_operations_wait` for simplest API.
 
-pub fn aiplatform_tensorboards_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tensorboards_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tensorboards/{}/operations/{operationsId}:wait",
@@ -166225,10 +169115,13 @@ pub fn aiplatform_tensorboards_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_training_pipelines_operations_cancel_execute()` to send, or `aiplatform_training_pipelines_operations_cancel` for simplest API.
 
-pub fn aiplatform_training_pipelines_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_training_pipelines_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/trainingPipelines/{}/operations/{operationsId}:cancel",
@@ -166386,10 +169279,13 @@ pub fn aiplatform_training_pipelines_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_training_pipelines_operations_delete_execute()` to send, or `aiplatform_training_pipelines_operations_delete` for simplest API.
 
-pub fn aiplatform_training_pipelines_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_training_pipelines_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/trainingPipelines/{}/operations/{operationsId}",
@@ -166547,10 +169443,13 @@ pub fn aiplatform_training_pipelines_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_training_pipelines_operations_get_execute()` to send, or `aiplatform_training_pipelines_operations_get` for simplest API.
 
-pub fn aiplatform_training_pipelines_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_training_pipelines_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/trainingPipelines/{}/operations/{operationsId}",
@@ -166712,14 +169611,17 @@ pub fn aiplatform_training_pipelines_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_training_pipelines_operations_list_execute()` to send, or `aiplatform_training_pipelines_operations_list` for simplest API.
 
-pub fn aiplatform_training_pipelines_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_training_pipelines_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/trainingPipelines/{}/operations",
@@ -166917,11 +169819,14 @@ pub fn aiplatform_training_pipelines_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_training_pipelines_operations_wait_execute()` to send, or `aiplatform_training_pipelines_operations_wait` for simplest API.
 
-pub fn aiplatform_training_pipelines_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_training_pipelines_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/trainingPipelines/{}/operations/{operationsId}:wait",
@@ -167097,10 +170002,13 @@ pub fn aiplatform_training_pipelines_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tuning_jobs_operations_cancel_execute()` to send, or `aiplatform_tuning_jobs_operations_cancel` for simplest API.
 
-pub fn aiplatform_tuning_jobs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tuning_jobs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tuningJobs/{}/operations/{operationsId}:cancel",
@@ -167258,10 +170166,13 @@ pub fn aiplatform_tuning_jobs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tuning_jobs_operations_delete_execute()` to send, or `aiplatform_tuning_jobs_operations_delete` for simplest API.
 
-pub fn aiplatform_tuning_jobs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tuning_jobs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tuningJobs/{}/operations/{operationsId}",
@@ -167419,10 +170330,13 @@ pub fn aiplatform_tuning_jobs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tuning_jobs_operations_get_execute()` to send, or `aiplatform_tuning_jobs_operations_get` for simplest API.
 
-pub fn aiplatform_tuning_jobs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tuning_jobs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tuningJobs/{}/operations/{operationsId}",
@@ -167584,14 +170498,17 @@ pub fn aiplatform_tuning_jobs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_tuning_jobs_operations_list_execute()` to send, or `aiplatform_tuning_jobs_operations_list` for simplest API.
 
-pub fn aiplatform_tuning_jobs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn aiplatform_tuning_jobs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://aiplatform.googleapis.com/v1/tuningJobs/{}/operations",
@@ -167789,9 +170706,12 @@ pub fn aiplatform_tuning_jobs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_evaluate_dataset_execute()` to send, or `aiplatform_evaluate_dataset` for simplest API.
 
-pub fn aiplatform_evaluate_dataset_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn aiplatform_evaluate_dataset_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1:evaluateDataset",);
 
@@ -167942,9 +170862,12 @@ pub fn aiplatform_evaluate_dataset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_evaluate_instances_execute()` to send, or `aiplatform_evaluate_instances` for simplest API.
 
-pub fn aiplatform_evaluate_instances_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn aiplatform_evaluate_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1:evaluateInstances",);
 
@@ -168096,9 +171019,12 @@ pub fn aiplatform_evaluate_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `aiplatform_generate_instance_rubrics_execute()` to send, or `aiplatform_generate_instance_rubrics` for simplest API.
 
-pub fn aiplatform_generate_instance_rubrics_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn aiplatform_generate_instance_rubrics_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1:generateInstanceRubrics",);
 

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_detect_language_execute()` to send, or `translate_projects_detect_language` for simplest API.
 
-pub fn translate_projects_detect_language_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_detect_language_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}:detectLanguage",
@@ -187,12 +191,15 @@ pub fn translate_projects_detect_language(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_get_supported_languages_execute()` to send, or `translate_projects_get_supported_languages` for simplest API.
 
-pub fn translate_projects_get_supported_languages_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_get_supported_languages_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     displayLanguageCode: &Option<Option<String>>,
     model: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/supportedLanguages",
@@ -373,10 +380,13 @@ pub fn translate_projects_get_supported_languages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_romanize_text_execute()` to send, or `translate_projects_romanize_text` for simplest API.
 
-pub fn translate_projects_romanize_text_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_romanize_text_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}:romanizeText",
@@ -534,10 +544,13 @@ pub fn translate_projects_romanize_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_translate_text_execute()` to send, or `translate_projects_translate_text` for simplest API.
 
-pub fn translate_projects_translate_text_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_translate_text_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}:translateText",
@@ -695,10 +708,13 @@ pub fn translate_projects_translate_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_translate_execute()` to send, or `translate_projects_locations_adaptive_mt_translate` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_translate_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_translate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:adaptiveMtTranslate",
@@ -860,10 +876,13 @@ pub fn translate_projects_locations_adaptive_mt_translate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_batch_translate_document_execute()` to send, or `translate_projects_locations_batch_translate_document` for simplest API.
 
-pub fn translate_projects_locations_batch_translate_document_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_batch_translate_document_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:batchTranslateDocument",
@@ -1018,10 +1037,13 @@ pub fn translate_projects_locations_batch_translate_document(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_batch_translate_text_execute()` to send, or `translate_projects_locations_batch_translate_text` for simplest API.
 
-pub fn translate_projects_locations_batch_translate_text_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_batch_translate_text_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:batchTranslateText",
@@ -1175,10 +1197,13 @@ pub fn translate_projects_locations_batch_translate_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_detect_language_execute()` to send, or `translate_projects_locations_detect_language` for simplest API.
 
-pub fn translate_projects_locations_detect_language_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_detect_language_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:detectLanguage",
@@ -1336,10 +1361,13 @@ pub fn translate_projects_locations_detect_language(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_get_execute()` to send, or `translate_projects_locations_get` for simplest API.
 
-pub fn translate_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}",
@@ -1493,12 +1521,15 @@ pub fn translate_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_get_supported_languages_execute()` to send, or `translate_projects_locations_get_supported_languages` for simplest API.
 
-pub fn translate_projects_locations_get_supported_languages_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_get_supported_languages_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     displayLanguageCode: &Option<Option<String>>,
     model: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/supportedLanguages",
@@ -1679,14 +1710,17 @@ pub fn translate_projects_locations_get_supported_languages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_list_execute()` to send, or `translate_projects_locations_list` for simplest API.
 
-pub fn translate_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations",
@@ -1879,10 +1913,13 @@ pub fn translate_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_refine_text_execute()` to send, or `translate_projects_locations_refine_text` for simplest API.
 
-pub fn translate_projects_locations_refine_text_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_refine_text_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:refineText",
@@ -2040,10 +2077,13 @@ pub fn translate_projects_locations_refine_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_romanize_text_execute()` to send, or `translate_projects_locations_romanize_text` for simplest API.
 
-pub fn translate_projects_locations_romanize_text_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_romanize_text_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:romanizeText",
@@ -2201,10 +2241,13 @@ pub fn translate_projects_locations_romanize_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_translate_document_execute()` to send, or `translate_projects_locations_translate_document` for simplest API.
 
-pub fn translate_projects_locations_translate_document_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_translate_document_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:translateDocument",
@@ -2362,10 +2405,13 @@ pub fn translate_projects_locations_translate_document(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_translate_text_execute()` to send, or `translate_projects_locations_translate_text` for simplest API.
 
-pub fn translate_projects_locations_translate_text_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_translate_text_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:translateText",
@@ -2523,10 +2569,13 @@ pub fn translate_projects_locations_translate_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_create_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_create` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_create_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets",
@@ -2685,10 +2734,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_delete_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_delete` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}",
@@ -2843,10 +2895,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_get_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_get` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}",
@@ -3005,10 +3060,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}:importAdaptiveMtFile",
@@ -3175,13 +3233,16 @@ pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_list` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets",
@@ -3372,10 +3433,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}",
@@ -3533,10 +3597,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}",
@@ -3697,12 +3764,15 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles",
@@ -3888,12 +3958,17 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences",
@@ -4073,12 +4148,15 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adapt
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list` for simplest API.
 
-pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences",
@@ -4265,10 +4343,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_create_execute()` to send, or `translate_projects_locations_datasets_create` for simplest API.
 
-pub fn translate_projects_locations_datasets_create_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_datasets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets",
@@ -4422,10 +4503,13 @@ pub fn translate_projects_locations_datasets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_delete_execute()` to send, or `translate_projects_locations_datasets_delete` for simplest API.
 
-pub fn translate_projects_locations_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -4579,10 +4663,13 @@ pub fn translate_projects_locations_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_export_data_execute()` to send, or `translate_projects_locations_datasets_export_data` for simplest API.
 
-pub fn translate_projects_locations_datasets_export_data_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_datasets_export_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataset: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}:exportData",
@@ -4736,10 +4823,13 @@ pub fn translate_projects_locations_datasets_export_data(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_get_execute()` to send, or `translate_projects_locations_datasets_get` for simplest API.
 
-pub fn translate_projects_locations_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -4893,10 +4983,13 @@ pub fn translate_projects_locations_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_import_data_execute()` to send, or `translate_projects_locations_datasets_import_data` for simplest API.
 
-pub fn translate_projects_locations_datasets_import_data_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_datasets_import_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataset: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}:importData",
@@ -5050,12 +5143,15 @@ pub fn translate_projects_locations_datasets_import_data(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_list_execute()` to send, or `translate_projects_locations_datasets_list` for simplest API.
 
-pub fn translate_projects_locations_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets",
@@ -5236,13 +5332,16 @@ pub fn translate_projects_locations_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_examples_list_execute()` to send, or `translate_projects_locations_datasets_examples_list` for simplest API.
 
-pub fn translate_projects_locations_datasets_examples_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_datasets_examples_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}/examples",
@@ -5429,10 +5528,13 @@ pub fn translate_projects_locations_datasets_examples_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_create_execute()` to send, or `translate_projects_locations_glossaries_create` for simplest API.
 
-pub fn translate_projects_locations_glossaries_create_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries",
@@ -5586,10 +5688,13 @@ pub fn translate_projects_locations_glossaries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_delete_execute()` to send, or `translate_projects_locations_glossaries_delete` for simplest API.
 
-pub fn translate_projects_locations_glossaries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
@@ -5743,10 +5848,13 @@ pub fn translate_projects_locations_glossaries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_get_execute()` to send, or `translate_projects_locations_glossaries_get` for simplest API.
 
-pub fn translate_projects_locations_glossaries_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
@@ -5900,13 +6008,16 @@ pub fn translate_projects_locations_glossaries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_list_execute()` to send, or `translate_projects_locations_glossaries_list` for simplest API.
 
-pub fn translate_projects_locations_glossaries_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries",
@@ -6093,11 +6204,14 @@ pub fn translate_projects_locations_glossaries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_patch_execute()` to send, or `translate_projects_locations_glossaries_patch` for simplest API.
 
-pub fn translate_projects_locations_glossaries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
@@ -6268,10 +6382,13 @@ pub fn translate_projects_locations_glossaries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_glossary_entries_create_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_create` for simplest API.
 
-pub fn translate_projects_locations_glossaries_glossary_entries_create_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_glossary_entries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries",
@@ -6432,10 +6549,13 @@ pub fn translate_projects_locations_glossaries_glossary_entries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_glossary_entries_delete_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_delete` for simplest API.
 
-pub fn translate_projects_locations_glossaries_glossary_entries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_glossary_entries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}",
@@ -6591,10 +6711,13 @@ pub fn translate_projects_locations_glossaries_glossary_entries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_glossary_entries_get_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_get` for simplest API.
 
-pub fn translate_projects_locations_glossaries_glossary_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_glossary_entries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}",
@@ -6753,12 +6876,15 @@ pub fn translate_projects_locations_glossaries_glossary_entries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_glossary_entries_list_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_list` for simplest API.
 
-pub fn translate_projects_locations_glossaries_glossary_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_glossary_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries",
@@ -6943,10 +7069,13 @@ pub fn translate_projects_locations_glossaries_glossary_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_glossary_entries_patch_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_patch` for simplest API.
 
-pub fn translate_projects_locations_glossaries_glossary_entries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_glossaries_glossary_entries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}",
@@ -7105,10 +7234,13 @@ pub fn translate_projects_locations_glossaries_glossary_entries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_models_create_execute()` to send, or `translate_projects_locations_models_create` for simplest API.
 
-pub fn translate_projects_locations_models_create_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_models_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models",
@@ -7262,10 +7394,13 @@ pub fn translate_projects_locations_models_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_models_delete_execute()` to send, or `translate_projects_locations_models_delete` for simplest API.
 
-pub fn translate_projects_locations_models_delete_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_models_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models/{modelsId}",
@@ -7419,10 +7554,13 @@ pub fn translate_projects_locations_models_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_models_get_execute()` to send, or `translate_projects_locations_models_get` for simplest API.
 
-pub fn translate_projects_locations_models_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_models_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models/{modelsId}",
@@ -7576,13 +7714,16 @@ pub fn translate_projects_locations_models_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_models_list_execute()` to send, or `translate_projects_locations_models_list` for simplest API.
 
-pub fn translate_projects_locations_models_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_models_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models",
@@ -7769,10 +7910,13 @@ pub fn translate_projects_locations_models_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_cancel_execute()` to send, or `translate_projects_locations_operations_cancel` for simplest API.
 
-pub fn translate_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -7926,10 +8070,13 @@ pub fn translate_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_delete_execute()` to send, or `translate_projects_locations_operations_delete` for simplest API.
 
-pub fn translate_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -8083,10 +8230,13 @@ pub fn translate_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_get_execute()` to send, or `translate_projects_locations_operations_get` for simplest API.
 
-pub fn translate_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -8240,14 +8390,17 @@ pub fn translate_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_list_execute()` to send, or `translate_projects_locations_operations_list` for simplest API.
 
-pub fn translate_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations",
@@ -8440,10 +8593,13 @@ pub fn translate_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_wait_execute()` to send, or `translate_projects_locations_operations_wait` for simplest API.
 
-pub fn translate_projects_locations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn translate_projects_locations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}:wait",

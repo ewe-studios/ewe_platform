@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_get_execute()` to send, or `notebooks_projects_locations_get` for simplest API.
 
-pub fn notebooks_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn notebooks_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_list_execute()` to send, or `notebooks_projects_locations_list` for simplest API.
 
-pub fn notebooks_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn notebooks_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_check_authorization_execute()` to send, or `notebooks_projects_locations_instances_check_authorization` for simplest API.
 
-pub fn notebooks_projects_locations_instances_check_authorization_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_check_authorization_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:checkAuthorization",
@@ -549,10 +559,13 @@ pub fn notebooks_projects_locations_instances_check_authorization(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_check_upgradability_execute()` to send, or `notebooks_projects_locations_instances_check_upgradability` for simplest API.
 
-pub fn notebooks_projects_locations_instances_check_upgradability_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_check_upgradability_builder<R>(
+    client: &SimpleHttpClient<R>,
     notebookInstance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:checkUpgradability",
@@ -717,12 +730,15 @@ pub fn notebooks_projects_locations_instances_check_upgradability(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_create_execute()` to send, or `notebooks_projects_locations_instances_create` for simplest API.
 
-pub fn notebooks_projects_locations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances",
@@ -899,11 +915,14 @@ pub fn notebooks_projects_locations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_delete_execute()` to send, or `notebooks_projects_locations_instances_delete` for simplest API.
 
-pub fn notebooks_projects_locations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1071,10 +1090,13 @@ pub fn notebooks_projects_locations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_diagnose_execute()` to send, or `notebooks_projects_locations_instances_diagnose` for simplest API.
 
-pub fn notebooks_projects_locations_instances_diagnose_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_diagnose_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:diagnose",
@@ -1228,10 +1250,13 @@ pub fn notebooks_projects_locations_instances_diagnose(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_generate_access_token_execute()` to send, or `notebooks_projects_locations_instances_generate_access_token` for simplest API.
 
-pub fn notebooks_projects_locations_instances_generate_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_generate_access_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:generateAccessToken",
@@ -1394,10 +1419,13 @@ pub fn notebooks_projects_locations_instances_generate_access_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_get_execute()` to send, or `notebooks_projects_locations_instances_get` for simplest API.
 
-pub fn notebooks_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1551,10 +1579,13 @@ pub fn notebooks_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_get_config_execute()` to send, or `notebooks_projects_locations_instances_get_config` for simplest API.
 
-pub fn notebooks_projects_locations_instances_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances:getConfig",
@@ -1708,11 +1739,14 @@ pub fn notebooks_projects_locations_instances_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_get_iam_policy_execute()` to send, or `notebooks_projects_locations_instances_get_iam_policy` for simplest API.
 
-pub fn notebooks_projects_locations_instances_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:getIamPolicy",
@@ -1883,14 +1917,17 @@ pub fn notebooks_projects_locations_instances_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_list_execute()` to send, or `notebooks_projects_locations_instances_list` for simplest API.
 
-pub fn notebooks_projects_locations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances",
@@ -2083,12 +2120,15 @@ pub fn notebooks_projects_locations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_patch_execute()` to send, or `notebooks_projects_locations_instances_patch` for simplest API.
 
-pub fn notebooks_projects_locations_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -2265,10 +2305,13 @@ pub fn notebooks_projects_locations_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_report_info_system_execute()` to send, or `notebooks_projects_locations_instances_report_info_system` for simplest API.
 
-pub fn notebooks_projects_locations_instances_report_info_system_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_report_info_system_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:reportInfoSystem",
@@ -2423,10 +2466,13 @@ pub fn notebooks_projects_locations_instances_report_info_system(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_reset_execute()` to send, or `notebooks_projects_locations_instances_reset` for simplest API.
 
-pub fn notebooks_projects_locations_instances_reset_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:reset",
@@ -2580,10 +2626,13 @@ pub fn notebooks_projects_locations_instances_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_resize_disk_execute()` to send, or `notebooks_projects_locations_instances_resize_disk` for simplest API.
 
-pub fn notebooks_projects_locations_instances_resize_disk_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_resize_disk_builder<R>(
+    client: &SimpleHttpClient<R>,
     notebookInstance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:resizeDisk",
@@ -2738,10 +2787,13 @@ pub fn notebooks_projects_locations_instances_resize_disk(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_restore_execute()` to send, or `notebooks_projects_locations_instances_restore` for simplest API.
 
-pub fn notebooks_projects_locations_instances_restore_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:restore",
@@ -2895,10 +2947,13 @@ pub fn notebooks_projects_locations_instances_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_rollback_execute()` to send, or `notebooks_projects_locations_instances_rollback` for simplest API.
 
-pub fn notebooks_projects_locations_instances_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:rollback",
@@ -3052,10 +3107,13 @@ pub fn notebooks_projects_locations_instances_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_set_iam_policy_execute()` to send, or `notebooks_projects_locations_instances_set_iam_policy` for simplest API.
 
-pub fn notebooks_projects_locations_instances_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:setIamPolicy",
@@ -3210,10 +3268,13 @@ pub fn notebooks_projects_locations_instances_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_start_execute()` to send, or `notebooks_projects_locations_instances_start` for simplest API.
 
-pub fn notebooks_projects_locations_instances_start_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:start",
@@ -3367,10 +3428,13 @@ pub fn notebooks_projects_locations_instances_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_stop_execute()` to send, or `notebooks_projects_locations_instances_stop` for simplest API.
 
-pub fn notebooks_projects_locations_instances_stop_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:stop",
@@ -3524,10 +3588,13 @@ pub fn notebooks_projects_locations_instances_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_test_iam_permissions_execute()` to send, or `notebooks_projects_locations_instances_test_iam_permissions` for simplest API.
 
-pub fn notebooks_projects_locations_instances_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:testIamPermissions",
@@ -3692,10 +3759,13 @@ pub fn notebooks_projects_locations_instances_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_upgrade_execute()` to send, or `notebooks_projects_locations_instances_upgrade` for simplest API.
 
-pub fn notebooks_projects_locations_instances_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:upgrade",
@@ -3849,10 +3919,13 @@ pub fn notebooks_projects_locations_instances_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_instances_upgrade_system_execute()` to send, or `notebooks_projects_locations_instances_upgrade_system` for simplest API.
 
-pub fn notebooks_projects_locations_instances_upgrade_system_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_instances_upgrade_system_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:upgradeSystem",
@@ -4007,10 +4080,13 @@ pub fn notebooks_projects_locations_instances_upgrade_system(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_operations_cancel_execute()` to send, or `notebooks_projects_locations_operations_cancel` for simplest API.
 
-pub fn notebooks_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -4164,10 +4240,13 @@ pub fn notebooks_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_operations_delete_execute()` to send, or `notebooks_projects_locations_operations_delete` for simplest API.
 
-pub fn notebooks_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4321,10 +4400,13 @@ pub fn notebooks_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_operations_get_execute()` to send, or `notebooks_projects_locations_operations_get` for simplest API.
 
-pub fn notebooks_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4478,14 +4560,17 @@ pub fn notebooks_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `notebooks_projects_locations_operations_list_execute()` to send, or `notebooks_projects_locations_operations_list` for simplest API.
 
-pub fn notebooks_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn notebooks_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",

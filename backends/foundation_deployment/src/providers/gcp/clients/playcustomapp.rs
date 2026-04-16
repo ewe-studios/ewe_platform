@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playcustomapp_accounts_custom_apps_create_execute()` to send, or `playcustomapp_accounts_custom_apps_create` for simplest API.
 
-pub fn playcustomapp_accounts_custom_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn playcustomapp_accounts_custom_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     account: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playcustomapp.googleapis.com/playcustomapp/v1/accounts/{}/customApps",

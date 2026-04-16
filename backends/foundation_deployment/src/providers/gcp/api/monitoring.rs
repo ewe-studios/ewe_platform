@@ -157,7 +157,7 @@ use crate::providers::gcp::clients::monitoring::MonitoringServicesServiceLevelOb
 use crate::providers::gcp::clients::monitoring::MonitoringUptimeCheckIpsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -166,34 +166,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = MonitoringProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = MonitoringProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct MonitoringProvider<S>
+pub struct MonitoringProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> MonitoringProvider<S>
+impl<S, R> MonitoringProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new MonitoringProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new MonitoringProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Monitoring folders time series list.
@@ -225,20 +235,20 @@ where
         let builder = monitoring_folders_time_series_list_builder(
             &self.http_client,
             &args.name,
-            &args.aggregation.alignmentPeriod,
-            &args.aggregation.crossSeriesReducer,
-            &args.aggregation.groupByFields,
-            &args.aggregation.perSeriesAligner,
+            &args.aggregation_alignmentPeriod,
+            &args.aggregation_crossSeriesReducer,
+            &args.aggregation_groupByFields,
+            &args.aggregation_perSeriesAligner,
             &args.filter,
-            &args.interval.endTime,
-            &args.interval.startTime,
+            &args.interval_endTime,
+            &args.interval_startTime,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
-            &args.secondaryAggregation.alignmentPeriod,
-            &args.secondaryAggregation.crossSeriesReducer,
-            &args.secondaryAggregation.groupByFields,
-            &args.secondaryAggregation.perSeriesAligner,
+            &args.secondaryAggregation_alignmentPeriod,
+            &args.secondaryAggregation_crossSeriesReducer,
+            &args.secondaryAggregation_groupByFields,
+            &args.secondaryAggregation_perSeriesAligner,
             &args.view,
         )
         .map_err(ProviderError::Api)?;
@@ -278,20 +288,20 @@ where
         let builder = monitoring_organizations_time_series_list_builder(
             &self.http_client,
             &args.name,
-            &args.aggregation.alignmentPeriod,
-            &args.aggregation.crossSeriesReducer,
-            &args.aggregation.groupByFields,
-            &args.aggregation.perSeriesAligner,
+            &args.aggregation_alignmentPeriod,
+            &args.aggregation_crossSeriesReducer,
+            &args.aggregation_groupByFields,
+            &args.aggregation_perSeriesAligner,
             &args.filter,
-            &args.interval.endTime,
-            &args.interval.startTime,
+            &args.interval_endTime,
+            &args.interval_startTime,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
-            &args.secondaryAggregation.alignmentPeriod,
-            &args.secondaryAggregation.crossSeriesReducer,
-            &args.secondaryAggregation.groupByFields,
-            &args.secondaryAggregation.perSeriesAligner,
+            &args.secondaryAggregation_alignmentPeriod,
+            &args.secondaryAggregation_crossSeriesReducer,
+            &args.secondaryAggregation_groupByFields,
+            &args.secondaryAggregation_perSeriesAligner,
             &args.view,
         )
         .map_err(ProviderError::Api)?;
@@ -878,8 +888,8 @@ where
             &self.http_client,
             &args.name,
             &args.filter,
-            &args.interval.endTime,
-            &args.interval.startTime,
+            &args.interval_endTime,
+            &args.interval_startTime,
             &args.pageSize,
             &args.pageToken,
         )
@@ -1830,20 +1840,20 @@ where
         let builder = monitoring_projects_time_series_list_builder(
             &self.http_client,
             &args.name,
-            &args.aggregation.alignmentPeriod,
-            &args.aggregation.crossSeriesReducer,
-            &args.aggregation.groupByFields,
-            &args.aggregation.perSeriesAligner,
+            &args.aggregation_alignmentPeriod,
+            &args.aggregation_crossSeriesReducer,
+            &args.aggregation_groupByFields,
+            &args.aggregation_perSeriesAligner,
             &args.filter,
-            &args.interval.endTime,
-            &args.interval.startTime,
+            &args.interval_endTime,
+            &args.interval_startTime,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
-            &args.secondaryAggregation.alignmentPeriod,
-            &args.secondaryAggregation.crossSeriesReducer,
-            &args.secondaryAggregation.groupByFields,
-            &args.secondaryAggregation.perSeriesAligner,
+            &args.secondaryAggregation_alignmentPeriod,
+            &args.secondaryAggregation_crossSeriesReducer,
+            &args.secondaryAggregation_groupByFields,
+            &args.secondaryAggregation_perSeriesAligner,
             &args.view,
         )
         .map_err(ProviderError::Api)?;

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_locations_workforce_pools_get_allowed_locations_execute()` to send, or `iamcredentials_locations_workforce_pools_get_allowed_locations` for simplest API.
 
-pub fn iamcredentials_locations_workforce_pools_get_allowed_locations_builder(
-    client: &SimpleHttpClient,
+pub fn iamcredentials_locations_workforce_pools_get_allowed_locations_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iamcredentials.googleapis.com/v1/locations/{}/workforcePools/{workforcePoolsId}/allowedLocations",
@@ -192,10 +196,13 @@ pub fn iamcredentials_locations_workforce_pools_get_allowed_locations(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_execute()` to send, or `iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations` for simplest API.
 
-pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_builder(
-    client: &SimpleHttpClient,
+pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iamcredentials.googleapis.com/v1/projects/{}/locations/{locationsId}/workloadIdentityPools/{workloadIdentityPoolsId}/allowedLocations",
@@ -363,10 +370,13 @@ pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_loc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_service_accounts_generate_access_token_execute()` to send, or `iamcredentials_projects_service_accounts_generate_access_token` for simplest API.
 
-pub fn iamcredentials_projects_service_accounts_generate_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn iamcredentials_projects_service_accounts_generate_access_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iamcredentials.googleapis.com/v1/projects/{}/serviceAccounts/{serviceAccountsId}:generateAccessToken",
@@ -529,10 +539,13 @@ pub fn iamcredentials_projects_service_accounts_generate_access_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_service_accounts_generate_id_token_execute()` to send, or `iamcredentials_projects_service_accounts_generate_id_token` for simplest API.
 
-pub fn iamcredentials_projects_service_accounts_generate_id_token_builder(
-    client: &SimpleHttpClient,
+pub fn iamcredentials_projects_service_accounts_generate_id_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iamcredentials.googleapis.com/v1/projects/{}/serviceAccounts/{serviceAccountsId}:generateIdToken",
@@ -691,10 +704,13 @@ pub fn iamcredentials_projects_service_accounts_generate_id_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_service_accounts_get_allowed_locations_execute()` to send, or `iamcredentials_projects_service_accounts_get_allowed_locations` for simplest API.
 
-pub fn iamcredentials_projects_service_accounts_get_allowed_locations_builder(
-    client: &SimpleHttpClient,
+pub fn iamcredentials_projects_service_accounts_get_allowed_locations_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iamcredentials.googleapis.com/v1/projects/{}/serviceAccounts/{serviceAccountsId}/allowedLocations",
@@ -857,10 +873,13 @@ pub fn iamcredentials_projects_service_accounts_get_allowed_locations(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_service_accounts_sign_blob_execute()` to send, or `iamcredentials_projects_service_accounts_sign_blob` for simplest API.
 
-pub fn iamcredentials_projects_service_accounts_sign_blob_builder(
-    client: &SimpleHttpClient,
+pub fn iamcredentials_projects_service_accounts_sign_blob_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iamcredentials.googleapis.com/v1/projects/{}/serviceAccounts/{serviceAccountsId}:signBlob",
@@ -1018,10 +1037,13 @@ pub fn iamcredentials_projects_service_accounts_sign_blob(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_service_accounts_sign_jwt_execute()` to send, or `iamcredentials_projects_service_accounts_sign_jwt` for simplest API.
 
-pub fn iamcredentials_projects_service_accounts_sign_jwt_builder(
-    client: &SimpleHttpClient,
+pub fn iamcredentials_projects_service_accounts_sign_jwt_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://iamcredentials.googleapis.com/v1/projects/{}/serviceAccounts/{serviceAccountsId}:signJwt",

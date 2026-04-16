@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_detach_service_project_attachment_execute()` to send, or `apphub_projects_locations_detach_service_project_attachment` for simplest API.
 
-pub fn apphub_projects_locations_detach_service_project_attachment_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_detach_service_project_attachment_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}:detachServiceProjectAttachment",
@@ -192,10 +196,13 @@ pub fn apphub_projects_locations_detach_service_project_attachment(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_get_execute()` to send, or `apphub_projects_locations_get` for simplest API.
 
-pub fn apphub_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -349,10 +356,13 @@ pub fn apphub_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_get_boundary_execute()` to send, or `apphub_projects_locations_get_boundary` for simplest API.
 
-pub fn apphub_projects_locations_get_boundary_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_get_boundary_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/boundary",
@@ -506,14 +516,17 @@ pub fn apphub_projects_locations_get_boundary(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_list_execute()` to send, or `apphub_projects_locations_list` for simplest API.
 
-pub fn apphub_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations",
@@ -706,10 +719,13 @@ pub fn apphub_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_lookup_service_project_attachment_execute()` to send, or `apphub_projects_locations_lookup_service_project_attachment` for simplest API.
 
-pub fn apphub_projects_locations_lookup_service_project_attachment_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_lookup_service_project_attachment_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}:lookupServiceProjectAttachment",
@@ -872,12 +888,15 @@ pub fn apphub_projects_locations_lookup_service_project_attachment(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_update_boundary_execute()` to send, or `apphub_projects_locations_update_boundary` for simplest API.
 
-pub fn apphub_projects_locations_update_boundary_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_update_boundary_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/boundary",
@@ -1054,12 +1073,15 @@ pub fn apphub_projects_locations_update_boundary(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_create_execute()` to send, or `apphub_projects_locations_applications_create` for simplest API.
 
-pub fn apphub_projects_locations_applications_create_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     applicationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications",
@@ -1236,11 +1258,14 @@ pub fn apphub_projects_locations_applications_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_delete_execute()` to send, or `apphub_projects_locations_applications_delete` for simplest API.
 
-pub fn apphub_projects_locations_applications_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}",
@@ -1408,10 +1433,13 @@ pub fn apphub_projects_locations_applications_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_get_execute()` to send, or `apphub_projects_locations_applications_get` for simplest API.
 
-pub fn apphub_projects_locations_applications_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}",
@@ -1565,11 +1593,14 @@ pub fn apphub_projects_locations_applications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_get_iam_policy_execute()` to send, or `apphub_projects_locations_applications_get_iam_policy` for simplest API.
 
-pub fn apphub_projects_locations_applications_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}:getIamPolicy",
@@ -1740,14 +1771,17 @@ pub fn apphub_projects_locations_applications_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_list_execute()` to send, or `apphub_projects_locations_applications_list` for simplest API.
 
-pub fn apphub_projects_locations_applications_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications",
@@ -1940,12 +1974,15 @@ pub fn apphub_projects_locations_applications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_patch_execute()` to send, or `apphub_projects_locations_applications_patch` for simplest API.
 
-pub fn apphub_projects_locations_applications_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}",
@@ -2122,10 +2159,13 @@ pub fn apphub_projects_locations_applications_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_set_iam_policy_execute()` to send, or `apphub_projects_locations_applications_set_iam_policy` for simplest API.
 
-pub fn apphub_projects_locations_applications_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}:setIamPolicy",
@@ -2280,10 +2320,13 @@ pub fn apphub_projects_locations_applications_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_test_iam_permissions_execute()` to send, or `apphub_projects_locations_applications_test_iam_permissions` for simplest API.
 
-pub fn apphub_projects_locations_applications_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}:testIamPermissions",
@@ -2448,12 +2491,15 @@ pub fn apphub_projects_locations_applications_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_services_create_execute()` to send, or `apphub_projects_locations_applications_services_create` for simplest API.
 
-pub fn apphub_projects_locations_applications_services_create_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     serviceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/services",
@@ -2630,11 +2676,14 @@ pub fn apphub_projects_locations_applications_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_services_delete_execute()` to send, or `apphub_projects_locations_applications_services_delete` for simplest API.
 
-pub fn apphub_projects_locations_applications_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}",
@@ -2805,10 +2854,13 @@ pub fn apphub_projects_locations_applications_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_services_get_execute()` to send, or `apphub_projects_locations_applications_services_get` for simplest API.
 
-pub fn apphub_projects_locations_applications_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}",
@@ -2962,14 +3014,17 @@ pub fn apphub_projects_locations_applications_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_services_list_execute()` to send, or `apphub_projects_locations_applications_services_list` for simplest API.
 
-pub fn apphub_projects_locations_applications_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/services",
@@ -3162,12 +3217,15 @@ pub fn apphub_projects_locations_applications_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_services_patch_execute()` to send, or `apphub_projects_locations_applications_services_patch` for simplest API.
 
-pub fn apphub_projects_locations_applications_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}",
@@ -3344,12 +3402,15 @@ pub fn apphub_projects_locations_applications_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_workloads_create_execute()` to send, or `apphub_projects_locations_applications_workloads_create` for simplest API.
 
-pub fn apphub_projects_locations_applications_workloads_create_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_workloads_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     workloadId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/workloads",
@@ -3526,11 +3587,14 @@ pub fn apphub_projects_locations_applications_workloads_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_workloads_delete_execute()` to send, or `apphub_projects_locations_applications_workloads_delete` for simplest API.
 
-pub fn apphub_projects_locations_applications_workloads_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_workloads_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}",
@@ -3701,10 +3765,13 @@ pub fn apphub_projects_locations_applications_workloads_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_workloads_get_execute()` to send, or `apphub_projects_locations_applications_workloads_get` for simplest API.
 
-pub fn apphub_projects_locations_applications_workloads_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_workloads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}",
@@ -3858,14 +3925,17 @@ pub fn apphub_projects_locations_applications_workloads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_workloads_list_execute()` to send, or `apphub_projects_locations_applications_workloads_list` for simplest API.
 
-pub fn apphub_projects_locations_applications_workloads_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_workloads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/workloads",
@@ -4058,12 +4128,15 @@ pub fn apphub_projects_locations_applications_workloads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_applications_workloads_patch_execute()` to send, or `apphub_projects_locations_applications_workloads_patch` for simplest API.
 
-pub fn apphub_projects_locations_applications_workloads_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_applications_workloads_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}",
@@ -4240,10 +4313,13 @@ pub fn apphub_projects_locations_applications_workloads_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_discovered_services_get_execute()` to send, or `apphub_projects_locations_discovered_services_get` for simplest API.
 
-pub fn apphub_projects_locations_discovered_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_discovered_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredServices/{discoveredServicesId}",
@@ -4401,14 +4477,17 @@ pub fn apphub_projects_locations_discovered_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_discovered_services_list_execute()` to send, or `apphub_projects_locations_discovered_services_list` for simplest API.
 
-pub fn apphub_projects_locations_discovered_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_discovered_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredServices",
@@ -4605,11 +4684,14 @@ pub fn apphub_projects_locations_discovered_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_discovered_services_lookup_execute()` to send, or `apphub_projects_locations_discovered_services_lookup` for simplest API.
 
-pub fn apphub_projects_locations_discovered_services_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_discovered_services_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     uri: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredServices:lookup",
@@ -4788,10 +4870,13 @@ pub fn apphub_projects_locations_discovered_services_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_discovered_workloads_get_execute()` to send, or `apphub_projects_locations_discovered_workloads_get` for simplest API.
 
-pub fn apphub_projects_locations_discovered_workloads_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_discovered_workloads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredWorkloads/{discoveredWorkloadsId}",
@@ -4949,14 +5034,17 @@ pub fn apphub_projects_locations_discovered_workloads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_discovered_workloads_list_execute()` to send, or `apphub_projects_locations_discovered_workloads_list` for simplest API.
 
-pub fn apphub_projects_locations_discovered_workloads_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_discovered_workloads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredWorkloads",
@@ -5153,11 +5241,14 @@ pub fn apphub_projects_locations_discovered_workloads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_discovered_workloads_lookup_execute()` to send, or `apphub_projects_locations_discovered_workloads_lookup` for simplest API.
 
-pub fn apphub_projects_locations_discovered_workloads_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_discovered_workloads_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     uri: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredWorkloads:lookup",
@@ -5336,10 +5427,13 @@ pub fn apphub_projects_locations_discovered_workloads_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_extended_metadata_schemas_get_execute()` to send, or `apphub_projects_locations_extended_metadata_schemas_get` for simplest API.
 
-pub fn apphub_projects_locations_extended_metadata_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_extended_metadata_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/extendedMetadataSchemas/{extendedMetadataSchemasId}",
@@ -5498,12 +5592,15 @@ pub fn apphub_projects_locations_extended_metadata_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_extended_metadata_schemas_list_execute()` to send, or `apphub_projects_locations_extended_metadata_schemas_list` for simplest API.
 
-pub fn apphub_projects_locations_extended_metadata_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_extended_metadata_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/extendedMetadataSchemas",
@@ -5688,10 +5785,13 @@ pub fn apphub_projects_locations_extended_metadata_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_operations_cancel_execute()` to send, or `apphub_projects_locations_operations_cancel` for simplest API.
 
-pub fn apphub_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -5845,10 +5945,13 @@ pub fn apphub_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_operations_delete_execute()` to send, or `apphub_projects_locations_operations_delete` for simplest API.
 
-pub fn apphub_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6002,10 +6105,13 @@ pub fn apphub_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_operations_get_execute()` to send, or `apphub_projects_locations_operations_get` for simplest API.
 
-pub fn apphub_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6159,14 +6265,17 @@ pub fn apphub_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_operations_list_execute()` to send, or `apphub_projects_locations_operations_list` for simplest API.
 
-pub fn apphub_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6359,12 +6468,15 @@ pub fn apphub_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_service_project_attachments_create_execute()` to send, or `apphub_projects_locations_service_project_attachments_create` for simplest API.
 
-pub fn apphub_projects_locations_service_project_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_service_project_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     serviceProjectAttachmentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceProjectAttachments",
@@ -6541,11 +6653,14 @@ pub fn apphub_projects_locations_service_project_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_service_project_attachments_delete_execute()` to send, or `apphub_projects_locations_service_project_attachments_delete` for simplest API.
 
-pub fn apphub_projects_locations_service_project_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_service_project_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceProjectAttachments/{serviceProjectAttachmentsId}",
@@ -6716,10 +6831,13 @@ pub fn apphub_projects_locations_service_project_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_service_project_attachments_get_execute()` to send, or `apphub_projects_locations_service_project_attachments_get` for simplest API.
 
-pub fn apphub_projects_locations_service_project_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_service_project_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceProjectAttachments/{serviceProjectAttachmentsId}",
@@ -6878,14 +6996,17 @@ pub fn apphub_projects_locations_service_project_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apphub_projects_locations_service_project_attachments_list_execute()` to send, or `apphub_projects_locations_service_project_attachments_list` for simplest API.
 
-pub fn apphub_projects_locations_service_project_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apphub_projects_locations_service_project_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apphub.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceProjectAttachments",

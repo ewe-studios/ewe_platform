@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_searchanalytics_query_execute()` to send, or `webmasters_searchanalytics_query` for simplest API.
 
-pub fn webmasters_searchanalytics_query_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_searchanalytics_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/searchAnalytics/query",
@@ -191,11 +195,14 @@ pub fn webmasters_searchanalytics_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sitemaps_delete_execute()` to send, or `webmasters_sitemaps_delete` for simplest API.
 
-pub fn webmasters_sitemaps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_sitemaps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
     feedpath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps/{}",
@@ -348,11 +355,14 @@ pub fn webmasters_sitemaps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sitemaps_get_execute()` to send, or `webmasters_sitemaps_get` for simplest API.
 
-pub fn webmasters_sitemaps_get_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_sitemaps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
     feedpath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps/{}",
@@ -508,11 +518,14 @@ pub fn webmasters_sitemaps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sitemaps_list_execute()` to send, or `webmasters_sitemaps_list` for simplest API.
 
-pub fn webmasters_sitemaps_list_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_sitemaps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
     sitemapIndex: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps",
@@ -683,11 +696,14 @@ pub fn webmasters_sitemaps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sitemaps_submit_execute()` to send, or `webmasters_sitemaps_submit` for simplest API.
 
-pub fn webmasters_sitemaps_submit_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_sitemaps_submit_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
     feedpath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps/{}",
@@ -840,10 +856,13 @@ pub fn webmasters_sitemaps_submit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sites_add_execute()` to send, or `webmasters_sites_add` for simplest API.
 
-pub fn webmasters_sites_add_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_sites_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}",
@@ -994,10 +1013,13 @@ pub fn webmasters_sites_add(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sites_delete_execute()` to send, or `webmasters_sites_delete` for simplest API.
 
-pub fn webmasters_sites_delete_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_sites_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}",
@@ -1148,10 +1170,13 @@ pub fn webmasters_sites_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sites_get_execute()` to send, or `webmasters_sites_get` for simplest API.
 
-pub fn webmasters_sites_get_builder(
-    client: &SimpleHttpClient,
+pub fn webmasters_sites_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     siteUrl: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}",
@@ -1305,9 +1330,12 @@ pub fn webmasters_sites_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sites_list_execute()` to send, or `webmasters_sites_list` for simplest API.
 
-pub fn webmasters_sites_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn webmasters_sites_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://searchconsole.googleapis.com/webmasters/v3/sites",);
 
@@ -1454,9 +1482,12 @@ pub fn webmasters_sites_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchconsole_url_inspection_index_inspect_execute()` to send, or `searchconsole_url_inspection_index_inspect` for simplest API.
 
-pub fn searchconsole_url_inspection_index_inspect_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn searchconsole_url_inspection_index_inspect_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://searchconsole.googleapis.com/v1/urlInspection/index:inspect",);
@@ -1604,9 +1635,12 @@ pub fn searchconsole_url_inspection_index_inspect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchconsole_url_testing_tools_mobile_friendly_test_run_execute()` to send, or `searchconsole_url_testing_tools_mobile_friendly_test_run` for simplest API.
 
-pub fn searchconsole_url_testing_tools_mobile_friendly_test_run_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn searchconsole_url_testing_tools_mobile_friendly_test_run_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://searchconsole.googleapis.com/v1/urlTestingTools/mobileFriendlyTest:run",);

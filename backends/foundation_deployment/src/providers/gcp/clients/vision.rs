@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_files_annotate_execute()` to send, or `vision_files_annotate` for simplest API.
 
-pub fn vision_files_annotate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn vision_files_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/files:annotate",);
 
@@ -179,9 +183,12 @@ pub fn vision_files_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_files_async_batch_annotate_execute()` to send, or `vision_files_async_batch_annotate` for simplest API.
 
-pub fn vision_files_async_batch_annotate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn vision_files_async_batch_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/files:asyncBatchAnnotate",);
 
@@ -324,9 +331,12 @@ pub fn vision_files_async_batch_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_images_annotate_execute()` to send, or `vision_images_annotate` for simplest API.
 
-pub fn vision_images_annotate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn vision_images_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/images:annotate",);
 
@@ -477,9 +487,12 @@ pub fn vision_images_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_images_async_batch_annotate_execute()` to send, or `vision_images_async_batch_annotate` for simplest API.
 
-pub fn vision_images_async_batch_annotate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn vision_images_async_batch_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/images:asyncBatchAnnotate",);
 
@@ -622,10 +635,13 @@ pub fn vision_images_async_batch_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_locations_operations_get_execute()` to send, or `vision_locations_operations_get` for simplest API.
 
-pub fn vision_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vision_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/locations/{}/operations/{operationsId}",
@@ -779,10 +795,13 @@ pub fn vision_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_operations_cancel_execute()` to send, or `vision_operations_cancel` for simplest API.
 
-pub fn vision_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn vision_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/operations/{}:cancel",
@@ -936,10 +955,13 @@ pub fn vision_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_operations_delete_execute()` to send, or `vision_operations_delete` for simplest API.
 
-pub fn vision_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vision_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/operations/{}", name,);
 
@@ -1090,10 +1112,13 @@ pub fn vision_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_operations_get_execute()` to send, or `vision_operations_get` for simplest API.
 
-pub fn vision_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vision_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/operations/{}", name,);
 
@@ -1244,13 +1269,16 @@ pub fn vision_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_operations_list_execute()` to send, or `vision_operations_list` for simplest API.
 
-pub fn vision_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vision_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/operations",);
 
@@ -1437,10 +1465,13 @@ pub fn vision_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_files_annotate_execute()` to send, or `vision_projects_files_annotate` for simplest API.
 
-pub fn vision_projects_files_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_files_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/files:annotate",
@@ -1602,10 +1633,13 @@ pub fn vision_projects_files_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_files_async_batch_annotate_execute()` to send, or `vision_projects_files_async_batch_annotate` for simplest API.
 
-pub fn vision_projects_files_async_batch_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_files_async_batch_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/files:asyncBatchAnnotate",
@@ -1759,10 +1793,13 @@ pub fn vision_projects_files_async_batch_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_images_annotate_execute()` to send, or `vision_projects_images_annotate` for simplest API.
 
-pub fn vision_projects_images_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_images_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/images:annotate",
@@ -1924,10 +1961,13 @@ pub fn vision_projects_images_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_images_async_batch_annotate_execute()` to send, or `vision_projects_images_async_batch_annotate` for simplest API.
 
-pub fn vision_projects_images_async_batch_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_images_async_batch_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/images:asyncBatchAnnotate",
@@ -2081,10 +2121,13 @@ pub fn vision_projects_images_async_batch_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_files_annotate_execute()` to send, or `vision_projects_locations_files_annotate` for simplest API.
 
-pub fn vision_projects_locations_files_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_files_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/files:annotate",
@@ -2246,10 +2289,13 @@ pub fn vision_projects_locations_files_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_files_async_batch_annotate_execute()` to send, or `vision_projects_locations_files_async_batch_annotate` for simplest API.
 
-pub fn vision_projects_locations_files_async_batch_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_files_async_batch_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/files:asyncBatchAnnotate",
@@ -2404,10 +2450,13 @@ pub fn vision_projects_locations_files_async_batch_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_images_annotate_execute()` to send, or `vision_projects_locations_images_annotate` for simplest API.
 
-pub fn vision_projects_locations_images_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_images_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/images:annotate",
@@ -2569,10 +2618,13 @@ pub fn vision_projects_locations_images_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_images_async_batch_annotate_execute()` to send, or `vision_projects_locations_images_async_batch_annotate` for simplest API.
 
-pub fn vision_projects_locations_images_async_batch_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_images_async_batch_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/images:asyncBatchAnnotate",
@@ -2727,10 +2779,13 @@ pub fn vision_projects_locations_images_async_batch_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_operations_get_execute()` to send, or `vision_projects_locations_operations_get` for simplest API.
 
-pub fn vision_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2884,10 +2939,13 @@ pub fn vision_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_add_product_execute()` to send, or `vision_projects_locations_product_sets_add_product` for simplest API.
 
-pub fn vision_projects_locations_product_sets_add_product_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_add_product_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}:addProduct",
@@ -3041,11 +3099,14 @@ pub fn vision_projects_locations_product_sets_add_product(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_create_execute()` to send, or `vision_projects_locations_product_sets_create` for simplest API.
 
-pub fn vision_projects_locations_product_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     productSetId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets",
@@ -3216,10 +3277,13 @@ pub fn vision_projects_locations_product_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_delete_execute()` to send, or `vision_projects_locations_product_sets_delete` for simplest API.
 
-pub fn vision_projects_locations_product_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}",
@@ -3373,10 +3437,13 @@ pub fn vision_projects_locations_product_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_get_execute()` to send, or `vision_projects_locations_product_sets_get` for simplest API.
 
-pub fn vision_projects_locations_product_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}",
@@ -3530,10 +3597,13 @@ pub fn vision_projects_locations_product_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_import_execute()` to send, or `vision_projects_locations_product_sets_import` for simplest API.
 
-pub fn vision_projects_locations_product_sets_import_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets:import",
@@ -3687,12 +3757,15 @@ pub fn vision_projects_locations_product_sets_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_list_execute()` to send, or `vision_projects_locations_product_sets_list` for simplest API.
 
-pub fn vision_projects_locations_product_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets",
@@ -3873,11 +3946,14 @@ pub fn vision_projects_locations_product_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_patch_execute()` to send, or `vision_projects_locations_product_sets_patch` for simplest API.
 
-pub fn vision_projects_locations_product_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}",
@@ -4045,10 +4121,13 @@ pub fn vision_projects_locations_product_sets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_remove_product_execute()` to send, or `vision_projects_locations_product_sets_remove_product` for simplest API.
 
-pub fn vision_projects_locations_product_sets_remove_product_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_remove_product_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}:removeProduct",
@@ -4203,12 +4282,15 @@ pub fn vision_projects_locations_product_sets_remove_product(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_product_sets_products_list_execute()` to send, or `vision_projects_locations_product_sets_products_list` for simplest API.
 
-pub fn vision_projects_locations_product_sets_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_product_sets_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}/products",
@@ -4393,11 +4475,14 @@ pub fn vision_projects_locations_product_sets_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_create_execute()` to send, or `vision_projects_locations_products_create` for simplest API.
 
-pub fn vision_projects_locations_products_create_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     productId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products",
@@ -4565,10 +4650,13 @@ pub fn vision_projects_locations_products_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_delete_execute()` to send, or `vision_projects_locations_products_delete` for simplest API.
 
-pub fn vision_projects_locations_products_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}",
@@ -4722,10 +4810,13 @@ pub fn vision_projects_locations_products_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_get_execute()` to send, or `vision_projects_locations_products_get` for simplest API.
 
-pub fn vision_projects_locations_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}",
@@ -4879,12 +4970,15 @@ pub fn vision_projects_locations_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_list_execute()` to send, or `vision_projects_locations_products_list` for simplest API.
 
-pub fn vision_projects_locations_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products",
@@ -5065,11 +5159,14 @@ pub fn vision_projects_locations_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_patch_execute()` to send, or `vision_projects_locations_products_patch` for simplest API.
 
-pub fn vision_projects_locations_products_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}",
@@ -5237,10 +5334,13 @@ pub fn vision_projects_locations_products_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_purge_execute()` to send, or `vision_projects_locations_products_purge` for simplest API.
 
-pub fn vision_projects_locations_products_purge_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products:purge",
@@ -5394,11 +5494,14 @@ pub fn vision_projects_locations_products_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_reference_images_create_execute()` to send, or `vision_projects_locations_products_reference_images_create` for simplest API.
 
-pub fn vision_projects_locations_products_reference_images_create_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_reference_images_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     referenceImageId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages",
@@ -5573,10 +5676,13 @@ pub fn vision_projects_locations_products_reference_images_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_reference_images_delete_execute()` to send, or `vision_projects_locations_products_reference_images_delete` for simplest API.
 
-pub fn vision_projects_locations_products_reference_images_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_reference_images_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}",
@@ -5731,10 +5837,13 @@ pub fn vision_projects_locations_products_reference_images_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_reference_images_get_execute()` to send, or `vision_projects_locations_products_reference_images_get` for simplest API.
 
-pub fn vision_projects_locations_products_reference_images_get_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_reference_images_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}",
@@ -5893,12 +6002,15 @@ pub fn vision_projects_locations_products_reference_images_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_locations_products_reference_images_list_execute()` to send, or `vision_projects_locations_products_reference_images_list` for simplest API.
 
-pub fn vision_projects_locations_products_reference_images_list_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_locations_products_reference_images_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages",
@@ -6083,10 +6195,13 @@ pub fn vision_projects_locations_products_reference_images_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vision_projects_operations_get_execute()` to send, or `vision_projects_operations_get` for simplest API.
 
-pub fn vision_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vision_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vision.googleapis.com/v1/projects/{}/operations/{operationsId}",

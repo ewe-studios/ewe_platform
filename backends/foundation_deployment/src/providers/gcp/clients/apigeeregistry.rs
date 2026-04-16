@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_get_execute()` to send, or `apigeeregistry_projects_locations_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,13 +187,16 @@ pub fn apigeeregistry_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_list_execute()` to send, or `apigeeregistry_projects_locations_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations",
@@ -376,11 +383,14 @@ pub fn apigeeregistry_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_create_execute()` to send, or `apigeeregistry_projects_locations_apis_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apiId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis",
@@ -548,11 +558,14 @@ pub fn apigeeregistry_projects_locations_apis_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
@@ -720,10 +733,13 @@ pub fn apigeeregistry_projects_locations_apis_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_get_execute()` to send, or `apigeeregistry_projects_locations_apis_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
@@ -877,11 +893,14 @@ pub fn apigeeregistry_projects_locations_apis_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}:getIamPolicy",
@@ -1052,14 +1071,17 @@ pub fn apigeeregistry_projects_locations_apis_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_list_execute()` to send, or `apigeeregistry_projects_locations_apis_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis",
@@ -1252,12 +1274,15 @@ pub fn apigeeregistry_projects_locations_apis_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_patch_execute()` to send, or `apigeeregistry_projects_locations_apis_patch` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
@@ -1434,10 +1459,13 @@ pub fn apigeeregistry_projects_locations_apis_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}:setIamPolicy",
@@ -1592,10 +1620,13 @@ pub fn apigeeregistry_projects_locations_apis_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_apis_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}:testIamPermissions",
@@ -1760,11 +1791,14 @@ pub fn apigeeregistry_projects_locations_apis_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_create_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     artifactId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts",
@@ -1935,10 +1969,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}",
@@ -2093,10 +2130,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_get_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}",
@@ -2250,10 +2290,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_get_contents_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_get_contents` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_get_contents_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_get_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:getContents",
@@ -2408,11 +2451,14 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:getIamPolicy",
@@ -2583,14 +2629,17 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_list_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts",
@@ -2783,10 +2832,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_replace_artifact_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_replace_artifact` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_replace_artifact_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_replace_artifact_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}",
@@ -2942,10 +2994,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_replace_artifact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:setIamPolicy",
@@ -3102,10 +3157,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:testIamPermissions",
@@ -3270,11 +3328,14 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_create_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apiDeploymentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments",
@@ -3449,11 +3510,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}",
@@ -3624,10 +3688,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_delete_revision_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_delete_revision` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_delete_revision_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_delete_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:deleteRevision",
@@ -3787,10 +3854,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_delete_revision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_get_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}",
@@ -3949,11 +4019,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:getIamPolicy",
@@ -4124,14 +4197,17 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_list_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments",
@@ -4328,13 +4404,16 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_list_revisions_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_list_revisions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:listRevisions",
@@ -4525,12 +4604,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_patch_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_patch` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}",
@@ -4711,10 +4793,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_rollback_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_rollback` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:rollback",
@@ -4873,10 +4958,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:setIamPolicy",
@@ -5033,10 +5121,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_tag_revision_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_tag_revision` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_tag_revision_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_tag_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:tagRevision",
@@ -5196,10 +5287,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_tag_revision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:testIamPermissions",
@@ -5365,11 +5459,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_artifacts_create_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_artifacts_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     artifactId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts",
@@ -5540,10 +5637,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_artifacts_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_artifacts_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}",
@@ -5699,10 +5799,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_artifacts_get_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_artifacts_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}",
@@ -5858,10 +5961,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}:getContents",
@@ -6019,14 +6125,17 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_artifacts_list_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_artifacts_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts",
@@ -6219,10 +6328,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact_execute()` to send, or `apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}",
@@ -6381,11 +6493,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_replace_arti
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_create_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apiVersionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions",
@@ -6556,11 +6671,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}",
@@ -6731,10 +6849,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_get_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}",
@@ -6888,11 +7009,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}:getIamPolicy",
@@ -7063,14 +7187,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_list_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions",
@@ -7263,12 +7390,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_patch_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_patch` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}",
@@ -7445,10 +7575,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}:setIamPolicy",
@@ -7605,10 +7738,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}:testIamPermissions",
@@ -7773,11 +7909,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_create_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     artifactId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts",
@@ -7948,10 +8087,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}",
@@ -8107,10 +8249,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_get_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}",
@@ -8265,10 +8410,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_get_contents_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_get_contents` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_contents_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:getContents",
@@ -8425,11 +8573,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:getIamPolicy",
@@ -8601,14 +8752,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_list_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts",
@@ -8801,10 +8955,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}",
@@ -8962,10 +9119,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifac
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:setIamPolicy",
@@ -9123,10 +9283,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:testIamPermissions",
@@ -9294,11 +9457,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_create_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apiSpecId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs",
@@ -9469,11 +9635,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}",
@@ -9644,10 +9813,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_delete_revision_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_delete_revision` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_revision_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:deleteRevision",
@@ -9803,10 +9975,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_revision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_get_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}",
@@ -9961,10 +10136,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_get_contents_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_get_contents` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_get_contents_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_get_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:getContents",
@@ -10120,11 +10298,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:getIamPolicy",
@@ -10295,14 +10476,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_list_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs",
@@ -10495,13 +10679,16 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_list_revisions_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_list_revisions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:listRevisions",
@@ -10692,12 +10879,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_patch_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_patch` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}",
@@ -10874,10 +11064,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_rollback_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_rollback` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:rollback",
@@ -11032,10 +11225,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:setIamPolicy",
@@ -11192,10 +11388,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_tag_revision_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_tag_revision` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_tag_revision_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_tag_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:tagRevision",
@@ -11351,10 +11550,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_tag_revision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:testIamPermissions",
@@ -11521,11 +11723,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permission
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     artifactId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts",
@@ -11697,10 +11902,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}",
@@ -11857,10 +12065,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}",
@@ -12016,10 +12227,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:getContents",
@@ -12177,11 +12391,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_conte
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:getIamPolicy",
@@ -12355,14 +12572,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts",
@@ -12555,10 +12775,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}",
@@ -12720,10 +12943,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_a
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:setIamPolicy",
@@ -12883,10 +13109,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:testIamPermissions",
@@ -13053,11 +13284,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_create_execute()` to send, or `apigeeregistry_projects_locations_artifacts_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     artifactId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts",
@@ -13228,10 +13462,13 @@ pub fn apigeeregistry_projects_locations_artifacts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_delete_execute()` to send, or `apigeeregistry_projects_locations_artifacts_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts/{artifactsId}",
@@ -13385,10 +13622,13 @@ pub fn apigeeregistry_projects_locations_artifacts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_get_execute()` to send, or `apigeeregistry_projects_locations_artifacts_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts/{artifactsId}",
@@ -13542,10 +13782,13 @@ pub fn apigeeregistry_projects_locations_artifacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_get_contents_execute()` to send, or `apigeeregistry_projects_locations_artifacts_get_contents` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_get_contents_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_get_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts/{artifactsId}:getContents",
@@ -13700,11 +13943,14 @@ pub fn apigeeregistry_projects_locations_artifacts_get_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_artifacts_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts/{artifactsId}:getIamPolicy",
@@ -13875,14 +14121,17 @@ pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_list_execute()` to send, or `apigeeregistry_projects_locations_artifacts_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts",
@@ -14075,10 +14324,13 @@ pub fn apigeeregistry_projects_locations_artifacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_replace_artifact_execute()` to send, or `apigeeregistry_projects_locations_artifacts_replace_artifact` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_replace_artifact_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_replace_artifact_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts/{artifactsId}",
@@ -14233,10 +14485,13 @@ pub fn apigeeregistry_projects_locations_artifacts_replace_artifact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_artifacts_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts/{artifactsId}:setIamPolicy",
@@ -14391,10 +14646,13 @@ pub fn apigeeregistry_projects_locations_artifacts_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_artifacts_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_artifacts_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/artifacts/{artifactsId}:testIamPermissions",
@@ -14559,11 +14817,14 @@ pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_documents_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_documents_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_documents_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_documents_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/documents:getIamPolicy",
@@ -14734,10 +14995,13 @@ pub fn apigeeregistry_projects_locations_documents_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_documents_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_documents_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_documents_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_documents_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/documents:setIamPolicy",
@@ -14892,10 +15156,13 @@ pub fn apigeeregistry_projects_locations_documents_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_documents_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_documents_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_documents_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_documents_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/documents:testIamPermissions",
@@ -15060,11 +15327,14 @@ pub fn apigeeregistry_projects_locations_documents_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_instances_create_execute()` to send, or `apigeeregistry_projects_locations_instances_create` for simplest API.
 
-pub fn apigeeregistry_projects_locations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/instances",
@@ -15235,10 +15505,13 @@ pub fn apigeeregistry_projects_locations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_instances_delete_execute()` to send, or `apigeeregistry_projects_locations_instances_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -15392,10 +15665,13 @@ pub fn apigeeregistry_projects_locations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_instances_get_execute()` to send, or `apigeeregistry_projects_locations_instances_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -15549,11 +15825,14 @@ pub fn apigeeregistry_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_instances_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_instances_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_instances_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_instances_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:getIamPolicy",
@@ -15724,10 +16003,13 @@ pub fn apigeeregistry_projects_locations_instances_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_instances_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_instances_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_instances_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_instances_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:setIamPolicy",
@@ -15882,10 +16164,13 @@ pub fn apigeeregistry_projects_locations_instances_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_instances_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_instances_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_instances_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_instances_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:testIamPermissions",
@@ -16050,10 +16335,13 @@ pub fn apigeeregistry_projects_locations_instances_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_operations_cancel_execute()` to send, or `apigeeregistry_projects_locations_operations_cancel` for simplest API.
 
-pub fn apigeeregistry_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -16207,10 +16495,13 @@ pub fn apigeeregistry_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_operations_delete_execute()` to send, or `apigeeregistry_projects_locations_operations_delete` for simplest API.
 
-pub fn apigeeregistry_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -16364,10 +16655,13 @@ pub fn apigeeregistry_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_operations_get_execute()` to send, or `apigeeregistry_projects_locations_operations_get` for simplest API.
 
-pub fn apigeeregistry_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -16521,13 +16815,16 @@ pub fn apigeeregistry_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_operations_list_execute()` to send, or `apigeeregistry_projects_locations_operations_list` for simplest API.
 
-pub fn apigeeregistry_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -16714,11 +17011,14 @@ pub fn apigeeregistry_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_runtime_get_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_runtime_get_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_runtime_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_runtime_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/runtime:getIamPolicy",
@@ -16889,10 +17189,13 @@ pub fn apigeeregistry_projects_locations_runtime_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_runtime_set_iam_policy_execute()` to send, or `apigeeregistry_projects_locations_runtime_set_iam_policy` for simplest API.
 
-pub fn apigeeregistry_projects_locations_runtime_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_runtime_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/runtime:setIamPolicy",
@@ -17047,10 +17350,13 @@ pub fn apigeeregistry_projects_locations_runtime_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigeeregistry_projects_locations_runtime_test_iam_permissions_execute()` to send, or `apigeeregistry_projects_locations_runtime_test_iam_permissions` for simplest API.
 
-pub fn apigeeregistry_projects_locations_runtime_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigeeregistry_projects_locations_runtime_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigeeregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/runtime:testIamPermissions",

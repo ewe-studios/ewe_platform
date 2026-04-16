@@ -164,68 +164,55 @@ use crate::providers::gcp::clients::walletobjects::TransitObjectListResponse;
 use crate::providers::gcp::clients::walletobjects::TransitObjectUploadRotatingBarcodeValuesResponse;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketclassAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketclassGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketclassInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketclassListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketclassPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketclassUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketobjectAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketobjectGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketobjectInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketobjectListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketobjectModifylinkedofferobjectsArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketobjectPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsEventticketobjectUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightclassAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightclassGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightclassInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightclassListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightclassPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightclassUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightobjectAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightobjectGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightobjectInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightobjectListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightobjectPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsFlightobjectUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericclassAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericclassGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericclassInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericclassListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericclassPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericclassUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericobjectAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericobjectGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericobjectInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericobjectListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericobjectPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGenericobjectUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardclassAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardclassGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardclassInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardclassListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardclassPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardclassUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardobjectAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardobjectGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardobjectInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardobjectListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardobjectPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsGiftcardobjectUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsIssuerGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsIssuerInsertArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsIssuerListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsIssuerPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsIssuerUpdateArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsJwtInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyclassAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyclassGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyclassInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyclassListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyclassPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyclassUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyobjectAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyobjectGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyobjectInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyobjectListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyobjectModifylinkedofferobjectsArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsLoyaltyobjectPatchArgs;
@@ -234,35 +221,29 @@ use crate::providers::gcp::clients::walletobjects::WalletobjectsMediaDownloadArg
 use crate::providers::gcp::clients::walletobjects::WalletobjectsMediaUploadArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferclassAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferclassGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferclassInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferclassListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferclassPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferclassUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferobjectAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferobjectGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferobjectInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferobjectListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferobjectPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsOfferobjectUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsPermissionsGetArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsPermissionsUpdateArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsSmarttapInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitclassAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitclassGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitclassInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitclassListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitclassPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitclassUpdateArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitobjectAddmessageArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitobjectGetArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitobjectInsertArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitobjectListArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitobjectPatchArgs;
 use crate::providers::gcp::clients::walletobjects::WalletobjectsTransitobjectUpdateArgs;
-use crate::providers::gcp::clients::walletobjects::WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -271,34 +252,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = WalletobjectsProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = WalletobjectsProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct WalletobjectsProvider<S>
+pub struct WalletobjectsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> WalletobjectsProvider<S>
+impl<S, R> WalletobjectsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new WalletobjectsProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new WalletobjectsProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Walletobjects eventticketclass addmessage.

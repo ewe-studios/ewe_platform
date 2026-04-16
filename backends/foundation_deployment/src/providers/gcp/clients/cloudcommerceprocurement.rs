@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_accounts_approve_execute()` to send, or `cloudcommerceprocurement_providers_accounts_approve` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_accounts_approve_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_accounts_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/accounts/{accountsId}:approve",
@@ -183,11 +187,14 @@ pub fn cloudcommerceprocurement_providers_accounts_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_accounts_get_execute()` to send, or `cloudcommerceprocurement_providers_accounts_get` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/accounts/{accountsId}",
@@ -355,12 +362,15 @@ pub fn cloudcommerceprocurement_providers_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_accounts_list_execute()` to send, or `cloudcommerceprocurement_providers_accounts_list` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/accounts",
@@ -541,10 +551,13 @@ pub fn cloudcommerceprocurement_providers_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_accounts_reject_execute()` to send, or `cloudcommerceprocurement_providers_accounts_reject` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_accounts_reject_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_accounts_reject_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/accounts/{accountsId}:reject",
@@ -698,10 +711,13 @@ pub fn cloudcommerceprocurement_providers_accounts_reject(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_accounts_reset_execute()` to send, or `cloudcommerceprocurement_providers_accounts_reset` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_accounts_reset_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_accounts_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/accounts/{accountsId}:reset",
@@ -855,10 +871,13 @@ pub fn cloudcommerceprocurement_providers_accounts_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_approve_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_approve` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_approve_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements/{entitlementsId}:approve",
@@ -1013,10 +1032,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_approve_plan_change_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_approve_plan_change` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_approve_plan_change_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_approve_plan_change_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements/{entitlementsId}:approvePlanChange",
@@ -1172,10 +1194,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_approve_plan_change(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_get_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_get` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements/{entitlementsId}",
@@ -1329,13 +1354,16 @@ pub fn cloudcommerceprocurement_providers_entitlements_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_list_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_list` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements",
@@ -1522,11 +1550,14 @@ pub fn cloudcommerceprocurement_providers_entitlements_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_patch_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_patch` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements/{entitlementsId}",
@@ -1697,10 +1728,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_reject_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_reject` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_reject_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_reject_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements/{entitlementsId}:reject",
@@ -1855,10 +1889,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_reject(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_reject_plan_change_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_reject_plan_change` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_reject_plan_change_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_reject_plan_change_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements/{entitlementsId}:rejectPlanChange",
@@ -2014,10 +2051,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_reject_plan_change(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcommerceprocurement_providers_entitlements_suspend_execute()` to send, or `cloudcommerceprocurement_providers_entitlements_suspend` for simplest API.
 
-pub fn cloudcommerceprocurement_providers_entitlements_suspend_builder(
-    client: &SimpleHttpClient,
+pub fn cloudcommerceprocurement_providers_entitlements_suspend_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudcommerceprocurement.googleapis.com/v1/providers/{}/entitlements/{entitlementsId}:suspend",

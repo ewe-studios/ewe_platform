@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_assessments_annotate_execute()` to send, or `recaptchaenterprise_projects_assessments_annotate` for simplest API.
 
-pub fn recaptchaenterprise_projects_assessments_annotate_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_assessments_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/assessments/{assessmentsId}:annotate",
@@ -201,10 +205,13 @@ pub fn recaptchaenterprise_projects_assessments_annotate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_assessments_create_execute()` to send, or `recaptchaenterprise_projects_assessments_create` for simplest API.
 
-pub fn recaptchaenterprise_projects_assessments_create_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_assessments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/assessments",
@@ -367,10 +374,13 @@ pub fn recaptchaenterprise_projects_assessments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_firewallpolicies_create_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_create` for simplest API.
 
-pub fn recaptchaenterprise_projects_firewallpolicies_create_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_firewallpolicies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies",
@@ -534,10 +544,13 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_firewallpolicies_delete_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_delete` for simplest API.
 
-pub fn recaptchaenterprise_projects_firewallpolicies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_firewallpolicies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies/{firewallpoliciesId}",
@@ -695,10 +708,13 @@ pub fn recaptchaenterprise_projects_firewallpolicies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_firewallpolicies_get_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_get` for simplest API.
 
-pub fn recaptchaenterprise_projects_firewallpolicies_get_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_firewallpolicies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies/{firewallpoliciesId}",
@@ -861,12 +877,15 @@ pub fn recaptchaenterprise_projects_firewallpolicies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_firewallpolicies_list_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_list` for simplest API.
 
-pub fn recaptchaenterprise_projects_firewallpolicies_list_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_firewallpolicies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies",
@@ -1061,11 +1080,14 @@ pub fn recaptchaenterprise_projects_firewallpolicies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_firewallpolicies_patch_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_patch` for simplest API.
 
-pub fn recaptchaenterprise_projects_firewallpolicies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_firewallpolicies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies/{firewallpoliciesId}",
@@ -1245,10 +1267,13 @@ pub fn recaptchaenterprise_projects_firewallpolicies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_firewallpolicies_reorder_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_reorder` for simplest API.
 
-pub fn recaptchaenterprise_projects_firewallpolicies_reorder_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_firewallpolicies_reorder_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies:reorder",
@@ -1421,10 +1446,13 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_add_ip_override_execute()` to send, or `recaptchaenterprise_projects_keys_add_ip_override` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_add_ip_override_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_add_ip_override_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:addIpOverride",
@@ -1596,10 +1624,13 @@ pub fn recaptchaenterprise_projects_keys_add_ip_override(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_create_execute()` to send, or `recaptchaenterprise_projects_keys_create` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys",
@@ -1761,10 +1792,13 @@ pub fn recaptchaenterprise_projects_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_delete_execute()` to send, or `recaptchaenterprise_projects_keys_delete` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}",
@@ -1922,10 +1956,13 @@ pub fn recaptchaenterprise_projects_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_get_execute()` to send, or `recaptchaenterprise_projects_keys_get` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}",
@@ -2087,10 +2124,13 @@ pub fn recaptchaenterprise_projects_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_get_metrics_execute()` to send, or `recaptchaenterprise_projects_keys_get_metrics` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_get_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_get_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}/metrics",
@@ -2253,12 +2293,15 @@ pub fn recaptchaenterprise_projects_keys_get_metrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_list_execute()` to send, or `recaptchaenterprise_projects_keys_list` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys",
@@ -2444,12 +2487,15 @@ pub fn recaptchaenterprise_projects_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_list_ip_overrides_execute()` to send, or `recaptchaenterprise_projects_keys_list_ip_overrides` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_list_ip_overrides_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_list_ip_overrides_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:listIpOverrides",
@@ -2644,10 +2690,13 @@ pub fn recaptchaenterprise_projects_keys_list_ip_overrides(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_migrate_execute()` to send, or `recaptchaenterprise_projects_keys_migrate` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_migrate_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_migrate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:migrate",
@@ -2809,11 +2858,14 @@ pub fn recaptchaenterprise_projects_keys_migrate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_patch_execute()` to send, or `recaptchaenterprise_projects_keys_patch` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_patch_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}",
@@ -2989,10 +3041,13 @@ pub fn recaptchaenterprise_projects_keys_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_remove_ip_override_execute()` to send, or `recaptchaenterprise_projects_keys_remove_ip_override` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_remove_ip_override_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_remove_ip_override_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:removeIpOverride",
@@ -3164,10 +3219,13 @@ pub fn recaptchaenterprise_projects_keys_remove_ip_override(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute()` to send, or `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key` for simplest API.
 
-pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     key: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:retrieveLegacySecretKey",
@@ -3340,10 +3398,13 @@ pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_relatedaccountgroupmemberships_search_execute()` to send, or `recaptchaenterprise_projects_relatedaccountgroupmemberships_search` for simplest API.
 
-pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/relatedaccountgroupmemberships:search",
@@ -3518,12 +3579,15 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_relatedaccountgroups_list_execute()` to send, or `recaptchaenterprise_projects_relatedaccountgroups_list` for simplest API.
 
-pub fn recaptchaenterprise_projects_relatedaccountgroups_list_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_relatedaccountgroups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/relatedaccountgroups",
@@ -3718,12 +3782,15 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execute()` to send, or `recaptchaenterprise_projects_relatedaccountgroups_memberships_list` for simplest API.
 
-pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder(
-    client: &SimpleHttpClient,
+pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/relatedaccountgroups/{relatedaccountgroupsId}/memberships",

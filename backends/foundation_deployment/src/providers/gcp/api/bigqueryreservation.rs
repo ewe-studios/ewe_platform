@@ -95,7 +95,7 @@ use crate::providers::gcp::clients::bigqueryreservation::BigqueryreservationProj
 use crate::providers::gcp::clients::bigqueryreservation::BigqueryreservationProjectsLocationsUpdateBiReservationArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -104,34 +104,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = BigqueryreservationProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = BigqueryreservationProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct BigqueryreservationProvider<S>
+pub struct BigqueryreservationProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> BigqueryreservationProvider<S>
+impl<S, R> BigqueryreservationProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new BigqueryreservationProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new BigqueryreservationProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Bigqueryreservation projects locations get bi reservation.
@@ -917,7 +927,7 @@ where
         let builder = bigqueryreservation_projects_locations_reservations_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1193,7 +1203,7 @@ where
         let builder = bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 

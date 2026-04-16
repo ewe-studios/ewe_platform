@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `language_documents_analyze_entities_execute()` to send, or `language_documents_analyze_entities` for simplest API.
 
-pub fn language_documents_analyze_entities_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn language_documents_analyze_entities_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:analyzeEntities",);
 
@@ -175,9 +179,12 @@ pub fn language_documents_analyze_entities(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `language_documents_analyze_sentiment_execute()` to send, or `language_documents_analyze_sentiment` for simplest API.
 
-pub fn language_documents_analyze_sentiment_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn language_documents_analyze_sentiment_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:analyzeSentiment",);
 
@@ -324,9 +331,12 @@ pub fn language_documents_analyze_sentiment(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `language_documents_annotate_text_execute()` to send, or `language_documents_annotate_text` for simplest API.
 
-pub fn language_documents_annotate_text_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn language_documents_annotate_text_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:annotateText",);
 
@@ -473,9 +483,12 @@ pub fn language_documents_annotate_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `language_documents_classify_text_execute()` to send, or `language_documents_classify_text` for simplest API.
 
-pub fn language_documents_classify_text_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn language_documents_classify_text_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:classifyText",);
 
@@ -622,9 +635,12 @@ pub fn language_documents_classify_text(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `language_documents_moderate_text_execute()` to send, or `language_documents_moderate_text` for simplest API.
 
-pub fn language_documents_moderate_text_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn language_documents_moderate_text_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:moderateText",);
 

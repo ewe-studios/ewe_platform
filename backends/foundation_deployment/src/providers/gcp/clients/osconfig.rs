@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_global_policy_orchestrators_create_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_create` for simplest API.
 
-pub fn osconfig_folders_locations_global_policy_orchestrators_create_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_global_policy_orchestrators_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     policyOrchestratorId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators",
@@ -208,12 +212,15 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_global_policy_orchestrators_delete_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_delete` for simplest API.
 
-pub fn osconfig_folders_locations_global_policy_orchestrators_delete_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_global_policy_orchestrators_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -390,10 +397,13 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_global_policy_orchestrators_get_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_get` for simplest API.
 
-pub fn osconfig_folders_locations_global_policy_orchestrators_get_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_global_policy_orchestrators_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -557,14 +567,17 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_global_policy_orchestrators_list_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_list` for simplest API.
 
-pub fn osconfig_folders_locations_global_policy_orchestrators_list_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_global_policy_orchestrators_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators",
@@ -765,11 +778,14 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_global_policy_orchestrators_patch_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_patch` for simplest API.
 
-pub fn osconfig_folders_locations_global_policy_orchestrators_patch_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_global_policy_orchestrators_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -940,10 +956,13 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_operations_cancel_execute()` to send, or `osconfig_folders_locations_operations_cancel` for simplest API.
 
-pub fn osconfig_folders_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1097,10 +1116,13 @@ pub fn osconfig_folders_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_operations_delete_execute()` to send, or `osconfig_folders_locations_operations_delete` for simplest API.
 
-pub fn osconfig_folders_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1254,10 +1276,13 @@ pub fn osconfig_folders_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_operations_get_execute()` to send, or `osconfig_folders_locations_operations_get` for simplest API.
 
-pub fn osconfig_folders_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1411,14 +1436,17 @@ pub fn osconfig_folders_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_operations_list_execute()` to send, or `osconfig_folders_locations_operations_list` for simplest API.
 
-pub fn osconfig_folders_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_folders_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations",
@@ -1611,12 +1639,15 @@ pub fn osconfig_folders_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_global_policy_orchestrators_create_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_create` for simplest API.
 
-pub fn osconfig_organizations_locations_global_policy_orchestrators_create_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_global_policy_orchestrators_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     policyOrchestratorId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators",
@@ -1793,12 +1824,15 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_global_policy_orchestrators_delete_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_delete` for simplest API.
 
-pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -1975,10 +2009,13 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_global_policy_orchestrators_get_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_get` for simplest API.
 
-pub fn osconfig_organizations_locations_global_policy_orchestrators_get_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_global_policy_orchestrators_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -2143,14 +2180,17 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_global_policy_orchestrators_list_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_list` for simplest API.
 
-pub fn osconfig_organizations_locations_global_policy_orchestrators_list_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_global_policy_orchestrators_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators",
@@ -2351,11 +2391,14 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_global_policy_orchestrators_patch_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_patch` for simplest API.
 
-pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -2526,10 +2569,13 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_operations_cancel_execute()` to send, or `osconfig_organizations_locations_operations_cancel` for simplest API.
 
-pub fn osconfig_organizations_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2683,10 +2729,13 @@ pub fn osconfig_organizations_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_operations_delete_execute()` to send, or `osconfig_organizations_locations_operations_delete` for simplest API.
 
-pub fn osconfig_organizations_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2840,10 +2889,13 @@ pub fn osconfig_organizations_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_operations_get_execute()` to send, or `osconfig_organizations_locations_operations_get` for simplest API.
 
-pub fn osconfig_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2997,14 +3049,17 @@ pub fn osconfig_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_operations_list_execute()` to send, or `osconfig_organizations_locations_operations_list` for simplest API.
 
-pub fn osconfig_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations",
@@ -3197,12 +3252,15 @@ pub fn osconfig_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_global_policy_orchestrators_create_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_create` for simplest API.
 
-pub fn osconfig_projects_locations_global_policy_orchestrators_create_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_global_policy_orchestrators_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     policyOrchestratorId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators",
@@ -3379,12 +3437,15 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_global_policy_orchestrators_delete_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_delete` for simplest API.
 
-pub fn osconfig_projects_locations_global_policy_orchestrators_delete_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_global_policy_orchestrators_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -3561,10 +3622,13 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_global_policy_orchestrators_get_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_get` for simplest API.
 
-pub fn osconfig_projects_locations_global_policy_orchestrators_get_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_global_policy_orchestrators_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -3728,14 +3792,17 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_global_policy_orchestrators_list_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_list` for simplest API.
 
-pub fn osconfig_projects_locations_global_policy_orchestrators_list_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_global_policy_orchestrators_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators",
@@ -3936,11 +4003,14 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_global_policy_orchestrators_patch_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_patch` for simplest API.
 
-pub fn osconfig_projects_locations_global_policy_orchestrators_patch_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_global_policy_orchestrators_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
@@ -4111,10 +4181,13 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_operations_cancel_execute()` to send, or `osconfig_projects_locations_operations_cancel` for simplest API.
 
-pub fn osconfig_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -4268,10 +4341,13 @@ pub fn osconfig_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_operations_delete_execute()` to send, or `osconfig_projects_locations_operations_delete` for simplest API.
 
-pub fn osconfig_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4425,10 +4501,13 @@ pub fn osconfig_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_operations_get_execute()` to send, or `osconfig_projects_locations_operations_get` for simplest API.
 
-pub fn osconfig_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4582,14 +4661,17 @@ pub fn osconfig_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_operations_list_execute()` to send, or `osconfig_projects_locations_operations_list` for simplest API.
 
-pub fn osconfig_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn osconfig_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",

@@ -32,18 +32,13 @@ use crate::providers::gcp::clients::doubleclicksearch::SavedColumnList;
 use crate::providers::gcp::clients::doubleclicksearch::UpdateAvailabilityResponse;
 use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchConversionGetArgs;
 use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchConversionGetByCustomerIdArgs;
-use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchConversionInsertArgs;
-use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchConversionUpdateArgs;
-use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchConversionUpdateAvailabilityArgs;
-use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchReportsGenerateArgs;
 use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchReportsGetArgs;
 use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchReportsGetFileArgs;
 use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchReportsGetIdMappingFileArgs;
-use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchReportsRequestArgs;
 use crate::providers::gcp::clients::doubleclicksearch::DoubleclicksearchSavedColumnsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -52,34 +47,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = DoubleclicksearchProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = DoubleclicksearchProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct DoubleclicksearchProvider<S>
+pub struct DoubleclicksearchProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> DoubleclicksearchProvider<S>
+impl<S, R> DoubleclicksearchProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new DoubleclicksearchProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new DoubleclicksearchProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Doubleclicksearch conversion get.

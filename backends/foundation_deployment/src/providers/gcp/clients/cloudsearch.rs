@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_debug_datasources_items_check_access_execute()` to send, or `cloudsearch_debug_datasources_items_check_access` for simplest API.
 
-pub fn cloudsearch_debug_datasources_items_check_access_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_debug_datasources_items_check_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/debug/datasources/{}/items/{itemsId}:checkAccess",
@@ -205,10 +209,13 @@ pub fn cloudsearch_debug_datasources_items_check_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_debug_datasources_items_search_by_view_url_execute()` to send, or `cloudsearch_debug_datasources_items_search_by_view_url` for simplest API.
 
-pub fn cloudsearch_debug_datasources_items_search_by_view_url_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_debug_datasources_items_search_by_view_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/debug/datasources/{}/items:searchByViewUrl",
@@ -371,13 +378,16 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_debug_datasources_items_unmappedids_list_execute()` to send, or `cloudsearch_debug_datasources_items_unmappedids_list` for simplest API.
 
-pub fn cloudsearch_debug_datasources_items_unmappedids_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_debug_datasources_items_unmappedids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/debug/datasources/{}/items/{itemsId}/unmappedids",
@@ -568,15 +578,18 @@ pub fn cloudsearch_debug_datasources_items_unmappedids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_debug_identitysources_items_list_forunmappedidentity_execute()` to send, or `cloudsearch_debug_identitysources_items_list_forunmappedidentity` for simplest API.
 
-pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
     groupResourceName: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     userResourceName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/debug/identitysources/{}/items:forunmappedidentity",
@@ -779,14 +792,17 @@ pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_debug_identitysources_unmappedids_list_execute()` to send, or `cloudsearch_debug_identitysources_unmappedids_list` for simplest API.
 
-pub fn cloudsearch_debug_identitysources_unmappedids_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_debug_identitysources_unmappedids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resolutionStatusCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/debug/identitysources/{}/unmappedids",
@@ -983,11 +999,14 @@ pub fn cloudsearch_debug_identitysources_unmappedids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_delete_schema_execute()` to send, or `cloudsearch_indexing_datasources_delete_schema` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_delete_schema_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_delete_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/schema",
@@ -1158,11 +1177,14 @@ pub fn cloudsearch_indexing_datasources_delete_schema(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_get_schema_execute()` to send, or `cloudsearch_indexing_datasources_get_schema` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_get_schema_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_get_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/schema",
@@ -1333,10 +1355,13 @@ pub fn cloudsearch_indexing_datasources_get_schema(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_update_schema_execute()` to send, or `cloudsearch_indexing_datasources_update_schema` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_update_schema_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_update_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/schema",
@@ -1490,14 +1515,17 @@ pub fn cloudsearch_indexing_datasources_update_schema(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_delete_execute()` to send, or `cloudsearch_indexing_datasources_items_delete` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     connectorName: &Option<Option<String>>,
     debugOptions_enableDebugging: &Option<Option<String>>,
     mode: &Option<Option<String>>,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}",
@@ -1686,10 +1714,13 @@ pub fn cloudsearch_indexing_datasources_items_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_delete_queue_items_execute()` to send, or `cloudsearch_indexing_datasources_items_delete_queue_items` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_delete_queue_items_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_delete_queue_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:deleteQueueItems",
@@ -1844,12 +1875,15 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_get_execute()` to send, or `cloudsearch_indexing_datasources_items_get` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     connectorName: &Option<Option<String>>,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}",
@@ -2026,10 +2060,13 @@ pub fn cloudsearch_indexing_datasources_items_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_index_execute()` to send, or `cloudsearch_indexing_datasources_items_index` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_index_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_index_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}:index",
@@ -2183,15 +2220,18 @@ pub fn cloudsearch_indexing_datasources_items_index(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_list_execute()` to send, or `cloudsearch_indexing_datasources_items_list` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     brief: &Option<Option<String>>,
     connectorName: &Option<Option<String>>,
     debugOptions_enableDebugging: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items",
@@ -2390,10 +2430,13 @@ pub fn cloudsearch_indexing_datasources_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_poll_execute()` to send, or `cloudsearch_indexing_datasources_items_poll` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_poll_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_poll_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:poll",
@@ -2551,10 +2594,13 @@ pub fn cloudsearch_indexing_datasources_items_poll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_push_execute()` to send, or `cloudsearch_indexing_datasources_items_push` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_push_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_push_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}:push",
@@ -2708,10 +2754,13 @@ pub fn cloudsearch_indexing_datasources_items_push(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_unreserve_execute()` to send, or `cloudsearch_indexing_datasources_items_unreserve` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_unreserve_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_unreserve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:unreserve",
@@ -2865,10 +2914,13 @@ pub fn cloudsearch_indexing_datasources_items_unreserve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_upload_execute()` to send, or `cloudsearch_indexing_datasources_items_upload` for simplest API.
 
-pub fn cloudsearch_indexing_datasources_items_upload_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_indexing_datasources_items_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}:upload",
@@ -3026,10 +3078,13 @@ pub fn cloudsearch_indexing_datasources_items_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_media_upload_execute()` to send, or `cloudsearch_media_upload` for simplest API.
 
-pub fn cloudsearch_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/media/{}",
@@ -3183,10 +3238,13 @@ pub fn cloudsearch_media_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_operations_get_execute()` to send, or `cloudsearch_operations_get` for simplest API.
 
-pub fn cloudsearch_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/operations/{}", name,);
 
@@ -3337,14 +3395,17 @@ pub fn cloudsearch_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_operations_lro_list_execute()` to send, or `cloudsearch_operations_lro_list` for simplest API.
 
-pub fn cloudsearch_operations_lro_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_operations_lro_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/operations/{}/lro",
@@ -3537,9 +3598,12 @@ pub fn cloudsearch_operations_lro_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_remove_activity_execute()` to send, or `cloudsearch_query_remove_activity` for simplest API.
 
-pub fn cloudsearch_query_remove_activity_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudsearch_query_remove_activity_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query:removeActivity",);
 
@@ -3686,9 +3750,12 @@ pub fn cloudsearch_query_remove_activity(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_search_execute()` to send, or `cloudsearch_query_search` for simplest API.
 
-pub fn cloudsearch_query_search_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudsearch_query_search_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query/search",);
 
@@ -3835,9 +3902,12 @@ pub fn cloudsearch_query_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_suggest_execute()` to send, or `cloudsearch_query_suggest` for simplest API.
 
-pub fn cloudsearch_query_suggest_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudsearch_query_suggest_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query/suggest",);
 
@@ -3984,14 +4054,17 @@ pub fn cloudsearch_query_suggest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_sources_list_execute()` to send, or `cloudsearch_query_sources_list` for simplest API.
 
-pub fn cloudsearch_query_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_query_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageToken: &Option<Option<String>>,
     requestOptions_debugOptions_enableDebugging: &Option<Option<String>>,
     requestOptions_languageCode: &Option<Option<String>>,
     requestOptions_searchApplicationId: &Option<Option<String>>,
     requestOptions_timeZone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query/sources",);
 
@@ -4187,9 +4260,12 @@ pub fn cloudsearch_query_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_get_customer_execute()` to send, or `cloudsearch_settings_get_customer` for simplest API.
 
-pub fn cloudsearch_settings_get_customer_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudsearch_settings_get_customer_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/customer",);
 
@@ -4336,10 +4412,13 @@ pub fn cloudsearch_settings_get_customer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_update_customer_execute()` to send, or `cloudsearch_settings_update_customer` for simplest API.
 
-pub fn cloudsearch_settings_update_customer_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_update_customer_builder<R>(
+    client: &SimpleHttpClient<R>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/customer",);
 
@@ -4501,9 +4580,12 @@ pub fn cloudsearch_settings_update_customer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_datasources_create_execute()` to send, or `cloudsearch_settings_datasources_create` for simplest API.
 
-pub fn cloudsearch_settings_datasources_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudsearch_settings_datasources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/datasources",);
 
@@ -4646,11 +4728,14 @@ pub fn cloudsearch_settings_datasources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_datasources_delete_execute()` to send, or `cloudsearch_settings_datasources_delete` for simplest API.
 
-pub fn cloudsearch_settings_datasources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_datasources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
@@ -4821,11 +4906,14 @@ pub fn cloudsearch_settings_datasources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_datasources_get_execute()` to send, or `cloudsearch_settings_datasources_get` for simplest API.
 
-pub fn cloudsearch_settings_datasources_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_datasources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
@@ -4996,12 +5084,15 @@ pub fn cloudsearch_settings_datasources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_datasources_list_execute()` to send, or `cloudsearch_settings_datasources_list` for simplest API.
 
-pub fn cloudsearch_settings_datasources_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_datasources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     debugOptions_enableDebugging: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/datasources",);
 
@@ -5182,12 +5273,15 @@ pub fn cloudsearch_settings_datasources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_datasources_patch_execute()` to send, or `cloudsearch_settings_datasources_patch` for simplest API.
 
-pub fn cloudsearch_settings_datasources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_datasources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
@@ -5364,10 +5458,13 @@ pub fn cloudsearch_settings_datasources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_datasources_update_execute()` to send, or `cloudsearch_settings_datasources_update` for simplest API.
 
-pub fn cloudsearch_settings_datasources_update_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_datasources_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
@@ -5521,9 +5618,12 @@ pub fn cloudsearch_settings_datasources_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_searchapplications_create_execute()` to send, or `cloudsearch_settings_searchapplications_create` for simplest API.
 
-pub fn cloudsearch_settings_searchapplications_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudsearch_settings_searchapplications_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://cloudsearch.googleapis.com/v1/settings/searchapplications",);
@@ -5667,11 +5767,14 @@ pub fn cloudsearch_settings_searchapplications_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_searchapplications_delete_execute()` to send, or `cloudsearch_settings_searchapplications_delete` for simplest API.
 
-pub fn cloudsearch_settings_searchapplications_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_searchapplications_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
@@ -5842,11 +5945,14 @@ pub fn cloudsearch_settings_searchapplications_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_searchapplications_get_execute()` to send, or `cloudsearch_settings_searchapplications_get` for simplest API.
 
-pub fn cloudsearch_settings_searchapplications_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_searchapplications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     debugOptions_enableDebugging: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
@@ -6021,12 +6127,15 @@ pub fn cloudsearch_settings_searchapplications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_searchapplications_list_execute()` to send, or `cloudsearch_settings_searchapplications_list` for simplest API.
 
-pub fn cloudsearch_settings_searchapplications_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_searchapplications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     debugOptions_enableDebugging: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://cloudsearch.googleapis.com/v1/settings/searchapplications",);
@@ -6212,11 +6321,14 @@ pub fn cloudsearch_settings_searchapplications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_searchapplications_patch_execute()` to send, or `cloudsearch_settings_searchapplications_patch` for simplest API.
 
-pub fn cloudsearch_settings_searchapplications_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_searchapplications_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
@@ -6387,10 +6499,13 @@ pub fn cloudsearch_settings_searchapplications_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_searchapplications_reset_execute()` to send, or `cloudsearch_settings_searchapplications_reset` for simplest API.
 
-pub fn cloudsearch_settings_searchapplications_reset_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_searchapplications_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}:reset",
@@ -6544,11 +6659,14 @@ pub fn cloudsearch_settings_searchapplications_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_settings_searchapplications_update_execute()` to send, or `cloudsearch_settings_searchapplications_update` for simplest API.
 
-pub fn cloudsearch_settings_searchapplications_update_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_settings_searchapplications_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
@@ -6719,15 +6837,18 @@ pub fn cloudsearch_settings_searchapplications_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_get_index_execute()` to send, or `cloudsearch_stats_get_index` for simplest API.
 
-pub fn cloudsearch_stats_get_index_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_get_index_builder<R>(
+    client: &SimpleHttpClient<R>,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
     fromDate_year: &Option<Option<String>>,
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/index",);
 
@@ -6930,15 +7051,18 @@ pub fn cloudsearch_stats_get_index(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_get_query_execute()` to send, or `cloudsearch_stats_get_query` for simplest API.
 
-pub fn cloudsearch_stats_get_query_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_get_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
     fromDate_year: &Option<Option<String>>,
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/query",);
 
@@ -7141,15 +7265,18 @@ pub fn cloudsearch_stats_get_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_get_searchapplication_execute()` to send, or `cloudsearch_stats_get_searchapplication` for simplest API.
 
-pub fn cloudsearch_stats_get_searchapplication_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_get_searchapplication_builder<R>(
+    client: &SimpleHttpClient<R>,
     endDate_day: &Option<Option<String>>,
     endDate_month: &Option<Option<String>>,
     endDate_year: &Option<Option<String>>,
     startDate_day: &Option<Option<String>>,
     startDate_month: &Option<Option<String>>,
     startDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/searchapplication",);
 
@@ -7352,15 +7479,18 @@ pub fn cloudsearch_stats_get_searchapplication(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_get_session_execute()` to send, or `cloudsearch_stats_get_session` for simplest API.
 
-pub fn cloudsearch_stats_get_session_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_get_session_builder<R>(
+    client: &SimpleHttpClient<R>,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
     fromDate_year: &Option<Option<String>>,
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/session",);
 
@@ -7563,15 +7693,18 @@ pub fn cloudsearch_stats_get_session(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_get_user_execute()` to send, or `cloudsearch_stats_get_user` for simplest API.
 
-pub fn cloudsearch_stats_get_user_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_get_user_builder<R>(
+    client: &SimpleHttpClient<R>,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
     fromDate_year: &Option<Option<String>>,
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/user",);
 
@@ -7774,8 +7907,8 @@ pub fn cloudsearch_stats_get_user(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_index_datasources_get_execute()` to send, or `cloudsearch_stats_index_datasources_get` for simplest API.
 
-pub fn cloudsearch_stats_index_datasources_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_index_datasources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
@@ -7783,7 +7916,10 @@ pub fn cloudsearch_stats_index_datasources_get_builder(
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/stats/index/datasources/{}",
@@ -7992,8 +8128,8 @@ pub fn cloudsearch_stats_index_datasources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_query_searchapplications_get_execute()` to send, or `cloudsearch_stats_query_searchapplications_get` for simplest API.
 
-pub fn cloudsearch_stats_query_searchapplications_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_query_searchapplications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
@@ -8001,7 +8137,10 @@ pub fn cloudsearch_stats_query_searchapplications_get_builder(
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/stats/query/searchapplications/{}",
@@ -8210,8 +8349,8 @@ pub fn cloudsearch_stats_query_searchapplications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_session_searchapplications_get_execute()` to send, or `cloudsearch_stats_session_searchapplications_get` for simplest API.
 
-pub fn cloudsearch_stats_session_searchapplications_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_session_searchapplications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
@@ -8219,7 +8358,10 @@ pub fn cloudsearch_stats_session_searchapplications_get_builder(
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/stats/session/searchapplications/{}",
@@ -8428,8 +8570,8 @@ pub fn cloudsearch_stats_session_searchapplications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_user_searchapplications_get_execute()` to send, or `cloudsearch_stats_user_searchapplications_get` for simplest API.
 
-pub fn cloudsearch_stats_user_searchapplications_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsearch_stats_user_searchapplications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fromDate_day: &Option<Option<String>>,
     fromDate_month: &Option<Option<String>>,
@@ -8437,7 +8579,10 @@ pub fn cloudsearch_stats_user_searchapplications_get_builder(
     toDate_day: &Option<Option<String>>,
     toDate_month: &Option<Option<String>>,
     toDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/stats/user/searchapplications/{}",
@@ -8646,9 +8791,12 @@ pub fn cloudsearch_stats_user_searchapplications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_initialize_customer_execute()` to send, or `cloudsearch_initialize_customer` for simplest API.
 
-pub fn cloudsearch_initialize_customer_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudsearch_initialize_customer_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1:initializeCustomer",);
 

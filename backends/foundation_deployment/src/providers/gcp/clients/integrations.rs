@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_callback_generate_token_execute()` to send, or `integrations_callback_generate_token` for simplest API.
 
-pub fn integrations_callback_generate_token_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_callback_generate_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     code: &Option<Option<String>>,
     gcpProjectId: &Option<Option<String>>,
     product: &Option<Option<String>>,
     redirectUri: &Option<Option<String>>,
     state: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://integrations.googleapis.com/v1/callback:generateToken",);
 
@@ -234,9 +238,12 @@ pub fn integrations_callback_generate_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_connector_platform_regions_enumerate_execute()` to send, or `integrations_connector_platform_regions_enumerate` for simplest API.
 
-pub fn integrations_connector_platform_regions_enumerate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn integrations_connector_platform_regions_enumerate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://integrations.googleapis.com/v1/connectorPlatformRegions:enumerate",);
@@ -398,10 +405,13 @@ pub fn integrations_connector_platform_regions_enumerate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_get_clientmetadata_execute()` to send, or `integrations_projects_get_clientmetadata` for simplest API.
 
-pub fn integrations_projects_get_clientmetadata_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_get_clientmetadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/clientmetadata",
@@ -573,10 +583,13 @@ pub fn integrations_projects_get_clientmetadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_generate_open_api_spec_execute()` to send, or `integrations_projects_locations_generate_open_api_spec` for simplest API.
 
-pub fn integrations_projects_locations_generate_open_api_spec_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_generate_open_api_spec_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}:generateOpenApiSpec",
@@ -749,10 +762,13 @@ pub fn integrations_projects_locations_generate_open_api_spec(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_get_clients_execute()` to send, or `integrations_projects_locations_get_clients` for simplest API.
 
-pub fn integrations_projects_locations_get_clients_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_get_clients_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients",
@@ -915,10 +931,13 @@ pub fn integrations_projects_locations_get_clients(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_apps_script_projects_create_execute()` to send, or `integrations_projects_locations_apps_script_projects_create` for simplest API.
 
-pub fn integrations_projects_locations_apps_script_projects_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_apps_script_projects_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/appsScriptProjects",
@@ -1091,10 +1110,13 @@ pub fn integrations_projects_locations_apps_script_projects_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_apps_script_projects_link_execute()` to send, or `integrations_projects_locations_apps_script_projects_link` for simplest API.
 
-pub fn integrations_projects_locations_apps_script_projects_link_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_apps_script_projects_link_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/appsScriptProjects:link",
@@ -1267,13 +1289,16 @@ pub fn integrations_projects_locations_apps_script_projects_link(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_auth_configs_create_execute()` to send, or `integrations_projects_locations_auth_configs_create` for simplest API.
 
-pub fn integrations_projects_locations_auth_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_auth_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
     clientCertificate_passphrase: &Option<Option<String>>,
     clientCertificate_sslCertificate: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/authConfigs",
@@ -1464,10 +1489,13 @@ pub fn integrations_projects_locations_auth_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_auth_configs_delete_execute()` to send, or `integrations_projects_locations_auth_configs_delete` for simplest API.
 
-pub fn integrations_projects_locations_auth_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_auth_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/authConfigs/{authConfigsId}",
@@ -1625,10 +1653,13 @@ pub fn integrations_projects_locations_auth_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_auth_configs_get_execute()` to send, or `integrations_projects_locations_auth_configs_get` for simplest API.
 
-pub fn integrations_projects_locations_auth_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_auth_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/authConfigs/{authConfigsId}",
@@ -1790,14 +1821,17 @@ pub fn integrations_projects_locations_auth_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_auth_configs_list_execute()` to send, or `integrations_projects_locations_auth_configs_list` for simplest API.
 
-pub fn integrations_projects_locations_auth_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_auth_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/authConfigs",
@@ -2004,14 +2038,17 @@ pub fn integrations_projects_locations_auth_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_auth_configs_patch_execute()` to send, or `integrations_projects_locations_auth_configs_patch` for simplest API.
 
-pub fn integrations_projects_locations_auth_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_auth_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
     clientCertificate_passphrase: &Option<Option<String>>,
     clientCertificate_sslCertificate: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/authConfigs/{authConfigsId}",
@@ -2208,10 +2245,13 @@ pub fn integrations_projects_locations_auth_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_certificates_create_execute()` to send, or `integrations_projects_locations_certificates_create` for simplest API.
 
-pub fn integrations_projects_locations_certificates_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_certificates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates",
@@ -2374,10 +2414,13 @@ pub fn integrations_projects_locations_certificates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_certificates_delete_execute()` to send, or `integrations_projects_locations_certificates_delete` for simplest API.
 
-pub fn integrations_projects_locations_certificates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates/{certificatesId}",
@@ -2535,10 +2578,13 @@ pub fn integrations_projects_locations_certificates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_certificates_get_execute()` to send, or `integrations_projects_locations_certificates_get` for simplest API.
 
-pub fn integrations_projects_locations_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates/{certificatesId}",
@@ -2700,14 +2746,17 @@ pub fn integrations_projects_locations_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_certificates_list_execute()` to send, or `integrations_projects_locations_certificates_list` for simplest API.
 
-pub fn integrations_projects_locations_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates",
@@ -2914,11 +2963,14 @@ pub fn integrations_projects_locations_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_certificates_patch_execute()` to send, or `integrations_projects_locations_certificates_patch` for simplest API.
 
-pub fn integrations_projects_locations_certificates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_certificates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates/{certificatesId}",
@@ -3097,10 +3149,13 @@ pub fn integrations_projects_locations_certificates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_change_config_execute()` to send, or `integrations_projects_locations_clients_change_config` for simplest API.
 
-pub fn integrations_projects_locations_clients_change_config_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_change_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:changeConfig",
@@ -3273,10 +3328,13 @@ pub fn integrations_projects_locations_clients_change_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_deprovision_execute()` to send, or `integrations_projects_locations_clients_deprovision` for simplest API.
 
-pub fn integrations_projects_locations_clients_deprovision_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_deprovision_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:deprovision",
@@ -3435,10 +3493,13 @@ pub fn integrations_projects_locations_clients_deprovision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_provision_execute()` to send, or `integrations_projects_locations_clients_provision` for simplest API.
 
-pub fn integrations_projects_locations_clients_provision_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_provision_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:provision",
@@ -3596,10 +3657,13 @@ pub fn integrations_projects_locations_clients_provision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_provision_client_post_processor_execute()` to send, or `integrations_projects_locations_clients_provision_client_post_processor` for simplest API.
 
-pub fn integrations_projects_locations_clients_provision_client_post_processor_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_provision_client_post_processor_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:provisionClientPostProcessor",
@@ -3775,10 +3839,13 @@ pub fn integrations_projects_locations_clients_provision_client_post_processor(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_replace_execute()` to send, or `integrations_projects_locations_clients_replace` for simplest API.
 
-pub fn integrations_projects_locations_clients_replace_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_replace_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:replace",
@@ -3936,10 +4003,13 @@ pub fn integrations_projects_locations_clients_replace(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_switch_execute()` to send, or `integrations_projects_locations_clients_switch` for simplest API.
 
-pub fn integrations_projects_locations_clients_switch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_switch_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:switch",
@@ -4097,10 +4167,13 @@ pub fn integrations_projects_locations_clients_switch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_switch_variable_masking_execute()` to send, or `integrations_projects_locations_clients_switch_variable_masking` for simplest API.
 
-pub fn integrations_projects_locations_clients_switch_variable_masking_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_switch_variable_masking_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:switchVariableMasking",
@@ -4261,10 +4334,13 @@ pub fn integrations_projects_locations_clients_switch_variable_masking(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_clients_toggle_http_execute()` to send, or `integrations_projects_locations_clients_toggle_http` for simplest API.
 
-pub fn integrations_projects_locations_clients_toggle_http_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_clients_toggle_http_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/clients:toggleHttp",
@@ -4423,10 +4499,13 @@ pub fn integrations_projects_locations_clients_toggle_http(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_cloud_functions_create_execute()` to send, or `integrations_projects_locations_cloud_functions_create` for simplest API.
 
-pub fn integrations_projects_locations_cloud_functions_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_cloud_functions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudFunctions",
@@ -4599,10 +4678,13 @@ pub fn integrations_projects_locations_cloud_functions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_connections_get_connection_schema_metadata_execute()` to send, or `integrations_projects_locations_connections_get_connection_schema_metadata` for simplest API.
 
-pub fn integrations_projects_locations_connections_get_connection_schema_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_connections_get_connection_schema_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/connectionSchemaMetadata",
@@ -4778,14 +4860,17 @@ pub fn integrations_projects_locations_connections_get_connection_schema_metadat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_connections_list_execute()` to send, or `integrations_projects_locations_connections_list` for simplest API.
 
-pub fn integrations_projects_locations_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/connections",
@@ -4992,13 +5077,16 @@ pub fn integrations_projects_locations_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_connections_runtime_action_schemas_list_execute()` to send, or `integrations_projects_locations_connections_runtime_action_schemas_list` for simplest API.
 
-pub fn integrations_projects_locations_connections_runtime_action_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_connections_runtime_action_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/runtimeActionSchemas",
@@ -5200,13 +5288,16 @@ pub fn integrations_projects_locations_connections_runtime_action_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_connections_runtime_entity_schemas_list_execute()` to send, or `integrations_projects_locations_connections_runtime_entity_schemas_list` for simplest API.
 
-pub fn integrations_projects_locations_connections_runtime_entity_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_connections_runtime_entity_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}/runtimeEntitySchemas",
@@ -5408,10 +5499,13 @@ pub fn integrations_projects_locations_connections_runtime_entity_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_delete_execute()` to send, or `integrations_projects_locations_integrations_delete` for simplest API.
 
-pub fn integrations_projects_locations_integrations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}",
@@ -5569,10 +5663,13 @@ pub fn integrations_projects_locations_integrations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_execute_execute()` to send, or `integrations_projects_locations_integrations_execute` for simplest API.
 
-pub fn integrations_projects_locations_integrations_execute_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_execute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}:execute",
@@ -5744,11 +5841,14 @@ pub fn integrations_projects_locations_integrations_execute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_execute_event_execute()` to send, or `integrations_projects_locations_integrations_execute_event` for simplest API.
 
-pub fn integrations_projects_locations_integrations_execute_event_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_execute_event_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     triggerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}:executeEvent",
@@ -5931,14 +6031,17 @@ pub fn integrations_projects_locations_integrations_execute_event(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_list_execute()` to send, or `integrations_projects_locations_integrations_list` for simplest API.
 
-pub fn integrations_projects_locations_integrations_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations",
@@ -6145,10 +6248,13 @@ pub fn integrations_projects_locations_integrations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_schedule_execute()` to send, or `integrations_projects_locations_integrations_schedule` for simplest API.
 
-pub fn integrations_projects_locations_integrations_schedule_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_schedule_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}:schedule",
@@ -6321,15 +6427,18 @@ pub fn integrations_projects_locations_integrations_schedule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_search_execute()` to send, or `integrations_projects_locations_integrations_search` for simplest API.
 
-pub fn integrations_projects_locations_integrations_search_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     enableNaturalLanguageQueryUnderstanding: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations:search",
@@ -6542,10 +6651,13 @@ pub fn integrations_projects_locations_integrations_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_test_execute()` to send, or `integrations_projects_locations_integrations_test` for simplest API.
 
-pub fn integrations_projects_locations_integrations_test_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}:test",
@@ -6717,10 +6829,13 @@ pub fn integrations_projects_locations_integrations_test(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_cancel_execute()` to send, or `integrations_projects_locations_integrations_executions_cancel` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}:cancel",
@@ -6893,10 +7008,13 @@ pub fn integrations_projects_locations_integrations_executions_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_download_execute()` to send, or `integrations_projects_locations_integrations_executions_download` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_download_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}:download",
@@ -7070,10 +7188,13 @@ pub fn integrations_projects_locations_integrations_executions_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_get_execute()` to send, or `integrations_projects_locations_integrations_executions_get` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}",
@@ -7237,8 +7358,8 @@ pub fn integrations_projects_locations_integrations_executions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_list_execute()` to send, or `integrations_projects_locations_integrations_executions_list` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     filterParams_customFilter: &Option<Option<String>>,
@@ -7260,7 +7381,10 @@ pub fn integrations_projects_locations_integrations_executions_list_builder(
     refreshAcl: &Option<Option<String>>,
     snapshotMetadataWithoutParams: &Option<Option<String>>,
     truncateParams: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions",
@@ -7557,10 +7681,13 @@ pub fn integrations_projects_locations_integrations_executions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_replay_execute()` to send, or `integrations_projects_locations_integrations_executions_replay` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_replay_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_replay_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}:replay",
@@ -7733,10 +7860,13 @@ pub fn integrations_projects_locations_integrations_executions_replay(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_suspensions_lift_execute()` to send, or `integrations_projects_locations_integrations_executions_suspensions_lift` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_suspensions_lift_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_suspensions_lift_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:lift",
@@ -7905,14 +8035,17 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_lift(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_suspensions_list_execute()` to send, or `integrations_projects_locations_integrations_executions_suspensions_list` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_suspensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_suspensions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions",
@@ -8120,10 +8253,13 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_executions_suspensions_resolve_execute()` to send, or `integrations_projects_locations_integrations_executions_suspensions_resolve` for simplest API.
 
-pub fn integrations_projects_locations_integrations_executions_suspensions_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_executions_suspensions_resolve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:resolve",
@@ -8299,12 +8435,15 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_resol
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_create_execute()` to send, or `integrations_projects_locations_integrations_versions_create` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     createSampleIntegrations: &Option<Option<String>>,
     newIntegration: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions",
@@ -8490,10 +8629,13 @@ pub fn integrations_projects_locations_integrations_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_delete_execute()` to send, or `integrations_projects_locations_integrations_versions_delete` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}",
@@ -8652,12 +8794,15 @@ pub fn integrations_projects_locations_integrations_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_download_execute()` to send, or `integrations_projects_locations_integrations_versions_download` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_download_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fileFormat: &Option<Option<String>>,
     files: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:download",
@@ -8852,11 +8997,14 @@ pub fn integrations_projects_locations_integrations_versions_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_download_json_package_execute()` to send, or `integrations_projects_locations_integrations_versions_download_json_package` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_download_json_package_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_download_json_package_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     files: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:downloadJsonPackage",
@@ -9047,10 +9195,13 @@ pub fn integrations_projects_locations_integrations_versions_download_json_packa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_get_execute()` to send, or `integrations_projects_locations_integrations_versions_get` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}",
@@ -9214,15 +9365,18 @@ pub fn integrations_projects_locations_integrations_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_list_execute()` to send, or `integrations_projects_locations_integrations_versions_list` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     fieldMask: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions",
@@ -9435,11 +9589,14 @@ pub fn integrations_projects_locations_integrations_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_patch_execute()` to send, or `integrations_projects_locations_integrations_versions_patch` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}",
@@ -9619,10 +9776,13 @@ pub fn integrations_projects_locations_integrations_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_publish_execute()` to send, or `integrations_projects_locations_integrations_versions_publish` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_publish_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:publish",
@@ -9795,10 +9955,13 @@ pub fn integrations_projects_locations_integrations_versions_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_execute()` to send, or `integrations_projects_locations_integrations_versions_test` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:test",
@@ -9971,10 +10134,13 @@ pub fn integrations_projects_locations_integrations_versions_test(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_unpublish_execute()` to send, or `integrations_projects_locations_integrations_versions_unpublish` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_unpublish_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_unpublish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:unpublish",
@@ -10134,10 +10300,13 @@ pub fn integrations_projects_locations_integrations_versions_unpublish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_upload_execute()` to send, or `integrations_projects_locations_integrations_versions_upload` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_upload_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions:upload",
@@ -10310,11 +10479,14 @@ pub fn integrations_projects_locations_integrations_versions_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_create_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_create` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     testCaseId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases",
@@ -10494,10 +10666,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_delete_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_delete` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}",
@@ -10658,11 +10833,14 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_download_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_download` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_download_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fileFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}:download",
@@ -10853,10 +11031,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_download
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_execute_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_execute` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_execute_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_execute_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases:execute",
@@ -11032,10 +11213,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_execute_test_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_execute_test` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_execute_test_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_execute_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     testCaseName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}:executeTest",
@@ -11213,10 +11397,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_get_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_get` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}",
@@ -11380,15 +11567,18 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_list_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_list` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases",
@@ -11595,11 +11785,14 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_patch_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_patch` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}",
@@ -11779,10 +11972,15 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}:takeoverEditLock",
@@ -11949,10 +12147,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_takeover
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_integrations_versions_test_cases_upload_execute()` to send, or `integrations_projects_locations_integrations_versions_test_cases_upload` for simplest API.
 
-pub fn integrations_projects_locations_integrations_versions_test_cases_upload_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_integrations_versions_test_cases_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases:upload",
@@ -12122,13 +12323,16 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_auth_configs_create_execute()` to send, or `integrations_projects_locations_products_auth_configs_create` for simplest API.
 
-pub fn integrations_projects_locations_products_auth_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_auth_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
     clientCertificate_passphrase: &Option<Option<String>>,
     clientCertificate_sslCertificate: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/authConfigs",
@@ -12319,10 +12523,13 @@ pub fn integrations_projects_locations_products_auth_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_auth_configs_delete_execute()` to send, or `integrations_projects_locations_products_auth_configs_delete` for simplest API.
 
-pub fn integrations_projects_locations_products_auth_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_auth_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}",
@@ -12481,10 +12688,13 @@ pub fn integrations_projects_locations_products_auth_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_auth_configs_get_execute()` to send, or `integrations_projects_locations_products_auth_configs_get` for simplest API.
 
-pub fn integrations_projects_locations_products_auth_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_auth_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}",
@@ -12647,14 +12857,17 @@ pub fn integrations_projects_locations_products_auth_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_auth_configs_list_execute()` to send, or `integrations_projects_locations_products_auth_configs_list` for simplest API.
 
-pub fn integrations_projects_locations_products_auth_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_auth_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/authConfigs",
@@ -12861,14 +13074,17 @@ pub fn integrations_projects_locations_products_auth_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_auth_configs_patch_execute()` to send, or `integrations_projects_locations_products_auth_configs_patch` for simplest API.
 
-pub fn integrations_projects_locations_products_auth_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_auth_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
     clientCertificate_passphrase: &Option<Option<String>>,
     clientCertificate_sslCertificate: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}",
@@ -13065,10 +13281,13 @@ pub fn integrations_projects_locations_products_auth_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_certificates_create_execute()` to send, or `integrations_projects_locations_products_certificates_create` for simplest API.
 
-pub fn integrations_projects_locations_products_certificates_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_certificates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/certificates",
@@ -13231,10 +13450,13 @@ pub fn integrations_projects_locations_products_certificates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_certificates_delete_execute()` to send, or `integrations_projects_locations_products_certificates_delete` for simplest API.
 
-pub fn integrations_projects_locations_products_certificates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/certificates/{certificatesId}",
@@ -13393,10 +13615,13 @@ pub fn integrations_projects_locations_products_certificates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_certificates_get_execute()` to send, or `integrations_projects_locations_products_certificates_get` for simplest API.
 
-pub fn integrations_projects_locations_products_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/certificates/{certificatesId}",
@@ -13559,14 +13784,17 @@ pub fn integrations_projects_locations_products_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_certificates_list_execute()` to send, or `integrations_projects_locations_products_certificates_list` for simplest API.
 
-pub fn integrations_projects_locations_products_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/certificates",
@@ -13773,11 +14001,14 @@ pub fn integrations_projects_locations_products_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_certificates_patch_execute()` to send, or `integrations_projects_locations_products_certificates_patch` for simplest API.
 
-pub fn integrations_projects_locations_products_certificates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_certificates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/certificates/{certificatesId}",
@@ -13956,10 +14187,13 @@ pub fn integrations_projects_locations_products_certificates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_cloud_functions_create_execute()` to send, or `integrations_projects_locations_products_cloud_functions_create` for simplest API.
 
-pub fn integrations_projects_locations_products_cloud_functions_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_cloud_functions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/cloudFunctions",
@@ -14134,10 +14368,13 @@ pub fn integrations_projects_locations_products_cloud_functions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_execute_execute()` to send, or `integrations_projects_locations_products_integrations_execute` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_execute_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_execute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:execute",
@@ -14310,14 +14547,17 @@ pub fn integrations_projects_locations_products_integrations_execute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_list_execute()` to send, or `integrations_projects_locations_products_integrations_list` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations",
@@ -14524,10 +14764,13 @@ pub fn integrations_projects_locations_products_integrations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_schedule_execute()` to send, or `integrations_projects_locations_products_integrations_schedule` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_schedule_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_schedule_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:schedule",
@@ -14700,10 +14943,13 @@ pub fn integrations_projects_locations_products_integrations_schedule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_test_execute()` to send, or `integrations_projects_locations_products_integrations_test` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_test_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:test",
@@ -14876,10 +15122,13 @@ pub fn integrations_projects_locations_products_integrations_test(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_executions_download_execute()` to send, or `integrations_projects_locations_products_integrations_executions_download` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_executions_download_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_executions_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}:download",
@@ -15055,10 +15304,13 @@ pub fn integrations_projects_locations_products_integrations_executions_download
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_executions_get_execute()` to send, or `integrations_projects_locations_products_integrations_executions_get` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_executions_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_executions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}",
@@ -15223,8 +15475,8 @@ pub fn integrations_projects_locations_products_integrations_executions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_executions_list_execute()` to send, or `integrations_projects_locations_products_integrations_executions_list` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_executions_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_executions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     filterParams_customFilter: &Option<Option<String>>,
@@ -15246,7 +15498,10 @@ pub fn integrations_projects_locations_products_integrations_executions_list_bui
     refreshAcl: &Option<Option<String>>,
     snapshotMetadataWithoutParams: &Option<Option<String>>,
     truncateParams: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions",
@@ -15543,10 +15798,15 @@ pub fn integrations_projects_locations_products_integrations_executions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_executions_suspensions_lift_execute()` to send, or `integrations_projects_locations_products_integrations_executions_suspensions_lift` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_executions_suspensions_lift_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_executions_suspensions_lift_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:lift",
@@ -15720,14 +15980,19 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_executions_suspensions_list_execute()` to send, or `integrations_projects_locations_products_integrations_executions_suspensions_list` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_executions_suspensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_executions_suspensions_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions",
@@ -15940,10 +16205,15 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_executions_suspensions_resolve_execute()` to send, or `integrations_projects_locations_products_integrations_executions_suspensions_resolve` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_executions_suspensions_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_executions_suspensions_resolve_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:resolve",
@@ -16120,12 +16390,15 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_create_execute()` to send, or `integrations_projects_locations_products_integrations_versions_create` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     createSampleIntegrations: &Option<Option<String>>,
     newIntegration: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions",
@@ -16311,10 +16584,13 @@ pub fn integrations_projects_locations_products_integrations_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_delete_execute()` to send, or `integrations_projects_locations_products_integrations_versions_delete` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}",
@@ -16474,12 +16750,15 @@ pub fn integrations_projects_locations_products_integrations_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_download_execute()` to send, or `integrations_projects_locations_products_integrations_versions_download` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_download_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fileFormat: &Option<Option<String>>,
     files: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:download",
@@ -16675,10 +16954,13 @@ pub fn integrations_projects_locations_products_integrations_versions_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_get_execute()` to send, or `integrations_projects_locations_products_integrations_versions_get` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}",
@@ -16843,15 +17125,18 @@ pub fn integrations_projects_locations_products_integrations_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_list_execute()` to send, or `integrations_projects_locations_products_integrations_versions_list` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     fieldMask: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions",
@@ -17064,11 +17349,14 @@ pub fn integrations_projects_locations_products_integrations_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_patch_execute()` to send, or `integrations_projects_locations_products_integrations_versions_patch` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}",
@@ -17248,10 +17536,13 @@ pub fn integrations_projects_locations_products_integrations_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_publish_execute()` to send, or `integrations_projects_locations_products_integrations_versions_publish` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_publish_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:publish",
@@ -17426,10 +17717,15 @@ pub fn integrations_projects_locations_products_integrations_versions_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_takeover_edit_lock_execute()` to send, or `integrations_projects_locations_products_integrations_versions_takeover_edit_lock` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_takeover_edit_lock_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_takeover_edit_lock_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     integrationVersion: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:takeoverEditLock",
@@ -17610,10 +17906,13 @@ pub fn integrations_projects_locations_products_integrations_versions_takeover_e
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_unpublish_execute()` to send, or `integrations_projects_locations_products_integrations_versions_unpublish` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_unpublish_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_unpublish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:unpublish",
@@ -17774,10 +18073,13 @@ pub fn integrations_projects_locations_products_integrations_versions_unpublish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_integrations_versions_upload_execute()` to send, or `integrations_projects_locations_products_integrations_versions_upload` for simplest API.
 
-pub fn integrations_projects_locations_products_integrations_versions_upload_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_integrations_versions_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions:upload",
@@ -17952,10 +18254,13 @@ pub fn integrations_projects_locations_products_integrations_versions_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_create_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_create` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances",
@@ -18121,10 +18426,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_delete_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_delete` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}",
@@ -18283,10 +18591,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_get_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_get` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}",
@@ -18450,14 +18761,17 @@ pub fn integrations_projects_locations_products_sfdc_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_list_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_list` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances",
@@ -18664,11 +18978,14 @@ pub fn integrations_projects_locations_products_sfdc_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_patch_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_patch` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}",
@@ -18848,10 +19165,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_sfdc_channels_create` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels",
@@ -19018,10 +19338,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_cre
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}",
@@ -19183,10 +19506,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_del
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_sfdc_channels_get` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}",
@@ -19352,14 +19678,17 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_sfdc_channels_list` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels",
@@ -19568,11 +19897,14 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch` for simplest API.
 
-pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}",
@@ -19753,10 +20085,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_pat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_create_execute()` to send, or `integrations_projects_locations_sfdc_instances_create` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances",
@@ -19920,10 +20255,13 @@ pub fn integrations_projects_locations_sfdc_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_delete_execute()` to send, or `integrations_projects_locations_sfdc_instances_delete` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}",
@@ -20082,10 +20420,13 @@ pub fn integrations_projects_locations_sfdc_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_get_execute()` to send, or `integrations_projects_locations_sfdc_instances_get` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}",
@@ -20248,14 +20589,17 @@ pub fn integrations_projects_locations_sfdc_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_list_execute()` to send, or `integrations_projects_locations_sfdc_instances_list` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances",
@@ -20462,11 +20806,14 @@ pub fn integrations_projects_locations_sfdc_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_patch_execute()` to send, or `integrations_projects_locations_sfdc_instances_patch` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}",
@@ -20646,10 +20993,13 @@ pub fn integrations_projects_locations_sfdc_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_sfdc_channels_create_execute()` to send, or `integrations_projects_locations_sfdc_instances_sfdc_channels_create` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels",
@@ -20814,10 +21164,13 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_sfdc_channels_delete_execute()` to send, or `integrations_projects_locations_sfdc_instances_sfdc_channels_delete` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}",
@@ -20977,10 +21330,13 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_sfdc_channels_get_execute()` to send, or `integrations_projects_locations_sfdc_instances_sfdc_channels_get` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}",
@@ -21144,14 +21500,17 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_sfdc_channels_list_execute()` to send, or `integrations_projects_locations_sfdc_instances_sfdc_channels_list` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels",
@@ -21358,11 +21717,14 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_sfdc_channels_patch_execute()` to send, or `integrations_projects_locations_sfdc_instances_sfdc_channels_patch` for simplest API.
 
-pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}",
@@ -21541,10 +21903,13 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_create_execute()` to send, or `integrations_projects_locations_templates_create` for simplest API.
 
-pub fn integrations_projects_locations_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates",
@@ -21706,10 +22071,13 @@ pub fn integrations_projects_locations_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_delete_execute()` to send, or `integrations_projects_locations_templates_delete` for simplest API.
 
-pub fn integrations_projects_locations_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}",
@@ -21867,11 +22235,14 @@ pub fn integrations_projects_locations_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_download_execute()` to send, or `integrations_projects_locations_templates_download` for simplest API.
 
-pub fn integrations_projects_locations_templates_download_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fileFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}:download",
@@ -22060,10 +22431,13 @@ pub fn integrations_projects_locations_templates_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_get_execute()` to send, or `integrations_projects_locations_templates_get` for simplest API.
 
-pub fn integrations_projects_locations_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}",
@@ -22225,10 +22599,13 @@ pub fn integrations_projects_locations_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_import_execute()` to send, or `integrations_projects_locations_templates_import` for simplest API.
 
-pub fn integrations_projects_locations_templates_import_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}:import",
@@ -22394,15 +22771,18 @@ pub fn integrations_projects_locations_templates_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_list_execute()` to send, or `integrations_projects_locations_templates_list` for simplest API.
 
-pub fn integrations_projects_locations_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates",
@@ -22609,11 +22989,14 @@ pub fn integrations_projects_locations_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_patch_execute()` to send, or `integrations_projects_locations_templates_patch` for simplest API.
 
-pub fn integrations_projects_locations_templates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}",
@@ -22792,8 +23175,8 @@ pub fn integrations_projects_locations_templates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_search_execute()` to send, or `integrations_projects_locations_templates_search` for simplest API.
 
-pub fn integrations_projects_locations_templates_search_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     enableNaturalLanguageQueryUnderstanding: &Option<Option<String>>,
     filter: &Option<Option<String>>,
@@ -22802,7 +23185,10 @@ pub fn integrations_projects_locations_templates_search_builder(
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates:search",
@@ -23027,10 +23413,13 @@ pub fn integrations_projects_locations_templates_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_share_execute()` to send, or `integrations_projects_locations_templates_share` for simplest API.
 
-pub fn integrations_projects_locations_templates_share_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_share_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}:share",
@@ -23188,10 +23577,13 @@ pub fn integrations_projects_locations_templates_share(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_unshare_execute()` to send, or `integrations_projects_locations_templates_unshare` for simplest API.
 
-pub fn integrations_projects_locations_templates_unshare_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_unshare_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}:unshare",
@@ -23349,10 +23741,13 @@ pub fn integrations_projects_locations_templates_unshare(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_upload_execute()` to send, or `integrations_projects_locations_templates_upload` for simplest API.
 
-pub fn integrations_projects_locations_templates_upload_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates:upload",
@@ -23518,10 +23913,13 @@ pub fn integrations_projects_locations_templates_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_templates_use_execute()` to send, or `integrations_projects_locations_templates_use` for simplest API.
 
-pub fn integrations_projects_locations_templates_use_builder(
-    client: &SimpleHttpClient,
+pub fn integrations_projects_locations_templates_use_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://integrations.googleapis.com/v1/projects/{}/locations/{locationsId}/templates/{templatesId}:use",

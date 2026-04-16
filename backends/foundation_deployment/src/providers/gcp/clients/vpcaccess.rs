@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_list_execute()` to send, or `vpcaccess_projects_locations_list` for simplest API.
 
-pub fn vpcaccess_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations",
@@ -226,11 +230,14 @@ pub fn vpcaccess_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_connectors_create_execute()` to send, or `vpcaccess_projects_locations_connectors_create` for simplest API.
 
-pub fn vpcaccess_projects_locations_connectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_connectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectorId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations/{locationsId}/connectors",
@@ -401,10 +408,13 @@ pub fn vpcaccess_projects_locations_connectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_connectors_delete_execute()` to send, or `vpcaccess_projects_locations_connectors_delete` for simplest API.
 
-pub fn vpcaccess_projects_locations_connectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_connectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations/{locationsId}/connectors/{connectorsId}",
@@ -558,10 +568,13 @@ pub fn vpcaccess_projects_locations_connectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_connectors_get_execute()` to send, or `vpcaccess_projects_locations_connectors_get` for simplest API.
 
-pub fn vpcaccess_projects_locations_connectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_connectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations/{locationsId}/connectors/{connectorsId}",
@@ -715,12 +728,15 @@ pub fn vpcaccess_projects_locations_connectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_connectors_list_execute()` to send, or `vpcaccess_projects_locations_connectors_list` for simplest API.
 
-pub fn vpcaccess_projects_locations_connectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_connectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations/{locationsId}/connectors",
@@ -901,11 +917,14 @@ pub fn vpcaccess_projects_locations_connectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_connectors_patch_execute()` to send, or `vpcaccess_projects_locations_connectors_patch` for simplest API.
 
-pub fn vpcaccess_projects_locations_connectors_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_connectors_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations/{locationsId}/connectors/{connectorsId}",
@@ -1076,10 +1095,13 @@ pub fn vpcaccess_projects_locations_connectors_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_operations_get_execute()` to send, or `vpcaccess_projects_locations_operations_get` for simplest API.
 
-pub fn vpcaccess_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1233,14 +1255,17 @@ pub fn vpcaccess_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vpcaccess_projects_locations_operations_list_execute()` to send, or `vpcaccess_projects_locations_operations_list` for simplest API.
 
-pub fn vpcaccess_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vpcaccess_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vpcaccess.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

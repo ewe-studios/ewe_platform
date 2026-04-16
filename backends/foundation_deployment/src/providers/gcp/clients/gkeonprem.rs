@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_get_execute()` to send, or `gkeonprem_projects_locations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn gkeonprem_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_list_execute()` to send, or `gkeonprem_projects_locations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations",
@@ -383,13 +390,16 @@ pub fn gkeonprem_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_create_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_create` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowPreflightFailure: &Option<Option<String>>,
     bareMetalAdminClusterId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters",
@@ -572,10 +582,13 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_enroll_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_enroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_enroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_enroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters:enroll",
@@ -732,12 +745,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_enroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_get_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}",
@@ -918,11 +934,14 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:getIamPolicy",
@@ -1093,14 +1112,17 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_list_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowMissing: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters",
@@ -1297,12 +1319,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_patch_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_patch` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}",
@@ -1479,11 +1504,14 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     upgradeConfig_clusterName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters:queryVersionConfig",
@@ -1664,10 +1692,13 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_conf
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:setIamPolicy",
@@ -1824,10 +1855,13 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:testIamPermissions",
@@ -1994,14 +2028,17 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     ignoreErrors: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:unenroll",
@@ -2190,10 +2227,13 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}/operations/{operationsId}",
@@ -2349,14 +2389,17 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_execute()` to send, or `gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}/operations",
@@ -2550,13 +2593,16 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_create_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_create` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowPreflightFailure: &Option<Option<String>>,
     bareMetalClusterId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters",
@@ -2739,15 +2785,18 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_delete_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_delete` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     ignoreErrors: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}",
@@ -2942,10 +2991,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_enroll_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_enroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_enroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_enroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters:enroll",
@@ -3100,12 +3152,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_enroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_get_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}",
@@ -3286,11 +3341,14 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:getIamPolicy",
@@ -3461,15 +3519,18 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_list_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowMissing: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters",
@@ -3672,13 +3733,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_patch_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_patch` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}",
@@ -3861,13 +3925,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_query_version_config_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_query_version_config` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     createConfig_adminClusterMembership: &Option<Option<String>>,
     createConfig_adminClusterName: &Option<Option<String>>,
     upgradeConfig_clusterName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters:queryVersionConfig",
@@ -4058,10 +4125,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:setIamPolicy",
@@ -4218,10 +4288,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:testIamPermissions",
@@ -4386,14 +4459,17 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_unenroll_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_unenroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:unenroll",
@@ -4582,12 +4658,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bareMetalNodePoolId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools",
@@ -4767,14 +4846,17 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_cr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     ignoreErrors: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}",
@@ -4966,10 +5048,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_de
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools:enroll",
@@ -5129,11 +5214,14 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}",
@@ -5308,11 +5396,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:getIamPolicy",
@@ -5484,13 +5577,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools",
@@ -5683,13 +5779,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}",
@@ -5874,10 +5973,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_pa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:setIamPolicy",
@@ -6036,10 +6140,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_se
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:testIamPermissions",
@@ -6201,13 +6310,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_te
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:unenroll",
@@ -6394,10 +6506,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_un
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}/operations/{operationsId}",
@@ -6556,14 +6673,19 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}/operations",
@@ -6751,10 +6873,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_operations_get_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_operations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/operations/{operationsId}",
@@ -6910,14 +7035,17 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_bare_metal_clusters_operations_list_execute()` to send, or `gkeonprem_projects_locations_bare_metal_clusters_operations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/operations",
@@ -7110,10 +7238,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_operations_cancel_execute()` to send, or `gkeonprem_projects_locations_operations_cancel` for simplest API.
 
-pub fn gkeonprem_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -7267,10 +7398,13 @@ pub fn gkeonprem_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_operations_delete_execute()` to send, or `gkeonprem_projects_locations_operations_delete` for simplest API.
 
-pub fn gkeonprem_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7424,10 +7558,13 @@ pub fn gkeonprem_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_operations_get_execute()` to send, or `gkeonprem_projects_locations_operations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7581,14 +7718,17 @@ pub fn gkeonprem_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_operations_list_execute()` to send, or `gkeonprem_projects_locations_operations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -7781,14 +7921,17 @@ pub fn gkeonprem_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_create_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_create` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowPreflightFailure: &Option<Option<String>>,
     skipValidations: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
     vmwareAdminClusterId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters",
@@ -7977,10 +8120,13 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_enroll_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_enroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_enroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_enroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters:enroll",
@@ -8135,12 +8281,15 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_enroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_get_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}",
@@ -8321,11 +8470,14 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:getIamPolicy",
@@ -8496,14 +8648,17 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_list_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowMissing: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters",
@@ -8700,13 +8855,16 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_patch_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_patch` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     skipValidations: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}",
@@ -8889,10 +9047,13 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:setIamPolicy",
@@ -9049,10 +9210,13 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:testIamPermissions",
@@ -9218,14 +9382,17 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_unenroll_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_unenroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_unenroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_unenroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     ignoreErrors: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:unenroll",
@@ -9414,10 +9581,13 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_unenroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_operations_get_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_operations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}/operations/{operationsId}",
@@ -9573,14 +9743,17 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_admin_clusters_operations_list_execute()` to send, or `gkeonprem_projects_locations_vmware_admin_clusters_operations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}/operations",
@@ -9773,14 +9946,17 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_create_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_create` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowPreflightFailure: &Option<Option<String>>,
     skipValidations: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
     vmwareClusterId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters",
@@ -9969,15 +10145,18 @@ pub fn gkeonprem_projects_locations_vmware_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_delete_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_delete` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     ignoreErrors: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}",
@@ -10172,10 +10351,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_enroll_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_enroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_enroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_enroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters:enroll",
@@ -10330,12 +10512,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_enroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_get_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}",
@@ -10516,11 +10701,14 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_get_iam_policy_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_get_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:getIamPolicy",
@@ -10691,15 +10879,18 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_list_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     allowMissing: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters",
@@ -10902,13 +11093,16 @@ pub fn gkeonprem_projects_locations_vmware_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_patch_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_patch` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     skipValidations: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}",
@@ -11091,13 +11285,16 @@ pub fn gkeonprem_projects_locations_vmware_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_query_version_config_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_query_version_config` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     createConfig_adminClusterMembership: &Option<Option<String>>,
     createConfig_adminClusterName: &Option<Option<String>>,
     upgradeConfig_clusterName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters:queryVersionConfig",
@@ -11288,10 +11485,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_set_iam_policy_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_set_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:setIamPolicy",
@@ -11448,10 +11648,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_test_iam_permissions_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_test_iam_permissions` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:testIamPermissions",
@@ -11616,14 +11819,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_unenroll_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_unenroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_unenroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_unenroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:unenroll",
@@ -11812,10 +12018,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_unenroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_operations_get_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_operations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/operations/{operationsId}",
@@ -11970,14 +12179,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_operations_list_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_operations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/operations",
@@ -12170,12 +12382,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
     vmwareNodePoolId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools",
@@ -12352,14 +12567,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     ignoreErrors: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}",
@@ -12548,10 +12766,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools:enroll",
@@ -12708,11 +12929,14 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}",
@@ -12885,11 +13109,14 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:getIamPolicy",
@@ -13063,13 +13290,16 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_po
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools",
@@ -13260,12 +13490,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}",
@@ -13442,10 +13675,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:setIamPolicy",
@@ -13605,10 +13841,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_po
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:testIamPermissions",
@@ -13775,13 +14016,16 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:unenroll",
@@ -13965,10 +14209,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}/operations/{operationsId}",
@@ -14127,14 +14374,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list_execute()` to send, or `gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list` for simplest API.
 
-pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkeonprem.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}/operations",

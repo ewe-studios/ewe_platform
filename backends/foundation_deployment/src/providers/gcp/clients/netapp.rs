@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_get_execute()` to send, or `netapp_projects_locations_get` for simplest API.
 
-pub fn netapp_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn netapp_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_list_execute()` to send, or `netapp_projects_locations_list` for simplest API.
 
-pub fn netapp_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations",
@@ -383,11 +390,14 @@ pub fn netapp_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_active_directories_create_execute()` to send, or `netapp_projects_locations_active_directories_create` for simplest API.
 
-pub fn netapp_projects_locations_active_directories_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_active_directories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     activeDirectoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories",
@@ -558,10 +568,13 @@ pub fn netapp_projects_locations_active_directories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_active_directories_delete_execute()` to send, or `netapp_projects_locations_active_directories_delete` for simplest API.
 
-pub fn netapp_projects_locations_active_directories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_active_directories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}",
@@ -715,10 +728,13 @@ pub fn netapp_projects_locations_active_directories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_active_directories_get_execute()` to send, or `netapp_projects_locations_active_directories_get` for simplest API.
 
-pub fn netapp_projects_locations_active_directories_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_active_directories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}",
@@ -876,14 +892,17 @@ pub fn netapp_projects_locations_active_directories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_active_directories_list_execute()` to send, or `netapp_projects_locations_active_directories_list` for simplest API.
 
-pub fn netapp_projects_locations_active_directories_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_active_directories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories",
@@ -1080,11 +1099,14 @@ pub fn netapp_projects_locations_active_directories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_active_directories_patch_execute()` to send, or `netapp_projects_locations_active_directories_patch` for simplest API.
 
-pub fn netapp_projects_locations_active_directories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_active_directories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}",
@@ -1255,11 +1277,14 @@ pub fn netapp_projects_locations_active_directories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_policies_create_execute()` to send, or `netapp_projects_locations_backup_policies_create` for simplest API.
 
-pub fn netapp_projects_locations_backup_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies",
@@ -1430,10 +1455,13 @@ pub fn netapp_projects_locations_backup_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_policies_delete_execute()` to send, or `netapp_projects_locations_backup_policies_delete` for simplest API.
 
-pub fn netapp_projects_locations_backup_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies/{backupPoliciesId}",
@@ -1587,10 +1615,13 @@ pub fn netapp_projects_locations_backup_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_policies_get_execute()` to send, or `netapp_projects_locations_backup_policies_get` for simplest API.
 
-pub fn netapp_projects_locations_backup_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies/{backupPoliciesId}",
@@ -1748,14 +1779,17 @@ pub fn netapp_projects_locations_backup_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_policies_list_execute()` to send, or `netapp_projects_locations_backup_policies_list` for simplest API.
 
-pub fn netapp_projects_locations_backup_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies",
@@ -1952,11 +1986,14 @@ pub fn netapp_projects_locations_backup_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_policies_patch_execute()` to send, or `netapp_projects_locations_backup_policies_patch` for simplest API.
 
-pub fn netapp_projects_locations_backup_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies/{backupPoliciesId}",
@@ -2127,11 +2164,14 @@ pub fn netapp_projects_locations_backup_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_create_execute()` to send, or `netapp_projects_locations_backup_vaults_create` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupVaultId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
@@ -2302,10 +2342,13 @@ pub fn netapp_projects_locations_backup_vaults_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_delete_execute()` to send, or `netapp_projects_locations_backup_vaults_delete` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
@@ -2459,10 +2502,13 @@ pub fn netapp_projects_locations_backup_vaults_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_get_execute()` to send, or `netapp_projects_locations_backup_vaults_get` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
@@ -2616,14 +2662,17 @@ pub fn netapp_projects_locations_backup_vaults_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_list_execute()` to send, or `netapp_projects_locations_backup_vaults_list` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
@@ -2816,11 +2865,14 @@ pub fn netapp_projects_locations_backup_vaults_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_patch_execute()` to send, or `netapp_projects_locations_backup_vaults_patch` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
@@ -2991,11 +3043,14 @@ pub fn netapp_projects_locations_backup_vaults_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_backups_create_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_create` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups",
@@ -3166,10 +3221,13 @@ pub fn netapp_projects_locations_backup_vaults_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_backups_delete_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_delete` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}",
@@ -3324,10 +3382,13 @@ pub fn netapp_projects_locations_backup_vaults_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_backups_get_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_get` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}",
@@ -3481,14 +3542,17 @@ pub fn netapp_projects_locations_backup_vaults_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_backups_list_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_list` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups",
@@ -3681,11 +3745,14 @@ pub fn netapp_projects_locations_backup_vaults_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_backup_vaults_backups_patch_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_patch` for simplest API.
 
-pub fn netapp_projects_locations_backup_vaults_backups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_backup_vaults_backups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}",
@@ -3856,11 +3923,14 @@ pub fn netapp_projects_locations_backup_vaults_backups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_host_groups_create_execute()` to send, or `netapp_projects_locations_host_groups_create` for simplest API.
 
-pub fn netapp_projects_locations_host_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_host_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     hostGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups",
@@ -4031,10 +4101,13 @@ pub fn netapp_projects_locations_host_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_host_groups_delete_execute()` to send, or `netapp_projects_locations_host_groups_delete` for simplest API.
 
-pub fn netapp_projects_locations_host_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_host_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups/{hostGroupsId}",
@@ -4188,10 +4261,13 @@ pub fn netapp_projects_locations_host_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_host_groups_get_execute()` to send, or `netapp_projects_locations_host_groups_get` for simplest API.
 
-pub fn netapp_projects_locations_host_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_host_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups/{hostGroupsId}",
@@ -4345,14 +4421,17 @@ pub fn netapp_projects_locations_host_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_host_groups_list_execute()` to send, or `netapp_projects_locations_host_groups_list` for simplest API.
 
-pub fn netapp_projects_locations_host_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_host_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups",
@@ -4545,11 +4624,14 @@ pub fn netapp_projects_locations_host_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_host_groups_patch_execute()` to send, or `netapp_projects_locations_host_groups_patch` for simplest API.
 
-pub fn netapp_projects_locations_host_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_host_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups/{hostGroupsId}",
@@ -4717,11 +4799,14 @@ pub fn netapp_projects_locations_host_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_kms_configs_create_execute()` to send, or `netapp_projects_locations_kms_configs_create` for simplest API.
 
-pub fn netapp_projects_locations_kms_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_kms_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     kmsConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs",
@@ -4892,10 +4977,13 @@ pub fn netapp_projects_locations_kms_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_kms_configs_delete_execute()` to send, or `netapp_projects_locations_kms_configs_delete` for simplest API.
 
-pub fn netapp_projects_locations_kms_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_kms_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}",
@@ -5049,10 +5137,13 @@ pub fn netapp_projects_locations_kms_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_kms_configs_encrypt_execute()` to send, or `netapp_projects_locations_kms_configs_encrypt` for simplest API.
 
-pub fn netapp_projects_locations_kms_configs_encrypt_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_kms_configs_encrypt_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:encrypt",
@@ -5206,10 +5297,13 @@ pub fn netapp_projects_locations_kms_configs_encrypt(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_kms_configs_get_execute()` to send, or `netapp_projects_locations_kms_configs_get` for simplest API.
 
-pub fn netapp_projects_locations_kms_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_kms_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}",
@@ -5363,14 +5457,17 @@ pub fn netapp_projects_locations_kms_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_kms_configs_list_execute()` to send, or `netapp_projects_locations_kms_configs_list` for simplest API.
 
-pub fn netapp_projects_locations_kms_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_kms_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs",
@@ -5563,11 +5660,14 @@ pub fn netapp_projects_locations_kms_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_kms_configs_patch_execute()` to send, or `netapp_projects_locations_kms_configs_patch` for simplest API.
 
-pub fn netapp_projects_locations_kms_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_kms_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}",
@@ -5735,10 +5835,13 @@ pub fn netapp_projects_locations_kms_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_kms_configs_verify_execute()` to send, or `netapp_projects_locations_kms_configs_verify` for simplest API.
 
-pub fn netapp_projects_locations_kms_configs_verify_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_kms_configs_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:verify",
@@ -5896,10 +5999,13 @@ pub fn netapp_projects_locations_kms_configs_verify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_operations_cancel_execute()` to send, or `netapp_projects_locations_operations_cancel` for simplest API.
 
-pub fn netapp_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -6057,10 +6163,13 @@ pub fn netapp_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_operations_delete_execute()` to send, or `netapp_projects_locations_operations_delete` for simplest API.
 
-pub fn netapp_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6218,10 +6327,13 @@ pub fn netapp_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_operations_get_execute()` to send, or `netapp_projects_locations_operations_get` for simplest API.
 
-pub fn netapp_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6375,14 +6487,17 @@ pub fn netapp_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_operations_list_execute()` to send, or `netapp_projects_locations_operations_list` for simplest API.
 
-pub fn netapp_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6575,11 +6690,14 @@ pub fn netapp_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_create_execute()` to send, or `netapp_projects_locations_storage_pools_create` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     storagePoolId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools",
@@ -6750,10 +6868,13 @@ pub fn netapp_projects_locations_storage_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_delete_execute()` to send, or `netapp_projects_locations_storage_pools_delete` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}",
@@ -6907,10 +7028,13 @@ pub fn netapp_projects_locations_storage_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_get_execute()` to send, or `netapp_projects_locations_storage_pools_get` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}",
@@ -7064,14 +7188,17 @@ pub fn netapp_projects_locations_storage_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_list_execute()` to send, or `netapp_projects_locations_storage_pools_list` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools",
@@ -7264,11 +7391,14 @@ pub fn netapp_projects_locations_storage_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_patch_execute()` to send, or `netapp_projects_locations_storage_pools_patch` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}",
@@ -7439,10 +7569,13 @@ pub fn netapp_projects_locations_storage_pools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_switch_execute()` to send, or `netapp_projects_locations_storage_pools_switch` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_switch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_switch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}:switch",
@@ -7596,10 +7729,13 @@ pub fn netapp_projects_locations_storage_pools_switch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_validate_directory_service_execute()` to send, or `netapp_projects_locations_storage_pools_validate_directory_service` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_validate_directory_service_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_validate_directory_service_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}:validateDirectoryService",
@@ -7755,10 +7891,13 @@ pub fn netapp_projects_locations_storage_pools_validate_directory_service(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     ontapPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
@@ -7923,10 +8062,13 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_get` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     ontapPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
@@ -8087,10 +8229,13 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     ontapPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
@@ -8251,10 +8396,13 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_post` for simplest API.
 
-pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder<R>(
+    client: &SimpleHttpClient<R>,
     ontapPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
@@ -8415,11 +8563,14 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_create_execute()` to send, or `netapp_projects_locations_volumes_create` for simplest API.
 
-pub fn netapp_projects_locations_volumes_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes",
@@ -8587,11 +8738,14 @@ pub fn netapp_projects_locations_volumes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_delete_execute()` to send, or `netapp_projects_locations_volumes_delete` for simplest API.
 
-pub fn netapp_projects_locations_volumes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}",
@@ -8759,10 +8913,13 @@ pub fn netapp_projects_locations_volumes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_establish_peering_execute()` to send, or `netapp_projects_locations_volumes_establish_peering` for simplest API.
 
-pub fn netapp_projects_locations_volumes_establish_peering_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_establish_peering_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}:establishPeering",
@@ -8916,10 +9073,13 @@ pub fn netapp_projects_locations_volumes_establish_peering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_get_execute()` to send, or `netapp_projects_locations_volumes_get` for simplest API.
 
-pub fn netapp_projects_locations_volumes_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}",
@@ -9073,14 +9233,17 @@ pub fn netapp_projects_locations_volumes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_list_execute()` to send, or `netapp_projects_locations_volumes_list` for simplest API.
 
-pub fn netapp_projects_locations_volumes_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes",
@@ -9273,11 +9436,14 @@ pub fn netapp_projects_locations_volumes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_patch_execute()` to send, or `netapp_projects_locations_volumes_patch` for simplest API.
 
-pub fn netapp_projects_locations_volumes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}",
@@ -9445,10 +9611,13 @@ pub fn netapp_projects_locations_volumes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_restore_execute()` to send, or `netapp_projects_locations_volumes_restore` for simplest API.
 
-pub fn netapp_projects_locations_volumes_restore_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}:restore",
@@ -9602,10 +9771,13 @@ pub fn netapp_projects_locations_volumes_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_revert_execute()` to send, or `netapp_projects_locations_volumes_revert` for simplest API.
 
-pub fn netapp_projects_locations_volumes_revert_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}:revert",
@@ -9759,11 +9931,14 @@ pub fn netapp_projects_locations_volumes_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_quota_rules_create_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_create` for simplest API.
 
-pub fn netapp_projects_locations_volumes_quota_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_quota_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     quotaRuleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules",
@@ -9934,10 +10109,13 @@ pub fn netapp_projects_locations_volumes_quota_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_quota_rules_delete_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_delete` for simplest API.
 
-pub fn netapp_projects_locations_volumes_quota_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_quota_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}",
@@ -10091,10 +10269,13 @@ pub fn netapp_projects_locations_volumes_quota_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_quota_rules_get_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_get` for simplest API.
 
-pub fn netapp_projects_locations_volumes_quota_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_quota_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}",
@@ -10248,14 +10429,17 @@ pub fn netapp_projects_locations_volumes_quota_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_quota_rules_list_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_list` for simplest API.
 
-pub fn netapp_projects_locations_volumes_quota_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_quota_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules",
@@ -10448,11 +10632,14 @@ pub fn netapp_projects_locations_volumes_quota_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_quota_rules_patch_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_patch` for simplest API.
 
-pub fn netapp_projects_locations_volumes_quota_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_quota_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}",
@@ -10623,11 +10810,14 @@ pub fn netapp_projects_locations_volumes_quota_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_create_execute()` to send, or `netapp_projects_locations_volumes_replications_create` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     replicationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications",
@@ -10798,10 +10988,13 @@ pub fn netapp_projects_locations_volumes_replications_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_delete_execute()` to send, or `netapp_projects_locations_volumes_replications_delete` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}",
@@ -10956,10 +11149,13 @@ pub fn netapp_projects_locations_volumes_replications_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_establish_peering_execute()` to send, or `netapp_projects_locations_volumes_replications_establish_peering` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_establish_peering_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_establish_peering_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:establishPeering",
@@ -11115,10 +11311,13 @@ pub fn netapp_projects_locations_volumes_replications_establish_peering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_get_execute()` to send, or `netapp_projects_locations_volumes_replications_get` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}",
@@ -11272,14 +11471,17 @@ pub fn netapp_projects_locations_volumes_replications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_list_execute()` to send, or `netapp_projects_locations_volumes_replications_list` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications",
@@ -11472,11 +11674,14 @@ pub fn netapp_projects_locations_volumes_replications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_patch_execute()` to send, or `netapp_projects_locations_volumes_replications_patch` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}",
@@ -11647,10 +11852,13 @@ pub fn netapp_projects_locations_volumes_replications_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_resume_execute()` to send, or `netapp_projects_locations_volumes_replications_resume` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_resume_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:resume",
@@ -11805,10 +12013,13 @@ pub fn netapp_projects_locations_volumes_replications_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_reverse_direction_execute()` to send, or `netapp_projects_locations_volumes_replications_reverse_direction` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_reverse_direction_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_reverse_direction_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:reverseDirection",
@@ -11964,10 +12175,13 @@ pub fn netapp_projects_locations_volumes_replications_reverse_direction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_stop_execute()` to send, or `netapp_projects_locations_volumes_replications_stop` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_stop_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:stop",
@@ -12121,10 +12335,13 @@ pub fn netapp_projects_locations_volumes_replications_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_replications_sync_execute()` to send, or `netapp_projects_locations_volumes_replications_sync` for simplest API.
 
-pub fn netapp_projects_locations_volumes_replications_sync_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_replications_sync_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:sync",
@@ -12278,11 +12495,14 @@ pub fn netapp_projects_locations_volumes_replications_sync(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_snapshots_create_execute()` to send, or `netapp_projects_locations_volumes_snapshots_create` for simplest API.
 
-pub fn netapp_projects_locations_volumes_snapshots_create_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_snapshots_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     snapshotId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots",
@@ -12453,10 +12673,13 @@ pub fn netapp_projects_locations_volumes_snapshots_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_snapshots_delete_execute()` to send, or `netapp_projects_locations_volumes_snapshots_delete` for simplest API.
 
-pub fn netapp_projects_locations_volumes_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",
@@ -12610,10 +12833,13 @@ pub fn netapp_projects_locations_volumes_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_snapshots_get_execute()` to send, or `netapp_projects_locations_volumes_snapshots_get` for simplest API.
 
-pub fn netapp_projects_locations_volumes_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",
@@ -12767,14 +12993,17 @@ pub fn netapp_projects_locations_volumes_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_snapshots_list_execute()` to send, or `netapp_projects_locations_volumes_snapshots_list` for simplest API.
 
-pub fn netapp_projects_locations_volumes_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots",
@@ -12967,11 +13196,14 @@ pub fn netapp_projects_locations_volumes_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `netapp_projects_locations_volumes_snapshots_patch_execute()` to send, or `netapp_projects_locations_volumes_snapshots_patch` for simplest API.
 
-pub fn netapp_projects_locations_volumes_snapshots_patch_builder(
-    client: &SimpleHttpClient,
+pub fn netapp_projects_locations_volumes_snapshots_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",

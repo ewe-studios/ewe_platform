@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `groups_settings_groups_get_execute()` to send, or `groups_settings_groups_get` for simplest API.
 
-pub fn groups_settings_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn groups_settings_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupUniqueId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/groups/v1/groups/{}",
@@ -183,10 +187,13 @@ pub fn groups_settings_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `groups_settings_groups_patch_execute()` to send, or `groups_settings_groups_patch` for simplest API.
 
-pub fn groups_settings_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn groups_settings_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupUniqueId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/groups/v1/groups/{}",
@@ -340,10 +347,13 @@ pub fn groups_settings_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `groups_settings_groups_update_execute()` to send, or `groups_settings_groups_update` for simplest API.
 
-pub fn groups_settings_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn groups_settings_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupUniqueId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/groups/v1/groups/{}",

@@ -209,7 +209,6 @@ use crate::providers::gcp::clients::classroom::ClassroomCoursesCourseWorkStudent
 use crate::providers::gcp::clients::classroom::ClassroomCoursesCourseWorkStudentSubmissionsReturnArgs;
 use crate::providers::gcp::clients::classroom::ClassroomCoursesCourseWorkStudentSubmissionsTurnInArgs;
 use crate::providers::gcp::clients::classroom::ClassroomCoursesCourseWorkUpdateRubricArgs;
-use crate::providers::gcp::clients::classroom::ClassroomCoursesCreateArgs;
 use crate::providers::gcp::clients::classroom::ClassroomCoursesDeleteArgs;
 use crate::providers::gcp::clients::classroom::ClassroomCoursesGetArgs;
 use crate::providers::gcp::clients::classroom::ClassroomCoursesGetGradingPeriodSettingsArgs;
@@ -246,11 +245,9 @@ use crate::providers::gcp::clients::classroom::ClassroomCoursesTopicsPatchArgs;
 use crate::providers::gcp::clients::classroom::ClassroomCoursesUpdateArgs;
 use crate::providers::gcp::clients::classroom::ClassroomCoursesUpdateGradingPeriodSettingsArgs;
 use crate::providers::gcp::clients::classroom::ClassroomInvitationsAcceptArgs;
-use crate::providers::gcp::clients::classroom::ClassroomInvitationsCreateArgs;
 use crate::providers::gcp::clients::classroom::ClassroomInvitationsDeleteArgs;
 use crate::providers::gcp::clients::classroom::ClassroomInvitationsGetArgs;
 use crate::providers::gcp::clients::classroom::ClassroomInvitationsListArgs;
-use crate::providers::gcp::clients::classroom::ClassroomRegistrationsCreateArgs;
 use crate::providers::gcp::clients::classroom::ClassroomRegistrationsDeleteArgs;
 use crate::providers::gcp::clients::classroom::ClassroomUserProfilesGetArgs;
 use crate::providers::gcp::clients::classroom::ClassroomUserProfilesGuardianInvitationsCreateArgs;
@@ -262,7 +259,7 @@ use crate::providers::gcp::clients::classroom::ClassroomUserProfilesGuardiansGet
 use crate::providers::gcp::clients::classroom::ClassroomUserProfilesGuardiansListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -271,34 +268,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = ClassroomProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = ClassroomProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct ClassroomProvider<S>
+pub struct ClassroomProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> ClassroomProvider<S>
+impl<S, R> ClassroomProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new ClassroomProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new ClassroomProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Classroom courses create.

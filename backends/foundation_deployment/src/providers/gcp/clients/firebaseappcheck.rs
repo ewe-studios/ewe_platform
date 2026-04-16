@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_jwks_get_execute()` to send, or `firebaseappcheck_jwks_get` for simplest API.
 
-pub fn firebaseappcheck_jwks_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn firebaseappcheck_jwks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebaseappcheck.googleapis.com/v1/jwks",);
 
@@ -179,10 +183,13 @@ pub fn firebaseappcheck_jwks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_oauth_clients_exchange_app_attest_assertion_execute()` to send, or `firebaseappcheck_oauth_clients_exchange_app_attest_assertion` for simplest API.
 
-pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/oauthClients/{}:exchangeAppAttestAssertion",
@@ -345,10 +352,13 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_oauth_clients_exchange_app_attest_attestation_execute()` to send, or `firebaseappcheck_oauth_clients_exchange_app_attest_attestation` for simplest API.
 
-pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/oauthClients/{}:exchangeAppAttestAttestation",
@@ -521,10 +531,13 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_oauth_clients_exchange_debug_token_execute()` to send, or `firebaseappcheck_oauth_clients_exchange_debug_token` for simplest API.
 
-pub fn firebaseappcheck_oauth_clients_exchange_debug_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_oauth_clients_exchange_debug_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/oauthClients/{}:exchangeDebugToken",
@@ -686,10 +699,13 @@ pub fn firebaseappcheck_oauth_clients_exchange_debug_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_oauth_clients_generate_app_attest_challenge_execute()` to send, or `firebaseappcheck_oauth_clients_generate_app_attest_challenge` for simplest API.
 
-pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/oauthClients/{}:generateAppAttestChallenge",
@@ -862,10 +878,13 @@ pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_app_attest_assertion_execute()` to send, or `firebaseappcheck_projects_apps_exchange_app_attest_assertion` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeAppAttestAssertion",
@@ -1028,10 +1047,13 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_app_attest_attestation_execute()` to send, or `firebaseappcheck_projects_apps_exchange_app_attest_attestation` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeAppAttestAttestation",
@@ -1204,10 +1226,13 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_custom_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_custom_token` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_custom_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_custom_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeCustomToken",
@@ -1369,10 +1394,13 @@ pub fn firebaseappcheck_projects_apps_exchange_custom_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_debug_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_debug_token` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_debug_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_debug_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeDebugToken",
@@ -1534,10 +1562,13 @@ pub fn firebaseappcheck_projects_apps_exchange_debug_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_device_check_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_device_check_token` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_device_check_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_device_check_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeDeviceCheckToken",
@@ -1700,10 +1731,13 @@ pub fn firebaseappcheck_projects_apps_exchange_device_check_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_play_integrity_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_play_integrity_token` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_play_integrity_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_play_integrity_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangePlayIntegrityToken",
@@ -1866,10 +1900,13 @@ pub fn firebaseappcheck_projects_apps_exchange_play_integrity_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeRecaptchaEnterpriseToken",
@@ -2033,10 +2070,13 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_recaptcha_v3_token` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeRecaptchaV3Token",
@@ -2199,10 +2239,13 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_v3_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_safety_net_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_safety_net_token` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_exchange_safety_net_token_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_exchange_safety_net_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:exchangeSafetyNetToken",
@@ -2365,10 +2408,13 @@ pub fn firebaseappcheck_projects_apps_exchange_safety_net_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_generate_app_attest_challenge_execute()` to send, or `firebaseappcheck_projects_apps_generate_app_attest_challenge` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:generateAppAttestChallenge",
@@ -2541,10 +2587,13 @@ pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_generate_play_integrity_challenge_execute()` to send, or `firebaseappcheck_projects_apps_generate_play_integrity_challenge` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge_builder<R>(
+    client: &SimpleHttpClient<R>,
     app: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}:generatePlayIntegrityChallenge",
@@ -2718,11 +2767,14 @@ pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_app_attest_config_batch_get_execute()` to send, or `firebaseappcheck_projects_apps_app_attest_config_batch_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/-/appAttestConfig:batchGet",
@@ -2911,10 +2963,13 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_app_attest_config_get_execute()` to send, or `firebaseappcheck_projects_apps_app_attest_config_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_app_attest_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_app_attest_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/appAttestConfig",
@@ -3077,11 +3132,14 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_app_attest_config_patch_execute()` to send, or `firebaseappcheck_projects_apps_app_attest_config_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_app_attest_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_app_attest_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/appAttestConfig",
@@ -3261,10 +3319,13 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_debug_tokens_create_execute()` to send, or `firebaseappcheck_projects_apps_debug_tokens_create` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_debug_tokens_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_debug_tokens_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/debugTokens",
@@ -3426,10 +3487,13 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_debug_tokens_delete_execute()` to send, or `firebaseappcheck_projects_apps_debug_tokens_delete` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_debug_tokens_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_debug_tokens_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/debugTokens/{debugTokensId}",
@@ -3587,10 +3651,13 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_debug_tokens_get_execute()` to send, or `firebaseappcheck_projects_apps_debug_tokens_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_debug_tokens_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_debug_tokens_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/debugTokens/{debugTokensId}",
@@ -3752,12 +3819,15 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_debug_tokens_list_execute()` to send, or `firebaseappcheck_projects_apps_debug_tokens_list` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_debug_tokens_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_debug_tokens_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/debugTokens",
@@ -3943,11 +4013,14 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_debug_tokens_patch_execute()` to send, or `firebaseappcheck_projects_apps_debug_tokens_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_debug_tokens_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_debug_tokens_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/debugTokens/{debugTokensId}",
@@ -4126,11 +4199,14 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_device_check_config_batch_get_execute()` to send, or `firebaseappcheck_projects_apps_device_check_config_batch_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_device_check_config_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_device_check_config_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/-/deviceCheckConfig:batchGet",
@@ -4319,10 +4395,13 @@ pub fn firebaseappcheck_projects_apps_device_check_config_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_device_check_config_get_execute()` to send, or `firebaseappcheck_projects_apps_device_check_config_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_device_check_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_device_check_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/deviceCheckConfig",
@@ -4485,11 +4564,14 @@ pub fn firebaseappcheck_projects_apps_device_check_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_device_check_config_patch_execute()` to send, or `firebaseappcheck_projects_apps_device_check_config_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_device_check_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_device_check_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/deviceCheckConfig",
@@ -4668,11 +4750,14 @@ pub fn firebaseappcheck_projects_apps_device_check_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_play_integrity_config_batch_get_execute()` to send, or `firebaseappcheck_projects_apps_play_integrity_config_batch_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/-/playIntegrityConfig:batchGet",
@@ -4861,10 +4946,13 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_play_integrity_config_get_execute()` to send, or `firebaseappcheck_projects_apps_play_integrity_config_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_play_integrity_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_play_integrity_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/playIntegrityConfig",
@@ -5028,11 +5116,14 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_play_integrity_config_patch_execute()` to send, or `firebaseappcheck_projects_apps_play_integrity_config_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_play_integrity_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_play_integrity_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/playIntegrityConfig",
@@ -5212,11 +5303,14 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_execute()` to send, or `firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/-/recaptchaEnterpriseConfig:batchGet",
@@ -5405,10 +5499,13 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_execute()` to send, or `firebaseappcheck_projects_apps_recaptcha_enterprise_config_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/recaptchaEnterpriseConfig",
@@ -5575,11 +5672,14 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_execute()` to send, or `firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/recaptchaEnterpriseConfig",
@@ -5762,11 +5862,14 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_execute()` to send, or `firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/-/recaptchaV3Config:batchGet",
@@ -5955,10 +6058,13 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_recaptcha_v3_config_get_execute()` to send, or `firebaseappcheck_projects_apps_recaptcha_v3_config_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/recaptchaV3Config",
@@ -6121,11 +6227,14 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_recaptcha_v3_config_patch_execute()` to send, or `firebaseappcheck_projects_apps_recaptcha_v3_config_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/recaptchaV3Config",
@@ -6304,11 +6413,14 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_safety_net_config_batch_get_execute()` to send, or `firebaseappcheck_projects_apps_safety_net_config_batch_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/-/safetyNetConfig:batchGet",
@@ -6497,10 +6609,13 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_safety_net_config_get_execute()` to send, or `firebaseappcheck_projects_apps_safety_net_config_get` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_safety_net_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_safety_net_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/safetyNetConfig",
@@ -6663,11 +6778,14 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_safety_net_config_patch_execute()` to send, or `firebaseappcheck_projects_apps_safety_net_config_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_apps_safety_net_config_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_apps_safety_net_config_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/apps/{appsId}/safetyNetConfig",
@@ -6847,10 +6965,13 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_batch_update_execute()` to send, or `firebaseappcheck_projects_services_batch_update` for simplest API.
 
-pub fn firebaseappcheck_projects_services_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services:batchUpdate",
@@ -7016,10 +7137,13 @@ pub fn firebaseappcheck_projects_services_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_get_execute()` to send, or `firebaseappcheck_projects_services_get` for simplest API.
 
-pub fn firebaseappcheck_projects_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}",
@@ -7181,12 +7305,15 @@ pub fn firebaseappcheck_projects_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_list_execute()` to send, or `firebaseappcheck_projects_services_list` for simplest API.
 
-pub fn firebaseappcheck_projects_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services",
@@ -7372,11 +7499,14 @@ pub fn firebaseappcheck_projects_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_patch_execute()` to send, or `firebaseappcheck_projects_services_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}",
@@ -7552,10 +7682,13 @@ pub fn firebaseappcheck_projects_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_resource_policies_batch_update_execute()` to send, or `firebaseappcheck_projects_services_resource_policies_batch_update` for simplest API.
 
-pub fn firebaseappcheck_projects_services_resource_policies_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_resource_policies_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}/resourcePolicies:batchUpdate",
@@ -7730,10 +7863,13 @@ pub fn firebaseappcheck_projects_services_resource_policies_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_resource_policies_create_execute()` to send, or `firebaseappcheck_projects_services_resource_policies_create` for simplest API.
 
-pub fn firebaseappcheck_projects_services_resource_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_resource_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}/resourcePolicies",
@@ -7896,11 +8032,14 @@ pub fn firebaseappcheck_projects_services_resource_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_resource_policies_delete_execute()` to send, or `firebaseappcheck_projects_services_resource_policies_delete` for simplest API.
 
-pub fn firebaseappcheck_projects_services_resource_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_resource_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}",
@@ -8073,10 +8212,13 @@ pub fn firebaseappcheck_projects_services_resource_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_resource_policies_get_execute()` to send, or `firebaseappcheck_projects_services_resource_policies_get` for simplest API.
 
-pub fn firebaseappcheck_projects_services_resource_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_resource_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}",
@@ -8239,13 +8381,16 @@ pub fn firebaseappcheck_projects_services_resource_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_resource_policies_list_execute()` to send, or `firebaseappcheck_projects_services_resource_policies_list` for simplest API.
 
-pub fn firebaseappcheck_projects_services_resource_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_resource_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}/resourcePolicies",
@@ -8440,11 +8585,14 @@ pub fn firebaseappcheck_projects_services_resource_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_services_resource_policies_patch_execute()` to send, or `firebaseappcheck_projects_services_resource_policies_patch` for simplest API.
 
-pub fn firebaseappcheck_projects_services_resource_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaseappcheck_projects_services_resource_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappcheck.googleapis.com/v1/projects/{}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}",

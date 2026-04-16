@@ -3540,7 +3540,6 @@ use crate::providers::cloudflare::clients::AccountUserGroupMemberListArgs;
 use crate::providers::cloudflare::clients::AccountUserGroupMembersUpdateArgs;
 use crate::providers::cloudflare::clients::AccountUserGroupUpdateArgs;
 use crate::providers::cloudflare::clients::AccountsAccountDetailsArgs;
-use crate::providers::cloudflare::clients::AccountsBatchMoveAccountsArgs;
 use crate::providers::cloudflare::clients::AccountsGetAccountProfileArgs;
 use crate::providers::cloudflare::clients::AccountsListAccountOrganizationsArgs;
 use crate::providers::cloudflare::clients::AccountsListAccountsArgs;
@@ -4429,7 +4428,6 @@ use crate::providers::cloudflare::clients::InfraTargetsPostArgs;
 use crate::providers::cloudflare::clients::InfraTargetsPutArgs;
 use crate::providers::cloudflare::clients::InfraTargetsPutBatchArgs;
 use crate::providers::cloudflare::clients::InitNewSsoConnectorArgs;
-use crate::providers::cloudflare::clients::IpAccessRulesForAUserCreateAnIpAccessRuleArgs;
 use crate::providers::cloudflare::clients::IpAccessRulesForAUserDeleteAnIpAccessRuleArgs;
 use crate::providers::cloudflare::clients::IpAccessRulesForAUserListIpAccessRulesArgs;
 use crate::providers::cloudflare::clients::IpAccessRulesForAUserUpdateAnIpAccessRuleArgs;
@@ -4539,21 +4537,17 @@ use crate::providers::cloudflare::clients::ListsUpdateAListArgs;
 use crate::providers::cloudflare::clients::ListsUpdateAllListItemsArgs;
 use crate::providers::cloudflare::clients::LivestreamSessionDetailsArgs;
 use crate::providers::cloudflare::clients::LoadBalancerHealthcheckEventsListHealthcheckEventsArgs;
-use crate::providers::cloudflare::clients::LoadBalancerMonitorsCreateMonitorArgs;
 use crate::providers::cloudflare::clients::LoadBalancerMonitorsDeleteMonitorArgs;
 use crate::providers::cloudflare::clients::LoadBalancerMonitorsListMonitorReferencesArgs;
-use crate::providers::cloudflare::clients::LoadBalancerMonitorsListMonitorsArgs;
 use crate::providers::cloudflare::clients::LoadBalancerMonitorsMonitorDetailsArgs;
 use crate::providers::cloudflare::clients::LoadBalancerMonitorsPatchMonitorArgs;
 use crate::providers::cloudflare::clients::LoadBalancerMonitorsPreviewMonitorArgs;
 use crate::providers::cloudflare::clients::LoadBalancerMonitorsPreviewResultArgs;
 use crate::providers::cloudflare::clients::LoadBalancerMonitorsUpdateMonitorArgs;
-use crate::providers::cloudflare::clients::LoadBalancerPoolsCreatePoolArgs;
 use crate::providers::cloudflare::clients::LoadBalancerPoolsDeletePoolArgs;
 use crate::providers::cloudflare::clients::LoadBalancerPoolsListPoolReferencesArgs;
 use crate::providers::cloudflare::clients::LoadBalancerPoolsListPoolsArgs;
 use crate::providers::cloudflare::clients::LoadBalancerPoolsPatchPoolArgs;
-use crate::providers::cloudflare::clients::LoadBalancerPoolsPatchPoolsArgs;
 use crate::providers::cloudflare::clients::LoadBalancerPoolsPoolDetailsArgs;
 use crate::providers::cloudflare::clients::LoadBalancerPoolsPoolHealthDetailsArgs;
 use crate::providers::cloudflare::clients::LoadBalancerPoolsPreviewPoolArgs;
@@ -4747,7 +4741,6 @@ use crate::providers::cloudflare::clients::OnrampsPatchArgs;
 use crate::providers::cloudflare::clients::OnrampsPlanArgs;
 use crate::providers::cloudflare::clients::OnrampsReadArgs;
 use crate::providers::cloudflare::clients::OnrampsUpdateArgs;
-use crate::providers::cloudflare::clients::OrganizationListOrganizationsArgs;
 use crate::providers::cloudflare::clients::OrganizationSharesListArgs;
 use crate::providers::cloudflare::clients::OrganizationsCreateUserOrganizationArgs;
 use crate::providers::cloudflare::clients::OrganizationsDeleteArgs;
@@ -4756,7 +4749,6 @@ use crate::providers::cloudflare::clients::OrganizationsGetProfileArgs;
 use crate::providers::cloudflare::clients::OrganizationsModifyArgs;
 use crate::providers::cloudflare::clients::OrganizationsModifyProfileArgs;
 use crate::providers::cloudflare::clients::OrganizationsRetrieveArgs;
-use crate::providers::cloudflare::clients::OriginCaCreateCertificateArgs;
 use crate::providers::cloudflare::clients::OriginCaGetCertificateArgs;
 use crate::providers::cloudflare::clients::OriginCaListCertificatesArgs;
 use crate::providers::cloudflare::clients::OriginCaRevokeCertificateArgs;
@@ -5558,25 +5550,18 @@ use crate::providers::cloudflare::clients::UserApiTokensListTokensArgs;
 use crate::providers::cloudflare::clients::UserApiTokensRollTokenArgs;
 use crate::providers::cloudflare::clients::UserApiTokensTokenDetailsArgs;
 use crate::providers::cloudflare::clients::UserApiTokensUpdateTokenArgs;
-use crate::providers::cloudflare::clients::UserApiTokensVerifyTokenArgs;
 use crate::providers::cloudflare::clients::UserBillingHistoryDeprecatedBillingHistoryDetailsArgs;
-use crate::providers::cloudflare::clients::UserBillingProfileDeprecatedBillingProfileDetailsArgs;
-use crate::providers::cloudflare::clients::UserEditUserArgs;
-use crate::providers::cloudflare::clients::UserListUserTenantsArgs;
 use crate::providers::cloudflare::clients::UserSAccountMembershipsDeleteMembershipArgs;
 use crate::providers::cloudflare::clients::UserSAccountMembershipsListMembershipsArgs;
 use crate::providers::cloudflare::clients::UserSAccountMembershipsMembershipDetailsArgs;
 use crate::providers::cloudflare::clients::UserSAccountMembershipsUpdateMembershipArgs;
 use crate::providers::cloudflare::clients::UserSInvitesInvitationDetailsArgs;
-use crate::providers::cloudflare::clients::UserSInvitesListInvitationsArgs;
 use crate::providers::cloudflare::clients::UserSInvitesRespondToInvitationArgs;
 use crate::providers::cloudflare::clients::UserSOrganizationsLeaveOrganizationArgs;
 use crate::providers::cloudflare::clients::UserSOrganizationsListOrganizationsArgs;
 use crate::providers::cloudflare::clients::UserSOrganizationsOrganizationDetailsArgs;
 use crate::providers::cloudflare::clients::UserSubscriptionDeleteUserSubscriptionArgs;
-use crate::providers::cloudflare::clients::UserSubscriptionGetUserSubscriptionsArgs;
 use crate::providers::cloudflare::clients::UserSubscriptionUpdateUserSubscriptionArgs;
-use crate::providers::cloudflare::clients::UserUserDetailsArgs;
 use crate::providers::cloudflare::clients::VectorizeCreateMetadataIndexArgs;
 use crate::providers::cloudflare::clients::VectorizeCreateVectorizeIndexArgs;
 use crate::providers::cloudflare::clients::VectorizeDeleteMetadataIndexArgs;
@@ -6074,10 +6059,9 @@ use crate::providers::cloudflare::clients::ZonesEnvironmentsListArgs;
 use crate::providers::cloudflare::clients::ZonesEnvironmentsRollbackArgs;
 use crate::providers::cloudflare::clients::ZonesEnvironmentsUpdateArgs;
 use crate::providers::cloudflare::clients::ZonesGetArgs;
-use crate::providers::cloudflare::clients::ZonesPostArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -6086,34 +6070,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = CloudflareProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = CloudflareProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct CloudflareProvider<S>
+pub struct CloudflareProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> CloudflareProvider<S>
+impl<S, R> CloudflareProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new CloudflareProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new CloudflareProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Accounts list accounts.

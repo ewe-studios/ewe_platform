@@ -131,7 +131,7 @@ use crate::providers::gcp::clients::bigquery::BigqueryTablesTestIamPermissionsAr
 use crate::providers::gcp::clients::bigquery::BigqueryTablesUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -140,34 +140,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = BigqueryProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = BigqueryProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct BigqueryProvider<S>
+pub struct BigqueryProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> BigqueryProvider<S>
+impl<S, R> BigqueryProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new BigqueryProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new BigqueryProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Bigquery datasets delete.
@@ -608,8 +618,8 @@ where
             &self.http_client,
             &args.projectId,
             &args.jobId,
-            &args.formatOptions.timestampOutputFormat,
-            &args.formatOptions.useInt64Timestamp,
+            &args.formatOptions_timestampOutputFormat,
+            &args.formatOptions_useInt64Timestamp,
             &args.location,
             &args.maxResults,
             &args.pageToken,
@@ -1714,8 +1724,8 @@ where
             &args.projectId,
             &args.datasetId,
             &args.tableId,
-            &args.formatOptions.timestampOutputFormat,
-            &args.formatOptions.useInt64Timestamp,
+            &args.formatOptions_timestampOutputFormat,
+            &args.formatOptions_useInt64Timestamp,
             &args.maxResults,
             &args.pageToken,
             &args.selectedFields,

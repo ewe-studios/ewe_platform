@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_find_sales_partner_managed_clients_execute()` to send, or `marketingplatformadmin_organizations_find_sales_partner_managed_clients` for simplest API.
 
-pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder<R>(
+    client: &SimpleHttpClient<R>,
     organization: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}:findSalesPartnerManagedClients",
@@ -195,10 +199,13 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_get_execute()` to send, or `marketingplatformadmin_organizations_get` for simplest API.
 
-pub fn marketingplatformadmin_organizations_get_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}",
@@ -356,11 +363,14 @@ pub fn marketingplatformadmin_organizations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_list_execute()` to send, or `marketingplatformadmin_organizations_list` for simplest API.
 
-pub fn marketingplatformadmin_organizations_list_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://marketingplatformadmin.googleapis.com/v1alpha/organizations",);
@@ -533,10 +543,13 @@ pub fn marketingplatformadmin_organizations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_report_property_usage_execute()` to send, or `marketingplatformadmin_organizations_report_property_usage` for simplest API.
 
-pub fn marketingplatformadmin_organizations_report_property_usage_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_report_property_usage_builder<R>(
+    client: &SimpleHttpClient<R>,
     organization: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}:reportPropertyUsage",
@@ -701,10 +714,13 @@ pub fn marketingplatformadmin_organizations_report_property_usage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_analytics_account_links_create_execute()` to send, or `marketingplatformadmin_organizations_analytics_account_links_create` for simplest API.
 
-pub fn marketingplatformadmin_organizations_analytics_account_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_analytics_account_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks",
@@ -865,10 +881,13 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_analytics_account_links_delete_execute()` to send, or `marketingplatformadmin_organizations_analytics_account_links_delete` for simplest API.
 
-pub fn marketingplatformadmin_organizations_analytics_account_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_analytics_account_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks/{analyticsAccountLinksId}",
@@ -1024,12 +1043,15 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_analytics_account_links_list_execute()` to send, or `marketingplatformadmin_organizations_analytics_account_links_list` for simplest API.
 
-pub fn marketingplatformadmin_organizations_analytics_account_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_analytics_account_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks",
@@ -1214,10 +1236,15 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_execute()` to send, or `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level` for simplest API.
 
-pub fn marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder(
-    client: &SimpleHttpClient,
+pub fn marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     analyticsAccountLink: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks/{analyticsAccountLinksId}:setPropertyServiceLevel",

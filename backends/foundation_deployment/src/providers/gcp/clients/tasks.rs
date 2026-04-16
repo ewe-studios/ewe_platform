@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_delete_execute()` to send, or `tasks_tasklists_delete` for simplest API.
 
-pub fn tasks_tasklists_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasklists_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
@@ -180,10 +184,13 @@ pub fn tasks_tasklists_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_get_execute()` to send, or `tasks_tasklists_get` for simplest API.
 
-pub fn tasks_tasklists_get_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasklists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
@@ -337,9 +344,12 @@ pub fn tasks_tasklists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_insert_execute()` to send, or `tasks_tasklists_insert` for simplest API.
 
-pub fn tasks_tasklists_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn tasks_tasklists_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://tasks.googleapis.com/tasks/v1/users/@me/lists",);
 
@@ -482,11 +492,14 @@ pub fn tasks_tasklists_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_list_execute()` to send, or `tasks_tasklists_list` for simplest API.
 
-pub fn tasks_tasklists_list_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasklists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://tasks.googleapis.com/tasks/v1/users/@me/lists",);
 
@@ -653,10 +666,13 @@ pub fn tasks_tasklists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_patch_execute()` to send, or `tasks_tasklists_patch` for simplest API.
 
-pub fn tasks_tasklists_patch_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasklists_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
@@ -810,10 +826,13 @@ pub fn tasks_tasklists_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_update_execute()` to send, or `tasks_tasklists_update` for simplest API.
 
-pub fn tasks_tasklists_update_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasklists_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
@@ -967,10 +986,13 @@ pub fn tasks_tasklists_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_clear_execute()` to send, or `tasks_tasks_clear` for simplest API.
 
-pub fn tasks_tasks_clear_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_clear_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/clear",
@@ -1121,11 +1143,14 @@ pub fn tasks_tasks_clear(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_delete_execute()` to send, or `tasks_tasks_delete` for simplest API.
 
-pub fn tasks_tasks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
     task: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
@@ -1278,11 +1303,14 @@ pub fn tasks_tasks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_get_execute()` to send, or `tasks_tasks_get` for simplest API.
 
-pub fn tasks_tasks_get_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
     task: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
@@ -1438,12 +1466,15 @@ pub fn tasks_tasks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_insert_execute()` to send, or `tasks_tasks_insert` for simplest API.
 
-pub fn tasks_tasks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
     parent: &Option<Option<String>>,
     previous: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks",
@@ -1615,8 +1646,8 @@ pub fn tasks_tasks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_list_execute()` to send, or `tasks_tasks_list` for simplest API.
 
-pub fn tasks_tasks_list_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
     completedMax: &Option<Option<String>>,
     completedMin: &Option<Option<String>>,
@@ -1629,7 +1660,10 @@ pub fn tasks_tasks_list_builder(
     showDeleted: &Option<Option<String>>,
     showHidden: &Option<Option<String>>,
     updatedMin: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks",
@@ -1860,14 +1894,17 @@ pub fn tasks_tasks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_move_execute()` to send, or `tasks_tasks_move` for simplest API.
 
-pub fn tasks_tasks_move_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
     task: &String,
     destinationTasklist: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     previous: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}/move",
@@ -2053,11 +2090,14 @@ pub fn tasks_tasks_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_patch_execute()` to send, or `tasks_tasks_patch` for simplest API.
 
-pub fn tasks_tasks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
     task: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
@@ -2213,11 +2253,14 @@ pub fn tasks_tasks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_update_execute()` to send, or `tasks_tasks_update` for simplest API.
 
-pub fn tasks_tasks_update_builder(
-    client: &SimpleHttpClient,
+pub fn tasks_tasks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     tasklist: &String,
     task: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",

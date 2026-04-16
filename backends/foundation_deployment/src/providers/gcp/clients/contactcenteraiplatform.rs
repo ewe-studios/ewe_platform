@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_generate_shifts_execute()` to send, or `contactcenteraiplatform_projects_locations_generate_shifts` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_generate_shifts_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_generate_shifts_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}:generateShifts",
@@ -184,10 +188,13 @@ pub fn contactcenteraiplatform_projects_locations_generate_shifts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_get_execute()` to send, or `contactcenteraiplatform_projects_locations_get` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}",
@@ -341,14 +348,17 @@ pub fn contactcenteraiplatform_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_list_execute()` to send, or `contactcenteraiplatform_projects_locations_list` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations",
@@ -541,10 +551,13 @@ pub fn contactcenteraiplatform_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_query_contact_center_quota_execute()` to send, or `contactcenteraiplatform_projects_locations_query_contact_center_quota` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}:queryContactCenterQuota",
@@ -705,12 +718,15 @@ pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_contact_centers_create_execute()` to send, or `contactcenteraiplatform_projects_locations_contact_centers_create` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_contact_centers_create_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_contact_centers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     contactCenterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/contactCenters",
@@ -887,11 +903,14 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_contact_centers_delete_execute()` to send, or `contactcenteraiplatform_projects_locations_contact_centers_delete` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_contact_centers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_contact_centers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/contactCenters/{contactCentersId}",
@@ -1062,10 +1081,13 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_contact_centers_get_execute()` to send, or `contactcenteraiplatform_projects_locations_contact_centers_get` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_contact_centers_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_contact_centers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/contactCenters/{contactCentersId}",
@@ -1224,14 +1246,17 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_contact_centers_list_execute()` to send, or `contactcenteraiplatform_projects_locations_contact_centers_list` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_contact_centers_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_contact_centers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/contactCenters",
@@ -1428,12 +1453,15 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_contact_centers_patch_execute()` to send, or `contactcenteraiplatform_projects_locations_contact_centers_patch` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_contact_centers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_contact_centers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/contactCenters/{contactCentersId}",
@@ -1610,10 +1638,13 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_operations_cancel_execute()` to send, or `contactcenteraiplatform_projects_locations_operations_cancel` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1768,10 +1799,13 @@ pub fn contactcenteraiplatform_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_operations_delete_execute()` to send, or `contactcenteraiplatform_projects_locations_operations_delete` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1926,10 +1960,13 @@ pub fn contactcenteraiplatform_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_operations_get_execute()` to send, or `contactcenteraiplatform_projects_locations_operations_get` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2084,14 +2121,17 @@ pub fn contactcenteraiplatform_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenteraiplatform_projects_locations_operations_list_execute()` to send, or `contactcenteraiplatform_projects_locations_operations_list` for simplest API.
 
-pub fn contactcenteraiplatform_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn contactcenteraiplatform_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://contactcenteraiplatform.googleapis.com/v1alpha1/projects/{}/locations/{locationsId}/operations",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_accelerator_types_aggregated_list_execute()` to send, or `compute_accelerator_types_aggregated_list` for simplest API.
 
-pub fn compute_accelerator_types_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_accelerator_types_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -36,7 +37,10 @@ pub fn compute_accelerator_types_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/acceleratorTypes",
@@ -251,12 +255,15 @@ pub fn compute_accelerator_types_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_accelerator_types_get_execute()` to send, or `compute_accelerator_types_get` for simplest API.
 
-pub fn compute_accelerator_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_accelerator_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     acceleratorType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/acceleratorTypes/{}",
@@ -423,8 +430,8 @@ pub fn compute_accelerator_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_accelerator_types_list_execute()` to send, or `compute_accelerator_types_list` for simplest API.
 
-pub fn compute_accelerator_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_accelerator_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -432,7 +439,10 @@ pub fn compute_accelerator_types_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/acceleratorTypes",
@@ -634,8 +644,8 @@ pub fn compute_accelerator_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_aggregated_list_execute()` to send, or `compute_addresses_aggregated_list` for simplest API.
 
-pub fn compute_addresses_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -644,7 +654,10 @@ pub fn compute_addresses_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/addresses",
@@ -855,13 +868,16 @@ pub fn compute_addresses_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_delete_execute()` to send, or `compute_addresses_delete` for simplest API.
 
-pub fn compute_addresses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     address: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}",
@@ -1038,12 +1054,15 @@ pub fn compute_addresses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_get_execute()` to send, or `compute_addresses_get` for simplest API.
 
-pub fn compute_addresses_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     address: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}",
@@ -1202,12 +1221,15 @@ pub fn compute_addresses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_insert_execute()` to send, or `compute_addresses_insert` for simplest API.
 
-pub fn compute_addresses_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses",
@@ -1377,8 +1399,8 @@ pub fn compute_addresses_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_list_execute()` to send, or `compute_addresses_list` for simplest API.
 
-pub fn compute_addresses_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -1386,7 +1408,10 @@ pub fn compute_addresses_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses",
@@ -1584,13 +1609,16 @@ pub fn compute_addresses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_move_execute()` to send, or `compute_addresses_move` for simplest API.
 
-pub fn compute_addresses_move_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     address: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}/move",
@@ -1767,13 +1795,16 @@ pub fn compute_addresses_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_set_labels_execute()` to send, or `compute_addresses_set_labels` for simplest API.
 
-pub fn compute_addresses_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}/setLabels",
@@ -1950,12 +1981,15 @@ pub fn compute_addresses_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_addresses_test_iam_permissions_execute()` to send, or `compute_addresses_test_iam_permissions` for simplest API.
 
-pub fn compute_addresses_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_addresses_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}/testIamPermissions",
@@ -2124,11 +2158,14 @@ pub fn compute_addresses_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_advice_calendar_mode_execute()` to send, or `compute_advice_calendar_mode` for simplest API.
 
-pub fn compute_advice_calendar_mode_builder(
-    client: &SimpleHttpClient,
+pub fn compute_advice_calendar_mode_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/advice/calendarMode",
@@ -2292,8 +2329,8 @@ pub fn compute_advice_calendar_mode(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_aggregated_list_execute()` to send, or `compute_autoscalers_aggregated_list` for simplest API.
 
-pub fn compute_autoscalers_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -2302,7 +2339,10 @@ pub fn compute_autoscalers_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/autoscalers",
@@ -2513,13 +2553,16 @@ pub fn compute_autoscalers_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_delete_execute()` to send, or `compute_autoscalers_delete` for simplest API.
 
-pub fn compute_autoscalers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     autoscaler: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers/{}",
@@ -2696,12 +2739,15 @@ pub fn compute_autoscalers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_get_execute()` to send, or `compute_autoscalers_get` for simplest API.
 
-pub fn compute_autoscalers_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     autoscaler: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers/{}",
@@ -2860,12 +2906,15 @@ pub fn compute_autoscalers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_insert_execute()` to send, or `compute_autoscalers_insert` for simplest API.
 
-pub fn compute_autoscalers_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers",
@@ -3035,8 +3084,8 @@ pub fn compute_autoscalers_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_list_execute()` to send, or `compute_autoscalers_list` for simplest API.
 
-pub fn compute_autoscalers_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -3044,7 +3093,10 @@ pub fn compute_autoscalers_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers",
@@ -3246,13 +3298,16 @@ pub fn compute_autoscalers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_patch_execute()` to send, or `compute_autoscalers_patch` for simplest API.
 
-pub fn compute_autoscalers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     autoscaler: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers",
@@ -3432,12 +3487,15 @@ pub fn compute_autoscalers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_test_iam_permissions_execute()` to send, or `compute_autoscalers_test_iam_permissions` for simplest API.
 
-pub fn compute_autoscalers_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers/{}/testIamPermissions",
@@ -3606,13 +3664,16 @@ pub fn compute_autoscalers_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_autoscalers_update_execute()` to send, or `compute_autoscalers_update` for simplest API.
 
-pub fn compute_autoscalers_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_autoscalers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     autoscaler: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers",
@@ -3792,12 +3853,15 @@ pub fn compute_autoscalers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_add_signed_url_key_execute()` to send, or `compute_backend_buckets_add_signed_url_key` for simplest API.
 
-pub fn compute_backend_buckets_add_signed_url_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_add_signed_url_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/addSignedUrlKey",
@@ -3972,8 +4036,8 @@ pub fn compute_backend_buckets_add_signed_url_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_aggregated_list_execute()` to send, or `compute_backend_buckets_aggregated_list` for simplest API.
 
-pub fn compute_backend_buckets_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -3982,7 +4046,10 @@ pub fn compute_backend_buckets_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/backendBuckets",
@@ -4197,12 +4264,15 @@ pub fn compute_backend_buckets_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_delete_execute()` to send, or `compute_backend_buckets_delete` for simplest API.
 
-pub fn compute_backend_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}",
@@ -4376,13 +4446,16 @@ pub fn compute_backend_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_delete_signed_url_key_execute()` to send, or `compute_backend_buckets_delete_signed_url_key` for simplest API.
 
-pub fn compute_backend_buckets_delete_signed_url_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_delete_signed_url_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
     keyName: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/deleteSignedUrlKey",
@@ -4563,11 +4636,14 @@ pub fn compute_backend_buckets_delete_signed_url_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_get_execute()` to send, or `compute_backend_buckets_get` for simplest API.
 
-pub fn compute_backend_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}",
@@ -4727,12 +4803,15 @@ pub fn compute_backend_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_get_iam_policy_execute()` to send, or `compute_backend_buckets_get_iam_policy` for simplest API.
 
-pub fn compute_backend_buckets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/getIamPolicy",
@@ -4907,11 +4986,14 @@ pub fn compute_backend_buckets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_insert_execute()` to send, or `compute_backend_buckets_insert` for simplest API.
 
-pub fn compute_backend_buckets_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets",
@@ -5078,15 +5160,18 @@ pub fn compute_backend_buckets_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_list_execute()` to send, or `compute_backend_buckets_list` for simplest API.
 
-pub fn compute_backend_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets",
@@ -5285,15 +5370,18 @@ pub fn compute_backend_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_list_usable_execute()` to send, or `compute_backend_buckets_list_usable` for simplest API.
 
-pub fn compute_backend_buckets_list_usable_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_list_usable_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/listUsable",
@@ -5492,12 +5580,15 @@ pub fn compute_backend_buckets_list_usable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_patch_execute()` to send, or `compute_backend_buckets_patch` for simplest API.
 
-pub fn compute_backend_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}",
@@ -5671,12 +5762,15 @@ pub fn compute_backend_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_set_edge_security_policy_execute()` to send, or `compute_backend_buckets_set_edge_security_policy` for simplest API.
 
-pub fn compute_backend_buckets_set_edge_security_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_set_edge_security_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/setEdgeSecurityPolicy",
@@ -5851,11 +5945,14 @@ pub fn compute_backend_buckets_set_edge_security_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_set_iam_policy_execute()` to send, or `compute_backend_buckets_set_iam_policy` for simplest API.
 
-pub fn compute_backend_buckets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/setIamPolicy",
@@ -6013,11 +6110,14 @@ pub fn compute_backend_buckets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_test_iam_permissions_execute()` to send, or `compute_backend_buckets_test_iam_permissions` for simplest API.
 
-pub fn compute_backend_buckets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/testIamPermissions",
@@ -6182,12 +6282,15 @@ pub fn compute_backend_buckets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_buckets_update_execute()` to send, or `compute_backend_buckets_update` for simplest API.
 
-pub fn compute_backend_buckets_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_buckets_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}",
@@ -6361,12 +6464,15 @@ pub fn compute_backend_buckets_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_add_signed_url_key_execute()` to send, or `compute_backend_services_add_signed_url_key` for simplest API.
 
-pub fn compute_backend_services_add_signed_url_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_add_signed_url_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/addSignedUrlKey",
@@ -6541,8 +6647,8 @@ pub fn compute_backend_services_add_signed_url_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_aggregated_list_execute()` to send, or `compute_backend_services_aggregated_list` for simplest API.
 
-pub fn compute_backend_services_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -6551,7 +6657,10 @@ pub fn compute_backend_services_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/backendServices",
@@ -6766,12 +6875,15 @@ pub fn compute_backend_services_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_delete_execute()` to send, or `compute_backend_services_delete` for simplest API.
 
-pub fn compute_backend_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}",
@@ -6945,13 +7057,16 @@ pub fn compute_backend_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_delete_signed_url_key_execute()` to send, or `compute_backend_services_delete_signed_url_key` for simplest API.
 
-pub fn compute_backend_services_delete_signed_url_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_delete_signed_url_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
     keyName: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/deleteSignedUrlKey",
@@ -7132,11 +7247,14 @@ pub fn compute_backend_services_delete_signed_url_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_get_execute()` to send, or `compute_backend_services_get` for simplest API.
 
-pub fn compute_backend_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}",
@@ -7297,11 +7415,14 @@ pub fn compute_backend_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_get_effective_security_policies_execute()` to send, or `compute_backend_services_get_effective_security_policies` for simplest API.
 
-pub fn compute_backend_services_get_effective_security_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_get_effective_security_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/getEffectiveSecurityPolicies",
@@ -7459,11 +7580,14 @@ pub fn compute_backend_services_get_effective_security_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_get_health_execute()` to send, or `compute_backend_services_get_health` for simplest API.
 
-pub fn compute_backend_services_get_health_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_get_health_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/getHealth",
@@ -7624,12 +7748,15 @@ pub fn compute_backend_services_get_health(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_get_iam_policy_execute()` to send, or `compute_backend_services_get_iam_policy` for simplest API.
 
-pub fn compute_backend_services_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/getIamPolicy",
@@ -7804,11 +7931,14 @@ pub fn compute_backend_services_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_insert_execute()` to send, or `compute_backend_services_insert` for simplest API.
 
-pub fn compute_backend_services_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices",
@@ -7975,15 +8105,18 @@ pub fn compute_backend_services_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_list_execute()` to send, or `compute_backend_services_list` for simplest API.
 
-pub fn compute_backend_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices",
@@ -8182,15 +8315,18 @@ pub fn compute_backend_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_list_usable_execute()` to send, or `compute_backend_services_list_usable` for simplest API.
 
-pub fn compute_backend_services_list_usable_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_list_usable_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/listUsable",
@@ -8389,12 +8525,15 @@ pub fn compute_backend_services_list_usable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_patch_execute()` to send, or `compute_backend_services_patch` for simplest API.
 
-pub fn compute_backend_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}",
@@ -8568,12 +8707,15 @@ pub fn compute_backend_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_set_edge_security_policy_execute()` to send, or `compute_backend_services_set_edge_security_policy` for simplest API.
 
-pub fn compute_backend_services_set_edge_security_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_set_edge_security_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/setEdgeSecurityPolicy",
@@ -8748,11 +8890,14 @@ pub fn compute_backend_services_set_edge_security_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_set_iam_policy_execute()` to send, or `compute_backend_services_set_iam_policy` for simplest API.
 
-pub fn compute_backend_services_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/setIamPolicy",
@@ -8910,12 +9055,15 @@ pub fn compute_backend_services_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_set_security_policy_execute()` to send, or `compute_backend_services_set_security_policy` for simplest API.
 
-pub fn compute_backend_services_set_security_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_set_security_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/setSecurityPolicy",
@@ -9090,11 +9238,14 @@ pub fn compute_backend_services_set_security_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_test_iam_permissions_execute()` to send, or `compute_backend_services_test_iam_permissions` for simplest API.
 
-pub fn compute_backend_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/testIamPermissions",
@@ -9259,12 +9410,15 @@ pub fn compute_backend_services_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_backend_services_update_execute()` to send, or `compute_backend_services_update` for simplest API.
 
-pub fn compute_backend_services_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_backend_services_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}",
@@ -9438,12 +9592,15 @@ pub fn compute_backend_services_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_cross_site_networks_delete_execute()` to send, or `compute_cross_site_networks_delete` for simplest API.
 
-pub fn compute_cross_site_networks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_cross_site_networks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}",
@@ -9617,11 +9774,14 @@ pub fn compute_cross_site_networks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_cross_site_networks_get_execute()` to send, or `compute_cross_site_networks_get` for simplest API.
 
-pub fn compute_cross_site_networks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_cross_site_networks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}",
@@ -9782,12 +9942,15 @@ pub fn compute_cross_site_networks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_cross_site_networks_insert_execute()` to send, or `compute_cross_site_networks_insert` for simplest API.
 
-pub fn compute_cross_site_networks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_cross_site_networks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks",
@@ -9964,15 +10127,18 @@ pub fn compute_cross_site_networks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_cross_site_networks_list_execute()` to send, or `compute_cross_site_networks_list` for simplest API.
 
-pub fn compute_cross_site_networks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_cross_site_networks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks",
@@ -10171,14 +10337,17 @@ pub fn compute_cross_site_networks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_cross_site_networks_patch_execute()` to send, or `compute_cross_site_networks_patch` for simplest API.
 
-pub fn compute_cross_site_networks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_cross_site_networks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}",
@@ -10364,8 +10533,8 @@ pub fn compute_cross_site_networks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disk_types_aggregated_list_execute()` to send, or `compute_disk_types_aggregated_list` for simplest API.
 
-pub fn compute_disk_types_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disk_types_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -10374,7 +10543,10 @@ pub fn compute_disk_types_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/diskTypes",
@@ -10585,12 +10757,15 @@ pub fn compute_disk_types_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disk_types_get_execute()` to send, or `compute_disk_types_get` for simplest API.
 
-pub fn compute_disk_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disk_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     diskType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/diskTypes/{}",
@@ -10749,8 +10924,8 @@ pub fn compute_disk_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disk_types_list_execute()` to send, or `compute_disk_types_list` for simplest API.
 
-pub fn compute_disk_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disk_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -10758,7 +10933,10 @@ pub fn compute_disk_types_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/diskTypes",
@@ -10960,13 +11138,16 @@ pub fn compute_disk_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_add_resource_policies_execute()` to send, or `compute_disks_add_resource_policies` for simplest API.
 
-pub fn compute_disks_add_resource_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_add_resource_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/addResourcePolicies",
@@ -11145,8 +11326,8 @@ pub fn compute_disks_add_resource_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_aggregated_list_execute()` to send, or `compute_disks_aggregated_list` for simplest API.
 
-pub fn compute_disks_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -11155,7 +11336,10 @@ pub fn compute_disks_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/disks",
@@ -11366,12 +11550,15 @@ pub fn compute_disks_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_bulk_insert_execute()` to send, or `compute_disks_bulk_insert` for simplest API.
 
-pub fn compute_disks_bulk_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_bulk_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/bulkInsert",
@@ -11541,13 +11728,16 @@ pub fn compute_disks_bulk_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_bulk_set_labels_execute()` to send, or `compute_disks_bulk_set_labels` for simplest API.
 
-pub fn compute_disks_bulk_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_bulk_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
     resource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/bulkSetLabels",
@@ -11727,14 +11917,17 @@ pub fn compute_disks_bulk_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_create_snapshot_execute()` to send, or `compute_disks_create_snapshot` for simplest API.
 
-pub fn compute_disks_create_snapshot_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_create_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     guestFlush: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/createSnapshot",
@@ -11917,13 +12110,16 @@ pub fn compute_disks_create_snapshot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_delete_execute()` to send, or `compute_disks_delete` for simplest API.
 
-pub fn compute_disks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}",
@@ -12100,12 +12296,15 @@ pub fn compute_disks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_get_execute()` to send, or `compute_disks_get` for simplest API.
 
-pub fn compute_disks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}",
@@ -12263,13 +12462,16 @@ pub fn compute_disks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_get_iam_policy_execute()` to send, or `compute_disks_get_iam_policy` for simplest API.
 
-pub fn compute_disks_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/getIamPolicy",
@@ -12446,13 +12648,16 @@ pub fn compute_disks_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_insert_execute()` to send, or `compute_disks_insert` for simplest API.
 
-pub fn compute_disks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
     sourceImage: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks",
@@ -12632,8 +12837,8 @@ pub fn compute_disks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_list_execute()` to send, or `compute_disks_list` for simplest API.
 
-pub fn compute_disks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -12641,7 +12846,10 @@ pub fn compute_disks_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks",
@@ -12839,13 +13047,16 @@ pub fn compute_disks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_remove_resource_policies_execute()` to send, or `compute_disks_remove_resource_policies` for simplest API.
 
-pub fn compute_disks_remove_resource_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_remove_resource_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/removeResourcePolicies",
@@ -13024,13 +13235,16 @@ pub fn compute_disks_remove_resource_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_resize_execute()` to send, or `compute_disks_resize` for simplest API.
 
-pub fn compute_disks_resize_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_resize_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/resize",
@@ -13207,12 +13421,15 @@ pub fn compute_disks_resize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_set_iam_policy_execute()` to send, or `compute_disks_set_iam_policy` for simplest API.
 
-pub fn compute_disks_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/setIamPolicy",
@@ -13371,13 +13588,16 @@ pub fn compute_disks_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_set_labels_execute()` to send, or `compute_disks_set_labels` for simplest API.
 
-pub fn compute_disks_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/setLabels",
@@ -13554,13 +13774,16 @@ pub fn compute_disks_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_start_async_replication_execute()` to send, or `compute_disks_start_async_replication` for simplest API.
 
-pub fn compute_disks_start_async_replication_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_start_async_replication_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/startAsyncReplication",
@@ -13739,13 +13962,16 @@ pub fn compute_disks_start_async_replication(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_stop_async_replication_execute()` to send, or `compute_disks_stop_async_replication` for simplest API.
 
-pub fn compute_disks_stop_async_replication_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_stop_async_replication_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/stopAsyncReplication",
@@ -13924,12 +14150,15 @@ pub fn compute_disks_stop_async_replication(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_stop_group_async_replication_execute()` to send, or `compute_disks_stop_group_async_replication` for simplest API.
 
-pub fn compute_disks_stop_group_async_replication_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_stop_group_async_replication_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/stopGroupAsyncReplication",
@@ -14104,12 +14333,15 @@ pub fn compute_disks_stop_group_async_replication(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_test_iam_permissions_execute()` to send, or `compute_disks_test_iam_permissions` for simplest API.
 
-pub fn compute_disks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/testIamPermissions",
@@ -14278,15 +14510,18 @@ pub fn compute_disks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_update_execute()` to send, or `compute_disks_update` for simplest API.
 
-pub fn compute_disks_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     paths: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}",
@@ -14475,13 +14710,16 @@ pub fn compute_disks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_disks_update_kms_key_execute()` to send, or `compute_disks_update_kms_key` for simplest API.
 
-pub fn compute_disks_update_kms_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_disks_update_kms_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/updateKmsKey",
@@ -14658,12 +14896,15 @@ pub fn compute_disks_update_kms_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_external_vpn_gateways_delete_execute()` to send, or `compute_external_vpn_gateways_delete` for simplest API.
 
-pub fn compute_external_vpn_gateways_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_external_vpn_gateways_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     externalVpnGateway: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways/{}",
@@ -14837,11 +15078,14 @@ pub fn compute_external_vpn_gateways_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_external_vpn_gateways_get_execute()` to send, or `compute_external_vpn_gateways_get` for simplest API.
 
-pub fn compute_external_vpn_gateways_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_external_vpn_gateways_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     externalVpnGateway: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways/{}",
@@ -15002,11 +15246,14 @@ pub fn compute_external_vpn_gateways_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_external_vpn_gateways_insert_execute()` to send, or `compute_external_vpn_gateways_insert` for simplest API.
 
-pub fn compute_external_vpn_gateways_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_external_vpn_gateways_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways",
@@ -15174,15 +15421,18 @@ pub fn compute_external_vpn_gateways_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_external_vpn_gateways_list_execute()` to send, or `compute_external_vpn_gateways_list` for simplest API.
 
-pub fn compute_external_vpn_gateways_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_external_vpn_gateways_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways",
@@ -15381,11 +15631,14 @@ pub fn compute_external_vpn_gateways_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_external_vpn_gateways_set_labels_execute()` to send, or `compute_external_vpn_gateways_set_labels` for simplest API.
 
-pub fn compute_external_vpn_gateways_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_external_vpn_gateways_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways/{}/setLabels",
@@ -15543,11 +15796,14 @@ pub fn compute_external_vpn_gateways_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_external_vpn_gateways_test_iam_permissions_execute()` to send, or `compute_external_vpn_gateways_test_iam_permissions` for simplest API.
 
-pub fn compute_external_vpn_gateways_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_external_vpn_gateways_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways/{}/testIamPermissions",
@@ -15712,12 +15968,15 @@ pub fn compute_external_vpn_gateways_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_add_association_execute()` to send, or `compute_firewall_policies_add_association` for simplest API.
 
-pub fn compute_firewall_policies_add_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_add_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     replaceExistingAssociation: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/addAssociation",
@@ -15894,11 +16153,14 @@ pub fn compute_firewall_policies_add_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_add_rule_execute()` to send, or `compute_firewall_policies_add_rule` for simplest API.
 
-pub fn compute_firewall_policies_add_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_add_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/addRule",
@@ -16066,12 +16328,15 @@ pub fn compute_firewall_policies_add_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_clone_rules_execute()` to send, or `compute_firewall_policies_clone_rules` for simplest API.
 
-pub fn compute_firewall_policies_clone_rules_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_clone_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
     sourceFirewallPolicy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/cloneRules",
@@ -16248,11 +16513,14 @@ pub fn compute_firewall_policies_clone_rules(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_delete_execute()` to send, or `compute_firewall_policies_delete` for simplest API.
 
-pub fn compute_firewall_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}",
@@ -16420,10 +16688,13 @@ pub fn compute_firewall_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_get_execute()` to send, or `compute_firewall_policies_get` for simplest API.
 
-pub fn compute_firewall_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}",
@@ -16581,11 +16852,14 @@ pub fn compute_firewall_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_get_association_execute()` to send, or `compute_firewall_policies_get_association` for simplest API.
 
-pub fn compute_firewall_policies_get_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_get_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/getAssociation",
@@ -16760,11 +17034,14 @@ pub fn compute_firewall_policies_get_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_get_iam_policy_execute()` to send, or `compute_firewall_policies_get_iam_policy` for simplest API.
 
-pub fn compute_firewall_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/getIamPolicy",
@@ -16935,11 +17212,14 @@ pub fn compute_firewall_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_get_rule_execute()` to send, or `compute_firewall_policies_get_rule` for simplest API.
 
-pub fn compute_firewall_policies_get_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_get_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/getRule",
@@ -17111,11 +17391,14 @@ pub fn compute_firewall_policies_get_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_insert_execute()` to send, or `compute_firewall_policies_insert` for simplest API.
 
-pub fn compute_firewall_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies",);
@@ -17284,15 +17567,18 @@ pub fn compute_firewall_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_list_execute()` to send, or `compute_firewall_policies_list` for simplest API.
 
-pub fn compute_firewall_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parentId: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies",);
@@ -17492,11 +17778,14 @@ pub fn compute_firewall_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_list_associations_execute()` to send, or `compute_firewall_policies_list_associations` for simplest API.
 
-pub fn compute_firewall_policies_list_associations_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_list_associations_builder<R>(
+    client: &SimpleHttpClient<R>,
     includeInheritedPolicies: &Option<Option<String>>,
     targetResource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/listAssociations",
@@ -17677,12 +17966,15 @@ pub fn compute_firewall_policies_list_associations(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_move_execute()` to send, or `compute_firewall_policies_move` for simplest API.
 
-pub fn compute_firewall_policies_move_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     parentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/move",
@@ -17859,11 +18151,14 @@ pub fn compute_firewall_policies_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_patch_execute()` to send, or `compute_firewall_policies_patch` for simplest API.
 
-pub fn compute_firewall_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}",
@@ -18031,12 +18326,15 @@ pub fn compute_firewall_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_patch_rule_execute()` to send, or `compute_firewall_policies_patch_rule` for simplest API.
 
-pub fn compute_firewall_policies_patch_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_patch_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/patchRule",
@@ -18213,12 +18511,15 @@ pub fn compute_firewall_policies_patch_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_remove_association_execute()` to send, or `compute_firewall_policies_remove_association` for simplest API.
 
-pub fn compute_firewall_policies_remove_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_remove_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     name: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/removeAssociation",
@@ -18395,12 +18696,15 @@ pub fn compute_firewall_policies_remove_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_remove_rule_execute()` to send, or `compute_firewall_policies_remove_rule` for simplest API.
 
-pub fn compute_firewall_policies_remove_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_remove_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/removeRule",
@@ -18577,10 +18881,13 @@ pub fn compute_firewall_policies_remove_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_set_iam_policy_execute()` to send, or `compute_firewall_policies_set_iam_policy` for simplest API.
 
-pub fn compute_firewall_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/setIamPolicy",
@@ -18734,10 +19041,13 @@ pub fn compute_firewall_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewall_policies_test_iam_permissions_execute()` to send, or `compute_firewall_policies_test_iam_permissions` for simplest API.
 
-pub fn compute_firewall_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewall_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/testIamPermissions",
@@ -18895,12 +19205,15 @@ pub fn compute_firewall_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewalls_delete_execute()` to send, or `compute_firewalls_delete` for simplest API.
 
-pub fn compute_firewalls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewalls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewall: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls/{}",
@@ -19070,11 +19383,14 @@ pub fn compute_firewalls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewalls_get_execute()` to send, or `compute_firewalls_get` for simplest API.
 
-pub fn compute_firewalls_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewalls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewall: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls/{}",
@@ -19230,11 +19546,14 @@ pub fn compute_firewalls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewalls_insert_execute()` to send, or `compute_firewalls_insert` for simplest API.
 
-pub fn compute_firewalls_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewalls_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls",
@@ -19401,15 +19720,18 @@ pub fn compute_firewalls_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewalls_list_execute()` to send, or `compute_firewalls_list` for simplest API.
 
-pub fn compute_firewalls_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewalls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls",
@@ -19608,12 +19930,15 @@ pub fn compute_firewalls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewalls_patch_execute()` to send, or `compute_firewalls_patch` for simplest API.
 
-pub fn compute_firewalls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewalls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewall: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls/{}",
@@ -19783,11 +20108,14 @@ pub fn compute_firewalls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewalls_test_iam_permissions_execute()` to send, or `compute_firewalls_test_iam_permissions` for simplest API.
 
-pub fn compute_firewalls_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewalls_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls/{}/testIamPermissions",
@@ -19949,12 +20277,15 @@ pub fn compute_firewalls_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_firewalls_update_execute()` to send, or `compute_firewalls_update` for simplest API.
 
-pub fn compute_firewalls_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_firewalls_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewall: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls/{}",
@@ -20124,8 +20455,8 @@ pub fn compute_firewalls_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_aggregated_list_execute()` to send, or `compute_forwarding_rules_aggregated_list` for simplest API.
 
-pub fn compute_forwarding_rules_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -20134,7 +20465,10 @@ pub fn compute_forwarding_rules_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/forwardingRules",
@@ -20349,13 +20683,16 @@ pub fn compute_forwarding_rules_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_delete_execute()` to send, or `compute_forwarding_rules_delete` for simplest API.
 
-pub fn compute_forwarding_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     forwardingRule: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}",
@@ -20532,12 +20869,15 @@ pub fn compute_forwarding_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_get_execute()` to send, or `compute_forwarding_rules_get` for simplest API.
 
-pub fn compute_forwarding_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     forwardingRule: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}",
@@ -20704,12 +21044,15 @@ pub fn compute_forwarding_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_insert_execute()` to send, or `compute_forwarding_rules_insert` for simplest API.
 
-pub fn compute_forwarding_rules_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules",
@@ -20883,8 +21226,8 @@ pub fn compute_forwarding_rules_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_list_execute()` to send, or `compute_forwarding_rules_list` for simplest API.
 
-pub fn compute_forwarding_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -20892,7 +21235,10 @@ pub fn compute_forwarding_rules_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules",
@@ -21094,13 +21440,16 @@ pub fn compute_forwarding_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_patch_execute()` to send, or `compute_forwarding_rules_patch` for simplest API.
 
-pub fn compute_forwarding_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     forwardingRule: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}",
@@ -21277,13 +21626,16 @@ pub fn compute_forwarding_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_set_labels_execute()` to send, or `compute_forwarding_rules_set_labels` for simplest API.
 
-pub fn compute_forwarding_rules_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}/setLabels",
@@ -21462,13 +21814,16 @@ pub fn compute_forwarding_rules_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_forwarding_rules_set_target_execute()` to send, or `compute_forwarding_rules_set_target` for simplest API.
 
-pub fn compute_forwarding_rules_set_target_builder(
-    client: &SimpleHttpClient,
+pub fn compute_forwarding_rules_set_target_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     forwardingRule: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}/setTarget",
@@ -21647,8 +22002,8 @@ pub fn compute_forwarding_rules_set_target(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_future_reservations_aggregated_list_execute()` to send, or `compute_future_reservations_aggregated_list` for simplest API.
 
-pub fn compute_future_reservations_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_future_reservations_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -21657,7 +22012,10 @@ pub fn compute_future_reservations_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/futureReservations",
@@ -21872,13 +22230,16 @@ pub fn compute_future_reservations_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_future_reservations_cancel_execute()` to send, or `compute_future_reservations_cancel` for simplest API.
 
-pub fn compute_future_reservations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn compute_future_reservations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     futureReservation: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations/{}/cancel",
@@ -22057,13 +22418,16 @@ pub fn compute_future_reservations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_future_reservations_delete_execute()` to send, or `compute_future_reservations_delete` for simplest API.
 
-pub fn compute_future_reservations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_future_reservations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     futureReservation: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations/{}",
@@ -22240,12 +22604,15 @@ pub fn compute_future_reservations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_future_reservations_get_execute()` to send, or `compute_future_reservations_get` for simplest API.
 
-pub fn compute_future_reservations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_future_reservations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     futureReservation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations/{}",
@@ -22412,12 +22779,15 @@ pub fn compute_future_reservations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_future_reservations_insert_execute()` to send, or `compute_future_reservations_insert` for simplest API.
 
-pub fn compute_future_reservations_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_future_reservations_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations",
@@ -22591,8 +22961,8 @@ pub fn compute_future_reservations_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_future_reservations_list_execute()` to send, or `compute_future_reservations_list` for simplest API.
 
-pub fn compute_future_reservations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_future_reservations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -22600,7 +22970,10 @@ pub fn compute_future_reservations_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations",
@@ -22806,14 +23179,17 @@ pub fn compute_future_reservations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_future_reservations_update_execute()` to send, or `compute_future_reservations_update` for simplest API.
 
-pub fn compute_future_reservations_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_future_reservations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     futureReservation: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations/{}",
@@ -22996,12 +23372,15 @@ pub fn compute_future_reservations_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_addresses_delete_execute()` to send, or `compute_global_addresses_delete` for simplest API.
 
-pub fn compute_global_addresses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_addresses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     address: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}",
@@ -23175,11 +23554,14 @@ pub fn compute_global_addresses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_addresses_get_execute()` to send, or `compute_global_addresses_get` for simplest API.
 
-pub fn compute_global_addresses_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_addresses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     address: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}",
@@ -23335,11 +23717,14 @@ pub fn compute_global_addresses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_addresses_insert_execute()` to send, or `compute_global_addresses_insert` for simplest API.
 
-pub fn compute_global_addresses_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_addresses_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses",
@@ -23506,15 +23891,18 @@ pub fn compute_global_addresses_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_addresses_list_execute()` to send, or `compute_global_addresses_list` for simplest API.
 
-pub fn compute_global_addresses_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_addresses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses",
@@ -23709,12 +24097,15 @@ pub fn compute_global_addresses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_addresses_move_execute()` to send, or `compute_global_addresses_move` for simplest API.
 
-pub fn compute_global_addresses_move_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_addresses_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     address: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}/move",
@@ -23888,11 +24279,14 @@ pub fn compute_global_addresses_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_addresses_set_labels_execute()` to send, or `compute_global_addresses_set_labels` for simplest API.
 
-pub fn compute_global_addresses_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_addresses_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}/setLabels",
@@ -24049,11 +24443,14 @@ pub fn compute_global_addresses_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_addresses_test_iam_permissions_execute()` to send, or `compute_global_addresses_test_iam_permissions` for simplest API.
 
-pub fn compute_global_addresses_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_addresses_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}/testIamPermissions",
@@ -24218,12 +24615,15 @@ pub fn compute_global_addresses_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_forwarding_rules_delete_execute()` to send, or `compute_global_forwarding_rules_delete` for simplest API.
 
-pub fn compute_global_forwarding_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_forwarding_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     forwardingRule: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}",
@@ -24397,11 +24797,14 @@ pub fn compute_global_forwarding_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_forwarding_rules_get_execute()` to send, or `compute_global_forwarding_rules_get` for simplest API.
 
-pub fn compute_global_forwarding_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_forwarding_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     forwardingRule: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}",
@@ -24562,11 +24965,14 @@ pub fn compute_global_forwarding_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_forwarding_rules_insert_execute()` to send, or `compute_global_forwarding_rules_insert` for simplest API.
 
-pub fn compute_global_forwarding_rules_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_forwarding_rules_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules",
@@ -24734,15 +25140,18 @@ pub fn compute_global_forwarding_rules_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_forwarding_rules_list_execute()` to send, or `compute_global_forwarding_rules_list` for simplest API.
 
-pub fn compute_global_forwarding_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_forwarding_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules",
@@ -24941,12 +25350,15 @@ pub fn compute_global_forwarding_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_forwarding_rules_patch_execute()` to send, or `compute_global_forwarding_rules_patch` for simplest API.
 
-pub fn compute_global_forwarding_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_forwarding_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     forwardingRule: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}",
@@ -25120,11 +25532,14 @@ pub fn compute_global_forwarding_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_forwarding_rules_set_labels_execute()` to send, or `compute_global_forwarding_rules_set_labels` for simplest API.
 
-pub fn compute_global_forwarding_rules_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_forwarding_rules_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}/setLabels",
@@ -25281,12 +25696,15 @@ pub fn compute_global_forwarding_rules_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_forwarding_rules_set_target_execute()` to send, or `compute_global_forwarding_rules_set_target` for simplest API.
 
-pub fn compute_global_forwarding_rules_set_target_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_forwarding_rules_set_target_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     forwardingRule: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}/setTarget",
@@ -25460,12 +25878,15 @@ pub fn compute_global_forwarding_rules_set_target(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_network_endpoint_groups_attach_network_endpoints_execute()` to send, or `compute_global_network_endpoint_groups_attach_network_endpoints` for simplest API.
 
-pub fn compute_global_network_endpoint_groups_attach_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_network_endpoint_groups_attach_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}/attachNetworkEndpoints",
@@ -25640,12 +26061,15 @@ pub fn compute_global_network_endpoint_groups_attach_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_network_endpoint_groups_delete_execute()` to send, or `compute_global_network_endpoint_groups_delete` for simplest API.
 
-pub fn compute_global_network_endpoint_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_network_endpoint_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}",
@@ -25819,12 +26243,15 @@ pub fn compute_global_network_endpoint_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_network_endpoint_groups_detach_network_endpoints_execute()` to send, or `compute_global_network_endpoint_groups_detach_network_endpoints` for simplest API.
 
-pub fn compute_global_network_endpoint_groups_detach_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_network_endpoint_groups_detach_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}/detachNetworkEndpoints",
@@ -25999,11 +26426,14 @@ pub fn compute_global_network_endpoint_groups_detach_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_network_endpoint_groups_get_execute()` to send, or `compute_global_network_endpoint_groups_get` for simplest API.
 
-pub fn compute_global_network_endpoint_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_network_endpoint_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}",
@@ -26167,11 +26597,14 @@ pub fn compute_global_network_endpoint_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_network_endpoint_groups_insert_execute()` to send, or `compute_global_network_endpoint_groups_insert` for simplest API.
 
-pub fn compute_global_network_endpoint_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_network_endpoint_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups",
@@ -26342,15 +26775,18 @@ pub fn compute_global_network_endpoint_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_network_endpoint_groups_list_execute()` to send, or `compute_global_network_endpoint_groups_list` for simplest API.
 
-pub fn compute_global_network_endpoint_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_network_endpoint_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups",
@@ -26549,8 +26985,8 @@ pub fn compute_global_network_endpoint_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_network_endpoint_groups_list_network_endpoints_execute()` to send, or `compute_global_network_endpoint_groups_list_network_endpoints` for simplest API.
 
-pub fn compute_global_network_endpoint_groups_list_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_network_endpoint_groups_list_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
     filter: &Option<Option<String>>,
@@ -26558,7 +26994,10 @@ pub fn compute_global_network_endpoint_groups_list_network_endpoints_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}/listNetworkEndpoints",
@@ -26765,8 +27204,8 @@ pub fn compute_global_network_endpoint_groups_list_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_operations_aggregated_list_execute()` to send, or `compute_global_operations_aggregated_list` for simplest API.
 
-pub fn compute_global_operations_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_operations_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -26775,7 +27214,10 @@ pub fn compute_global_operations_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/operations",
@@ -26986,11 +27428,14 @@ pub fn compute_global_operations_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_operations_delete_execute()` to send, or `compute_global_operations_delete` for simplest API.
 
-pub fn compute_global_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/operations/{}",
@@ -27143,11 +27588,14 @@ pub fn compute_global_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_operations_get_execute()` to send, or `compute_global_operations_get` for simplest API.
 
-pub fn compute_global_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/operations/{}",
@@ -27303,15 +27751,18 @@ pub fn compute_global_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_operations_list_execute()` to send, or `compute_global_operations_list` for simplest API.
 
-pub fn compute_global_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/operations",
@@ -27510,11 +27961,14 @@ pub fn compute_global_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_operations_wait_execute()` to send, or `compute_global_operations_wait` for simplest API.
 
-pub fn compute_global_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/operations/{}/wait",
@@ -27670,11 +28124,14 @@ pub fn compute_global_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_organization_operations_delete_execute()` to send, or `compute_global_organization_operations_delete` for simplest API.
 
-pub fn compute_global_organization_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_organization_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     operation: &String,
     parentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/operations/{}",
@@ -27842,11 +28299,14 @@ pub fn compute_global_organization_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_organization_operations_get_execute()` to send, or `compute_global_organization_operations_get` for simplest API.
 
-pub fn compute_global_organization_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_organization_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     operation: &String,
     parentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/operations/{}",
@@ -28017,15 +28477,18 @@ pub fn compute_global_organization_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_organization_operations_list_execute()` to send, or `compute_global_organization_operations_list` for simplest API.
 
-pub fn compute_global_organization_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_organization_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parentId: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://compute.googleapis.com/compute/v1/locations/global/operations",);
@@ -28225,12 +28688,15 @@ pub fn compute_global_organization_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_public_delegated_prefixes_delete_execute()` to send, or `compute_global_public_delegated_prefixes_delete` for simplest API.
 
-pub fn compute_global_public_delegated_prefixes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_public_delegated_prefixes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicDelegatedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicDelegatedPrefixes/{}",
@@ -28404,11 +28870,14 @@ pub fn compute_global_public_delegated_prefixes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_public_delegated_prefixes_get_execute()` to send, or `compute_global_public_delegated_prefixes_get` for simplest API.
 
-pub fn compute_global_public_delegated_prefixes_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_public_delegated_prefixes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicDelegatedPrefix: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicDelegatedPrefixes/{}",
@@ -28572,11 +29041,14 @@ pub fn compute_global_public_delegated_prefixes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_public_delegated_prefixes_insert_execute()` to send, or `compute_global_public_delegated_prefixes_insert` for simplest API.
 
-pub fn compute_global_public_delegated_prefixes_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_public_delegated_prefixes_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicDelegatedPrefixes",
@@ -28747,15 +29219,18 @@ pub fn compute_global_public_delegated_prefixes_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_public_delegated_prefixes_list_execute()` to send, or `compute_global_public_delegated_prefixes_list` for simplest API.
 
-pub fn compute_global_public_delegated_prefixes_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_public_delegated_prefixes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicDelegatedPrefixes",
@@ -28954,12 +29429,15 @@ pub fn compute_global_public_delegated_prefixes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_global_public_delegated_prefixes_patch_execute()` to send, or `compute_global_public_delegated_prefixes_patch` for simplest API.
 
-pub fn compute_global_public_delegated_prefixes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_global_public_delegated_prefixes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicDelegatedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicDelegatedPrefixes/{}",
@@ -29133,8 +29611,8 @@ pub fn compute_global_public_delegated_prefixes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_aggregated_list_execute()` to send, or `compute_health_checks_aggregated_list` for simplest API.
 
-pub fn compute_health_checks_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -29143,7 +29621,10 @@ pub fn compute_health_checks_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthChecks",
@@ -29358,12 +29839,15 @@ pub fn compute_health_checks_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_delete_execute()` to send, or `compute_health_checks_delete` for simplest API.
 
-pub fn compute_health_checks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     healthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks/{}",
@@ -29537,11 +30021,14 @@ pub fn compute_health_checks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_get_execute()` to send, or `compute_health_checks_get` for simplest API.
 
-pub fn compute_health_checks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     healthCheck: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks/{}",
@@ -29697,11 +30184,14 @@ pub fn compute_health_checks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_insert_execute()` to send, or `compute_health_checks_insert` for simplest API.
 
-pub fn compute_health_checks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks",
@@ -29868,15 +30358,18 @@ pub fn compute_health_checks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_list_execute()` to send, or `compute_health_checks_list` for simplest API.
 
-pub fn compute_health_checks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks",
@@ -30075,12 +30568,15 @@ pub fn compute_health_checks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_patch_execute()` to send, or `compute_health_checks_patch` for simplest API.
 
-pub fn compute_health_checks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     healthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks/{}",
@@ -30254,11 +30750,14 @@ pub fn compute_health_checks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_test_iam_permissions_execute()` to send, or `compute_health_checks_test_iam_permissions` for simplest API.
 
-pub fn compute_health_checks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks/{}/testIamPermissions",
@@ -30420,12 +30919,15 @@ pub fn compute_health_checks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_health_checks_update_execute()` to send, or `compute_health_checks_update` for simplest API.
 
-pub fn compute_health_checks_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_health_checks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     healthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks/{}",
@@ -30599,12 +31101,15 @@ pub fn compute_health_checks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_http_health_checks_delete_execute()` to send, or `compute_http_health_checks_delete` for simplest API.
 
-pub fn compute_http_health_checks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_http_health_checks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks/{}",
@@ -30778,11 +31283,14 @@ pub fn compute_http_health_checks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_http_health_checks_get_execute()` to send, or `compute_http_health_checks_get` for simplest API.
 
-pub fn compute_http_health_checks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_http_health_checks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpHealthCheck: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks/{}",
@@ -30943,11 +31451,14 @@ pub fn compute_http_health_checks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_http_health_checks_insert_execute()` to send, or `compute_http_health_checks_insert` for simplest API.
 
-pub fn compute_http_health_checks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_http_health_checks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks",
@@ -31115,15 +31626,18 @@ pub fn compute_http_health_checks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_http_health_checks_list_execute()` to send, or `compute_http_health_checks_list` for simplest API.
 
-pub fn compute_http_health_checks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_http_health_checks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks",
@@ -31322,12 +31836,15 @@ pub fn compute_http_health_checks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_http_health_checks_patch_execute()` to send, or `compute_http_health_checks_patch` for simplest API.
 
-pub fn compute_http_health_checks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_http_health_checks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks/{}",
@@ -31501,11 +32018,14 @@ pub fn compute_http_health_checks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_http_health_checks_test_iam_permissions_execute()` to send, or `compute_http_health_checks_test_iam_permissions` for simplest API.
 
-pub fn compute_http_health_checks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_http_health_checks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks/{}/testIamPermissions",
@@ -31670,12 +32190,15 @@ pub fn compute_http_health_checks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_http_health_checks_update_execute()` to send, or `compute_http_health_checks_update` for simplest API.
 
-pub fn compute_http_health_checks_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_http_health_checks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks/{}",
@@ -31849,12 +32372,15 @@ pub fn compute_http_health_checks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_https_health_checks_delete_execute()` to send, or `compute_https_health_checks_delete` for simplest API.
 
-pub fn compute_https_health_checks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_https_health_checks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpsHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks/{}",
@@ -32028,11 +32554,14 @@ pub fn compute_https_health_checks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_https_health_checks_get_execute()` to send, or `compute_https_health_checks_get` for simplest API.
 
-pub fn compute_https_health_checks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_https_health_checks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpsHealthCheck: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks/{}",
@@ -32193,11 +32722,14 @@ pub fn compute_https_health_checks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_https_health_checks_insert_execute()` to send, or `compute_https_health_checks_insert` for simplest API.
 
-pub fn compute_https_health_checks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_https_health_checks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks",
@@ -32365,15 +32897,18 @@ pub fn compute_https_health_checks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_https_health_checks_list_execute()` to send, or `compute_https_health_checks_list` for simplest API.
 
-pub fn compute_https_health_checks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_https_health_checks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks",
@@ -32572,12 +33107,15 @@ pub fn compute_https_health_checks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_https_health_checks_patch_execute()` to send, or `compute_https_health_checks_patch` for simplest API.
 
-pub fn compute_https_health_checks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_https_health_checks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpsHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks/{}",
@@ -32751,11 +33289,14 @@ pub fn compute_https_health_checks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_https_health_checks_test_iam_permissions_execute()` to send, or `compute_https_health_checks_test_iam_permissions` for simplest API.
 
-pub fn compute_https_health_checks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_https_health_checks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks/{}/testIamPermissions",
@@ -32920,12 +33461,15 @@ pub fn compute_https_health_checks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_https_health_checks_update_execute()` to send, or `compute_https_health_checks_update` for simplest API.
 
-pub fn compute_https_health_checks_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_https_health_checks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     httpsHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks/{}",
@@ -33099,12 +33643,15 @@ pub fn compute_https_health_checks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_image_family_views_get_execute()` to send, or `compute_image_family_views_get` for simplest API.
 
-pub fn compute_image_family_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_image_family_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     family: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/imageFamilyViews/{}",
@@ -33267,12 +33814,15 @@ pub fn compute_image_family_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_delete_execute()` to send, or `compute_images_delete` for simplest API.
 
-pub fn compute_images_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     image: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}",
@@ -33442,12 +33992,15 @@ pub fn compute_images_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_deprecate_execute()` to send, or `compute_images_deprecate` for simplest API.
 
-pub fn compute_images_deprecate_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_deprecate_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     image: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/deprecate",
@@ -33617,11 +34170,14 @@ pub fn compute_images_deprecate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_get_execute()` to send, or `compute_images_get` for simplest API.
 
-pub fn compute_images_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     image: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}",
@@ -33777,11 +34333,14 @@ pub fn compute_images_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_get_from_family_execute()` to send, or `compute_images_get_from_family` for simplest API.
 
-pub fn compute_images_get_from_family_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_get_from_family_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     family: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/family/{}",
@@ -33937,12 +34496,15 @@ pub fn compute_images_get_from_family(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_get_iam_policy_execute()` to send, or `compute_images_get_iam_policy` for simplest API.
 
-pub fn compute_images_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/getIamPolicy",
@@ -34116,12 +34678,15 @@ pub fn compute_images_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_insert_execute()` to send, or `compute_images_insert` for simplest API.
 
-pub fn compute_images_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     forceCreate: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images",
@@ -34294,15 +34859,18 @@ pub fn compute_images_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_list_execute()` to send, or `compute_images_list` for simplest API.
 
-pub fn compute_images_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images",
@@ -34497,12 +35065,15 @@ pub fn compute_images_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_patch_execute()` to send, or `compute_images_patch` for simplest API.
 
-pub fn compute_images_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     image: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}",
@@ -34672,11 +35243,14 @@ pub fn compute_images_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_set_iam_policy_execute()` to send, or `compute_images_set_iam_policy` for simplest API.
 
-pub fn compute_images_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/setIamPolicy",
@@ -34832,11 +35406,14 @@ pub fn compute_images_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_set_labels_execute()` to send, or `compute_images_set_labels` for simplest API.
 
-pub fn compute_images_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/setLabels",
@@ -34992,11 +35569,14 @@ pub fn compute_images_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_images_test_iam_permissions_execute()` to send, or `compute_images_test_iam_permissions` for simplest API.
 
-pub fn compute_images_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_images_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/testIamPermissions",
@@ -35157,14 +35737,17 @@ pub fn compute_images_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_manager_resize_requests_cancel_execute()` to send, or `compute_instance_group_manager_resize_requests_cancel` for simplest API.
 
-pub fn compute_instance_group_manager_resize_requests_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_manager_resize_requests_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests/{}/cancel",
@@ -35347,14 +35930,17 @@ pub fn compute_instance_group_manager_resize_requests_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_manager_resize_requests_delete_execute()` to send, or `compute_instance_group_manager_resize_requests_delete` for simplest API.
 
-pub fn compute_instance_group_manager_resize_requests_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_manager_resize_requests_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests/{}",
@@ -35537,13 +36123,16 @@ pub fn compute_instance_group_manager_resize_requests_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_manager_resize_requests_get_execute()` to send, or `compute_instance_group_manager_resize_requests_get` for simplest API.
 
-pub fn compute_instance_group_manager_resize_requests_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_manager_resize_requests_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests/{}",
@@ -35720,13 +36309,16 @@ pub fn compute_instance_group_manager_resize_requests_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_manager_resize_requests_insert_execute()` to send, or `compute_instance_group_manager_resize_requests_insert` for simplest API.
 
-pub fn compute_instance_group_manager_resize_requests_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_manager_resize_requests_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests",
@@ -35905,8 +36497,8 @@ pub fn compute_instance_group_manager_resize_requests_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_manager_resize_requests_list_execute()` to send, or `compute_instance_group_manager_resize_requests_list` for simplest API.
 
-pub fn compute_instance_group_manager_resize_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_manager_resize_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
@@ -35915,7 +36507,10 @@ pub fn compute_instance_group_manager_resize_requests_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests",
@@ -36127,13 +36722,16 @@ pub fn compute_instance_group_manager_resize_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_abandon_instances_execute()` to send, or `compute_instance_group_managers_abandon_instances` for simplest API.
 
-pub fn compute_instance_group_managers_abandon_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_abandon_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/abandonInstances",
@@ -36312,8 +36910,8 @@ pub fn compute_instance_group_managers_abandon_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_aggregated_list_execute()` to send, or `compute_instance_group_managers_aggregated_list` for simplest API.
 
-pub fn compute_instance_group_managers_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -36322,7 +36920,10 @@ pub fn compute_instance_group_managers_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instanceGroupManagers",
@@ -36537,12 +37138,15 @@ pub fn compute_instance_group_managers_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_apply_updates_to_instances_execute()` to send, or `compute_instance_group_managers_apply_updates_to_instances` for simplest API.
 
-pub fn compute_instance_group_managers_apply_updates_to_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_apply_updates_to_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/applyUpdatesToInstances",
@@ -36707,13 +37311,16 @@ pub fn compute_instance_group_managers_apply_updates_to_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_create_instances_execute()` to send, or `compute_instance_group_managers_create_instances` for simplest API.
 
-pub fn compute_instance_group_managers_create_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_create_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/createInstances",
@@ -36892,13 +37499,16 @@ pub fn compute_instance_group_managers_create_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_delete_execute()` to send, or `compute_instance_group_managers_delete` for simplest API.
 
-pub fn compute_instance_group_managers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}",
@@ -37075,13 +37685,16 @@ pub fn compute_instance_group_managers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_delete_instances_execute()` to send, or `compute_instance_group_managers_delete_instances` for simplest API.
 
-pub fn compute_instance_group_managers_delete_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_delete_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/deleteInstances",
@@ -37260,12 +37873,15 @@ pub fn compute_instance_group_managers_delete_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_delete_per_instance_configs_execute()` to send, or `compute_instance_group_managers_delete_per_instance_configs` for simplest API.
 
-pub fn compute_instance_group_managers_delete_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_delete_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/deletePerInstanceConfigs",
@@ -37430,12 +38046,15 @@ pub fn compute_instance_group_managers_delete_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_get_execute()` to send, or `compute_instance_group_managers_get` for simplest API.
 
-pub fn compute_instance_group_managers_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}",
@@ -37602,12 +38221,15 @@ pub fn compute_instance_group_managers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_insert_execute()` to send, or `compute_instance_group_managers_insert` for simplest API.
 
-pub fn compute_instance_group_managers_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers",
@@ -37781,8 +38403,8 @@ pub fn compute_instance_group_managers_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_list_execute()` to send, or `compute_instance_group_managers_list` for simplest API.
 
-pub fn compute_instance_group_managers_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -37790,7 +38412,10 @@ pub fn compute_instance_group_managers_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers",
@@ -37992,8 +38617,8 @@ pub fn compute_instance_group_managers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_list_errors_execute()` to send, or `compute_instance_group_managers_list_errors` for simplest API.
 
-pub fn compute_instance_group_managers_list_errors_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_list_errors_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
@@ -38002,7 +38627,10 @@ pub fn compute_instance_group_managers_list_errors_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/listErrors",
@@ -38214,8 +38842,8 @@ pub fn compute_instance_group_managers_list_errors(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_list_managed_instances_execute()` to send, or `compute_instance_group_managers_list_managed_instances` for simplest API.
 
-pub fn compute_instance_group_managers_list_managed_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_list_managed_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
@@ -38224,7 +38852,10 @@ pub fn compute_instance_group_managers_list_managed_instances_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/listManagedInstances",
@@ -38439,8 +39070,8 @@ pub fn compute_instance_group_managers_list_managed_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_list_per_instance_configs_execute()` to send, or `compute_instance_group_managers_list_per_instance_configs` for simplest API.
 
-pub fn compute_instance_group_managers_list_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_list_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
@@ -38449,7 +39080,10 @@ pub fn compute_instance_group_managers_list_per_instance_configs_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/listPerInstanceConfigs",
@@ -38661,13 +39295,16 @@ pub fn compute_instance_group_managers_list_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_patch_execute()` to send, or `compute_instance_group_managers_patch` for simplest API.
 
-pub fn compute_instance_group_managers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}",
@@ -38844,13 +39481,16 @@ pub fn compute_instance_group_managers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_patch_per_instance_configs_execute()` to send, or `compute_instance_group_managers_patch_per_instance_configs` for simplest API.
 
-pub fn compute_instance_group_managers_patch_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_patch_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/patchPerInstanceConfigs",
@@ -39029,13 +39669,16 @@ pub fn compute_instance_group_managers_patch_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_recreate_instances_execute()` to send, or `compute_instance_group_managers_recreate_instances` for simplest API.
 
-pub fn compute_instance_group_managers_recreate_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_recreate_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/recreateInstances",
@@ -39214,14 +39857,17 @@ pub fn compute_instance_group_managers_recreate_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_resize_execute()` to send, or `compute_instance_group_managers_resize` for simplest API.
 
-pub fn compute_instance_group_managers_resize_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_resize_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
     size: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resize",
@@ -39406,13 +40052,16 @@ pub fn compute_instance_group_managers_resize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_resume_instances_execute()` to send, or `compute_instance_group_managers_resume_instances` for simplest API.
 
-pub fn compute_instance_group_managers_resume_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_resume_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resumeInstances",
@@ -39591,13 +40240,16 @@ pub fn compute_instance_group_managers_resume_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_set_instance_template_execute()` to send, or `compute_instance_group_managers_set_instance_template` for simplest API.
 
-pub fn compute_instance_group_managers_set_instance_template_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_set_instance_template_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/setInstanceTemplate",
@@ -39776,13 +40428,16 @@ pub fn compute_instance_group_managers_set_instance_template(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_set_target_pools_execute()` to send, or `compute_instance_group_managers_set_target_pools` for simplest API.
 
-pub fn compute_instance_group_managers_set_target_pools_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_set_target_pools_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/setTargetPools",
@@ -39961,13 +40616,16 @@ pub fn compute_instance_group_managers_set_target_pools(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_start_instances_execute()` to send, or `compute_instance_group_managers_start_instances` for simplest API.
 
-pub fn compute_instance_group_managers_start_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_start_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/startInstances",
@@ -40146,13 +40804,16 @@ pub fn compute_instance_group_managers_start_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_stop_instances_execute()` to send, or `compute_instance_group_managers_stop_instances` for simplest API.
 
-pub fn compute_instance_group_managers_stop_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_stop_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/stopInstances",
@@ -40331,13 +40992,16 @@ pub fn compute_instance_group_managers_stop_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_suspend_instances_execute()` to send, or `compute_instance_group_managers_suspend_instances` for simplest API.
 
-pub fn compute_instance_group_managers_suspend_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_suspend_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/suspendInstances",
@@ -40516,13 +41180,16 @@ pub fn compute_instance_group_managers_suspend_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_update_per_instance_configs_execute()` to send, or `compute_instance_group_managers_update_per_instance_configs` for simplest API.
 
-pub fn compute_instance_group_managers_update_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_group_managers_update_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/updatePerInstanceConfigs",
@@ -40701,13 +41368,16 @@ pub fn compute_instance_group_managers_update_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_add_instances_execute()` to send, or `compute_instance_groups_add_instances` for simplest API.
 
-pub fn compute_instance_groups_add_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_add_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/addInstances",
@@ -40886,8 +41556,8 @@ pub fn compute_instance_groups_add_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_aggregated_list_execute()` to send, or `compute_instance_groups_aggregated_list` for simplest API.
 
-pub fn compute_instance_groups_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -40896,7 +41566,10 @@ pub fn compute_instance_groups_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instanceGroups",
@@ -41111,13 +41784,16 @@ pub fn compute_instance_groups_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_delete_execute()` to send, or `compute_instance_groups_delete` for simplest API.
 
-pub fn compute_instance_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}",
@@ -41294,12 +41970,15 @@ pub fn compute_instance_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_get_execute()` to send, or `compute_instance_groups_get` for simplest API.
 
-pub fn compute_instance_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}",
@@ -41466,12 +42145,15 @@ pub fn compute_instance_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_insert_execute()` to send, or `compute_instance_groups_insert` for simplest API.
 
-pub fn compute_instance_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups",
@@ -41641,8 +42323,8 @@ pub fn compute_instance_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_list_execute()` to send, or `compute_instance_groups_list` for simplest API.
 
-pub fn compute_instance_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -41650,7 +42332,10 @@ pub fn compute_instance_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups",
@@ -41852,8 +42537,8 @@ pub fn compute_instance_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_list_instances_execute()` to send, or `compute_instance_groups_list_instances` for simplest API.
 
-pub fn compute_instance_groups_list_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_list_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroup: &String,
@@ -41862,7 +42547,10 @@ pub fn compute_instance_groups_list_instances_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/listInstances",
@@ -42073,13 +42761,16 @@ pub fn compute_instance_groups_list_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_remove_instances_execute()` to send, or `compute_instance_groups_remove_instances` for simplest API.
 
-pub fn compute_instance_groups_remove_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_remove_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/removeInstances",
@@ -42258,13 +42949,16 @@ pub fn compute_instance_groups_remove_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_set_named_ports_execute()` to send, or `compute_instance_groups_set_named_ports` for simplest API.
 
-pub fn compute_instance_groups_set_named_ports_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_set_named_ports_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instanceGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/setNamedPorts",
@@ -42443,12 +43137,15 @@ pub fn compute_instance_groups_set_named_ports(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_groups_test_iam_permissions_execute()` to send, or `compute_instance_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_instance_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/testIamPermissions",
@@ -42617,11 +43314,14 @@ pub fn compute_instance_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_settings_get_execute()` to send, or `compute_instance_settings_get` for simplest API.
 
-pub fn compute_instance_settings_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_settings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceSettings",
@@ -42781,13 +43481,16 @@ pub fn compute_instance_settings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_settings_patch_execute()` to send, or `compute_instance_settings_patch` for simplest API.
 
-pub fn compute_instance_settings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_settings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceSettings",
@@ -42967,8 +43670,8 @@ pub fn compute_instance_settings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_aggregated_list_execute()` to send, or `compute_instance_templates_aggregated_list` for simplest API.
 
-pub fn compute_instance_templates_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -42977,7 +43680,10 @@ pub fn compute_instance_templates_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instanceTemplates",
@@ -43192,12 +43898,15 @@ pub fn compute_instance_templates_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_delete_execute()` to send, or `compute_instance_templates_delete` for simplest API.
 
-pub fn compute_instance_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instanceTemplate: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}",
@@ -43371,11 +44080,14 @@ pub fn compute_instance_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_get_execute()` to send, or `compute_instance_templates_get` for simplest API.
 
-pub fn compute_instance_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instanceTemplate: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}",
@@ -43536,12 +44248,15 @@ pub fn compute_instance_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_get_iam_policy_execute()` to send, or `compute_instance_templates_get_iam_policy` for simplest API.
 
-pub fn compute_instance_templates_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}/getIamPolicy",
@@ -43716,11 +44431,14 @@ pub fn compute_instance_templates_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_insert_execute()` to send, or `compute_instance_templates_insert` for simplest API.
 
-pub fn compute_instance_templates_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates",
@@ -43888,15 +44606,18 @@ pub fn compute_instance_templates_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_list_execute()` to send, or `compute_instance_templates_list` for simplest API.
 
-pub fn compute_instance_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates",
@@ -44095,11 +44816,14 @@ pub fn compute_instance_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_set_iam_policy_execute()` to send, or `compute_instance_templates_set_iam_policy` for simplest API.
 
-pub fn compute_instance_templates_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}/setIamPolicy",
@@ -44257,11 +44981,14 @@ pub fn compute_instance_templates_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_templates_test_iam_permissions_execute()` to send, or `compute_instance_templates_test_iam_permissions` for simplest API.
 
-pub fn compute_instance_templates_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instance_templates_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}/testIamPermissions",
@@ -44426,14 +45153,17 @@ pub fn compute_instance_templates_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_add_access_config_execute()` to send, or `compute_instances_add_access_config` for simplest API.
 
-pub fn compute_instances_add_access_config_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_add_access_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     networkInterface: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/addAccessConfig",
@@ -44618,13 +45348,16 @@ pub fn compute_instances_add_access_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_add_network_interface_execute()` to send, or `compute_instances_add_network_interface` for simplest API.
 
-pub fn compute_instances_add_network_interface_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_add_network_interface_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/addNetworkInterface",
@@ -44803,13 +45536,16 @@ pub fn compute_instances_add_network_interface(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_add_resource_policies_execute()` to send, or `compute_instances_add_resource_policies` for simplest API.
 
-pub fn compute_instances_add_resource_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_add_resource_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/addResourcePolicies",
@@ -44988,8 +45724,8 @@ pub fn compute_instances_add_resource_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_aggregated_list_execute()` to send, or `compute_instances_aggregated_list` for simplest API.
 
-pub fn compute_instances_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -44998,7 +45734,10 @@ pub fn compute_instances_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instances",
@@ -45209,14 +45948,17 @@ pub fn compute_instances_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_attach_disk_execute()` to send, or `compute_instances_attach_disk` for simplest API.
 
-pub fn compute_instances_attach_disk_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_attach_disk_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     forceAttach: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/attachDisk",
@@ -45399,12 +46141,15 @@ pub fn compute_instances_attach_disk(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_bulk_insert_execute()` to send, or `compute_instances_bulk_insert` for simplest API.
 
-pub fn compute_instances_bulk_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_bulk_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/bulkInsert",
@@ -45574,13 +46319,16 @@ pub fn compute_instances_bulk_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_delete_execute()` to send, or `compute_instances_delete` for simplest API.
 
-pub fn compute_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}",
@@ -45757,15 +46505,18 @@ pub fn compute_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_delete_access_config_execute()` to send, or `compute_instances_delete_access_config` for simplest API.
 
-pub fn compute_instances_delete_access_config_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_delete_access_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     accessConfig: &Option<Option<String>>,
     networkInterface: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/deleteAccessConfig",
@@ -45956,14 +46707,17 @@ pub fn compute_instances_delete_access_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_delete_network_interface_execute()` to send, or `compute_instances_delete_network_interface` for simplest API.
 
-pub fn compute_instances_delete_network_interface_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_delete_network_interface_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     networkInterfaceName: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/deleteNetworkInterface",
@@ -46148,14 +46902,17 @@ pub fn compute_instances_delete_network_interface(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_detach_disk_execute()` to send, or `compute_instances_detach_disk` for simplest API.
 
-pub fn compute_instances_detach_disk_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_detach_disk_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     deviceName: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/detachDisk",
@@ -46338,12 +47095,15 @@ pub fn compute_instances_detach_disk(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_get_execute()` to send, or `compute_instances_get` for simplest API.
 
-pub fn compute_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}",
@@ -46501,13 +47261,16 @@ pub fn compute_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_get_effective_firewalls_execute()` to send, or `compute_instances_get_effective_firewalls` for simplest API.
 
-pub fn compute_instances_get_effective_firewalls_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_get_effective_firewalls_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     networkInterface: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/getEffectiveFirewalls",
@@ -46694,14 +47457,17 @@ pub fn compute_instances_get_effective_firewalls(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_get_guest_attributes_execute()` to send, or `compute_instances_get_guest_attributes` for simplest API.
 
-pub fn compute_instances_get_guest_attributes_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_get_guest_attributes_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     queryPath: &Option<Option<String>>,
     variableKey: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/getGuestAttributes",
@@ -46890,13 +47656,16 @@ pub fn compute_instances_get_guest_attributes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_get_iam_policy_execute()` to send, or `compute_instances_get_iam_policy` for simplest API.
 
-pub fn compute_instances_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/getIamPolicy",
@@ -47073,12 +47842,15 @@ pub fn compute_instances_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_get_screenshot_execute()` to send, or `compute_instances_get_screenshot` for simplest API.
 
-pub fn compute_instances_get_screenshot_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_get_screenshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/screenshot",
@@ -47241,14 +48013,17 @@ pub fn compute_instances_get_screenshot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_get_serial_port_output_execute()` to send, or `compute_instances_get_serial_port_output` for simplest API.
 
-pub fn compute_instances_get_serial_port_output_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_get_serial_port_output_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     port: &Option<Option<String>>,
     start: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/serialPort",
@@ -47435,12 +48210,15 @@ pub fn compute_instances_get_serial_port_output(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_get_shielded_instance_identity_execute()` to send, or `compute_instances_get_shielded_instance_identity` for simplest API.
 
-pub fn compute_instances_get_shielded_instance_identity_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_get_shielded_instance_identity_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/getShieldedInstanceIdentity",
@@ -47609,14 +48387,17 @@ pub fn compute_instances_get_shielded_instance_identity(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_insert_execute()` to send, or `compute_instances_insert` for simplest API.
 
-pub fn compute_instances_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
     sourceInstanceTemplate: &Option<Option<String>>,
     sourceMachineImage: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances",
@@ -47802,8 +48583,8 @@ pub fn compute_instances_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_list_execute()` to send, or `compute_instances_list` for simplest API.
 
-pub fn compute_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -47811,7 +48592,10 @@ pub fn compute_instances_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances",
@@ -48013,8 +48797,8 @@ pub fn compute_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_list_referrers_execute()` to send, or `compute_instances_list_referrers` for simplest API.
 
-pub fn compute_instances_list_referrers_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_list_referrers_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
@@ -48023,7 +48807,10 @@ pub fn compute_instances_list_referrers_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/referrers",
@@ -48228,13 +49015,16 @@ pub fn compute_instances_list_referrers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_perform_maintenance_execute()` to send, or `compute_instances_perform_maintenance` for simplest API.
 
-pub fn compute_instances_perform_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_perform_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/performMaintenance",
@@ -48413,13 +49203,16 @@ pub fn compute_instances_perform_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_remove_resource_policies_execute()` to send, or `compute_instances_remove_resource_policies` for simplest API.
 
-pub fn compute_instances_remove_resource_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_remove_resource_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/removeResourcePolicies",
@@ -48598,13 +49391,16 @@ pub fn compute_instances_remove_resource_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_report_host_as_faulty_execute()` to send, or `compute_instances_report_host_as_faulty` for simplest API.
 
-pub fn compute_instances_report_host_as_faulty_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_report_host_as_faulty_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/reportHostAsFaulty",
@@ -48783,13 +49579,16 @@ pub fn compute_instances_report_host_as_faulty(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_reset_execute()` to send, or `compute_instances_reset` for simplest API.
 
-pub fn compute_instances_reset_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/reset",
@@ -48966,13 +49765,16 @@ pub fn compute_instances_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_resume_execute()` to send, or `compute_instances_resume` for simplest API.
 
-pub fn compute_instances_resume_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/resume",
@@ -49149,12 +49951,15 @@ pub fn compute_instances_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_send_diagnostic_interrupt_execute()` to send, or `compute_instances_send_diagnostic_interrupt` for simplest API.
 
-pub fn compute_instances_send_diagnostic_interrupt_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_send_diagnostic_interrupt_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/sendDiagnosticInterrupt",
@@ -49316,14 +50121,17 @@ pub fn compute_instances_send_diagnostic_interrupt(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_deletion_protection_execute()` to send, or `compute_instances_set_deletion_protection` for simplest API.
 
-pub fn compute_instances_set_deletion_protection_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_deletion_protection_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     deletionProtection: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setDeletionProtection",
@@ -49508,15 +50316,18 @@ pub fn compute_instances_set_deletion_protection(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_disk_auto_delete_execute()` to send, or `compute_instances_set_disk_auto_delete` for simplest API.
 
-pub fn compute_instances_set_disk_auto_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_disk_auto_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     autoDelete: &Option<Option<String>>,
     deviceName: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setDiskAutoDelete",
@@ -49707,12 +50518,15 @@ pub fn compute_instances_set_disk_auto_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_iam_policy_execute()` to send, or `compute_instances_set_iam_policy` for simplest API.
 
-pub fn compute_instances_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setIamPolicy",
@@ -49875,13 +50689,16 @@ pub fn compute_instances_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_labels_execute()` to send, or `compute_instances_set_labels` for simplest API.
 
-pub fn compute_instances_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setLabels",
@@ -50058,13 +50875,16 @@ pub fn compute_instances_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_machine_resources_execute()` to send, or `compute_instances_set_machine_resources` for simplest API.
 
-pub fn compute_instances_set_machine_resources_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_machine_resources_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMachineResources",
@@ -50243,13 +51063,16 @@ pub fn compute_instances_set_machine_resources(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_machine_type_execute()` to send, or `compute_instances_set_machine_type` for simplest API.
 
-pub fn compute_instances_set_machine_type_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_machine_type_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMachineType",
@@ -50428,13 +51251,16 @@ pub fn compute_instances_set_machine_type(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_metadata_execute()` to send, or `compute_instances_set_metadata` for simplest API.
 
-pub fn compute_instances_set_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMetadata",
@@ -50611,13 +51437,16 @@ pub fn compute_instances_set_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_min_cpu_platform_execute()` to send, or `compute_instances_set_min_cpu_platform` for simplest API.
 
-pub fn compute_instances_set_min_cpu_platform_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_min_cpu_platform_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMinCpuPlatform",
@@ -50796,13 +51625,16 @@ pub fn compute_instances_set_min_cpu_platform(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_name_execute()` to send, or `compute_instances_set_name` for simplest API.
 
-pub fn compute_instances_set_name_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_name_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setName",
@@ -50979,13 +51811,16 @@ pub fn compute_instances_set_name(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_scheduling_execute()` to send, or `compute_instances_set_scheduling` for simplest API.
 
-pub fn compute_instances_set_scheduling_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_scheduling_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setScheduling",
@@ -51162,13 +51997,16 @@ pub fn compute_instances_set_scheduling(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_security_policy_execute()` to send, or `compute_instances_set_security_policy` for simplest API.
 
-pub fn compute_instances_set_security_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_security_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setSecurityPolicy",
@@ -51347,13 +52185,16 @@ pub fn compute_instances_set_security_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_service_account_execute()` to send, or `compute_instances_set_service_account` for simplest API.
 
-pub fn compute_instances_set_service_account_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_service_account_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setServiceAccount",
@@ -51532,13 +52373,16 @@ pub fn compute_instances_set_service_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_shielded_instance_integrity_policy_execute()` to send, or `compute_instances_set_shielded_instance_integrity_policy` for simplest API.
 
-pub fn compute_instances_set_shielded_instance_integrity_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_shielded_instance_integrity_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setShieldedInstanceIntegrityPolicy",
@@ -51717,13 +52561,16 @@ pub fn compute_instances_set_shielded_instance_integrity_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_tags_execute()` to send, or `compute_instances_set_tags` for simplest API.
 
-pub fn compute_instances_set_tags_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_set_tags_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setTags",
@@ -51900,14 +52747,17 @@ pub fn compute_instances_set_tags(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_simulate_maintenance_event_execute()` to send, or `compute_instances_simulate_maintenance_event` for simplest API.
 
-pub fn compute_instances_simulate_maintenance_event_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_simulate_maintenance_event_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
     withExtendedNotifications: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/simulateMaintenanceEvent",
@@ -52092,13 +52942,16 @@ pub fn compute_instances_simulate_maintenance_event(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_start_execute()` to send, or `compute_instances_start` for simplest API.
 
-pub fn compute_instances_start_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/start",
@@ -52275,13 +53128,16 @@ pub fn compute_instances_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_start_with_encryption_key_execute()` to send, or `compute_instances_start_with_encryption_key` for simplest API.
 
-pub fn compute_instances_start_with_encryption_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_start_with_encryption_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/startWithEncryptionKey",
@@ -52460,14 +53316,17 @@ pub fn compute_instances_start_with_encryption_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_stop_execute()` to send, or `compute_instances_stop` for simplest API.
 
-pub fn compute_instances_stop_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     discardLocalSsd: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/stop",
@@ -52650,14 +53509,17 @@ pub fn compute_instances_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_suspend_execute()` to send, or `compute_instances_suspend` for simplest API.
 
-pub fn compute_instances_suspend_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_suspend_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     discardLocalSsd: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/suspend",
@@ -52840,12 +53702,15 @@ pub fn compute_instances_suspend(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_test_iam_permissions_execute()` to send, or `compute_instances_test_iam_permissions` for simplest API.
 
-pub fn compute_instances_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/testIamPermissions",
@@ -53014,8 +53879,8 @@ pub fn compute_instances_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_update_execute()` to send, or `compute_instances_update` for simplest API.
 
-pub fn compute_instances_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
@@ -53023,7 +53888,10 @@ pub fn compute_instances_update_builder(
     minimalAction: &Option<Option<String>>,
     mostDisruptiveAllowedAction: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}",
@@ -53218,14 +54086,17 @@ pub fn compute_instances_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_update_access_config_execute()` to send, or `compute_instances_update_access_config` for simplest API.
 
-pub fn compute_instances_update_access_config_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_update_access_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     networkInterface: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/updateAccessConfig",
@@ -53410,13 +54281,16 @@ pub fn compute_instances_update_access_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_update_display_device_execute()` to send, or `compute_instances_update_display_device` for simplest API.
 
-pub fn compute_instances_update_display_device_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_update_display_device_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/updateDisplayDevice",
@@ -53595,14 +54469,17 @@ pub fn compute_instances_update_display_device(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_update_network_interface_execute()` to send, or `compute_instances_update_network_interface` for simplest API.
 
-pub fn compute_instances_update_network_interface_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_update_network_interface_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     networkInterface: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/updateNetworkInterface",
@@ -53787,13 +54664,16 @@ pub fn compute_instances_update_network_interface(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_update_shielded_instance_config_execute()` to send, or `compute_instances_update_shielded_instance_config` for simplest API.
 
-pub fn compute_instances_update_shielded_instance_config_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instances_update_shielded_instance_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/updateShieldedInstanceConfig",
@@ -53972,13 +54852,16 @@ pub fn compute_instances_update_shielded_instance_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshot_groups_delete_execute()` to send, or `compute_instant_snapshot_groups_delete` for simplest API.
 
-pub fn compute_instant_snapshot_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshot_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instantSnapshotGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshotGroups/{}",
@@ -54155,12 +55038,15 @@ pub fn compute_instant_snapshot_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshot_groups_get_execute()` to send, or `compute_instant_snapshot_groups_get` for simplest API.
 
-pub fn compute_instant_snapshot_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshot_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instantSnapshotGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshotGroups/{}",
@@ -54327,13 +55213,16 @@ pub fn compute_instant_snapshot_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshot_groups_get_iam_policy_execute()` to send, or `compute_instant_snapshot_groups_get_iam_policy` for simplest API.
 
-pub fn compute_instant_snapshot_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshot_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshotGroups/{}/getIamPolicy",
@@ -54512,13 +55401,16 @@ pub fn compute_instant_snapshot_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshot_groups_insert_execute()` to send, or `compute_instant_snapshot_groups_insert` for simplest API.
 
-pub fn compute_instant_snapshot_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshot_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
     sourceConsistencyGroup: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshotGroups",
@@ -54698,8 +55590,8 @@ pub fn compute_instant_snapshot_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshot_groups_list_execute()` to send, or `compute_instant_snapshot_groups_list` for simplest API.
 
-pub fn compute_instant_snapshot_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshot_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -54707,7 +55599,10 @@ pub fn compute_instant_snapshot_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshotGroups",
@@ -54909,12 +55804,15 @@ pub fn compute_instant_snapshot_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshot_groups_set_iam_policy_execute()` to send, or `compute_instant_snapshot_groups_set_iam_policy` for simplest API.
 
-pub fn compute_instant_snapshot_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshot_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshotGroups/{}/setIamPolicy",
@@ -55079,12 +55977,15 @@ pub fn compute_instant_snapshot_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshot_groups_test_iam_permissions_execute()` to send, or `compute_instant_snapshot_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_instant_snapshot_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshot_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshotGroups/{}/testIamPermissions",
@@ -55253,8 +56154,8 @@ pub fn compute_instant_snapshot_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_aggregated_list_execute()` to send, or `compute_instant_snapshots_aggregated_list` for simplest API.
 
-pub fn compute_instant_snapshots_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -55263,7 +56164,10 @@ pub fn compute_instant_snapshots_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instantSnapshots",
@@ -55478,13 +56382,16 @@ pub fn compute_instant_snapshots_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_delete_execute()` to send, or `compute_instant_snapshots_delete` for simplest API.
 
-pub fn compute_instant_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instantSnapshot: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}",
@@ -55661,12 +56568,15 @@ pub fn compute_instant_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_get_execute()` to send, or `compute_instant_snapshots_get` for simplest API.
 
-pub fn compute_instant_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     instantSnapshot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}",
@@ -55833,13 +56743,16 @@ pub fn compute_instant_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_get_iam_policy_execute()` to send, or `compute_instant_snapshots_get_iam_policy` for simplest API.
 
-pub fn compute_instant_snapshots_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/getIamPolicy",
@@ -56018,12 +56931,15 @@ pub fn compute_instant_snapshots_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_insert_execute()` to send, or `compute_instant_snapshots_insert` for simplest API.
 
-pub fn compute_instant_snapshots_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots",
@@ -56197,8 +57113,8 @@ pub fn compute_instant_snapshots_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_list_execute()` to send, or `compute_instant_snapshots_list` for simplest API.
 
-pub fn compute_instant_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -56206,7 +57122,10 @@ pub fn compute_instant_snapshots_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots",
@@ -56408,12 +57327,15 @@ pub fn compute_instant_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_set_iam_policy_execute()` to send, or `compute_instant_snapshots_set_iam_policy` for simplest API.
 
-pub fn compute_instant_snapshots_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/setIamPolicy",
@@ -56578,13 +57500,16 @@ pub fn compute_instant_snapshots_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_set_labels_execute()` to send, or `compute_instant_snapshots_set_labels` for simplest API.
 
-pub fn compute_instant_snapshots_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/setLabels",
@@ -56763,12 +57688,15 @@ pub fn compute_instant_snapshots_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instant_snapshots_test_iam_permissions_execute()` to send, or `compute_instant_snapshots_test_iam_permissions` for simplest API.
 
-pub fn compute_instant_snapshots_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_instant_snapshots_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/testIamPermissions",
@@ -56937,12 +57865,15 @@ pub fn compute_instant_snapshots_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_delete_execute()` to send, or `compute_interconnect_attachment_groups_delete` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectAttachmentGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}",
@@ -57117,11 +58048,14 @@ pub fn compute_interconnect_attachment_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_get_execute()` to send, or `compute_interconnect_attachment_groups_get` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectAttachmentGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}",
@@ -57290,12 +58224,15 @@ pub fn compute_interconnect_attachment_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_get_iam_policy_execute()` to send, or `compute_interconnect_attachment_groups_get_iam_policy` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/getIamPolicy",
@@ -57470,11 +58407,14 @@ pub fn compute_interconnect_attachment_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_get_operational_status_execute()` to send, or `compute_interconnect_attachment_groups_get_operational_status` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_get_operational_status_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_get_operational_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectAttachmentGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/getOperationalStatus",
@@ -57653,11 +58593,14 @@ pub fn compute_interconnect_attachment_groups_get_operational_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_insert_execute()` to send, or `compute_interconnect_attachment_groups_insert` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups",
@@ -57828,15 +58771,18 @@ pub fn compute_interconnect_attachment_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_list_execute()` to send, or `compute_interconnect_attachment_groups_list` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups",
@@ -58039,13 +58985,16 @@ pub fn compute_interconnect_attachment_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_patch_execute()` to send, or `compute_interconnect_attachment_groups_patch` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectAttachmentGroup: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}",
@@ -58226,11 +59175,14 @@ pub fn compute_interconnect_attachment_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_set_iam_policy_execute()` to send, or `compute_interconnect_attachment_groups_set_iam_policy` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/setIamPolicy",
@@ -58391,11 +59343,14 @@ pub fn compute_interconnect_attachment_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachment_groups_test_iam_permissions_execute()` to send, or `compute_interconnect_attachment_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_interconnect_attachment_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachment_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/testIamPermissions",
@@ -58560,8 +59515,8 @@ pub fn compute_interconnect_attachment_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachments_aggregated_list_execute()` to send, or `compute_interconnect_attachments_aggregated_list` for simplest API.
 
-pub fn compute_interconnect_attachments_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachments_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -58570,7 +59525,10 @@ pub fn compute_interconnect_attachments_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/interconnectAttachments",
@@ -58785,13 +59743,16 @@ pub fn compute_interconnect_attachments_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachments_delete_execute()` to send, or `compute_interconnect_attachments_delete` for simplest API.
 
-pub fn compute_interconnect_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     interconnectAttachment: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments/{}",
@@ -58970,12 +59931,15 @@ pub fn compute_interconnect_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachments_get_execute()` to send, or `compute_interconnect_attachments_get` for simplest API.
 
-pub fn compute_interconnect_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     interconnectAttachment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments/{}",
@@ -59144,13 +60108,16 @@ pub fn compute_interconnect_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachments_insert_execute()` to send, or `compute_interconnect_attachments_insert` for simplest API.
 
-pub fn compute_interconnect_attachments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments",
@@ -59330,8 +60297,8 @@ pub fn compute_interconnect_attachments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachments_list_execute()` to send, or `compute_interconnect_attachments_list` for simplest API.
 
-pub fn compute_interconnect_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -59339,7 +60306,10 @@ pub fn compute_interconnect_attachments_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments",
@@ -59545,13 +60515,16 @@ pub fn compute_interconnect_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachments_patch_execute()` to send, or `compute_interconnect_attachments_patch` for simplest API.
 
-pub fn compute_interconnect_attachments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     interconnectAttachment: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments/{}",
@@ -59730,13 +60703,16 @@ pub fn compute_interconnect_attachments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_attachments_set_labels_execute()` to send, or `compute_interconnect_attachments_set_labels` for simplest API.
 
-pub fn compute_interconnect_attachments_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_attachments_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments/{}/setLabels",
@@ -59915,11 +60891,14 @@ pub fn compute_interconnect_attachments_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_create_members_execute()` to send, or `compute_interconnect_groups_create_members` for simplest API.
 
-pub fn compute_interconnect_groups_create_members_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_create_members_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/createMembers",
@@ -60080,12 +61059,15 @@ pub fn compute_interconnect_groups_create_members(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_delete_execute()` to send, or `compute_interconnect_groups_delete` for simplest API.
 
-pub fn compute_interconnect_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}",
@@ -60259,11 +61241,14 @@ pub fn compute_interconnect_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_get_execute()` to send, or `compute_interconnect_groups_get` for simplest API.
 
-pub fn compute_interconnect_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}",
@@ -60424,12 +61409,15 @@ pub fn compute_interconnect_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_get_iam_policy_execute()` to send, or `compute_interconnect_groups_get_iam_policy` for simplest API.
 
-pub fn compute_interconnect_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/getIamPolicy",
@@ -60604,11 +61592,14 @@ pub fn compute_interconnect_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_get_operational_status_execute()` to send, or `compute_interconnect_groups_get_operational_status` for simplest API.
 
-pub fn compute_interconnect_groups_get_operational_status_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_get_operational_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/getOperationalStatus",
@@ -60778,11 +61769,14 @@ pub fn compute_interconnect_groups_get_operational_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_insert_execute()` to send, or `compute_interconnect_groups_insert` for simplest API.
 
-pub fn compute_interconnect_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups",
@@ -60950,15 +61944,18 @@ pub fn compute_interconnect_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_list_execute()` to send, or `compute_interconnect_groups_list` for simplest API.
 
-pub fn compute_interconnect_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups",
@@ -61161,13 +62158,16 @@ pub fn compute_interconnect_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_patch_execute()` to send, or `compute_interconnect_groups_patch` for simplest API.
 
-pub fn compute_interconnect_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectGroup: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}",
@@ -61347,11 +62347,14 @@ pub fn compute_interconnect_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_set_iam_policy_execute()` to send, or `compute_interconnect_groups_set_iam_policy` for simplest API.
 
-pub fn compute_interconnect_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/setIamPolicy",
@@ -61509,11 +62512,14 @@ pub fn compute_interconnect_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_groups_test_iam_permissions_execute()` to send, or `compute_interconnect_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_interconnect_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/testIamPermissions",
@@ -61678,11 +62684,14 @@ pub fn compute_interconnect_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_locations_get_execute()` to send, or `compute_interconnect_locations_get` for simplest API.
 
-pub fn compute_interconnect_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectLocation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectLocations/{}",
@@ -61846,15 +62855,18 @@ pub fn compute_interconnect_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_locations_list_execute()` to send, or `compute_interconnect_locations_list` for simplest API.
 
-pub fn compute_interconnect_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectLocations",
@@ -62053,11 +63065,14 @@ pub fn compute_interconnect_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_remote_locations_get_execute()` to send, or `compute_interconnect_remote_locations_get` for simplest API.
 
-pub fn compute_interconnect_remote_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_remote_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnectRemoteLocation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectRemoteLocations/{}",
@@ -62226,15 +63241,18 @@ pub fn compute_interconnect_remote_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnect_remote_locations_list_execute()` to send, or `compute_interconnect_remote_locations_list` for simplest API.
 
-pub fn compute_interconnect_remote_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnect_remote_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectRemoteLocations",
@@ -62437,12 +63455,15 @@ pub fn compute_interconnect_remote_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_delete_execute()` to send, or `compute_interconnects_delete` for simplest API.
 
-pub fn compute_interconnects_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnect: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}",
@@ -62616,11 +63637,14 @@ pub fn compute_interconnects_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_get_execute()` to send, or `compute_interconnects_get` for simplest API.
 
-pub fn compute_interconnects_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnect: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}",
@@ -62780,11 +63804,14 @@ pub fn compute_interconnects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_get_diagnostics_execute()` to send, or `compute_interconnects_get_diagnostics` for simplest API.
 
-pub fn compute_interconnects_get_diagnostics_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_get_diagnostics_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnect: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}/getDiagnostics",
@@ -62950,11 +63977,14 @@ pub fn compute_interconnects_get_diagnostics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_get_macsec_config_execute()` to send, or `compute_interconnects_get_macsec_config` for simplest API.
 
-pub fn compute_interconnects_get_macsec_config_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_get_macsec_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnect: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}/getMacsecConfig",
@@ -63120,11 +64150,14 @@ pub fn compute_interconnects_get_macsec_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_insert_execute()` to send, or `compute_interconnects_insert` for simplest API.
 
-pub fn compute_interconnects_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects",
@@ -63291,15 +64324,18 @@ pub fn compute_interconnects_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_list_execute()` to send, or `compute_interconnects_list` for simplest API.
 
-pub fn compute_interconnects_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects",
@@ -63498,12 +64534,15 @@ pub fn compute_interconnects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_patch_execute()` to send, or `compute_interconnects_patch` for simplest API.
 
-pub fn compute_interconnects_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     interconnect: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}",
@@ -63677,11 +64716,14 @@ pub fn compute_interconnects_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_interconnects_set_labels_execute()` to send, or `compute_interconnects_set_labels` for simplest API.
 
-pub fn compute_interconnects_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_interconnects_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}/setLabels",
@@ -63837,11 +64879,14 @@ pub fn compute_interconnects_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_license_codes_get_execute()` to send, or `compute_license_codes_get` for simplest API.
 
-pub fn compute_license_codes_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_license_codes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     licenseCode: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenseCodes/{}",
@@ -63997,11 +65042,14 @@ pub fn compute_license_codes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_license_codes_test_iam_permissions_execute()` to send, or `compute_license_codes_test_iam_permissions` for simplest API.
 
-pub fn compute_license_codes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_license_codes_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenseCodes/{}/testIamPermissions",
@@ -64163,12 +65211,15 @@ pub fn compute_license_codes_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_delete_execute()` to send, or `compute_licenses_delete` for simplest API.
 
-pub fn compute_licenses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     license: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}",
@@ -64338,11 +65389,14 @@ pub fn compute_licenses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_get_execute()` to send, or `compute_licenses_get` for simplest API.
 
-pub fn compute_licenses_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     license: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}",
@@ -64498,12 +65552,15 @@ pub fn compute_licenses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_get_iam_policy_execute()` to send, or `compute_licenses_get_iam_policy` for simplest API.
 
-pub fn compute_licenses_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}/getIamPolicy",
@@ -64677,11 +65734,14 @@ pub fn compute_licenses_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_insert_execute()` to send, or `compute_licenses_insert` for simplest API.
 
-pub fn compute_licenses_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses",
@@ -64848,15 +65908,18 @@ pub fn compute_licenses_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_list_execute()` to send, or `compute_licenses_list` for simplest API.
 
-pub fn compute_licenses_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses",
@@ -65055,11 +66118,14 @@ pub fn compute_licenses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_set_iam_policy_execute()` to send, or `compute_licenses_set_iam_policy` for simplest API.
 
-pub fn compute_licenses_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}/setIamPolicy",
@@ -65215,11 +66281,14 @@ pub fn compute_licenses_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_test_iam_permissions_execute()` to send, or `compute_licenses_test_iam_permissions` for simplest API.
 
-pub fn compute_licenses_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}/testIamPermissions",
@@ -65381,13 +66450,16 @@ pub fn compute_licenses_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_licenses_update_execute()` to send, or `compute_licenses_update` for simplest API.
 
-pub fn compute_licenses_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_licenses_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     license: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}",
@@ -65567,12 +66639,15 @@ pub fn compute_licenses_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_delete_execute()` to send, or `compute_machine_images_delete` for simplest API.
 
-pub fn compute_machine_images_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     machineImage: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}",
@@ -65746,11 +66821,14 @@ pub fn compute_machine_images_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_get_execute()` to send, or `compute_machine_images_get` for simplest API.
 
-pub fn compute_machine_images_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     machineImage: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}",
@@ -65910,12 +66988,15 @@ pub fn compute_machine_images_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_get_iam_policy_execute()` to send, or `compute_machine_images_get_iam_policy` for simplest API.
 
-pub fn compute_machine_images_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/getIamPolicy",
@@ -66090,12 +67171,15 @@ pub fn compute_machine_images_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_insert_execute()` to send, or `compute_machine_images_insert` for simplest API.
 
-pub fn compute_machine_images_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
     sourceInstance: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages",
@@ -66272,15 +67356,18 @@ pub fn compute_machine_images_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_list_execute()` to send, or `compute_machine_images_list` for simplest API.
 
-pub fn compute_machine_images_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages",
@@ -66479,11 +67566,14 @@ pub fn compute_machine_images_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_set_iam_policy_execute()` to send, or `compute_machine_images_set_iam_policy` for simplest API.
 
-pub fn compute_machine_images_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/setIamPolicy",
@@ -66641,11 +67731,14 @@ pub fn compute_machine_images_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_set_labels_execute()` to send, or `compute_machine_images_set_labels` for simplest API.
 
-pub fn compute_machine_images_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/setLabels",
@@ -66801,11 +67894,14 @@ pub fn compute_machine_images_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_images_test_iam_permissions_execute()` to send, or `compute_machine_images_test_iam_permissions` for simplest API.
 
-pub fn compute_machine_images_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_images_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/testIamPermissions",
@@ -66967,8 +68063,8 @@ pub fn compute_machine_images_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_types_aggregated_list_execute()` to send, or `compute_machine_types_aggregated_list` for simplest API.
 
-pub fn compute_machine_types_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_types_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -66977,7 +68073,10 @@ pub fn compute_machine_types_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/machineTypes",
@@ -67188,12 +68287,15 @@ pub fn compute_machine_types_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_types_get_execute()` to send, or `compute_machine_types_get` for simplest API.
 
-pub fn compute_machine_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     machineType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/machineTypes/{}",
@@ -67352,8 +68454,8 @@ pub fn compute_machine_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_machine_types_list_execute()` to send, or `compute_machine_types_list` for simplest API.
 
-pub fn compute_machine_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_machine_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -67361,7 +68463,10 @@ pub fn compute_machine_types_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/machineTypes",
@@ -67563,8 +68668,8 @@ pub fn compute_machine_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_aggregated_list_execute()` to send, or `compute_network_attachments_aggregated_list` for simplest API.
 
-pub fn compute_network_attachments_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -67573,7 +68678,10 @@ pub fn compute_network_attachments_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/networkAttachments",
@@ -67788,13 +68896,16 @@ pub fn compute_network_attachments_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_delete_execute()` to send, or `compute_network_attachments_delete` for simplest API.
 
-pub fn compute_network_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkAttachment: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}",
@@ -67971,12 +69082,15 @@ pub fn compute_network_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_get_execute()` to send, or `compute_network_attachments_get` for simplest API.
 
-pub fn compute_network_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkAttachment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}",
@@ -68143,13 +69257,16 @@ pub fn compute_network_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_get_iam_policy_execute()` to send, or `compute_network_attachments_get_iam_policy` for simplest API.
 
-pub fn compute_network_attachments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}/getIamPolicy",
@@ -68328,12 +69445,15 @@ pub fn compute_network_attachments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_insert_execute()` to send, or `compute_network_attachments_insert` for simplest API.
 
-pub fn compute_network_attachments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments",
@@ -68507,8 +69627,8 @@ pub fn compute_network_attachments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_list_execute()` to send, or `compute_network_attachments_list` for simplest API.
 
-pub fn compute_network_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -68516,7 +69636,10 @@ pub fn compute_network_attachments_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments",
@@ -68718,13 +69841,16 @@ pub fn compute_network_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_patch_execute()` to send, or `compute_network_attachments_patch` for simplest API.
 
-pub fn compute_network_attachments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkAttachment: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}",
@@ -68901,12 +70027,15 @@ pub fn compute_network_attachments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_set_iam_policy_execute()` to send, or `compute_network_attachments_set_iam_policy` for simplest API.
 
-pub fn compute_network_attachments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}/setIamPolicy",
@@ -69071,12 +70200,15 @@ pub fn compute_network_attachments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_attachments_test_iam_permissions_execute()` to send, or `compute_network_attachments_test_iam_permissions` for simplest API.
 
-pub fn compute_network_attachments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_attachments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}/testIamPermissions",
@@ -69245,8 +70377,8 @@ pub fn compute_network_attachments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_edge_security_services_aggregated_list_execute()` to send, or `compute_network_edge_security_services_aggregated_list` for simplest API.
 
-pub fn compute_network_edge_security_services_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_edge_security_services_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -69255,7 +70387,10 @@ pub fn compute_network_edge_security_services_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/networkEdgeSecurityServices",
@@ -69470,13 +70605,16 @@ pub fn compute_network_edge_security_services_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_edge_security_services_delete_execute()` to send, or `compute_network_edge_security_services_delete` for simplest API.
 
-pub fn compute_network_edge_security_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_edge_security_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEdgeSecurityService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEdgeSecurityServices/{}",
@@ -69655,12 +70793,15 @@ pub fn compute_network_edge_security_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_edge_security_services_get_execute()` to send, or `compute_network_edge_security_services_get` for simplest API.
 
-pub fn compute_network_edge_security_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_edge_security_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEdgeSecurityService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEdgeSecurityServices/{}",
@@ -69833,13 +70974,16 @@ pub fn compute_network_edge_security_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_edge_security_services_insert_execute()` to send, or `compute_network_edge_security_services_insert` for simplest API.
 
-pub fn compute_network_edge_security_services_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_edge_security_services_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEdgeSecurityServices",
@@ -70020,15 +71164,18 @@ pub fn compute_network_edge_security_services_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_edge_security_services_patch_execute()` to send, or `compute_network_edge_security_services_patch` for simplest API.
 
-pub fn compute_network_edge_security_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_edge_security_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEdgeSecurityService: &String,
     paths: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEdgeSecurityServices/{}",
@@ -70219,8 +71366,8 @@ pub fn compute_network_edge_security_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_aggregated_list_execute()` to send, or `compute_network_endpoint_groups_aggregated_list` for simplest API.
 
-pub fn compute_network_endpoint_groups_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -70229,7 +71376,10 @@ pub fn compute_network_endpoint_groups_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/networkEndpointGroups",
@@ -70444,13 +71594,16 @@ pub fn compute_network_endpoint_groups_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_attach_network_endpoints_execute()` to send, or `compute_network_endpoint_groups_attach_network_endpoints` for simplest API.
 
-pub fn compute_network_endpoint_groups_attach_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_attach_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/attachNetworkEndpoints",
@@ -70629,13 +71782,16 @@ pub fn compute_network_endpoint_groups_attach_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_delete_execute()` to send, or `compute_network_endpoint_groups_delete` for simplest API.
 
-pub fn compute_network_endpoint_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}",
@@ -70812,13 +71968,16 @@ pub fn compute_network_endpoint_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_detach_network_endpoints_execute()` to send, or `compute_network_endpoint_groups_detach_network_endpoints` for simplest API.
 
-pub fn compute_network_endpoint_groups_detach_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_detach_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/detachNetworkEndpoints",
@@ -70997,12 +72156,15 @@ pub fn compute_network_endpoint_groups_detach_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_get_execute()` to send, or `compute_network_endpoint_groups_get` for simplest API.
 
-pub fn compute_network_endpoint_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}",
@@ -71169,12 +72331,15 @@ pub fn compute_network_endpoint_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_insert_execute()` to send, or `compute_network_endpoint_groups_insert` for simplest API.
 
-pub fn compute_network_endpoint_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups",
@@ -71348,8 +72513,8 @@ pub fn compute_network_endpoint_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_list_execute()` to send, or `compute_network_endpoint_groups_list` for simplest API.
 
-pub fn compute_network_endpoint_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -71357,7 +72522,10 @@ pub fn compute_network_endpoint_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups",
@@ -71559,8 +72727,8 @@ pub fn compute_network_endpoint_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_list_network_endpoints_execute()` to send, or `compute_network_endpoint_groups_list_network_endpoints` for simplest API.
 
-pub fn compute_network_endpoint_groups_list_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_list_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
@@ -71569,7 +72737,10 @@ pub fn compute_network_endpoint_groups_list_network_endpoints_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/listNetworkEndpoints",
@@ -71780,12 +72951,15 @@ pub fn compute_network_endpoint_groups_list_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_endpoint_groups_test_iam_permissions_execute()` to send, or `compute_network_endpoint_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_network_endpoint_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_endpoint_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/testIamPermissions",
@@ -71954,13 +73128,16 @@ pub fn compute_network_endpoint_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_add_association_execute()` to send, or `compute_network_firewall_policies_add_association` for simplest API.
 
-pub fn compute_network_firewall_policies_add_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_add_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     replaceExistingAssociation: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/addAssociation",
@@ -72141,14 +73318,17 @@ pub fn compute_network_firewall_policies_add_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_add_packet_mirroring_rule_execute()` to send, or `compute_network_firewall_policies_add_packet_mirroring_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_add_packet_mirroring_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_add_packet_mirroring_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     maxPriority: &Option<Option<String>>,
     minPriority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/addPacketMirroringRule",
@@ -72335,14 +73515,17 @@ pub fn compute_network_firewall_policies_add_packet_mirroring_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_add_rule_execute()` to send, or `compute_network_firewall_policies_add_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_add_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_add_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     maxPriority: &Option<Option<String>>,
     minPriority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/addRule",
@@ -72528,8 +73711,8 @@ pub fn compute_network_firewall_policies_add_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_aggregated_list_execute()` to send, or `compute_network_firewall_policies_aggregated_list` for simplest API.
 
-pub fn compute_network_firewall_policies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -72538,7 +73721,10 @@ pub fn compute_network_firewall_policies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/firewallPolicies",
@@ -72753,13 +73939,16 @@ pub fn compute_network_firewall_policies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_clone_rules_execute()` to send, or `compute_network_firewall_policies_clone_rules` for simplest API.
 
-pub fn compute_network_firewall_policies_clone_rules_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_clone_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
     sourceFirewallPolicy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/cloneRules",
@@ -72940,12 +74129,15 @@ pub fn compute_network_firewall_policies_clone_rules(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_delete_execute()` to send, or `compute_network_firewall_policies_delete` for simplest API.
 
-pub fn compute_network_firewall_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}",
@@ -73119,11 +74311,14 @@ pub fn compute_network_firewall_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_get_execute()` to send, or `compute_network_firewall_policies_get` for simplest API.
 
-pub fn compute_network_firewall_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}",
@@ -73284,12 +74479,15 @@ pub fn compute_network_firewall_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_get_association_execute()` to send, or `compute_network_firewall_policies_get_association` for simplest API.
 
-pub fn compute_network_firewall_policies_get_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_get_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getAssociation",
@@ -73468,12 +74666,15 @@ pub fn compute_network_firewall_policies_get_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_get_iam_policy_execute()` to send, or `compute_network_firewall_policies_get_iam_policy` for simplest API.
 
-pub fn compute_network_firewall_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getIamPolicy",
@@ -73648,12 +74849,15 @@ pub fn compute_network_firewall_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_get_packet_mirroring_rule_execute()` to send, or `compute_network_firewall_policies_get_packet_mirroring_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_get_packet_mirroring_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_get_packet_mirroring_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getPacketMirroringRule",
@@ -73832,12 +75036,15 @@ pub fn compute_network_firewall_policies_get_packet_mirroring_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_get_rule_execute()` to send, or `compute_network_firewall_policies_get_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_get_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_get_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getRule",
@@ -74015,11 +75222,14 @@ pub fn compute_network_firewall_policies_get_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_insert_execute()` to send, or `compute_network_firewall_policies_insert` for simplest API.
 
-pub fn compute_network_firewall_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies",
@@ -74187,15 +75397,18 @@ pub fn compute_network_firewall_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_list_execute()` to send, or `compute_network_firewall_policies_list` for simplest API.
 
-pub fn compute_network_firewall_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies",
@@ -74394,12 +75607,15 @@ pub fn compute_network_firewall_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_patch_execute()` to send, or `compute_network_firewall_policies_patch` for simplest API.
 
-pub fn compute_network_firewall_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}",
@@ -74573,13 +75789,16 @@ pub fn compute_network_firewall_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_patch_packet_mirroring_rule_execute()` to send, or `compute_network_firewall_policies_patch_packet_mirroring_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_patch_packet_mirroring_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_patch_packet_mirroring_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/patchPacketMirroringRule",
@@ -74760,13 +75979,16 @@ pub fn compute_network_firewall_policies_patch_packet_mirroring_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_patch_rule_execute()` to send, or `compute_network_firewall_policies_patch_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_patch_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_patch_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/patchRule",
@@ -74947,13 +76169,16 @@ pub fn compute_network_firewall_policies_patch_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_remove_association_execute()` to send, or `compute_network_firewall_policies_remove_association` for simplest API.
 
-pub fn compute_network_firewall_policies_remove_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_remove_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     name: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/removeAssociation",
@@ -75134,13 +76359,16 @@ pub fn compute_network_firewall_policies_remove_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_remove_packet_mirroring_rule_execute()` to send, or `compute_network_firewall_policies_remove_packet_mirroring_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_remove_packet_mirroring_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_remove_packet_mirroring_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/removePacketMirroringRule",
@@ -75321,13 +76549,16 @@ pub fn compute_network_firewall_policies_remove_packet_mirroring_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_remove_rule_execute()` to send, or `compute_network_firewall_policies_remove_rule` for simplest API.
 
-pub fn compute_network_firewall_policies_remove_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_remove_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/removeRule",
@@ -75508,11 +76739,14 @@ pub fn compute_network_firewall_policies_remove_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_set_iam_policy_execute()` to send, or `compute_network_firewall_policies_set_iam_policy` for simplest API.
 
-pub fn compute_network_firewall_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/setIamPolicy",
@@ -75673,11 +76907,14 @@ pub fn compute_network_firewall_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_firewall_policies_test_iam_permissions_execute()` to send, or `compute_network_firewall_policies_test_iam_permissions` for simplest API.
 
-pub fn compute_network_firewall_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_firewall_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/testIamPermissions",
@@ -75842,11 +77079,14 @@ pub fn compute_network_firewall_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_profiles_get_execute()` to send, or `compute_network_profiles_get` for simplest API.
 
-pub fn compute_network_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     networkProfile: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkProfiles/{}",
@@ -76007,15 +77247,18 @@ pub fn compute_network_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_network_profiles_list_execute()` to send, or `compute_network_profiles_list` for simplest API.
 
-pub fn compute_network_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_network_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkProfiles",
@@ -76218,12 +77461,15 @@ pub fn compute_network_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_add_peering_execute()` to send, or `compute_networks_add_peering` for simplest API.
 
-pub fn compute_networks_add_peering_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_add_peering_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/addPeering",
@@ -76397,12 +77643,15 @@ pub fn compute_networks_add_peering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_delete_execute()` to send, or `compute_networks_delete` for simplest API.
 
-pub fn compute_networks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}",
@@ -76572,11 +77821,14 @@ pub fn compute_networks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_get_execute()` to send, or `compute_networks_get` for simplest API.
 
-pub fn compute_networks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}",
@@ -76732,11 +77984,14 @@ pub fn compute_networks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_get_effective_firewalls_execute()` to send, or `compute_networks_get_effective_firewalls` for simplest API.
 
-pub fn compute_networks_get_effective_firewalls_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_get_effective_firewalls_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/getEffectiveFirewalls",
@@ -76902,11 +78157,14 @@ pub fn compute_networks_get_effective_firewalls(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_insert_execute()` to send, or `compute_networks_insert` for simplest API.
 
-pub fn compute_networks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks",
@@ -77073,15 +78331,18 @@ pub fn compute_networks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_list_execute()` to send, or `compute_networks_list` for simplest API.
 
-pub fn compute_networks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks",
@@ -77276,8 +78537,8 @@ pub fn compute_networks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_list_peering_routes_execute()` to send, or `compute_networks_list_peering_routes` for simplest API.
 
-pub fn compute_networks_list_peering_routes_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_list_peering_routes_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     direction: &Option<Option<String>>,
@@ -77288,7 +78549,10 @@ pub fn compute_networks_list_peering_routes_builder(
     peeringName: &Option<Option<String>>,
     region: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/listPeeringRoutes",
@@ -77513,12 +78777,15 @@ pub fn compute_networks_list_peering_routes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_patch_execute()` to send, or `compute_networks_patch` for simplest API.
 
-pub fn compute_networks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}",
@@ -77688,12 +78955,15 @@ pub fn compute_networks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_remove_peering_execute()` to send, or `compute_networks_remove_peering` for simplest API.
 
-pub fn compute_networks_remove_peering_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_remove_peering_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/removePeering",
@@ -77867,12 +79137,15 @@ pub fn compute_networks_remove_peering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_request_remove_peering_execute()` to send, or `compute_networks_request_remove_peering` for simplest API.
 
-pub fn compute_networks_request_remove_peering_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_request_remove_peering_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/requestRemovePeering",
@@ -78047,12 +79320,15 @@ pub fn compute_networks_request_remove_peering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_switch_to_custom_mode_execute()` to send, or `compute_networks_switch_to_custom_mode` for simplest API.
 
-pub fn compute_networks_switch_to_custom_mode_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_switch_to_custom_mode_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/switchToCustomMode",
@@ -78227,12 +79503,15 @@ pub fn compute_networks_switch_to_custom_mode(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_networks_update_peering_execute()` to send, or `compute_networks_update_peering` for simplest API.
 
-pub fn compute_networks_update_peering_builder(
-    client: &SimpleHttpClient,
+pub fn compute_networks_update_peering_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/updatePeering",
@@ -78406,13 +79685,16 @@ pub fn compute_networks_update_peering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_add_nodes_execute()` to send, or `compute_node_groups_add_nodes` for simplest API.
 
-pub fn compute_node_groups_add_nodes_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_add_nodes_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/addNodes",
@@ -78589,8 +79871,8 @@ pub fn compute_node_groups_add_nodes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_aggregated_list_execute()` to send, or `compute_node_groups_aggregated_list` for simplest API.
 
-pub fn compute_node_groups_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -78599,7 +79881,10 @@ pub fn compute_node_groups_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/nodeGroups",
@@ -78810,13 +80095,16 @@ pub fn compute_node_groups_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_delete_execute()` to send, or `compute_node_groups_delete` for simplest API.
 
-pub fn compute_node_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}",
@@ -78993,13 +80281,16 @@ pub fn compute_node_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_delete_nodes_execute()` to send, or `compute_node_groups_delete_nodes` for simplest API.
 
-pub fn compute_node_groups_delete_nodes_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_delete_nodes_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/deleteNodes",
@@ -79176,12 +80467,15 @@ pub fn compute_node_groups_delete_nodes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_get_execute()` to send, or `compute_node_groups_get` for simplest API.
 
-pub fn compute_node_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}",
@@ -79340,13 +80634,16 @@ pub fn compute_node_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_get_iam_policy_execute()` to send, or `compute_node_groups_get_iam_policy` for simplest API.
 
-pub fn compute_node_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/getIamPolicy",
@@ -79523,13 +80820,16 @@ pub fn compute_node_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_insert_execute()` to send, or `compute_node_groups_insert` for simplest API.
 
-pub fn compute_node_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     initialNodeCount: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups",
@@ -79709,8 +81009,8 @@ pub fn compute_node_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_list_execute()` to send, or `compute_node_groups_list` for simplest API.
 
-pub fn compute_node_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -79718,7 +81018,10 @@ pub fn compute_node_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups",
@@ -79920,8 +81223,8 @@ pub fn compute_node_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_list_nodes_execute()` to send, or `compute_node_groups_list_nodes` for simplest API.
 
-pub fn compute_node_groups_list_nodes_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_list_nodes_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
@@ -79930,7 +81233,10 @@ pub fn compute_node_groups_list_nodes_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/listNodes",
@@ -80135,13 +81441,16 @@ pub fn compute_node_groups_list_nodes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_patch_execute()` to send, or `compute_node_groups_patch` for simplest API.
 
-pub fn compute_node_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}",
@@ -80318,13 +81627,16 @@ pub fn compute_node_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_perform_maintenance_execute()` to send, or `compute_node_groups_perform_maintenance` for simplest API.
 
-pub fn compute_node_groups_perform_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_perform_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/performMaintenance",
@@ -80503,12 +81815,15 @@ pub fn compute_node_groups_perform_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_set_iam_policy_execute()` to send, or `compute_node_groups_set_iam_policy` for simplest API.
 
-pub fn compute_node_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/setIamPolicy",
@@ -80671,13 +81986,16 @@ pub fn compute_node_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_set_node_template_execute()` to send, or `compute_node_groups_set_node_template` for simplest API.
 
-pub fn compute_node_groups_set_node_template_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_set_node_template_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/setNodeTemplate",
@@ -80856,13 +82174,16 @@ pub fn compute_node_groups_set_node_template(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_simulate_maintenance_event_execute()` to send, or `compute_node_groups_simulate_maintenance_event` for simplest API.
 
-pub fn compute_node_groups_simulate_maintenance_event_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_simulate_maintenance_event_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/simulateMaintenanceEvent",
@@ -81041,12 +82362,15 @@ pub fn compute_node_groups_simulate_maintenance_event(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_groups_test_iam_permissions_execute()` to send, or `compute_node_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_node_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/testIamPermissions",
@@ -81215,8 +82539,8 @@ pub fn compute_node_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_aggregated_list_execute()` to send, or `compute_node_templates_aggregated_list` for simplest API.
 
-pub fn compute_node_templates_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -81225,7 +82549,10 @@ pub fn compute_node_templates_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/nodeTemplates",
@@ -81440,13 +82767,16 @@ pub fn compute_node_templates_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_delete_execute()` to send, or `compute_node_templates_delete` for simplest API.
 
-pub fn compute_node_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     nodeTemplate: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}",
@@ -81623,12 +82953,15 @@ pub fn compute_node_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_get_execute()` to send, or `compute_node_templates_get` for simplest API.
 
-pub fn compute_node_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     nodeTemplate: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}",
@@ -81795,13 +83128,16 @@ pub fn compute_node_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_get_iam_policy_execute()` to send, or `compute_node_templates_get_iam_policy` for simplest API.
 
-pub fn compute_node_templates_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}/getIamPolicy",
@@ -81980,12 +83316,15 @@ pub fn compute_node_templates_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_insert_execute()` to send, or `compute_node_templates_insert` for simplest API.
 
-pub fn compute_node_templates_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates",
@@ -82159,8 +83498,8 @@ pub fn compute_node_templates_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_list_execute()` to send, or `compute_node_templates_list` for simplest API.
 
-pub fn compute_node_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -82168,7 +83507,10 @@ pub fn compute_node_templates_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates",
@@ -82370,12 +83712,15 @@ pub fn compute_node_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_set_iam_policy_execute()` to send, or `compute_node_templates_set_iam_policy` for simplest API.
 
-pub fn compute_node_templates_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}/setIamPolicy",
@@ -82540,12 +83885,15 @@ pub fn compute_node_templates_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_templates_test_iam_permissions_execute()` to send, or `compute_node_templates_test_iam_permissions` for simplest API.
 
-pub fn compute_node_templates_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_templates_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}/testIamPermissions",
@@ -82714,8 +84062,8 @@ pub fn compute_node_templates_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_types_aggregated_list_execute()` to send, or `compute_node_types_aggregated_list` for simplest API.
 
-pub fn compute_node_types_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_types_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -82724,7 +84072,10 @@ pub fn compute_node_types_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/nodeTypes",
@@ -82935,12 +84286,15 @@ pub fn compute_node_types_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_types_get_execute()` to send, or `compute_node_types_get` for simplest API.
 
-pub fn compute_node_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     nodeType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeTypes/{}",
@@ -83099,8 +84453,8 @@ pub fn compute_node_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_node_types_list_execute()` to send, or `compute_node_types_list` for simplest API.
 
-pub fn compute_node_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_node_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -83108,7 +84462,10 @@ pub fn compute_node_types_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeTypes",
@@ -83310,12 +84667,15 @@ pub fn compute_node_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_add_association_execute()` to send, or `compute_organization_security_policies_add_association` for simplest API.
 
-pub fn compute_organization_security_policies_add_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_add_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     replaceExistingAssociation: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/addAssociation",
@@ -83492,11 +84852,14 @@ pub fn compute_organization_security_policies_add_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_add_rule_execute()` to send, or `compute_organization_security_policies_add_rule` for simplest API.
 
-pub fn compute_organization_security_policies_add_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_add_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/addRule",
@@ -83667,12 +85030,15 @@ pub fn compute_organization_security_policies_add_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_copy_rules_execute()` to send, or `compute_organization_security_policies_copy_rules` for simplest API.
 
-pub fn compute_organization_security_policies_copy_rules_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_copy_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
     sourceSecurityPolicy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/copyRules",
@@ -83849,11 +85215,14 @@ pub fn compute_organization_security_policies_copy_rules(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_delete_execute()` to send, or `compute_organization_security_policies_delete` for simplest API.
 
-pub fn compute_organization_security_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}",
@@ -84024,10 +85393,13 @@ pub fn compute_organization_security_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_get_execute()` to send, or `compute_organization_security_policies_get` for simplest API.
 
-pub fn compute_organization_security_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}",
@@ -84185,11 +85557,14 @@ pub fn compute_organization_security_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_get_association_execute()` to send, or `compute_organization_security_policies_get_association` for simplest API.
 
-pub fn compute_organization_security_policies_get_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_get_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/getAssociation",
@@ -84364,11 +85739,14 @@ pub fn compute_organization_security_policies_get_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_get_rule_execute()` to send, or `compute_organization_security_policies_get_rule` for simplest API.
 
-pub fn compute_organization_security_policies_get_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_get_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/getRule",
@@ -84543,11 +85921,14 @@ pub fn compute_organization_security_policies_get_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_insert_execute()` to send, or `compute_organization_security_policies_insert` for simplest API.
 
-pub fn compute_organization_security_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://compute.googleapis.com/compute/v1/locations/global/securityPolicies",);
@@ -84719,15 +86100,18 @@ pub fn compute_organization_security_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_list_execute()` to send, or `compute_organization_security_policies_list` for simplest API.
 
-pub fn compute_organization_security_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parentId: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://compute.googleapis.com/compute/v1/locations/global/securityPolicies",);
@@ -84927,10 +86311,13 @@ pub fn compute_organization_security_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_list_associations_execute()` to send, or `compute_organization_security_policies_list_associations` for simplest API.
 
-pub fn compute_organization_security_policies_list_associations_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_list_associations_builder<R>(
+    client: &SimpleHttpClient<R>,
     targetResource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/listAssociations",
@@ -85109,15 +86496,18 @@ pub fn compute_organization_security_policies_list_associations(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_list_preconfigured_expression_sets_execute()` to send, or `compute_organization_security_policies_list_preconfigured_expression_sets` for simplest API.
 
-pub fn compute_organization_security_policies_list_preconfigured_expression_sets_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_list_preconfigured_expression_sets_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parentId: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/listPreconfiguredExpressionSets",
@@ -85334,12 +86724,15 @@ pub fn compute_organization_security_policies_list_preconfigured_expression_sets
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_move_execute()` to send, or `compute_organization_security_policies_move` for simplest API.
 
-pub fn compute_organization_security_policies_move_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     parentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/move",
@@ -85516,11 +86909,14 @@ pub fn compute_organization_security_policies_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_patch_execute()` to send, or `compute_organization_security_policies_patch` for simplest API.
 
-pub fn compute_organization_security_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}",
@@ -85691,12 +87087,15 @@ pub fn compute_organization_security_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_patch_rule_execute()` to send, or `compute_organization_security_policies_patch_rule` for simplest API.
 
-pub fn compute_organization_security_policies_patch_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_patch_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/patchRule",
@@ -85873,12 +87272,15 @@ pub fn compute_organization_security_policies_patch_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_remove_association_execute()` to send, or `compute_organization_security_policies_remove_association` for simplest API.
 
-pub fn compute_organization_security_policies_remove_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_remove_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     name: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/removeAssociation",
@@ -86055,12 +87457,15 @@ pub fn compute_organization_security_policies_remove_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_organization_security_policies_remove_rule_execute()` to send, or `compute_organization_security_policies_remove_rule` for simplest API.
 
-pub fn compute_organization_security_policies_remove_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_organization_security_policies_remove_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/removeRule",
@@ -86237,8 +87642,8 @@ pub fn compute_organization_security_policies_remove_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_packet_mirrorings_aggregated_list_execute()` to send, or `compute_packet_mirrorings_aggregated_list` for simplest API.
 
-pub fn compute_packet_mirrorings_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_packet_mirrorings_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -86247,7 +87652,10 @@ pub fn compute_packet_mirrorings_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/packetMirrorings",
@@ -86462,13 +87870,16 @@ pub fn compute_packet_mirrorings_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_packet_mirrorings_delete_execute()` to send, or `compute_packet_mirrorings_delete` for simplest API.
 
-pub fn compute_packet_mirrorings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_packet_mirrorings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     packetMirroring: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings/{}",
@@ -86645,12 +88056,15 @@ pub fn compute_packet_mirrorings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_packet_mirrorings_get_execute()` to send, or `compute_packet_mirrorings_get` for simplest API.
 
-pub fn compute_packet_mirrorings_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_packet_mirrorings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     packetMirroring: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings/{}",
@@ -86817,12 +88231,15 @@ pub fn compute_packet_mirrorings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_packet_mirrorings_insert_execute()` to send, or `compute_packet_mirrorings_insert` for simplest API.
 
-pub fn compute_packet_mirrorings_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_packet_mirrorings_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings",
@@ -86996,8 +88413,8 @@ pub fn compute_packet_mirrorings_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_packet_mirrorings_list_execute()` to send, or `compute_packet_mirrorings_list` for simplest API.
 
-pub fn compute_packet_mirrorings_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_packet_mirrorings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -87005,7 +88422,10 @@ pub fn compute_packet_mirrorings_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings",
@@ -87207,13 +88627,16 @@ pub fn compute_packet_mirrorings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_packet_mirrorings_patch_execute()` to send, or `compute_packet_mirrorings_patch` for simplest API.
 
-pub fn compute_packet_mirrorings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_packet_mirrorings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     packetMirroring: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings/{}",
@@ -87390,12 +88813,15 @@ pub fn compute_packet_mirrorings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_packet_mirrorings_test_iam_permissions_execute()` to send, or `compute_packet_mirrorings_test_iam_permissions` for simplest API.
 
-pub fn compute_packet_mirrorings_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_packet_mirrorings_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings/{}/testIamPermissions",
@@ -87564,11 +88990,14 @@ pub fn compute_packet_mirrorings_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_preview_features_get_execute()` to send, or `compute_preview_features_get` for simplest API.
 
-pub fn compute_preview_features_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_preview_features_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     previewFeature: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/previewFeatures/{}",
@@ -87729,15 +89158,18 @@ pub fn compute_preview_features_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_preview_features_list_execute()` to send, or `compute_preview_features_list` for simplest API.
 
-pub fn compute_preview_features_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_preview_features_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/previewFeatures",
@@ -87936,12 +89368,15 @@ pub fn compute_preview_features_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_preview_features_update_execute()` to send, or `compute_preview_features_update` for simplest API.
 
-pub fn compute_preview_features_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_preview_features_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     previewFeature: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/previewFeatures/{}",
@@ -88115,11 +89550,14 @@ pub fn compute_preview_features_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_disable_xpn_host_execute()` to send, or `compute_projects_disable_xpn_host` for simplest API.
 
-pub fn compute_projects_disable_xpn_host_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_disable_xpn_host_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/disableXpnHost",
@@ -88287,11 +89725,14 @@ pub fn compute_projects_disable_xpn_host(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_disable_xpn_resource_execute()` to send, or `compute_projects_disable_xpn_resource` for simplest API.
 
-pub fn compute_projects_disable_xpn_resource_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_disable_xpn_resource_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/disableXpnResource",
@@ -88459,11 +89900,14 @@ pub fn compute_projects_disable_xpn_resource(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_enable_xpn_host_execute()` to send, or `compute_projects_enable_xpn_host` for simplest API.
 
-pub fn compute_projects_enable_xpn_host_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_enable_xpn_host_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/enableXpnHost",
@@ -88630,11 +90074,14 @@ pub fn compute_projects_enable_xpn_host(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_enable_xpn_resource_execute()` to send, or `compute_projects_enable_xpn_resource` for simplest API.
 
-pub fn compute_projects_enable_xpn_resource_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_enable_xpn_resource_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/enableXpnResource",
@@ -88802,10 +90249,13 @@ pub fn compute_projects_enable_xpn_resource(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_get_execute()` to send, or `compute_projects_get` for simplest API.
 
-pub fn compute_projects_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}",
@@ -88959,10 +90409,13 @@ pub fn compute_projects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_get_xpn_host_execute()` to send, or `compute_projects_get_xpn_host` for simplest API.
 
-pub fn compute_projects_get_xpn_host_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_get_xpn_host_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/getXpnHost",
@@ -89116,15 +90569,18 @@ pub fn compute_projects_get_xpn_host(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_get_xpn_resources_execute()` to send, or `compute_projects_get_xpn_resources` for simplest API.
 
-pub fn compute_projects_get_xpn_resources_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_get_xpn_resources_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/getXpnResources",
@@ -89323,15 +90779,18 @@ pub fn compute_projects_get_xpn_resources(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_list_xpn_hosts_execute()` to send, or `compute_projects_list_xpn_hosts` for simplest API.
 
-pub fn compute_projects_list_xpn_hosts_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_list_xpn_hosts_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/listXpnHosts",
@@ -89526,11 +90985,14 @@ pub fn compute_projects_list_xpn_hosts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_move_disk_execute()` to send, or `compute_projects_move_disk` for simplest API.
 
-pub fn compute_projects_move_disk_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_move_disk_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/moveDisk",
@@ -89697,11 +91159,14 @@ pub fn compute_projects_move_disk(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_move_instance_execute()` to send, or `compute_projects_move_instance` for simplest API.
 
-pub fn compute_projects_move_instance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_move_instance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/moveInstance",
@@ -89868,11 +91333,14 @@ pub fn compute_projects_move_instance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_set_cloud_armor_tier_execute()` to send, or `compute_projects_set_cloud_armor_tier` for simplest API.
 
-pub fn compute_projects_set_cloud_armor_tier_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_set_cloud_armor_tier_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setCloudArmorTier",
@@ -90040,11 +91508,14 @@ pub fn compute_projects_set_cloud_armor_tier(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_set_common_instance_metadata_execute()` to send, or `compute_projects_set_common_instance_metadata` for simplest API.
 
-pub fn compute_projects_set_common_instance_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_set_common_instance_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setCommonInstanceMetadata",
@@ -90215,11 +91686,14 @@ pub fn compute_projects_set_common_instance_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_set_default_network_tier_execute()` to send, or `compute_projects_set_default_network_tier` for simplest API.
 
-pub fn compute_projects_set_default_network_tier_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_set_default_network_tier_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setDefaultNetworkTier",
@@ -90387,11 +91861,14 @@ pub fn compute_projects_set_default_network_tier(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_set_usage_export_bucket_execute()` to send, or `compute_projects_set_usage_export_bucket` for simplest API.
 
-pub fn compute_projects_set_usage_export_bucket_builder(
-    client: &SimpleHttpClient,
+pub fn compute_projects_set_usage_export_bucket_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setUsageExportBucket",
@@ -90559,12 +92036,15 @@ pub fn compute_projects_set_usage_export_bucket(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_advertised_prefixes_announce_execute()` to send, or `compute_public_advertised_prefixes_announce` for simplest API.
 
-pub fn compute_public_advertised_prefixes_announce_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_advertised_prefixes_announce_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}/announce",
@@ -90739,12 +92219,15 @@ pub fn compute_public_advertised_prefixes_announce(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_advertised_prefixes_delete_execute()` to send, or `compute_public_advertised_prefixes_delete` for simplest API.
 
-pub fn compute_public_advertised_prefixes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_advertised_prefixes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}",
@@ -90918,11 +92401,14 @@ pub fn compute_public_advertised_prefixes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_advertised_prefixes_get_execute()` to send, or `compute_public_advertised_prefixes_get` for simplest API.
 
-pub fn compute_public_advertised_prefixes_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_advertised_prefixes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}",
@@ -91086,11 +92572,14 @@ pub fn compute_public_advertised_prefixes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_advertised_prefixes_insert_execute()` to send, or `compute_public_advertised_prefixes_insert` for simplest API.
 
-pub fn compute_public_advertised_prefixes_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_advertised_prefixes_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes",
@@ -91258,15 +92747,18 @@ pub fn compute_public_advertised_prefixes_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_advertised_prefixes_list_execute()` to send, or `compute_public_advertised_prefixes_list` for simplest API.
 
-pub fn compute_public_advertised_prefixes_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_advertised_prefixes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes",
@@ -91469,12 +92961,15 @@ pub fn compute_public_advertised_prefixes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_advertised_prefixes_patch_execute()` to send, or `compute_public_advertised_prefixes_patch` for simplest API.
 
-pub fn compute_public_advertised_prefixes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_advertised_prefixes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}",
@@ -91648,12 +93143,15 @@ pub fn compute_public_advertised_prefixes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_advertised_prefixes_withdraw_execute()` to send, or `compute_public_advertised_prefixes_withdraw` for simplest API.
 
-pub fn compute_public_advertised_prefixes_withdraw_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_advertised_prefixes_withdraw_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}/withdraw",
@@ -91828,8 +93326,8 @@ pub fn compute_public_advertised_prefixes_withdraw(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_aggregated_list_execute()` to send, or `compute_public_delegated_prefixes_aggregated_list` for simplest API.
 
-pub fn compute_public_delegated_prefixes_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -91838,7 +93336,10 @@ pub fn compute_public_delegated_prefixes_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/publicDelegatedPrefixes",
@@ -92053,13 +93554,16 @@ pub fn compute_public_delegated_prefixes_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_announce_execute()` to send, or `compute_public_delegated_prefixes_announce` for simplest API.
 
-pub fn compute_public_delegated_prefixes_announce_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_announce_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}/announce",
@@ -92238,13 +93742,16 @@ pub fn compute_public_delegated_prefixes_announce(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_delete_execute()` to send, or `compute_public_delegated_prefixes_delete` for simplest API.
 
-pub fn compute_public_delegated_prefixes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}",
@@ -92423,12 +93930,15 @@ pub fn compute_public_delegated_prefixes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_get_execute()` to send, or `compute_public_delegated_prefixes_get` for simplest API.
 
-pub fn compute_public_delegated_prefixes_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}",
@@ -92597,12 +94107,15 @@ pub fn compute_public_delegated_prefixes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_insert_execute()` to send, or `compute_public_delegated_prefixes_insert` for simplest API.
 
-pub fn compute_public_delegated_prefixes_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes",
@@ -92776,8 +94289,8 @@ pub fn compute_public_delegated_prefixes_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_list_execute()` to send, or `compute_public_delegated_prefixes_list` for simplest API.
 
-pub fn compute_public_delegated_prefixes_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -92785,7 +94298,10 @@ pub fn compute_public_delegated_prefixes_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes",
@@ -92987,13 +94503,16 @@ pub fn compute_public_delegated_prefixes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_patch_execute()` to send, or `compute_public_delegated_prefixes_patch` for simplest API.
 
-pub fn compute_public_delegated_prefixes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}",
@@ -93172,13 +94691,16 @@ pub fn compute_public_delegated_prefixes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_public_delegated_prefixes_withdraw_execute()` to send, or `compute_public_delegated_prefixes_withdraw` for simplest API.
 
-pub fn compute_public_delegated_prefixes_withdraw_builder(
-    client: &SimpleHttpClient,
+pub fn compute_public_delegated_prefixes_withdraw_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}/withdraw",
@@ -93357,13 +94879,16 @@ pub fn compute_public_delegated_prefixes_withdraw(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_autoscalers_delete_execute()` to send, or `compute_region_autoscalers_delete` for simplest API.
 
-pub fn compute_region_autoscalers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_autoscalers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     autoscaler: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers/{}",
@@ -93540,12 +95065,15 @@ pub fn compute_region_autoscalers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_autoscalers_get_execute()` to send, or `compute_region_autoscalers_get` for simplest API.
 
-pub fn compute_region_autoscalers_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_autoscalers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     autoscaler: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers/{}",
@@ -93708,12 +95236,15 @@ pub fn compute_region_autoscalers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_autoscalers_insert_execute()` to send, or `compute_region_autoscalers_insert` for simplest API.
 
-pub fn compute_region_autoscalers_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_autoscalers_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers",
@@ -93887,8 +95418,8 @@ pub fn compute_region_autoscalers_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_autoscalers_list_execute()` to send, or `compute_region_autoscalers_list` for simplest API.
 
-pub fn compute_region_autoscalers_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_autoscalers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -93896,7 +95427,10 @@ pub fn compute_region_autoscalers_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers",
@@ -94098,13 +95632,16 @@ pub fn compute_region_autoscalers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_autoscalers_patch_execute()` to send, or `compute_region_autoscalers_patch` for simplest API.
 
-pub fn compute_region_autoscalers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_autoscalers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     autoscaler: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers",
@@ -94284,12 +95821,15 @@ pub fn compute_region_autoscalers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_autoscalers_test_iam_permissions_execute()` to send, or `compute_region_autoscalers_test_iam_permissions` for simplest API.
 
-pub fn compute_region_autoscalers_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_autoscalers_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers/{}/testIamPermissions",
@@ -94458,13 +95998,16 @@ pub fn compute_region_autoscalers_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_autoscalers_update_execute()` to send, or `compute_region_autoscalers_update` for simplest API.
 
-pub fn compute_region_autoscalers_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_autoscalers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     autoscaler: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers",
@@ -94644,13 +96187,16 @@ pub fn compute_region_autoscalers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_delete_execute()` to send, or `compute_region_backend_buckets_delete` for simplest API.
 
-pub fn compute_region_backend_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendBucket: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets/{}",
@@ -94827,12 +96373,15 @@ pub fn compute_region_backend_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_get_execute()` to send, or `compute_region_backend_buckets_get` for simplest API.
 
-pub fn compute_region_backend_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendBucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets/{}",
@@ -94999,13 +96548,16 @@ pub fn compute_region_backend_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_get_iam_policy_execute()` to send, or `compute_region_backend_buckets_get_iam_policy` for simplest API.
 
-pub fn compute_region_backend_buckets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets/{}/getIamPolicy",
@@ -95184,12 +96736,15 @@ pub fn compute_region_backend_buckets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_insert_execute()` to send, or `compute_region_backend_buckets_insert` for simplest API.
 
-pub fn compute_region_backend_buckets_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets",
@@ -95363,8 +96918,8 @@ pub fn compute_region_backend_buckets_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_list_execute()` to send, or `compute_region_backend_buckets_list` for simplest API.
 
-pub fn compute_region_backend_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -95372,7 +96927,10 @@ pub fn compute_region_backend_buckets_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets",
@@ -95574,8 +97132,8 @@ pub fn compute_region_backend_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_list_usable_execute()` to send, or `compute_region_backend_buckets_list_usable` for simplest API.
 
-pub fn compute_region_backend_buckets_list_usable_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_list_usable_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -95583,7 +97141,10 @@ pub fn compute_region_backend_buckets_list_usable_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets/listUsable",
@@ -95786,13 +97347,16 @@ pub fn compute_region_backend_buckets_list_usable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_patch_execute()` to send, or `compute_region_backend_buckets_patch` for simplest API.
 
-pub fn compute_region_backend_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendBucket: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets/{}",
@@ -95969,12 +97533,15 @@ pub fn compute_region_backend_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_set_iam_policy_execute()` to send, or `compute_region_backend_buckets_set_iam_policy` for simplest API.
 
-pub fn compute_region_backend_buckets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets/{}/setIamPolicy",
@@ -96139,12 +97706,15 @@ pub fn compute_region_backend_buckets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_buckets_test_iam_permissions_execute()` to send, or `compute_region_backend_buckets_test_iam_permissions` for simplest API.
 
-pub fn compute_region_backend_buckets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_buckets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendBuckets/{}/testIamPermissions",
@@ -96313,13 +97883,16 @@ pub fn compute_region_backend_buckets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_delete_execute()` to send, or `compute_region_backend_services_delete` for simplest API.
 
-pub fn compute_region_backend_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}",
@@ -96496,12 +98069,15 @@ pub fn compute_region_backend_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_get_execute()` to send, or `compute_region_backend_services_get` for simplest API.
 
-pub fn compute_region_backend_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}",
@@ -96668,12 +98244,15 @@ pub fn compute_region_backend_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_get_health_execute()` to send, or `compute_region_backend_services_get_health` for simplest API.
 
-pub fn compute_region_backend_services_get_health_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_get_health_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/getHealth",
@@ -96842,13 +98421,16 @@ pub fn compute_region_backend_services_get_health(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_get_iam_policy_execute()` to send, or `compute_region_backend_services_get_iam_policy` for simplest API.
 
-pub fn compute_region_backend_services_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/getIamPolicy",
@@ -97027,12 +98609,15 @@ pub fn compute_region_backend_services_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_insert_execute()` to send, or `compute_region_backend_services_insert` for simplest API.
 
-pub fn compute_region_backend_services_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices",
@@ -97206,8 +98791,8 @@ pub fn compute_region_backend_services_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_list_execute()` to send, or `compute_region_backend_services_list` for simplest API.
 
-pub fn compute_region_backend_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -97215,7 +98800,10 @@ pub fn compute_region_backend_services_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices",
@@ -97417,8 +99005,8 @@ pub fn compute_region_backend_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_list_usable_execute()` to send, or `compute_region_backend_services_list_usable` for simplest API.
 
-pub fn compute_region_backend_services_list_usable_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_list_usable_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -97426,7 +99014,10 @@ pub fn compute_region_backend_services_list_usable_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/listUsable",
@@ -97629,13 +99220,16 @@ pub fn compute_region_backend_services_list_usable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_patch_execute()` to send, or `compute_region_backend_services_patch` for simplest API.
 
-pub fn compute_region_backend_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}",
@@ -97812,12 +99406,15 @@ pub fn compute_region_backend_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_set_iam_policy_execute()` to send, or `compute_region_backend_services_set_iam_policy` for simplest API.
 
-pub fn compute_region_backend_services_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/setIamPolicy",
@@ -97982,13 +99579,16 @@ pub fn compute_region_backend_services_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_set_security_policy_execute()` to send, or `compute_region_backend_services_set_security_policy` for simplest API.
 
-pub fn compute_region_backend_services_set_security_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_set_security_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/setSecurityPolicy",
@@ -98167,12 +99767,15 @@ pub fn compute_region_backend_services_set_security_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_test_iam_permissions_execute()` to send, or `compute_region_backend_services_test_iam_permissions` for simplest API.
 
-pub fn compute_region_backend_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/testIamPermissions",
@@ -98341,13 +99944,16 @@ pub fn compute_region_backend_services_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_backend_services_update_execute()` to send, or `compute_region_backend_services_update` for simplest API.
 
-pub fn compute_region_backend_services_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_backend_services_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     backendService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}",
@@ -98524,8 +100130,8 @@ pub fn compute_region_backend_services_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_commitments_aggregated_list_execute()` to send, or `compute_region_commitments_aggregated_list` for simplest API.
 
-pub fn compute_region_commitments_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_commitments_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -98534,7 +100140,10 @@ pub fn compute_region_commitments_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/commitments",
@@ -98745,12 +100354,15 @@ pub fn compute_region_commitments_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_commitments_get_execute()` to send, or `compute_region_commitments_get` for simplest API.
 
-pub fn compute_region_commitments_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_commitments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     commitment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/commitments/{}",
@@ -98913,12 +100525,15 @@ pub fn compute_region_commitments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_commitments_insert_execute()` to send, or `compute_region_commitments_insert` for simplest API.
 
-pub fn compute_region_commitments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_commitments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/commitments",
@@ -99092,8 +100707,8 @@ pub fn compute_region_commitments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_commitments_list_execute()` to send, or `compute_region_commitments_list` for simplest API.
 
-pub fn compute_region_commitments_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_commitments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -99101,7 +100716,10 @@ pub fn compute_region_commitments_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/commitments",
@@ -99303,15 +100921,18 @@ pub fn compute_region_commitments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_commitments_update_execute()` to send, or `compute_region_commitments_update` for simplest API.
 
-pub fn compute_region_commitments_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_commitments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     commitment: &String,
     paths: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/commitments/{}",
@@ -99500,8 +101121,8 @@ pub fn compute_region_commitments_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_aggregated_list_execute()` to send, or `compute_region_composite_health_checks_aggregated_list` for simplest API.
 
-pub fn compute_region_composite_health_checks_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -99510,7 +101131,10 @@ pub fn compute_region_composite_health_checks_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/compositeHealthChecks",
@@ -99725,13 +101349,16 @@ pub fn compute_region_composite_health_checks_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_delete_execute()` to send, or `compute_region_composite_health_checks_delete` for simplest API.
 
-pub fn compute_region_composite_health_checks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     compositeHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks/{}",
@@ -99908,12 +101535,15 @@ pub fn compute_region_composite_health_checks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_get_execute()` to send, or `compute_region_composite_health_checks_get` for simplest API.
 
-pub fn compute_region_composite_health_checks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     compositeHealthCheck: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks/{}",
@@ -100080,12 +101710,15 @@ pub fn compute_region_composite_health_checks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_get_health_execute()` to send, or `compute_region_composite_health_checks_get_health` for simplest API.
 
-pub fn compute_region_composite_health_checks_get_health_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_get_health_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     compositeHealthCheck: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks/{}/getHealth",
@@ -100258,12 +101891,15 @@ pub fn compute_region_composite_health_checks_get_health(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_insert_execute()` to send, or `compute_region_composite_health_checks_insert` for simplest API.
 
-pub fn compute_region_composite_health_checks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks",
@@ -100437,8 +102073,8 @@ pub fn compute_region_composite_health_checks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_list_execute()` to send, or `compute_region_composite_health_checks_list` for simplest API.
 
-pub fn compute_region_composite_health_checks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -100446,7 +102082,10 @@ pub fn compute_region_composite_health_checks_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks",
@@ -100648,13 +102287,16 @@ pub fn compute_region_composite_health_checks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_patch_execute()` to send, or `compute_region_composite_health_checks_patch` for simplest API.
 
-pub fn compute_region_composite_health_checks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     compositeHealthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks/{}",
@@ -100831,12 +102473,15 @@ pub fn compute_region_composite_health_checks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_composite_health_checks_test_iam_permissions_execute()` to send, or `compute_region_composite_health_checks_test_iam_permissions` for simplest API.
 
-pub fn compute_region_composite_health_checks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_composite_health_checks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks/{}/testIamPermissions",
@@ -101005,12 +102650,15 @@ pub fn compute_region_composite_health_checks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disk_types_get_execute()` to send, or `compute_region_disk_types_get` for simplest API.
 
-pub fn compute_region_disk_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disk_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     diskType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/diskTypes/{}",
@@ -101169,8 +102817,8 @@ pub fn compute_region_disk_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disk_types_list_execute()` to send, or `compute_region_disk_types_list` for simplest API.
 
-pub fn compute_region_disk_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disk_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -101178,7 +102826,10 @@ pub fn compute_region_disk_types_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/diskTypes",
@@ -101380,13 +103031,16 @@ pub fn compute_region_disk_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_add_resource_policies_execute()` to send, or `compute_region_disks_add_resource_policies` for simplest API.
 
-pub fn compute_region_disks_add_resource_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_add_resource_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/addResourcePolicies",
@@ -101565,12 +103219,15 @@ pub fn compute_region_disks_add_resource_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_bulk_insert_execute()` to send, or `compute_region_disks_bulk_insert` for simplest API.
 
-pub fn compute_region_disks_bulk_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_bulk_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/bulkInsert",
@@ -101744,13 +103401,16 @@ pub fn compute_region_disks_bulk_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_create_snapshot_execute()` to send, or `compute_region_disks_create_snapshot` for simplest API.
 
-pub fn compute_region_disks_create_snapshot_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_create_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/createSnapshot",
@@ -101927,13 +103587,16 @@ pub fn compute_region_disks_create_snapshot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_delete_execute()` to send, or `compute_region_disks_delete` for simplest API.
 
-pub fn compute_region_disks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}",
@@ -102110,12 +103773,15 @@ pub fn compute_region_disks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_get_execute()` to send, or `compute_region_disks_get` for simplest API.
 
-pub fn compute_region_disks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}",
@@ -102274,13 +103940,16 @@ pub fn compute_region_disks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_get_iam_policy_execute()` to send, or `compute_region_disks_get_iam_policy` for simplest API.
 
-pub fn compute_region_disks_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/getIamPolicy",
@@ -102457,13 +104126,16 @@ pub fn compute_region_disks_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_insert_execute()` to send, or `compute_region_disks_insert` for simplest API.
 
-pub fn compute_region_disks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
     sourceImage: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks",
@@ -102643,8 +104315,8 @@ pub fn compute_region_disks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_list_execute()` to send, or `compute_region_disks_list` for simplest API.
 
-pub fn compute_region_disks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -102652,7 +104324,10 @@ pub fn compute_region_disks_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks",
@@ -102850,13 +104525,16 @@ pub fn compute_region_disks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_remove_resource_policies_execute()` to send, or `compute_region_disks_remove_resource_policies` for simplest API.
 
-pub fn compute_region_disks_remove_resource_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_remove_resource_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/removeResourcePolicies",
@@ -103035,13 +104713,16 @@ pub fn compute_region_disks_remove_resource_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_resize_execute()` to send, or `compute_region_disks_resize` for simplest API.
 
-pub fn compute_region_disks_resize_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_resize_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/resize",
@@ -103218,12 +104899,15 @@ pub fn compute_region_disks_resize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_set_iam_policy_execute()` to send, or `compute_region_disks_set_iam_policy` for simplest API.
 
-pub fn compute_region_disks_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/setIamPolicy",
@@ -103386,13 +105070,16 @@ pub fn compute_region_disks_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_set_labels_execute()` to send, or `compute_region_disks_set_labels` for simplest API.
 
-pub fn compute_region_disks_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/setLabels",
@@ -103569,13 +105256,16 @@ pub fn compute_region_disks_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_start_async_replication_execute()` to send, or `compute_region_disks_start_async_replication` for simplest API.
 
-pub fn compute_region_disks_start_async_replication_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_start_async_replication_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/startAsyncReplication",
@@ -103754,13 +105444,16 @@ pub fn compute_region_disks_start_async_replication(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_stop_async_replication_execute()` to send, or `compute_region_disks_stop_async_replication` for simplest API.
 
-pub fn compute_region_disks_stop_async_replication_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_stop_async_replication_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/stopAsyncReplication",
@@ -103939,12 +105632,15 @@ pub fn compute_region_disks_stop_async_replication(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_stop_group_async_replication_execute()` to send, or `compute_region_disks_stop_group_async_replication` for simplest API.
 
-pub fn compute_region_disks_stop_group_async_replication_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_stop_group_async_replication_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/stopGroupAsyncReplication",
@@ -104119,12 +105815,15 @@ pub fn compute_region_disks_stop_group_async_replication(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_test_iam_permissions_execute()` to send, or `compute_region_disks_test_iam_permissions` for simplest API.
 
-pub fn compute_region_disks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/testIamPermissions",
@@ -104293,15 +105992,18 @@ pub fn compute_region_disks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_update_execute()` to send, or `compute_region_disks_update` for simplest API.
 
-pub fn compute_region_disks_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     paths: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}",
@@ -104490,13 +106192,16 @@ pub fn compute_region_disks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_disks_update_kms_key_execute()` to send, or `compute_region_disks_update_kms_key` for simplest API.
 
-pub fn compute_region_disks_update_kms_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_disks_update_kms_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     disk: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/updateKmsKey",
@@ -104673,8 +106378,8 @@ pub fn compute_region_disks_update_kms_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_aggregation_policies_aggregated_list_execute()` to send, or `compute_region_health_aggregation_policies_aggregated_list` for simplest API.
 
-pub fn compute_region_health_aggregation_policies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_aggregation_policies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -104683,7 +106388,10 @@ pub fn compute_region_health_aggregation_policies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthAggregationPolicies",
@@ -104898,13 +106606,16 @@ pub fn compute_region_health_aggregation_policies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_aggregation_policies_delete_execute()` to send, or `compute_region_health_aggregation_policies_delete` for simplest API.
 
-pub fn compute_region_health_aggregation_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_aggregation_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthAggregationPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies/{}",
@@ -105083,12 +106794,15 @@ pub fn compute_region_health_aggregation_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_aggregation_policies_get_execute()` to send, or `compute_region_health_aggregation_policies_get` for simplest API.
 
-pub fn compute_region_health_aggregation_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_aggregation_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthAggregationPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies/{}",
@@ -105257,12 +106971,15 @@ pub fn compute_region_health_aggregation_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_aggregation_policies_insert_execute()` to send, or `compute_region_health_aggregation_policies_insert` for simplest API.
 
-pub fn compute_region_health_aggregation_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_aggregation_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies",
@@ -105437,8 +107154,8 @@ pub fn compute_region_health_aggregation_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_aggregation_policies_list_execute()` to send, or `compute_region_health_aggregation_policies_list` for simplest API.
 
-pub fn compute_region_health_aggregation_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_aggregation_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -105446,7 +107163,10 @@ pub fn compute_region_health_aggregation_policies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies",
@@ -105653,13 +107373,16 @@ pub fn compute_region_health_aggregation_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_aggregation_policies_patch_execute()` to send, or `compute_region_health_aggregation_policies_patch` for simplest API.
 
-pub fn compute_region_health_aggregation_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_aggregation_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthAggregationPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies/{}",
@@ -105838,12 +107561,15 @@ pub fn compute_region_health_aggregation_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_aggregation_policies_test_iam_permissions_execute()` to send, or `compute_region_health_aggregation_policies_test_iam_permissions` for simplest API.
 
-pub fn compute_region_health_aggregation_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_aggregation_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies/{}/testIamPermissions",
@@ -106012,8 +107738,8 @@ pub fn compute_region_health_aggregation_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_check_services_aggregated_list_execute()` to send, or `compute_region_health_check_services_aggregated_list` for simplest API.
 
-pub fn compute_region_health_check_services_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_check_services_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -106022,7 +107748,10 @@ pub fn compute_region_health_check_services_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthCheckServices",
@@ -106237,13 +107966,16 @@ pub fn compute_region_health_check_services_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_check_services_delete_execute()` to send, or `compute_region_health_check_services_delete` for simplest API.
 
-pub fn compute_region_health_check_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_check_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthCheckService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices/{}",
@@ -106420,12 +108152,15 @@ pub fn compute_region_health_check_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_check_services_get_execute()` to send, or `compute_region_health_check_services_get` for simplest API.
 
-pub fn compute_region_health_check_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_check_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthCheckService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices/{}",
@@ -106592,12 +108327,15 @@ pub fn compute_region_health_check_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_check_services_insert_execute()` to send, or `compute_region_health_check_services_insert` for simplest API.
 
-pub fn compute_region_health_check_services_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_check_services_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices",
@@ -106771,8 +108509,8 @@ pub fn compute_region_health_check_services_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_check_services_list_execute()` to send, or `compute_region_health_check_services_list` for simplest API.
 
-pub fn compute_region_health_check_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_check_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -106780,7 +108518,10 @@ pub fn compute_region_health_check_services_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices",
@@ -106982,13 +108723,16 @@ pub fn compute_region_health_check_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_check_services_patch_execute()` to send, or `compute_region_health_check_services_patch` for simplest API.
 
-pub fn compute_region_health_check_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_check_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthCheckService: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices/{}",
@@ -107165,12 +108909,15 @@ pub fn compute_region_health_check_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_check_services_test_iam_permissions_execute()` to send, or `compute_region_health_check_services_test_iam_permissions` for simplest API.
 
-pub fn compute_region_health_check_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_check_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices/{}/testIamPermissions",
@@ -107339,13 +109086,16 @@ pub fn compute_region_health_check_services_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_checks_delete_execute()` to send, or `compute_region_health_checks_delete` for simplest API.
 
-pub fn compute_region_health_checks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_checks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks/{}",
@@ -107522,12 +109272,15 @@ pub fn compute_region_health_checks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_checks_get_execute()` to send, or `compute_region_health_checks_get` for simplest API.
 
-pub fn compute_region_health_checks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_checks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthCheck: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks/{}",
@@ -107690,12 +109443,15 @@ pub fn compute_region_health_checks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_checks_insert_execute()` to send, or `compute_region_health_checks_insert` for simplest API.
 
-pub fn compute_region_health_checks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_checks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks",
@@ -107869,8 +109625,8 @@ pub fn compute_region_health_checks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_checks_list_execute()` to send, or `compute_region_health_checks_list` for simplest API.
 
-pub fn compute_region_health_checks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_checks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -107878,7 +109634,10 @@ pub fn compute_region_health_checks_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks",
@@ -108080,13 +109839,16 @@ pub fn compute_region_health_checks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_checks_patch_execute()` to send, or `compute_region_health_checks_patch` for simplest API.
 
-pub fn compute_region_health_checks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_checks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks/{}",
@@ -108263,12 +110025,15 @@ pub fn compute_region_health_checks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_checks_test_iam_permissions_execute()` to send, or `compute_region_health_checks_test_iam_permissions` for simplest API.
 
-pub fn compute_region_health_checks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_checks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks/{}/testIamPermissions",
@@ -108437,13 +110202,16 @@ pub fn compute_region_health_checks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_checks_update_execute()` to send, or `compute_region_health_checks_update` for simplest API.
 
-pub fn compute_region_health_checks_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_checks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthCheck: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks/{}",
@@ -108620,8 +110388,8 @@ pub fn compute_region_health_checks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_aggregated_list_execute()` to send, or `compute_region_health_sources_aggregated_list` for simplest API.
 
-pub fn compute_region_health_sources_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -108630,7 +110398,10 @@ pub fn compute_region_health_sources_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthSources",
@@ -108845,13 +110616,16 @@ pub fn compute_region_health_sources_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_delete_execute()` to send, or `compute_region_health_sources_delete` for simplest API.
 
-pub fn compute_region_health_sources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthSource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources/{}",
@@ -109028,12 +110802,15 @@ pub fn compute_region_health_sources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_get_execute()` to send, or `compute_region_health_sources_get` for simplest API.
 
-pub fn compute_region_health_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthSource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources/{}",
@@ -109200,12 +110977,15 @@ pub fn compute_region_health_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_get_health_execute()` to send, or `compute_region_health_sources_get_health` for simplest API.
 
-pub fn compute_region_health_sources_get_health_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_get_health_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthSource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources/{}/getHealth",
@@ -109374,12 +111154,15 @@ pub fn compute_region_health_sources_get_health(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_insert_execute()` to send, or `compute_region_health_sources_insert` for simplest API.
 
-pub fn compute_region_health_sources_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources",
@@ -109553,8 +111336,8 @@ pub fn compute_region_health_sources_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_list_execute()` to send, or `compute_region_health_sources_list` for simplest API.
 
-pub fn compute_region_health_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -109562,7 +111345,10 @@ pub fn compute_region_health_sources_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources",
@@ -109764,13 +111550,16 @@ pub fn compute_region_health_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_patch_execute()` to send, or `compute_region_health_sources_patch` for simplest API.
 
-pub fn compute_region_health_sources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     healthSource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources/{}",
@@ -109947,12 +111736,15 @@ pub fn compute_region_health_sources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_health_sources_test_iam_permissions_execute()` to send, or `compute_region_health_sources_test_iam_permissions` for simplest API.
 
-pub fn compute_region_health_sources_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_health_sources_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources/{}/testIamPermissions",
@@ -110121,14 +111913,17 @@ pub fn compute_region_health_sources_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_manager_resize_requests_cancel_execute()` to send, or `compute_region_instance_group_manager_resize_requests_cancel` for simplest API.
 
-pub fn compute_region_instance_group_manager_resize_requests_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_manager_resize_requests_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resizeRequests/{}/cancel",
@@ -110311,14 +112106,17 @@ pub fn compute_region_instance_group_manager_resize_requests_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_manager_resize_requests_delete_execute()` to send, or `compute_region_instance_group_manager_resize_requests_delete` for simplest API.
 
-pub fn compute_region_instance_group_manager_resize_requests_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_manager_resize_requests_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resizeRequests/{}",
@@ -110501,13 +112299,16 @@ pub fn compute_region_instance_group_manager_resize_requests_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_manager_resize_requests_get_execute()` to send, or `compute_region_instance_group_manager_resize_requests_get` for simplest API.
 
-pub fn compute_region_instance_group_manager_resize_requests_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_manager_resize_requests_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resizeRequests/{}",
@@ -110684,13 +112485,16 @@ pub fn compute_region_instance_group_manager_resize_requests_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_manager_resize_requests_insert_execute()` to send, or `compute_region_instance_group_manager_resize_requests_insert` for simplest API.
 
-pub fn compute_region_instance_group_manager_resize_requests_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_manager_resize_requests_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resizeRequests",
@@ -110869,8 +112673,8 @@ pub fn compute_region_instance_group_manager_resize_requests_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_manager_resize_requests_list_execute()` to send, or `compute_region_instance_group_manager_resize_requests_list` for simplest API.
 
-pub fn compute_region_instance_group_manager_resize_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_manager_resize_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
@@ -110879,7 +112683,10 @@ pub fn compute_region_instance_group_manager_resize_requests_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resizeRequests",
@@ -111094,13 +112901,16 @@ pub fn compute_region_instance_group_manager_resize_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_abandon_instances_execute()` to send, or `compute_region_instance_group_managers_abandon_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_abandon_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_abandon_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/abandonInstances",
@@ -111279,12 +113089,15 @@ pub fn compute_region_instance_group_managers_abandon_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_apply_updates_to_instances_execute()` to send, or `compute_region_instance_group_managers_apply_updates_to_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_apply_updates_to_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_apply_updates_to_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/applyUpdatesToInstances",
@@ -111449,13 +113262,16 @@ pub fn compute_region_instance_group_managers_apply_updates_to_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_create_instances_execute()` to send, or `compute_region_instance_group_managers_create_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_create_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_create_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/createInstances",
@@ -111634,13 +113450,16 @@ pub fn compute_region_instance_group_managers_create_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_delete_execute()` to send, or `compute_region_instance_group_managers_delete` for simplest API.
 
-pub fn compute_region_instance_group_managers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}",
@@ -111817,13 +113636,16 @@ pub fn compute_region_instance_group_managers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_delete_instances_execute()` to send, or `compute_region_instance_group_managers_delete_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_delete_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_delete_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/deleteInstances",
@@ -112002,12 +113824,15 @@ pub fn compute_region_instance_group_managers_delete_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_delete_per_instance_configs_execute()` to send, or `compute_region_instance_group_managers_delete_per_instance_configs` for simplest API.
 
-pub fn compute_region_instance_group_managers_delete_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_delete_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/deletePerInstanceConfigs",
@@ -112172,12 +113997,15 @@ pub fn compute_region_instance_group_managers_delete_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_get_execute()` to send, or `compute_region_instance_group_managers_get` for simplest API.
 
-pub fn compute_region_instance_group_managers_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}",
@@ -112344,12 +114172,15 @@ pub fn compute_region_instance_group_managers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_insert_execute()` to send, or `compute_region_instance_group_managers_insert` for simplest API.
 
-pub fn compute_region_instance_group_managers_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers",
@@ -112523,8 +114354,8 @@ pub fn compute_region_instance_group_managers_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_list_execute()` to send, or `compute_region_instance_group_managers_list` for simplest API.
 
-pub fn compute_region_instance_group_managers_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -112532,7 +114363,10 @@ pub fn compute_region_instance_group_managers_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers",
@@ -112738,8 +114572,8 @@ pub fn compute_region_instance_group_managers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_list_errors_execute()` to send, or `compute_region_instance_group_managers_list_errors` for simplest API.
 
-pub fn compute_region_instance_group_managers_list_errors_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_list_errors_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
@@ -112748,7 +114582,10 @@ pub fn compute_region_instance_group_managers_list_errors_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/listErrors",
@@ -112960,8 +114797,8 @@ pub fn compute_region_instance_group_managers_list_errors(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_list_managed_instances_execute()` to send, or `compute_region_instance_group_managers_list_managed_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_list_managed_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_list_managed_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
@@ -112970,7 +114807,10 @@ pub fn compute_region_instance_group_managers_list_managed_instances_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/listManagedInstances",
@@ -113182,8 +115022,8 @@ pub fn compute_region_instance_group_managers_list_managed_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_list_per_instance_configs_execute()` to send, or `compute_region_instance_group_managers_list_per_instance_configs` for simplest API.
 
-pub fn compute_region_instance_group_managers_list_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_list_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
@@ -113192,7 +115032,10 @@ pub fn compute_region_instance_group_managers_list_per_instance_configs_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/listPerInstanceConfigs",
@@ -113407,13 +115250,16 @@ pub fn compute_region_instance_group_managers_list_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_patch_execute()` to send, or `compute_region_instance_group_managers_patch` for simplest API.
 
-pub fn compute_region_instance_group_managers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}",
@@ -113590,13 +115436,16 @@ pub fn compute_region_instance_group_managers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_patch_per_instance_configs_execute()` to send, or `compute_region_instance_group_managers_patch_per_instance_configs` for simplest API.
 
-pub fn compute_region_instance_group_managers_patch_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_patch_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/patchPerInstanceConfigs",
@@ -113775,13 +115624,16 @@ pub fn compute_region_instance_group_managers_patch_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_recreate_instances_execute()` to send, or `compute_region_instance_group_managers_recreate_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_recreate_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_recreate_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/recreateInstances",
@@ -113960,14 +115812,17 @@ pub fn compute_region_instance_group_managers_recreate_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_resize_execute()` to send, or `compute_region_instance_group_managers_resize` for simplest API.
 
-pub fn compute_region_instance_group_managers_resize_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_resize_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
     size: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resize",
@@ -114152,13 +116007,16 @@ pub fn compute_region_instance_group_managers_resize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_resume_instances_execute()` to send, or `compute_region_instance_group_managers_resume_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_resume_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_resume_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resumeInstances",
@@ -114337,13 +116195,16 @@ pub fn compute_region_instance_group_managers_resume_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_set_instance_template_execute()` to send, or `compute_region_instance_group_managers_set_instance_template` for simplest API.
 
-pub fn compute_region_instance_group_managers_set_instance_template_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_set_instance_template_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/setInstanceTemplate",
@@ -114522,13 +116383,16 @@ pub fn compute_region_instance_group_managers_set_instance_template(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_set_target_pools_execute()` to send, or `compute_region_instance_group_managers_set_target_pools` for simplest API.
 
-pub fn compute_region_instance_group_managers_set_target_pools_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_set_target_pools_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/setTargetPools",
@@ -114707,13 +116571,16 @@ pub fn compute_region_instance_group_managers_set_target_pools(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_start_instances_execute()` to send, or `compute_region_instance_group_managers_start_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_start_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_start_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/startInstances",
@@ -114892,13 +116759,16 @@ pub fn compute_region_instance_group_managers_start_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_stop_instances_execute()` to send, or `compute_region_instance_group_managers_stop_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_stop_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_stop_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/stopInstances",
@@ -115077,13 +116947,16 @@ pub fn compute_region_instance_group_managers_stop_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_suspend_instances_execute()` to send, or `compute_region_instance_group_managers_suspend_instances` for simplest API.
 
-pub fn compute_region_instance_group_managers_suspend_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_suspend_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/suspendInstances",
@@ -115262,13 +117135,16 @@ pub fn compute_region_instance_group_managers_suspend_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_update_per_instance_configs_execute()` to send, or `compute_region_instance_group_managers_update_per_instance_configs` for simplest API.
 
-pub fn compute_region_instance_group_managers_update_per_instance_configs_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_group_managers_update_per_instance_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroupManager: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/updatePerInstanceConfigs",
@@ -115447,12 +117323,15 @@ pub fn compute_region_instance_group_managers_update_per_instance_configs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_groups_get_execute()` to send, or `compute_region_instance_groups_get` for simplest API.
 
-pub fn compute_region_instance_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}",
@@ -115619,8 +117498,8 @@ pub fn compute_region_instance_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_groups_list_execute()` to send, or `compute_region_instance_groups_list` for simplest API.
 
-pub fn compute_region_instance_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -115628,7 +117507,10 @@ pub fn compute_region_instance_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups",
@@ -115830,8 +117712,8 @@ pub fn compute_region_instance_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_groups_list_instances_execute()` to send, or `compute_region_instance_groups_list_instances` for simplest API.
 
-pub fn compute_region_instance_groups_list_instances_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_groups_list_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroup: &String,
@@ -115840,7 +117722,10 @@ pub fn compute_region_instance_groups_list_instances_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}/listInstances",
@@ -116051,13 +117936,16 @@ pub fn compute_region_instance_groups_list_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_groups_set_named_ports_execute()` to send, or `compute_region_instance_groups_set_named_ports` for simplest API.
 
-pub fn compute_region_instance_groups_set_named_ports_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_groups_set_named_ports_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}/setNamedPorts",
@@ -116236,12 +118124,15 @@ pub fn compute_region_instance_groups_set_named_ports(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_groups_test_iam_permissions_execute()` to send, or `compute_region_instance_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_region_instance_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}/testIamPermissions",
@@ -116410,13 +118301,16 @@ pub fn compute_region_instance_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_templates_delete_execute()` to send, or `compute_region_instance_templates_delete` for simplest API.
 
-pub fn compute_region_instance_templates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_templates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceTemplate: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceTemplates/{}",
@@ -116593,12 +118487,15 @@ pub fn compute_region_instance_templates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_templates_get_execute()` to send, or `compute_region_instance_templates_get` for simplest API.
 
-pub fn compute_region_instance_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instanceTemplate: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceTemplates/{}",
@@ -116765,12 +118662,15 @@ pub fn compute_region_instance_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_templates_insert_execute()` to send, or `compute_region_instance_templates_insert` for simplest API.
 
-pub fn compute_region_instance_templates_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_templates_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceTemplates",
@@ -116944,8 +118844,8 @@ pub fn compute_region_instance_templates_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_templates_list_execute()` to send, or `compute_region_instance_templates_list` for simplest API.
 
-pub fn compute_region_instance_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instance_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -116953,7 +118853,10 @@ pub fn compute_region_instance_templates_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceTemplates",
@@ -117155,12 +119058,15 @@ pub fn compute_region_instance_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instances_bulk_insert_execute()` to send, or `compute_region_instances_bulk_insert` for simplest API.
 
-pub fn compute_region_instances_bulk_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instances_bulk_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instances/bulkInsert",
@@ -117334,13 +119240,16 @@ pub fn compute_region_instances_bulk_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshot_groups_delete_execute()` to send, or `compute_region_instant_snapshot_groups_delete` for simplest API.
 
-pub fn compute_region_instant_snapshot_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshot_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instantSnapshotGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshotGroups/{}",
@@ -117517,12 +119426,15 @@ pub fn compute_region_instant_snapshot_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshot_groups_get_execute()` to send, or `compute_region_instant_snapshot_groups_get` for simplest API.
 
-pub fn compute_region_instant_snapshot_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshot_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instantSnapshotGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshotGroups/{}",
@@ -117689,13 +119601,16 @@ pub fn compute_region_instant_snapshot_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshot_groups_get_iam_policy_execute()` to send, or `compute_region_instant_snapshot_groups_get_iam_policy` for simplest API.
 
-pub fn compute_region_instant_snapshot_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshot_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshotGroups/{}/getIamPolicy",
@@ -117874,13 +119789,16 @@ pub fn compute_region_instant_snapshot_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshot_groups_insert_execute()` to send, or `compute_region_instant_snapshot_groups_insert` for simplest API.
 
-pub fn compute_region_instant_snapshot_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshot_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
     sourceConsistencyGroup: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshotGroups",
@@ -118060,8 +119978,8 @@ pub fn compute_region_instant_snapshot_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshot_groups_list_execute()` to send, or `compute_region_instant_snapshot_groups_list` for simplest API.
 
-pub fn compute_region_instant_snapshot_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshot_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -118069,7 +119987,10 @@ pub fn compute_region_instant_snapshot_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshotGroups",
@@ -118271,12 +120192,15 @@ pub fn compute_region_instant_snapshot_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshot_groups_set_iam_policy_execute()` to send, or `compute_region_instant_snapshot_groups_set_iam_policy` for simplest API.
 
-pub fn compute_region_instant_snapshot_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshot_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshotGroups/{}/setIamPolicy",
@@ -118441,12 +120365,15 @@ pub fn compute_region_instant_snapshot_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshot_groups_test_iam_permissions_execute()` to send, or `compute_region_instant_snapshot_groups_test_iam_permissions` for simplest API.
 
-pub fn compute_region_instant_snapshot_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshot_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshotGroups/{}/testIamPermissions",
@@ -118615,13 +120542,16 @@ pub fn compute_region_instant_snapshot_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_delete_execute()` to send, or `compute_region_instant_snapshots_delete` for simplest API.
 
-pub fn compute_region_instant_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instantSnapshot: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}",
@@ -118798,12 +120728,15 @@ pub fn compute_region_instant_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_get_execute()` to send, or `compute_region_instant_snapshots_get` for simplest API.
 
-pub fn compute_region_instant_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     instantSnapshot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}",
@@ -118970,13 +120903,16 @@ pub fn compute_region_instant_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_get_iam_policy_execute()` to send, or `compute_region_instant_snapshots_get_iam_policy` for simplest API.
 
-pub fn compute_region_instant_snapshots_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/getIamPolicy",
@@ -119155,12 +121091,15 @@ pub fn compute_region_instant_snapshots_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_insert_execute()` to send, or `compute_region_instant_snapshots_insert` for simplest API.
 
-pub fn compute_region_instant_snapshots_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots",
@@ -119334,8 +121273,8 @@ pub fn compute_region_instant_snapshots_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_list_execute()` to send, or `compute_region_instant_snapshots_list` for simplest API.
 
-pub fn compute_region_instant_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -119343,7 +121282,10 @@ pub fn compute_region_instant_snapshots_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots",
@@ -119545,12 +121487,15 @@ pub fn compute_region_instant_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_set_iam_policy_execute()` to send, or `compute_region_instant_snapshots_set_iam_policy` for simplest API.
 
-pub fn compute_region_instant_snapshots_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/setIamPolicy",
@@ -119715,13 +121660,16 @@ pub fn compute_region_instant_snapshots_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_set_labels_execute()` to send, or `compute_region_instant_snapshots_set_labels` for simplest API.
 
-pub fn compute_region_instant_snapshots_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/setLabels",
@@ -119900,12 +121848,15 @@ pub fn compute_region_instant_snapshots_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instant_snapshots_test_iam_permissions_execute()` to send, or `compute_region_instant_snapshots_test_iam_permissions` for simplest API.
 
-pub fn compute_region_instant_snapshots_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_instant_snapshots_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/testIamPermissions",
@@ -120074,13 +122025,16 @@ pub fn compute_region_instant_snapshots_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_endpoint_groups_attach_network_endpoints_execute()` to send, or `compute_region_network_endpoint_groups_attach_network_endpoints` for simplest API.
 
-pub fn compute_region_network_endpoint_groups_attach_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_endpoint_groups_attach_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}/attachNetworkEndpoints",
@@ -120259,13 +122213,16 @@ pub fn compute_region_network_endpoint_groups_attach_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_endpoint_groups_delete_execute()` to send, or `compute_region_network_endpoint_groups_delete` for simplest API.
 
-pub fn compute_region_network_endpoint_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_endpoint_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}",
@@ -120442,13 +122399,16 @@ pub fn compute_region_network_endpoint_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_endpoint_groups_detach_network_endpoints_execute()` to send, or `compute_region_network_endpoint_groups_detach_network_endpoints` for simplest API.
 
-pub fn compute_region_network_endpoint_groups_detach_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_endpoint_groups_detach_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}/detachNetworkEndpoints",
@@ -120627,12 +122587,15 @@ pub fn compute_region_network_endpoint_groups_detach_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_endpoint_groups_get_execute()` to send, or `compute_region_network_endpoint_groups_get` for simplest API.
 
-pub fn compute_region_network_endpoint_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_endpoint_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}",
@@ -120799,12 +122762,15 @@ pub fn compute_region_network_endpoint_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_endpoint_groups_insert_execute()` to send, or `compute_region_network_endpoint_groups_insert` for simplest API.
 
-pub fn compute_region_network_endpoint_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_endpoint_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups",
@@ -120978,8 +122944,8 @@ pub fn compute_region_network_endpoint_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_endpoint_groups_list_execute()` to send, or `compute_region_network_endpoint_groups_list` for simplest API.
 
-pub fn compute_region_network_endpoint_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_endpoint_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -120987,7 +122953,10 @@ pub fn compute_region_network_endpoint_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups",
@@ -121189,8 +123158,8 @@ pub fn compute_region_network_endpoint_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_endpoint_groups_list_network_endpoints_execute()` to send, or `compute_region_network_endpoint_groups_list_network_endpoints` for simplest API.
 
-pub fn compute_region_network_endpoint_groups_list_network_endpoints_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_endpoint_groups_list_network_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
@@ -121199,7 +123168,10 @@ pub fn compute_region_network_endpoint_groups_list_network_endpoints_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}/listNetworkEndpoints",
@@ -121410,14 +123382,17 @@ pub fn compute_region_network_endpoint_groups_list_network_endpoints(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_add_association_execute()` to send, or `compute_region_network_firewall_policies_add_association` for simplest API.
 
-pub fn compute_region_network_firewall_policies_add_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_add_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     replaceExistingAssociation: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/addAssociation",
@@ -121602,15 +123577,18 @@ pub fn compute_region_network_firewall_policies_add_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_add_rule_execute()` to send, or `compute_region_network_firewall_policies_add_rule` for simplest API.
 
-pub fn compute_region_network_firewall_policies_add_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_add_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     maxPriority: &Option<Option<String>>,
     minPriority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/addRule",
@@ -121801,14 +123779,17 @@ pub fn compute_region_network_firewall_policies_add_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_clone_rules_execute()` to send, or `compute_region_network_firewall_policies_clone_rules` for simplest API.
 
-pub fn compute_region_network_firewall_policies_clone_rules_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_clone_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
     sourceFirewallPolicy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/cloneRules",
@@ -121993,13 +123974,16 @@ pub fn compute_region_network_firewall_policies_clone_rules(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_delete_execute()` to send, or `compute_region_network_firewall_policies_delete` for simplest API.
 
-pub fn compute_region_network_firewall_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}",
@@ -122176,12 +124160,15 @@ pub fn compute_region_network_firewall_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_get_execute()` to send, or `compute_region_network_firewall_policies_get` for simplest API.
 
-pub fn compute_region_network_firewall_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}",
@@ -122348,13 +124335,16 @@ pub fn compute_region_network_firewall_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_get_association_execute()` to send, or `compute_region_network_firewall_policies_get_association` for simplest API.
 
-pub fn compute_region_network_firewall_policies_get_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_get_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/getAssociation",
@@ -122537,12 +124527,15 @@ pub fn compute_region_network_firewall_policies_get_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_get_effective_firewalls_execute()` to send, or `compute_region_network_firewall_policies_get_effective_firewalls` for simplest API.
 
-pub fn compute_region_network_firewall_policies_get_effective_firewalls_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_get_effective_firewalls_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     network: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/getEffectiveFirewalls",
@@ -122735,13 +124728,16 @@ pub fn compute_region_network_firewall_policies_get_effective_firewalls(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_get_iam_policy_execute()` to send, or `compute_region_network_firewall_policies_get_iam_policy` for simplest API.
 
-pub fn compute_region_network_firewall_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/getIamPolicy",
@@ -122920,13 +124916,16 @@ pub fn compute_region_network_firewall_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_get_rule_execute()` to send, or `compute_region_network_firewall_policies_get_rule` for simplest API.
 
-pub fn compute_region_network_firewall_policies_get_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_get_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/getRule",
@@ -123109,12 +125108,15 @@ pub fn compute_region_network_firewall_policies_get_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_insert_execute()` to send, or `compute_region_network_firewall_policies_insert` for simplest API.
 
-pub fn compute_region_network_firewall_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies",
@@ -123288,8 +125290,8 @@ pub fn compute_region_network_firewall_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_list_execute()` to send, or `compute_region_network_firewall_policies_list` for simplest API.
 
-pub fn compute_region_network_firewall_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -123297,7 +125299,10 @@ pub fn compute_region_network_firewall_policies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies",
@@ -123499,13 +125504,16 @@ pub fn compute_region_network_firewall_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_patch_execute()` to send, or `compute_region_network_firewall_policies_patch` for simplest API.
 
-pub fn compute_region_network_firewall_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}",
@@ -123682,14 +125690,17 @@ pub fn compute_region_network_firewall_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_patch_rule_execute()` to send, or `compute_region_network_firewall_policies_patch_rule` for simplest API.
 
-pub fn compute_region_network_firewall_policies_patch_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_patch_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/patchRule",
@@ -123874,14 +125885,17 @@ pub fn compute_region_network_firewall_policies_patch_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_remove_association_execute()` to send, or `compute_region_network_firewall_policies_remove_association` for simplest API.
 
-pub fn compute_region_network_firewall_policies_remove_association_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_remove_association_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     name: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/removeAssociation",
@@ -124066,14 +126080,17 @@ pub fn compute_region_network_firewall_policies_remove_association(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_remove_rule_execute()` to send, or `compute_region_network_firewall_policies_remove_rule` for simplest API.
 
-pub fn compute_region_network_firewall_policies_remove_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_remove_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     firewallPolicy: &String,
     priority: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/removeRule",
@@ -124258,12 +126275,15 @@ pub fn compute_region_network_firewall_policies_remove_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_set_iam_policy_execute()` to send, or `compute_region_network_firewall_policies_set_iam_policy` for simplest API.
 
-pub fn compute_region_network_firewall_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/setIamPolicy",
@@ -124428,12 +126448,15 @@ pub fn compute_region_network_firewall_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_network_firewall_policies_test_iam_permissions_execute()` to send, or `compute_region_network_firewall_policies_test_iam_permissions` for simplest API.
 
-pub fn compute_region_network_firewall_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_network_firewall_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/testIamPermissions",
@@ -124602,8 +126625,8 @@ pub fn compute_region_network_firewall_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_notification_endpoints_aggregated_list_execute()` to send, or `compute_region_notification_endpoints_aggregated_list` for simplest API.
 
-pub fn compute_region_notification_endpoints_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_notification_endpoints_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -124612,7 +126635,10 @@ pub fn compute_region_notification_endpoints_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/notificationEndpoints",
@@ -124827,13 +126853,16 @@ pub fn compute_region_notification_endpoints_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_notification_endpoints_delete_execute()` to send, or `compute_region_notification_endpoints_delete` for simplest API.
 
-pub fn compute_region_notification_endpoints_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_notification_endpoints_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     notificationEndpoint: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints/{}",
@@ -125010,12 +127039,15 @@ pub fn compute_region_notification_endpoints_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_notification_endpoints_get_execute()` to send, or `compute_region_notification_endpoints_get` for simplest API.
 
-pub fn compute_region_notification_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_notification_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     notificationEndpoint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints/{}",
@@ -125182,12 +127214,15 @@ pub fn compute_region_notification_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_notification_endpoints_insert_execute()` to send, or `compute_region_notification_endpoints_insert` for simplest API.
 
-pub fn compute_region_notification_endpoints_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_notification_endpoints_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints",
@@ -125361,8 +127396,8 @@ pub fn compute_region_notification_endpoints_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_notification_endpoints_list_execute()` to send, or `compute_region_notification_endpoints_list` for simplest API.
 
-pub fn compute_region_notification_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_notification_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -125370,7 +127405,10 @@ pub fn compute_region_notification_endpoints_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints",
@@ -125572,12 +127610,15 @@ pub fn compute_region_notification_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_notification_endpoints_test_iam_permissions_execute()` to send, or `compute_region_notification_endpoints_test_iam_permissions` for simplest API.
 
-pub fn compute_region_notification_endpoints_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_notification_endpoints_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints/{}/testIamPermissions",
@@ -125746,12 +127787,15 @@ pub fn compute_region_notification_endpoints_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_operations_delete_execute()` to send, or `compute_region_operations_delete` for simplest API.
 
-pub fn compute_region_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/operations/{}",
@@ -125911,12 +127955,15 @@ pub fn compute_region_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_operations_get_execute()` to send, or `compute_region_operations_get` for simplest API.
 
-pub fn compute_region_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/operations/{}",
@@ -126079,8 +128126,8 @@ pub fn compute_region_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_operations_list_execute()` to send, or `compute_region_operations_list` for simplest API.
 
-pub fn compute_region_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -126088,7 +128135,10 @@ pub fn compute_region_operations_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/operations",
@@ -126290,12 +128340,15 @@ pub fn compute_region_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_operations_wait_execute()` to send, or `compute_region_operations_wait` for simplest API.
 
-pub fn compute_region_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/operations/{}/wait",
@@ -126458,13 +128511,16 @@ pub fn compute_region_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_add_rule_execute()` to send, or `compute_region_security_policies_add_rule` for simplest API.
 
-pub fn compute_region_security_policies_add_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_add_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     securityPolicy: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/addRule",
@@ -126643,13 +128699,16 @@ pub fn compute_region_security_policies_add_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_delete_execute()` to send, or `compute_region_security_policies_delete` for simplest API.
 
-pub fn compute_region_security_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}",
@@ -126826,12 +128885,15 @@ pub fn compute_region_security_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_get_execute()` to send, or `compute_region_security_policies_get` for simplest API.
 
-pub fn compute_region_security_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     securityPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}",
@@ -126998,13 +129060,16 @@ pub fn compute_region_security_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_get_rule_execute()` to send, or `compute_region_security_policies_get_rule` for simplest API.
 
-pub fn compute_region_security_policies_get_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_get_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/getRule",
@@ -127187,13 +129252,16 @@ pub fn compute_region_security_policies_get_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_insert_execute()` to send, or `compute_region_security_policies_insert` for simplest API.
 
-pub fn compute_region_security_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies",
@@ -127373,8 +129441,8 @@ pub fn compute_region_security_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_list_execute()` to send, or `compute_region_security_policies_list` for simplest API.
 
-pub fn compute_region_security_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -127382,7 +129450,10 @@ pub fn compute_region_security_policies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies",
@@ -127584,14 +129655,17 @@ pub fn compute_region_security_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_patch_execute()` to send, or `compute_region_security_policies_patch` for simplest API.
 
-pub fn compute_region_security_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}",
@@ -127774,15 +129848,18 @@ pub fn compute_region_security_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_patch_rule_execute()` to send, or `compute_region_security_policies_patch_rule` for simplest API.
 
-pub fn compute_region_security_policies_patch_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_patch_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/patchRule",
@@ -127973,13 +130050,16 @@ pub fn compute_region_security_policies_patch_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_remove_rule_execute()` to send, or `compute_region_security_policies_remove_rule` for simplest API.
 
-pub fn compute_region_security_policies_remove_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_remove_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/removeRule",
@@ -128158,13 +130238,16 @@ pub fn compute_region_security_policies_remove_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_security_policies_set_labels_execute()` to send, or `compute_region_security_policies_set_labels` for simplest API.
 
-pub fn compute_region_security_policies_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_security_policies_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/setLabels",
@@ -128343,11 +130426,14 @@ pub fn compute_region_security_policies_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshot_settings_get_execute()` to send, or `compute_region_snapshot_settings_get` for simplest API.
 
-pub fn compute_region_snapshot_settings_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshot_settings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshotSettings",
@@ -128508,13 +130594,16 @@ pub fn compute_region_snapshot_settings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshot_settings_patch_execute()` to send, or `compute_region_snapshot_settings_patch` for simplest API.
 
-pub fn compute_region_snapshot_settings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshot_settings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshotSettings",
@@ -128694,13 +130783,16 @@ pub fn compute_region_snapshot_settings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_delete_execute()` to send, or `compute_region_snapshots_delete` for simplest API.
 
-pub fn compute_region_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     snapshot: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots/{}",
@@ -128877,12 +130969,15 @@ pub fn compute_region_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_get_execute()` to send, or `compute_region_snapshots_get` for simplest API.
 
-pub fn compute_region_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     snapshot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots/{}",
@@ -129041,13 +131136,16 @@ pub fn compute_region_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_get_iam_policy_execute()` to send, or `compute_region_snapshots_get_iam_policy` for simplest API.
 
-pub fn compute_region_snapshots_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots/{}/getIamPolicy",
@@ -129226,12 +131324,15 @@ pub fn compute_region_snapshots_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_insert_execute()` to send, or `compute_region_snapshots_insert` for simplest API.
 
-pub fn compute_region_snapshots_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots",
@@ -129405,8 +131506,8 @@ pub fn compute_region_snapshots_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_list_execute()` to send, or `compute_region_snapshots_list` for simplest API.
 
-pub fn compute_region_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -129414,7 +131515,10 @@ pub fn compute_region_snapshots_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots",
@@ -129616,12 +131720,15 @@ pub fn compute_region_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_set_iam_policy_execute()` to send, or `compute_region_snapshots_set_iam_policy` for simplest API.
 
-pub fn compute_region_snapshots_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots/{}/setIamPolicy",
@@ -129786,13 +131893,16 @@ pub fn compute_region_snapshots_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_set_labels_execute()` to send, or `compute_region_snapshots_set_labels` for simplest API.
 
-pub fn compute_region_snapshots_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots/{}/setLabels",
@@ -129969,12 +132079,15 @@ pub fn compute_region_snapshots_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_test_iam_permissions_execute()` to send, or `compute_region_snapshots_test_iam_permissions` for simplest API.
 
-pub fn compute_region_snapshots_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots/{}/testIamPermissions",
@@ -130143,13 +132256,16 @@ pub fn compute_region_snapshots_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_snapshots_update_kms_key_execute()` to send, or `compute_region_snapshots_update_kms_key` for simplest API.
 
-pub fn compute_region_snapshots_update_kms_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_snapshots_update_kms_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     snapshot: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/snapshots/{}/updateKmsKey",
@@ -130328,13 +132444,16 @@ pub fn compute_region_snapshots_update_kms_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_certificates_delete_execute()` to send, or `compute_region_ssl_certificates_delete` for simplest API.
 
-pub fn compute_region_ssl_certificates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     sslCertificate: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslCertificates/{}",
@@ -130511,12 +132630,15 @@ pub fn compute_region_ssl_certificates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_certificates_get_execute()` to send, or `compute_region_ssl_certificates_get` for simplest API.
 
-pub fn compute_region_ssl_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     sslCertificate: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslCertificates/{}",
@@ -130683,12 +132805,15 @@ pub fn compute_region_ssl_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_certificates_insert_execute()` to send, or `compute_region_ssl_certificates_insert` for simplest API.
 
-pub fn compute_region_ssl_certificates_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_certificates_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslCertificates",
@@ -130862,8 +132987,8 @@ pub fn compute_region_ssl_certificates_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_certificates_list_execute()` to send, or `compute_region_ssl_certificates_list` for simplest API.
 
-pub fn compute_region_ssl_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -130871,7 +132996,10 @@ pub fn compute_region_ssl_certificates_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslCertificates",
@@ -131073,13 +133201,16 @@ pub fn compute_region_ssl_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_policies_delete_execute()` to send, or `compute_region_ssl_policies_delete` for simplest API.
 
-pub fn compute_region_ssl_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     sslPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies/{}",
@@ -131256,12 +133387,15 @@ pub fn compute_region_ssl_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_policies_get_execute()` to send, or `compute_region_ssl_policies_get` for simplest API.
 
-pub fn compute_region_ssl_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     sslPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies/{}",
@@ -131424,12 +133558,15 @@ pub fn compute_region_ssl_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_policies_insert_execute()` to send, or `compute_region_ssl_policies_insert` for simplest API.
 
-pub fn compute_region_ssl_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies",
@@ -131603,8 +133740,8 @@ pub fn compute_region_ssl_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_policies_list_execute()` to send, or `compute_region_ssl_policies_list` for simplest API.
 
-pub fn compute_region_ssl_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -131612,7 +133749,10 @@ pub fn compute_region_ssl_policies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies",
@@ -131814,8 +133954,8 @@ pub fn compute_region_ssl_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_policies_list_available_features_execute()` to send, or `compute_region_ssl_policies_list_available_features` for simplest API.
 
-pub fn compute_region_ssl_policies_list_available_features_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_policies_list_available_features_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -131823,7 +133963,10 @@ pub fn compute_region_ssl_policies_list_available_features_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies/listAvailableFeatures",
@@ -132030,13 +134173,16 @@ pub fn compute_region_ssl_policies_list_available_features(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_ssl_policies_patch_execute()` to send, or `compute_region_ssl_policies_patch` for simplest API.
 
-pub fn compute_region_ssl_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_ssl_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     sslPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies/{}",
@@ -132213,13 +134359,16 @@ pub fn compute_region_ssl_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_http_proxies_delete_execute()` to send, or `compute_region_target_http_proxies_delete` for simplest API.
 
-pub fn compute_region_target_http_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_http_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies/{}",
@@ -132396,12 +134545,15 @@ pub fn compute_region_target_http_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_http_proxies_get_execute()` to send, or `compute_region_target_http_proxies_get` for simplest API.
 
-pub fn compute_region_target_http_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_http_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies/{}",
@@ -132568,12 +134720,15 @@ pub fn compute_region_target_http_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_http_proxies_insert_execute()` to send, or `compute_region_target_http_proxies_insert` for simplest API.
 
-pub fn compute_region_target_http_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_http_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies",
@@ -132747,8 +134902,8 @@ pub fn compute_region_target_http_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_http_proxies_list_execute()` to send, or `compute_region_target_http_proxies_list` for simplest API.
 
-pub fn compute_region_target_http_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_http_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -132756,7 +134911,10 @@ pub fn compute_region_target_http_proxies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies",
@@ -132958,13 +135116,16 @@ pub fn compute_region_target_http_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_http_proxies_set_url_map_execute()` to send, or `compute_region_target_http_proxies_set_url_map` for simplest API.
 
-pub fn compute_region_target_http_proxies_set_url_map_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_http_proxies_set_url_map_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies/{}/setUrlMap",
@@ -133143,13 +135304,16 @@ pub fn compute_region_target_http_proxies_set_url_map(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_https_proxies_delete_execute()` to send, or `compute_region_target_https_proxies_delete` for simplest API.
 
-pub fn compute_region_target_https_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_https_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}",
@@ -133326,12 +135490,15 @@ pub fn compute_region_target_https_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_https_proxies_get_execute()` to send, or `compute_region_target_https_proxies_get` for simplest API.
 
-pub fn compute_region_target_https_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_https_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}",
@@ -133498,12 +135665,15 @@ pub fn compute_region_target_https_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_https_proxies_insert_execute()` to send, or `compute_region_target_https_proxies_insert` for simplest API.
 
-pub fn compute_region_target_https_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_https_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies",
@@ -133677,8 +135847,8 @@ pub fn compute_region_target_https_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_https_proxies_list_execute()` to send, or `compute_region_target_https_proxies_list` for simplest API.
 
-pub fn compute_region_target_https_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_https_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -133686,7 +135856,10 @@ pub fn compute_region_target_https_proxies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies",
@@ -133888,13 +136061,16 @@ pub fn compute_region_target_https_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_https_proxies_patch_execute()` to send, or `compute_region_target_https_proxies_patch` for simplest API.
 
-pub fn compute_region_target_https_proxies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_https_proxies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}",
@@ -134071,13 +136247,16 @@ pub fn compute_region_target_https_proxies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_https_proxies_set_ssl_certificates_execute()` to send, or `compute_region_target_https_proxies_set_ssl_certificates` for simplest API.
 
-pub fn compute_region_target_https_proxies_set_ssl_certificates_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_https_proxies_set_ssl_certificates_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}/setSslCertificates",
@@ -134256,13 +136435,16 @@ pub fn compute_region_target_https_proxies_set_ssl_certificates(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_https_proxies_set_url_map_execute()` to send, or `compute_region_target_https_proxies_set_url_map` for simplest API.
 
-pub fn compute_region_target_https_proxies_set_url_map_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_https_proxies_set_url_map_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}/setUrlMap",
@@ -134441,13 +136623,16 @@ pub fn compute_region_target_https_proxies_set_url_map(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_tcp_proxies_delete_execute()` to send, or `compute_region_target_tcp_proxies_delete` for simplest API.
 
-pub fn compute_region_target_tcp_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_tcp_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetTcpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetTcpProxies/{}",
@@ -134624,12 +136809,15 @@ pub fn compute_region_target_tcp_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_tcp_proxies_get_execute()` to send, or `compute_region_target_tcp_proxies_get` for simplest API.
 
-pub fn compute_region_target_tcp_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_tcp_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetTcpProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetTcpProxies/{}",
@@ -134796,12 +136984,15 @@ pub fn compute_region_target_tcp_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_tcp_proxies_insert_execute()` to send, or `compute_region_target_tcp_proxies_insert` for simplest API.
 
-pub fn compute_region_target_tcp_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_tcp_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetTcpProxies",
@@ -134975,8 +137166,8 @@ pub fn compute_region_target_tcp_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_target_tcp_proxies_list_execute()` to send, or `compute_region_target_tcp_proxies_list` for simplest API.
 
-pub fn compute_region_target_tcp_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_target_tcp_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -134984,7 +137175,10 @@ pub fn compute_region_target_tcp_proxies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetTcpProxies",
@@ -135186,13 +137380,16 @@ pub fn compute_region_target_tcp_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_url_maps_delete_execute()` to send, or `compute_region_url_maps_delete` for simplest API.
 
-pub fn compute_region_url_maps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_url_maps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     urlMap: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps/{}",
@@ -135369,12 +137566,15 @@ pub fn compute_region_url_maps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_url_maps_get_execute()` to send, or `compute_region_url_maps_get` for simplest API.
 
-pub fn compute_region_url_maps_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_url_maps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     urlMap: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps/{}",
@@ -135533,12 +137733,15 @@ pub fn compute_region_url_maps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_url_maps_insert_execute()` to send, or `compute_region_url_maps_insert` for simplest API.
 
-pub fn compute_region_url_maps_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_url_maps_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps",
@@ -135712,8 +137915,8 @@ pub fn compute_region_url_maps_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_url_maps_list_execute()` to send, or `compute_region_url_maps_list` for simplest API.
 
-pub fn compute_region_url_maps_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_url_maps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -135721,7 +137924,10 @@ pub fn compute_region_url_maps_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps",
@@ -135919,13 +138125,16 @@ pub fn compute_region_url_maps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_url_maps_patch_execute()` to send, or `compute_region_url_maps_patch` for simplest API.
 
-pub fn compute_region_url_maps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_url_maps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     urlMap: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps/{}",
@@ -136102,13 +138311,16 @@ pub fn compute_region_url_maps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_url_maps_update_execute()` to send, or `compute_region_url_maps_update` for simplest API.
 
-pub fn compute_region_url_maps_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_url_maps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     urlMap: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps/{}",
@@ -136285,12 +138497,15 @@ pub fn compute_region_url_maps_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_url_maps_validate_execute()` to send, or `compute_region_url_maps_validate` for simplest API.
 
-pub fn compute_region_url_maps_validate_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_url_maps_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     urlMap: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps/{}/validate",
@@ -136457,8 +138672,8 @@ pub fn compute_region_url_maps_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_zones_list_execute()` to send, or `compute_region_zones_list` for simplest API.
 
-pub fn compute_region_zones_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_region_zones_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -136466,7 +138681,10 @@ pub fn compute_region_zones_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/zones",
@@ -136664,11 +138882,14 @@ pub fn compute_region_zones_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_regions_get_execute()` to send, or `compute_regions_get` for simplest API.
 
-pub fn compute_regions_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_regions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}",
@@ -136824,15 +139045,18 @@ pub fn compute_regions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_regions_list_execute()` to send, or `compute_regions_list` for simplest API.
 
-pub fn compute_regions_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_regions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions",
@@ -137027,14 +139251,17 @@ pub fn compute_regions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_blocks_get_execute()` to send, or `compute_reservation_blocks_get` for simplest API.
 
-pub fn compute_reservation_blocks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_blocks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
     reservationBlock: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}",
@@ -137225,14 +139452,17 @@ pub fn compute_reservation_blocks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_blocks_get_iam_policy_execute()` to send, or `compute_reservation_blocks_get_iam_policy` for simplest API.
 
-pub fn compute_reservation_blocks_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_blocks_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentResource: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/getIamPolicy",
@@ -137415,8 +139645,8 @@ pub fn compute_reservation_blocks_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_blocks_list_execute()` to send, or `compute_reservation_blocks_list` for simplest API.
 
-pub fn compute_reservation_blocks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_blocks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
@@ -137425,7 +139655,10 @@ pub fn compute_reservation_blocks_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks",
@@ -137636,14 +139869,17 @@ pub fn compute_reservation_blocks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_blocks_perform_maintenance_execute()` to send, or `compute_reservation_blocks_perform_maintenance` for simplest API.
 
-pub fn compute_reservation_blocks_perform_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_blocks_perform_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
     reservationBlock: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/performMaintenance",
@@ -137826,13 +140062,16 @@ pub fn compute_reservation_blocks_perform_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_blocks_set_iam_policy_execute()` to send, or `compute_reservation_blocks_set_iam_policy` for simplest API.
 
-pub fn compute_reservation_blocks_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_blocks_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentResource: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/setIamPolicy",
@@ -138001,13 +140240,16 @@ pub fn compute_reservation_blocks_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_blocks_test_iam_permissions_execute()` to send, or `compute_reservation_blocks_test_iam_permissions` for simplest API.
 
-pub fn compute_reservation_blocks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_blocks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentResource: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/testIamPermissions",
@@ -138180,13 +140422,16 @@ pub fn compute_reservation_blocks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_slots_get_execute()` to send, or `compute_reservation_slots_get` for simplest API.
 
-pub fn compute_reservation_slots_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_slots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
     reservationSlot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{reservationSubBlocksId}/reservationSlots/{reservationSlot}",
@@ -138363,14 +140608,17 @@ pub fn compute_reservation_slots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_slots_get_version_execute()` to send, or `compute_reservation_slots_get_version` for simplest API.
 
-pub fn compute_reservation_slots_get_version_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_slots_get_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
     reservationSlot: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{reservationSubBlocksId}/reservationSlots/{reservationSlot}/getVersion",
@@ -138553,8 +140801,8 @@ pub fn compute_reservation_slots_get_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_slots_list_execute()` to send, or `compute_reservation_slots_list` for simplest API.
 
-pub fn compute_reservation_slots_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_slots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
@@ -138563,7 +140811,10 @@ pub fn compute_reservation_slots_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlocksId}/reservationSlots",
@@ -138774,14 +141025,17 @@ pub fn compute_reservation_slots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_slots_update_execute()` to send, or `compute_reservation_slots_update` for simplest API.
 
-pub fn compute_reservation_slots_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_slots_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
     reservationSlot: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{reservationSubBlocksId}/reservationSlots/{reservationSlot}",
@@ -138964,14 +141218,17 @@ pub fn compute_reservation_slots_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_get_execute()` to send, or `compute_reservation_sub_blocks_get` for simplest API.
 
-pub fn compute_reservation_sub_blocks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{reservationSubBlock}",
@@ -139162,14 +141419,17 @@ pub fn compute_reservation_sub_blocks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_get_iam_policy_execute()` to send, or `compute_reservation_sub_blocks_get_iam_policy` for simplest API.
 
-pub fn compute_reservation_sub_blocks_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentResource: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{resource}/getIamPolicy",
@@ -139352,14 +141612,17 @@ pub fn compute_reservation_sub_blocks_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_get_version_execute()` to send, or `compute_reservation_sub_blocks_get_version` for simplest API.
 
-pub fn compute_reservation_sub_blocks_get_version_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_get_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{reservationSubBlock}/getVersion",
@@ -139542,8 +141805,8 @@ pub fn compute_reservation_sub_blocks_get_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_list_execute()` to send, or `compute_reservation_sub_blocks_list` for simplest API.
 
-pub fn compute_reservation_sub_blocks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
@@ -139552,7 +141815,10 @@ pub fn compute_reservation_sub_blocks_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks",
@@ -139763,14 +142029,17 @@ pub fn compute_reservation_sub_blocks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_perform_maintenance_execute()` to send, or `compute_reservation_sub_blocks_perform_maintenance` for simplest API.
 
-pub fn compute_reservation_sub_blocks_perform_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_perform_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{reservationSubBlock}/performMaintenance",
@@ -139953,14 +142222,17 @@ pub fn compute_reservation_sub_blocks_perform_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_report_faulty_execute()` to send, or `compute_reservation_sub_blocks_report_faulty` for simplest API.
 
-pub fn compute_reservation_sub_blocks_report_faulty_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_report_faulty_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{reservationSubBlock}/reportFaulty",
@@ -140143,13 +142415,16 @@ pub fn compute_reservation_sub_blocks_report_faulty(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_set_iam_policy_execute()` to send, or `compute_reservation_sub_blocks_set_iam_policy` for simplest API.
 
-pub fn compute_reservation_sub_blocks_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentResource: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{resource}/setIamPolicy",
@@ -140318,13 +142593,16 @@ pub fn compute_reservation_sub_blocks_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservation_sub_blocks_test_iam_permissions_execute()` to send, or `compute_reservation_sub_blocks_test_iam_permissions` for simplest API.
 
-pub fn compute_reservation_sub_blocks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservation_sub_blocks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     parentResource: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/reservationSubBlocks/{resource}/testIamPermissions",
@@ -140497,8 +142775,8 @@ pub fn compute_reservation_sub_blocks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_aggregated_list_execute()` to send, or `compute_reservations_aggregated_list` for simplest API.
 
-pub fn compute_reservations_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -140507,7 +142785,10 @@ pub fn compute_reservations_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/reservations",
@@ -140718,13 +142999,16 @@ pub fn compute_reservations_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_delete_execute()` to send, or `compute_reservations_delete` for simplest API.
 
-pub fn compute_reservations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}",
@@ -140901,12 +143185,15 @@ pub fn compute_reservations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_get_execute()` to send, or `compute_reservations_get` for simplest API.
 
-pub fn compute_reservations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}",
@@ -141065,13 +143352,16 @@ pub fn compute_reservations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_get_iam_policy_execute()` to send, or `compute_reservations_get_iam_policy` for simplest API.
 
-pub fn compute_reservations_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/getIamPolicy",
@@ -141250,12 +143540,15 @@ pub fn compute_reservations_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_insert_execute()` to send, or `compute_reservations_insert` for simplest API.
 
-pub fn compute_reservations_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations",
@@ -141425,8 +143718,8 @@ pub fn compute_reservations_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_list_execute()` to send, or `compute_reservations_list` for simplest API.
 
-pub fn compute_reservations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -141434,7 +143727,10 @@ pub fn compute_reservations_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations",
@@ -141636,13 +143932,16 @@ pub fn compute_reservations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_perform_maintenance_execute()` to send, or `compute_reservations_perform_maintenance` for simplest API.
 
-pub fn compute_reservations_perform_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_perform_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/performMaintenance",
@@ -141821,13 +144120,16 @@ pub fn compute_reservations_perform_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_resize_execute()` to send, or `compute_reservations_resize` for simplest API.
 
-pub fn compute_reservations_resize_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_resize_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/resize",
@@ -142004,12 +144306,15 @@ pub fn compute_reservations_resize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_set_iam_policy_execute()` to send, or `compute_reservations_set_iam_policy` for simplest API.
 
-pub fn compute_reservations_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/setIamPolicy",
@@ -142174,12 +144479,15 @@ pub fn compute_reservations_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_test_iam_permissions_execute()` to send, or `compute_reservations_test_iam_permissions` for simplest API.
 
-pub fn compute_reservations_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/testIamPermissions",
@@ -142348,15 +144656,18 @@ pub fn compute_reservations_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_reservations_update_execute()` to send, or `compute_reservations_update` for simplest API.
 
-pub fn compute_reservations_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_reservations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     reservation: &String,
     paths: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}",
@@ -142545,8 +144856,8 @@ pub fn compute_reservations_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_aggregated_list_execute()` to send, or `compute_resource_policies_aggregated_list` for simplest API.
 
-pub fn compute_resource_policies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -142555,7 +144866,10 @@ pub fn compute_resource_policies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/resourcePolicies",
@@ -142770,13 +145084,16 @@ pub fn compute_resource_policies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_delete_execute()` to send, or `compute_resource_policies_delete` for simplest API.
 
-pub fn compute_resource_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resourcePolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}",
@@ -142953,12 +145270,15 @@ pub fn compute_resource_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_get_execute()` to send, or `compute_resource_policies_get` for simplest API.
 
-pub fn compute_resource_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resourcePolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}",
@@ -143125,13 +145445,16 @@ pub fn compute_resource_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_get_iam_policy_execute()` to send, or `compute_resource_policies_get_iam_policy` for simplest API.
 
-pub fn compute_resource_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}/getIamPolicy",
@@ -143310,12 +145633,15 @@ pub fn compute_resource_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_insert_execute()` to send, or `compute_resource_policies_insert` for simplest API.
 
-pub fn compute_resource_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies",
@@ -143489,8 +145815,8 @@ pub fn compute_resource_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_list_execute()` to send, or `compute_resource_policies_list` for simplest API.
 
-pub fn compute_resource_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -143498,7 +145824,10 @@ pub fn compute_resource_policies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies",
@@ -143700,14 +146029,17 @@ pub fn compute_resource_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_patch_execute()` to send, or `compute_resource_policies_patch` for simplest API.
 
-pub fn compute_resource_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resourcePolicy: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}",
@@ -143890,12 +146222,15 @@ pub fn compute_resource_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_set_iam_policy_execute()` to send, or `compute_resource_policies_set_iam_policy` for simplest API.
 
-pub fn compute_resource_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}/setIamPolicy",
@@ -144060,12 +146395,15 @@ pub fn compute_resource_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_resource_policies_test_iam_permissions_execute()` to send, or `compute_resource_policies_test_iam_permissions` for simplest API.
 
-pub fn compute_resource_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_resource_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}/testIamPermissions",
@@ -144234,8 +146572,8 @@ pub fn compute_resource_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_aggregated_list_execute()` to send, or `compute_routers_aggregated_list` for simplest API.
 
-pub fn compute_routers_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -144244,7 +146582,10 @@ pub fn compute_routers_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/routers",
@@ -144455,13 +146796,16 @@ pub fn compute_routers_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_delete_execute()` to send, or `compute_routers_delete` for simplest API.
 
-pub fn compute_routers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}",
@@ -144638,14 +146982,17 @@ pub fn compute_routers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_delete_route_policy_execute()` to send, or `compute_routers_delete_route_policy` for simplest API.
 
-pub fn compute_routers_delete_route_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_delete_route_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     policy: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/deleteRoutePolicy",
@@ -144830,12 +147177,15 @@ pub fn compute_routers_delete_route_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_get_execute()` to send, or `compute_routers_get` for simplest API.
 
-pub fn compute_routers_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}",
@@ -144993,13 +147343,16 @@ pub fn compute_routers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_get_nat_ip_info_execute()` to send, or `compute_routers_get_nat_ip_info` for simplest API.
 
-pub fn compute_routers_get_nat_ip_info_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_get_nat_ip_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     natName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getNatIpInfo",
@@ -145180,8 +147533,8 @@ pub fn compute_routers_get_nat_ip_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_get_nat_mapping_info_execute()` to send, or `compute_routers_get_nat_mapping_info` for simplest API.
 
-pub fn compute_routers_get_nat_mapping_info_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_get_nat_mapping_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
@@ -145191,7 +147544,10 @@ pub fn compute_routers_get_nat_mapping_info_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getNatMappingInfo",
@@ -145404,13 +147760,16 @@ pub fn compute_routers_get_nat_mapping_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_get_route_policy_execute()` to send, or `compute_routers_get_route_policy` for simplest API.
 
-pub fn compute_routers_get_route_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_get_route_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     policy: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getRoutePolicy",
@@ -145597,12 +147956,15 @@ pub fn compute_routers_get_route_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_get_router_status_execute()` to send, or `compute_routers_get_router_status` for simplest API.
 
-pub fn compute_routers_get_router_status_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_get_router_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getRouterStatus",
@@ -145771,12 +148133,15 @@ pub fn compute_routers_get_router_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_insert_execute()` to send, or `compute_routers_insert` for simplest API.
 
-pub fn compute_routers_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers",
@@ -145946,8 +148311,8 @@ pub fn compute_routers_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_list_execute()` to send, or `compute_routers_list` for simplest API.
 
-pub fn compute_routers_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -145955,7 +148320,10 @@ pub fn compute_routers_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers",
@@ -146153,8 +148521,8 @@ pub fn compute_routers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_list_bgp_routes_execute()` to send, or `compute_routers_list_bgp_routes` for simplest API.
 
-pub fn compute_routers_list_bgp_routes_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_list_bgp_routes_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
@@ -146168,7 +148536,10 @@ pub fn compute_routers_list_bgp_routes_builder(
     policyApplied: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     routeType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/listBgpRoutes",
@@ -146403,8 +148774,8 @@ pub fn compute_routers_list_bgp_routes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_list_route_policies_execute()` to send, or `compute_routers_list_route_policies` for simplest API.
 
-pub fn compute_routers_list_route_policies_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_list_route_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
@@ -146413,7 +148784,10 @@ pub fn compute_routers_list_route_policies_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/listRoutePolicies",
@@ -146620,13 +148994,16 @@ pub fn compute_routers_list_route_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_patch_execute()` to send, or `compute_routers_patch` for simplest API.
 
-pub fn compute_routers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}",
@@ -146803,13 +149180,16 @@ pub fn compute_routers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_patch_route_policy_execute()` to send, or `compute_routers_patch_route_policy` for simplest API.
 
-pub fn compute_routers_patch_route_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_patch_route_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/patchRoutePolicy",
@@ -146988,12 +149368,15 @@ pub fn compute_routers_patch_route_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_preview_execute()` to send, or `compute_routers_preview` for simplest API.
 
-pub fn compute_routers_preview_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_preview_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/preview",
@@ -147156,13 +149539,16 @@ pub fn compute_routers_preview(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_update_execute()` to send, or `compute_routers_update` for simplest API.
 
-pub fn compute_routers_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}",
@@ -147339,13 +149725,16 @@ pub fn compute_routers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routers_update_route_policy_execute()` to send, or `compute_routers_update_route_policy` for simplest API.
 
-pub fn compute_routers_update_route_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routers_update_route_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     router: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/updateRoutePolicy",
@@ -147524,12 +149913,15 @@ pub fn compute_routers_update_route_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routes_delete_execute()` to send, or `compute_routes_delete` for simplest API.
 
-pub fn compute_routes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     route: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes/{}",
@@ -147699,11 +150091,14 @@ pub fn compute_routes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routes_get_execute()` to send, or `compute_routes_get` for simplest API.
 
-pub fn compute_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     route: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes/{}",
@@ -147859,11 +150254,14 @@ pub fn compute_routes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routes_insert_execute()` to send, or `compute_routes_insert` for simplest API.
 
-pub fn compute_routes_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routes_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes",
@@ -148030,15 +150428,18 @@ pub fn compute_routes_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routes_list_execute()` to send, or `compute_routes_list` for simplest API.
 
-pub fn compute_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes",
@@ -148233,11 +150634,14 @@ pub fn compute_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_routes_test_iam_permissions_execute()` to send, or `compute_routes_test_iam_permissions` for simplest API.
 
-pub fn compute_routes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_routes_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes/{}/testIamPermissions",
@@ -148398,12 +150802,15 @@ pub fn compute_routes_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_add_rule_execute()` to send, or `compute_security_policies_add_rule` for simplest API.
 
-pub fn compute_security_policies_add_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_add_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/addRule",
@@ -148577,8 +150984,8 @@ pub fn compute_security_policies_add_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_aggregated_list_execute()` to send, or `compute_security_policies_aggregated_list` for simplest API.
 
-pub fn compute_security_policies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -148587,7 +150994,10 @@ pub fn compute_security_policies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/securityPolicies",
@@ -148802,12 +151212,15 @@ pub fn compute_security_policies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_delete_execute()` to send, or `compute_security_policies_delete` for simplest API.
 
-pub fn compute_security_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}",
@@ -148981,11 +151394,14 @@ pub fn compute_security_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_get_execute()` to send, or `compute_security_policies_get` for simplest API.
 
-pub fn compute_security_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}",
@@ -149146,12 +151562,15 @@ pub fn compute_security_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_get_rule_execute()` to send, or `compute_security_policies_get_rule` for simplest API.
 
-pub fn compute_security_policies_get_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_get_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/getRule",
@@ -149329,12 +151748,15 @@ pub fn compute_security_policies_get_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_insert_execute()` to send, or `compute_security_policies_insert` for simplest API.
 
-pub fn compute_security_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies",
@@ -149511,15 +151933,18 @@ pub fn compute_security_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_list_execute()` to send, or `compute_security_policies_list` for simplest API.
 
-pub fn compute_security_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies",
@@ -149718,15 +152143,18 @@ pub fn compute_security_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_list_preconfigured_expression_sets_execute()` to send, or `compute_security_policies_list_preconfigured_expression_sets` for simplest API.
 
-pub fn compute_security_policies_list_preconfigured_expression_sets_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_list_preconfigured_expression_sets_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/listPreconfiguredExpressionSets",
@@ -149939,13 +152367,16 @@ pub fn compute_security_policies_list_preconfigured_expression_sets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_patch_execute()` to send, or `compute_security_policies_patch` for simplest API.
 
-pub fn compute_security_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}",
@@ -150125,14 +152556,17 @@ pub fn compute_security_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_patch_rule_execute()` to send, or `compute_security_policies_patch_rule` for simplest API.
 
-pub fn compute_security_policies_patch_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_patch_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/patchRule",
@@ -150319,12 +152753,15 @@ pub fn compute_security_policies_patch_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_remove_rule_execute()` to send, or `compute_security_policies_remove_rule` for simplest API.
 
-pub fn compute_security_policies_remove_rule_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_remove_rule_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
     priority: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/removeRule",
@@ -150499,11 +152936,14 @@ pub fn compute_security_policies_remove_rule(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_security_policies_set_labels_execute()` to send, or `compute_security_policies_set_labels` for simplest API.
 
-pub fn compute_security_policies_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_security_policies_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/setLabels",
@@ -150661,8 +153101,8 @@ pub fn compute_security_policies_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_aggregated_list_execute()` to send, or `compute_service_attachments_aggregated_list` for simplest API.
 
-pub fn compute_service_attachments_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -150671,7 +153111,10 @@ pub fn compute_service_attachments_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/serviceAttachments",
@@ -150886,13 +153329,16 @@ pub fn compute_service_attachments_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_delete_execute()` to send, or `compute_service_attachments_delete` for simplest API.
 
-pub fn compute_service_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     serviceAttachment: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}",
@@ -151069,13 +153515,16 @@ pub fn compute_service_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_get_execute()` to send, or `compute_service_attachments_get` for simplest API.
 
-pub fn compute_service_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     serviceAttachment: &String,
     showNatIps: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}",
@@ -151256,13 +153705,16 @@ pub fn compute_service_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_get_iam_policy_execute()` to send, or `compute_service_attachments_get_iam_policy` for simplest API.
 
-pub fn compute_service_attachments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}/getIamPolicy",
@@ -151441,12 +153893,15 @@ pub fn compute_service_attachments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_insert_execute()` to send, or `compute_service_attachments_insert` for simplest API.
 
-pub fn compute_service_attachments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments",
@@ -151620,8 +154075,8 @@ pub fn compute_service_attachments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_list_execute()` to send, or `compute_service_attachments_list` for simplest API.
 
-pub fn compute_service_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -151629,7 +154084,10 @@ pub fn compute_service_attachments_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments",
@@ -151831,13 +154289,16 @@ pub fn compute_service_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_patch_execute()` to send, or `compute_service_attachments_patch` for simplest API.
 
-pub fn compute_service_attachments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     serviceAttachment: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}",
@@ -152014,12 +154475,15 @@ pub fn compute_service_attachments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_set_iam_policy_execute()` to send, or `compute_service_attachments_set_iam_policy` for simplest API.
 
-pub fn compute_service_attachments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}/setIamPolicy",
@@ -152184,12 +154648,15 @@ pub fn compute_service_attachments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_service_attachments_test_iam_permissions_execute()` to send, or `compute_service_attachments_test_iam_permissions` for simplest API.
 
-pub fn compute_service_attachments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_service_attachments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}/testIamPermissions",
@@ -152358,10 +154825,13 @@ pub fn compute_service_attachments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshot_settings_get_execute()` to send, or `compute_snapshot_settings_get` for simplest API.
 
-pub fn compute_snapshot_settings_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshot_settings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshotSettings",
@@ -152519,12 +154989,15 @@ pub fn compute_snapshot_settings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshot_settings_patch_execute()` to send, or `compute_snapshot_settings_patch` for simplest API.
 
-pub fn compute_snapshot_settings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshot_settings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshotSettings",
@@ -152701,12 +155174,15 @@ pub fn compute_snapshot_settings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_delete_execute()` to send, or `compute_snapshots_delete` for simplest API.
 
-pub fn compute_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     snapshot: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}",
@@ -152876,11 +155352,14 @@ pub fn compute_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_get_execute()` to send, or `compute_snapshots_get` for simplest API.
 
-pub fn compute_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     snapshot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}",
@@ -153036,12 +155515,15 @@ pub fn compute_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_get_iam_policy_execute()` to send, or `compute_snapshots_get_iam_policy` for simplest API.
 
-pub fn compute_snapshots_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/getIamPolicy",
@@ -153215,11 +155697,14 @@ pub fn compute_snapshots_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_insert_execute()` to send, or `compute_snapshots_insert` for simplest API.
 
-pub fn compute_snapshots_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots",
@@ -153386,15 +155871,18 @@ pub fn compute_snapshots_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_list_execute()` to send, or `compute_snapshots_list` for simplest API.
 
-pub fn compute_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots",
@@ -153593,11 +156081,14 @@ pub fn compute_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_set_iam_policy_execute()` to send, or `compute_snapshots_set_iam_policy` for simplest API.
 
-pub fn compute_snapshots_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/setIamPolicy",
@@ -153753,11 +156244,14 @@ pub fn compute_snapshots_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_set_labels_execute()` to send, or `compute_snapshots_set_labels` for simplest API.
 
-pub fn compute_snapshots_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/setLabels",
@@ -153913,11 +156407,14 @@ pub fn compute_snapshots_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_test_iam_permissions_execute()` to send, or `compute_snapshots_test_iam_permissions` for simplest API.
 
-pub fn compute_snapshots_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/testIamPermissions",
@@ -154079,12 +156576,15 @@ pub fn compute_snapshots_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_snapshots_update_kms_key_execute()` to send, or `compute_snapshots_update_kms_key` for simplest API.
 
-pub fn compute_snapshots_update_kms_key_builder(
-    client: &SimpleHttpClient,
+pub fn compute_snapshots_update_kms_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     snapshot: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/updateKmsKey",
@@ -154258,8 +156758,8 @@ pub fn compute_snapshots_update_kms_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_certificates_aggregated_list_execute()` to send, or `compute_ssl_certificates_aggregated_list` for simplest API.
 
-pub fn compute_ssl_certificates_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_certificates_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -154268,7 +156768,10 @@ pub fn compute_ssl_certificates_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/sslCertificates",
@@ -154483,12 +156986,15 @@ pub fn compute_ssl_certificates_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_certificates_delete_execute()` to send, or `compute_ssl_certificates_delete` for simplest API.
 
-pub fn compute_ssl_certificates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     sslCertificate: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslCertificates/{}",
@@ -154662,11 +157168,14 @@ pub fn compute_ssl_certificates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_certificates_get_execute()` to send, or `compute_ssl_certificates_get` for simplest API.
 
-pub fn compute_ssl_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     sslCertificate: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslCertificates/{}",
@@ -154827,11 +157336,14 @@ pub fn compute_ssl_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_certificates_insert_execute()` to send, or `compute_ssl_certificates_insert` for simplest API.
 
-pub fn compute_ssl_certificates_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_certificates_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslCertificates",
@@ -154998,15 +157510,18 @@ pub fn compute_ssl_certificates_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_certificates_list_execute()` to send, or `compute_ssl_certificates_list` for simplest API.
 
-pub fn compute_ssl_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslCertificates",
@@ -155205,8 +157720,8 @@ pub fn compute_ssl_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_policies_aggregated_list_execute()` to send, or `compute_ssl_policies_aggregated_list` for simplest API.
 
-pub fn compute_ssl_policies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_policies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -155215,7 +157730,10 @@ pub fn compute_ssl_policies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/sslPolicies",
@@ -155426,12 +157944,15 @@ pub fn compute_ssl_policies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_policies_delete_execute()` to send, or `compute_ssl_policies_delete` for simplest API.
 
-pub fn compute_ssl_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     sslPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies/{}",
@@ -155605,11 +158126,14 @@ pub fn compute_ssl_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_policies_get_execute()` to send, or `compute_ssl_policies_get` for simplest API.
 
-pub fn compute_ssl_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     sslPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies/{}",
@@ -155765,11 +158289,14 @@ pub fn compute_ssl_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_policies_insert_execute()` to send, or `compute_ssl_policies_insert` for simplest API.
 
-pub fn compute_ssl_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies",
@@ -155936,15 +158463,18 @@ pub fn compute_ssl_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_policies_list_execute()` to send, or `compute_ssl_policies_list` for simplest API.
 
-pub fn compute_ssl_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies",
@@ -156143,15 +158673,18 @@ pub fn compute_ssl_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_policies_list_available_features_execute()` to send, or `compute_ssl_policies_list_available_features` for simplest API.
 
-pub fn compute_ssl_policies_list_available_features_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_policies_list_available_features_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies/listAvailableFeatures",
@@ -156354,12 +158887,15 @@ pub fn compute_ssl_policies_list_available_features(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_ssl_policies_patch_execute()` to send, or `compute_ssl_policies_patch` for simplest API.
 
-pub fn compute_ssl_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_ssl_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     sslPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies/{}",
@@ -156533,8 +159069,8 @@ pub fn compute_ssl_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pool_types_aggregated_list_execute()` to send, or `compute_storage_pool_types_aggregated_list` for simplest API.
 
-pub fn compute_storage_pool_types_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pool_types_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -156543,7 +159079,10 @@ pub fn compute_storage_pool_types_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/storagePoolTypes",
@@ -156758,12 +159297,15 @@ pub fn compute_storage_pool_types_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pool_types_get_execute()` to send, or `compute_storage_pool_types_get` for simplest API.
 
-pub fn compute_storage_pool_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pool_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     storagePoolType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePoolTypes/{}",
@@ -156930,8 +159472,8 @@ pub fn compute_storage_pool_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pool_types_list_execute()` to send, or `compute_storage_pool_types_list` for simplest API.
 
-pub fn compute_storage_pool_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pool_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -156939,7 +159481,10 @@ pub fn compute_storage_pool_types_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePoolTypes",
@@ -157141,8 +159686,8 @@ pub fn compute_storage_pool_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_aggregated_list_execute()` to send, or `compute_storage_pools_aggregated_list` for simplest API.
 
-pub fn compute_storage_pools_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -157151,7 +159696,10 @@ pub fn compute_storage_pools_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/storagePools",
@@ -157362,13 +159910,16 @@ pub fn compute_storage_pools_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_delete_execute()` to send, or `compute_storage_pools_delete` for simplest API.
 
-pub fn compute_storage_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     storagePool: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}",
@@ -157545,12 +160096,15 @@ pub fn compute_storage_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_get_execute()` to send, or `compute_storage_pools_get` for simplest API.
 
-pub fn compute_storage_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     storagePool: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}",
@@ -157709,13 +160263,16 @@ pub fn compute_storage_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_get_iam_policy_execute()` to send, or `compute_storage_pools_get_iam_policy` for simplest API.
 
-pub fn compute_storage_pools_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/getIamPolicy",
@@ -157894,12 +160451,15 @@ pub fn compute_storage_pools_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_insert_execute()` to send, or `compute_storage_pools_insert` for simplest API.
 
-pub fn compute_storage_pools_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools",
@@ -158069,8 +160629,8 @@ pub fn compute_storage_pools_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_list_execute()` to send, or `compute_storage_pools_list` for simplest API.
 
-pub fn compute_storage_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -158078,7 +160638,10 @@ pub fn compute_storage_pools_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools",
@@ -158280,8 +160843,8 @@ pub fn compute_storage_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_list_disks_execute()` to send, or `compute_storage_pools_list_disks` for simplest API.
 
-pub fn compute_storage_pools_list_disks_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_list_disks_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     storagePool: &String,
@@ -158290,7 +160853,10 @@ pub fn compute_storage_pools_list_disks_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/listDisks",
@@ -158495,12 +161061,15 @@ pub fn compute_storage_pools_list_disks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_set_iam_policy_execute()` to send, or `compute_storage_pools_set_iam_policy` for simplest API.
 
-pub fn compute_storage_pools_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/setIamPolicy",
@@ -158665,12 +161234,15 @@ pub fn compute_storage_pools_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_test_iam_permissions_execute()` to send, or `compute_storage_pools_test_iam_permissions` for simplest API.
 
-pub fn compute_storage_pools_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/testIamPermissions",
@@ -158839,14 +161411,17 @@ pub fn compute_storage_pools_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_storage_pools_update_execute()` to send, or `compute_storage_pools_update` for simplest API.
 
-pub fn compute_storage_pools_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_storage_pools_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     storagePool: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}",
@@ -159029,8 +161604,8 @@ pub fn compute_storage_pools_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_aggregated_list_execute()` to send, or `compute_subnetworks_aggregated_list` for simplest API.
 
-pub fn compute_subnetworks_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -159040,7 +161615,10 @@ pub fn compute_subnetworks_aggregated_list_builder(
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
     views: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/subnetworks",
@@ -159257,13 +161835,16 @@ pub fn compute_subnetworks_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_delete_execute()` to send, or `compute_subnetworks_delete` for simplest API.
 
-pub fn compute_subnetworks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     subnetwork: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}",
@@ -159440,13 +162021,16 @@ pub fn compute_subnetworks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_expand_ip_cidr_range_execute()` to send, or `compute_subnetworks_expand_ip_cidr_range` for simplest API.
 
-pub fn compute_subnetworks_expand_ip_cidr_range_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_expand_ip_cidr_range_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     subnetwork: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/expandIpCidrRange",
@@ -159625,13 +162209,16 @@ pub fn compute_subnetworks_expand_ip_cidr_range(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_get_execute()` to send, or `compute_subnetworks_get` for simplest API.
 
-pub fn compute_subnetworks_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     subnetwork: &String,
     views: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}",
@@ -159808,13 +162395,16 @@ pub fn compute_subnetworks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_get_iam_policy_execute()` to send, or `compute_subnetworks_get_iam_policy` for simplest API.
 
-pub fn compute_subnetworks_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/getIamPolicy",
@@ -159993,12 +162583,15 @@ pub fn compute_subnetworks_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_insert_execute()` to send, or `compute_subnetworks_insert` for simplest API.
 
-pub fn compute_subnetworks_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks",
@@ -160168,8 +162761,8 @@ pub fn compute_subnetworks_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_list_execute()` to send, or `compute_subnetworks_list` for simplest API.
 
-pub fn compute_subnetworks_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -160178,7 +162771,10 @@ pub fn compute_subnetworks_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     views: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks",
@@ -160386,8 +162982,8 @@ pub fn compute_subnetworks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_list_usable_execute()` to send, or `compute_subnetworks_list_usable` for simplest API.
 
-pub fn compute_subnetworks_list_usable_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_list_usable_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
@@ -160395,7 +162991,10 @@ pub fn compute_subnetworks_list_usable_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/subnetworks/listUsable",
@@ -160604,14 +163203,17 @@ pub fn compute_subnetworks_list_usable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_patch_execute()` to send, or `compute_subnetworks_patch` for simplest API.
 
-pub fn compute_subnetworks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     subnetwork: &String,
     drainTimeoutSeconds: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}",
@@ -160794,12 +163396,15 @@ pub fn compute_subnetworks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_set_iam_policy_execute()` to send, or `compute_subnetworks_set_iam_policy` for simplest API.
 
-pub fn compute_subnetworks_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/setIamPolicy",
@@ -160964,13 +163569,16 @@ pub fn compute_subnetworks_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_set_private_ip_google_access_execute()` to send, or `compute_subnetworks_set_private_ip_google_access` for simplest API.
 
-pub fn compute_subnetworks_set_private_ip_google_access_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_set_private_ip_google_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     subnetwork: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/setPrivateIpGoogleAccess",
@@ -161149,12 +163757,15 @@ pub fn compute_subnetworks_set_private_ip_google_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_subnetworks_test_iam_permissions_execute()` to send, or `compute_subnetworks_test_iam_permissions` for simplest API.
 
-pub fn compute_subnetworks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_subnetworks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/testIamPermissions",
@@ -161323,12 +163934,15 @@ pub fn compute_subnetworks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_grpc_proxies_delete_execute()` to send, or `compute_target_grpc_proxies_delete` for simplest API.
 
-pub fn compute_target_grpc_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_grpc_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetGrpcProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetGrpcProxies/{}",
@@ -161502,11 +164116,14 @@ pub fn compute_target_grpc_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_grpc_proxies_get_execute()` to send, or `compute_target_grpc_proxies_get` for simplest API.
 
-pub fn compute_target_grpc_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_grpc_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetGrpcProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetGrpcProxies/{}",
@@ -161667,11 +164284,14 @@ pub fn compute_target_grpc_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_grpc_proxies_insert_execute()` to send, or `compute_target_grpc_proxies_insert` for simplest API.
 
-pub fn compute_target_grpc_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_grpc_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetGrpcProxies",
@@ -161839,15 +164459,18 @@ pub fn compute_target_grpc_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_grpc_proxies_list_execute()` to send, or `compute_target_grpc_proxies_list` for simplest API.
 
-pub fn compute_target_grpc_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_grpc_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetGrpcProxies",
@@ -162046,12 +164669,15 @@ pub fn compute_target_grpc_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_grpc_proxies_patch_execute()` to send, or `compute_target_grpc_proxies_patch` for simplest API.
 
-pub fn compute_target_grpc_proxies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_grpc_proxies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetGrpcProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetGrpcProxies/{}",
@@ -162225,8 +164851,8 @@ pub fn compute_target_grpc_proxies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_http_proxies_aggregated_list_execute()` to send, or `compute_target_http_proxies_aggregated_list` for simplest API.
 
-pub fn compute_target_http_proxies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_http_proxies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -162235,7 +164861,10 @@ pub fn compute_target_http_proxies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetHttpProxies",
@@ -162450,12 +165079,15 @@ pub fn compute_target_http_proxies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_http_proxies_delete_execute()` to send, or `compute_target_http_proxies_delete` for simplest API.
 
-pub fn compute_target_http_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_http_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpProxies/{}",
@@ -162629,11 +165261,14 @@ pub fn compute_target_http_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_http_proxies_get_execute()` to send, or `compute_target_http_proxies_get` for simplest API.
 
-pub fn compute_target_http_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_http_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpProxies/{}",
@@ -162794,11 +165429,14 @@ pub fn compute_target_http_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_http_proxies_insert_execute()` to send, or `compute_target_http_proxies_insert` for simplest API.
 
-pub fn compute_target_http_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_http_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpProxies",
@@ -162966,15 +165604,18 @@ pub fn compute_target_http_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_http_proxies_list_execute()` to send, or `compute_target_http_proxies_list` for simplest API.
 
-pub fn compute_target_http_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_http_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpProxies",
@@ -163173,12 +165814,15 @@ pub fn compute_target_http_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_http_proxies_patch_execute()` to send, or `compute_target_http_proxies_patch` for simplest API.
 
-pub fn compute_target_http_proxies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_http_proxies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpProxies/{}",
@@ -163352,12 +165996,15 @@ pub fn compute_target_http_proxies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_http_proxies_set_url_map_execute()` to send, or `compute_target_http_proxies_set_url_map` for simplest API.
 
-pub fn compute_target_http_proxies_set_url_map_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_http_proxies_set_url_map_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/targetHttpProxies/{}/setUrlMap",
@@ -163531,8 +166178,8 @@ pub fn compute_target_http_proxies_set_url_map(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_aggregated_list_execute()` to send, or `compute_target_https_proxies_aggregated_list` for simplest API.
 
-pub fn compute_target_https_proxies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -163541,7 +166188,10 @@ pub fn compute_target_https_proxies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetHttpsProxies",
@@ -163756,12 +166406,15 @@ pub fn compute_target_https_proxies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_delete_execute()` to send, or `compute_target_https_proxies_delete` for simplest API.
 
-pub fn compute_target_https_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}",
@@ -163935,11 +166588,14 @@ pub fn compute_target_https_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_get_execute()` to send, or `compute_target_https_proxies_get` for simplest API.
 
-pub fn compute_target_https_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}",
@@ -164100,11 +166756,14 @@ pub fn compute_target_https_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_insert_execute()` to send, or `compute_target_https_proxies_insert` for simplest API.
 
-pub fn compute_target_https_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies",
@@ -164272,15 +166931,18 @@ pub fn compute_target_https_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_list_execute()` to send, or `compute_target_https_proxies_list` for simplest API.
 
-pub fn compute_target_https_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies",
@@ -164479,12 +167141,15 @@ pub fn compute_target_https_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_patch_execute()` to send, or `compute_target_https_proxies_patch` for simplest API.
 
-pub fn compute_target_https_proxies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}",
@@ -164658,12 +167323,15 @@ pub fn compute_target_https_proxies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_set_certificate_map_execute()` to send, or `compute_target_https_proxies_set_certificate_map` for simplest API.
 
-pub fn compute_target_https_proxies_set_certificate_map_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_set_certificate_map_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}/setCertificateMap",
@@ -164838,12 +167506,15 @@ pub fn compute_target_https_proxies_set_certificate_map(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_set_quic_override_execute()` to send, or `compute_target_https_proxies_set_quic_override` for simplest API.
 
-pub fn compute_target_https_proxies_set_quic_override_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_set_quic_override_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}/setQuicOverride",
@@ -165018,12 +167689,15 @@ pub fn compute_target_https_proxies_set_quic_override(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_set_ssl_certificates_execute()` to send, or `compute_target_https_proxies_set_ssl_certificates` for simplest API.
 
-pub fn compute_target_https_proxies_set_ssl_certificates_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_set_ssl_certificates_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/targetHttpsProxies/{}/setSslCertificates",
@@ -165198,12 +167872,15 @@ pub fn compute_target_https_proxies_set_ssl_certificates(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_set_ssl_policy_execute()` to send, or `compute_target_https_proxies_set_ssl_policy` for simplest API.
 
-pub fn compute_target_https_proxies_set_ssl_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_set_ssl_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}/setSslPolicy",
@@ -165378,12 +168055,15 @@ pub fn compute_target_https_proxies_set_ssl_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_https_proxies_set_url_map_execute()` to send, or `compute_target_https_proxies_set_url_map` for simplest API.
 
-pub fn compute_target_https_proxies_set_url_map_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_https_proxies_set_url_map_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/targetHttpsProxies/{}/setUrlMap",
@@ -165557,8 +168237,8 @@ pub fn compute_target_https_proxies_set_url_map(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_instances_aggregated_list_execute()` to send, or `compute_target_instances_aggregated_list` for simplest API.
 
-pub fn compute_target_instances_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_instances_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -165567,7 +168247,10 @@ pub fn compute_target_instances_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetInstances",
@@ -165782,13 +168465,16 @@ pub fn compute_target_instances_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_instances_delete_execute()` to send, or `compute_target_instances_delete` for simplest API.
 
-pub fn compute_target_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     targetInstance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances/{}",
@@ -165965,12 +168651,15 @@ pub fn compute_target_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_instances_get_execute()` to send, or `compute_target_instances_get` for simplest API.
 
-pub fn compute_target_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     targetInstance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances/{}",
@@ -166137,12 +168826,15 @@ pub fn compute_target_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_instances_insert_execute()` to send, or `compute_target_instances_insert` for simplest API.
 
-pub fn compute_target_instances_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_instances_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances",
@@ -166316,8 +169008,8 @@ pub fn compute_target_instances_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_instances_list_execute()` to send, or `compute_target_instances_list` for simplest API.
 
-pub fn compute_target_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -166325,7 +169017,10 @@ pub fn compute_target_instances_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances",
@@ -166527,13 +169222,16 @@ pub fn compute_target_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_instances_set_security_policy_execute()` to send, or `compute_target_instances_set_security_policy` for simplest API.
 
-pub fn compute_target_instances_set_security_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_instances_set_security_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     targetInstance: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances/{}/setSecurityPolicy",
@@ -166712,12 +169410,15 @@ pub fn compute_target_instances_set_security_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_instances_test_iam_permissions_execute()` to send, or `compute_target_instances_test_iam_permissions` for simplest API.
 
-pub fn compute_target_instances_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_instances_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances/{}/testIamPermissions",
@@ -166886,13 +169587,16 @@ pub fn compute_target_instances_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_add_health_check_execute()` to send, or `compute_target_pools_add_health_check` for simplest API.
 
-pub fn compute_target_pools_add_health_check_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_add_health_check_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/addHealthCheck",
@@ -167071,13 +169775,16 @@ pub fn compute_target_pools_add_health_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_add_instance_execute()` to send, or `compute_target_pools_add_instance` for simplest API.
 
-pub fn compute_target_pools_add_instance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_add_instance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/addInstance",
@@ -167256,8 +169963,8 @@ pub fn compute_target_pools_add_instance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_aggregated_list_execute()` to send, or `compute_target_pools_aggregated_list` for simplest API.
 
-pub fn compute_target_pools_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -167266,7 +169973,10 @@ pub fn compute_target_pools_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetPools",
@@ -167477,13 +170187,16 @@ pub fn compute_target_pools_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_delete_execute()` to send, or `compute_target_pools_delete` for simplest API.
 
-pub fn compute_target_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}",
@@ -167660,12 +170373,15 @@ pub fn compute_target_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_get_execute()` to send, or `compute_target_pools_get` for simplest API.
 
-pub fn compute_target_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}",
@@ -167824,12 +170540,15 @@ pub fn compute_target_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_get_health_execute()` to send, or `compute_target_pools_get_health` for simplest API.
 
-pub fn compute_target_pools_get_health_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_get_health_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/getHealth",
@@ -167996,12 +170715,15 @@ pub fn compute_target_pools_get_health(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_insert_execute()` to send, or `compute_target_pools_insert` for simplest API.
 
-pub fn compute_target_pools_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools",
@@ -168171,8 +170893,8 @@ pub fn compute_target_pools_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_list_execute()` to send, or `compute_target_pools_list` for simplest API.
 
-pub fn compute_target_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -168180,7 +170902,10 @@ pub fn compute_target_pools_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools",
@@ -168382,13 +171107,16 @@ pub fn compute_target_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_remove_health_check_execute()` to send, or `compute_target_pools_remove_health_check` for simplest API.
 
-pub fn compute_target_pools_remove_health_check_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_remove_health_check_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/removeHealthCheck",
@@ -168567,13 +171295,16 @@ pub fn compute_target_pools_remove_health_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_remove_instance_execute()` to send, or `compute_target_pools_remove_instance` for simplest API.
 
-pub fn compute_target_pools_remove_instance_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_remove_instance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/removeInstance",
@@ -168752,14 +171483,17 @@ pub fn compute_target_pools_remove_instance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_set_backup_execute()` to send, or `compute_target_pools_set_backup` for simplest API.
 
-pub fn compute_target_pools_set_backup_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_set_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
     failoverRatio: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/setBackup",
@@ -168942,13 +171676,16 @@ pub fn compute_target_pools_set_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_set_security_policy_execute()` to send, or `compute_target_pools_set_security_policy` for simplest API.
 
-pub fn compute_target_pools_set_security_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_set_security_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetPool: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/setSecurityPolicy",
@@ -169127,12 +171864,15 @@ pub fn compute_target_pools_set_security_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_test_iam_permissions_execute()` to send, or `compute_target_pools_test_iam_permissions` for simplest API.
 
-pub fn compute_target_pools_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_pools_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/testIamPermissions",
@@ -169301,12 +172041,15 @@ pub fn compute_target_pools_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_delete_execute()` to send, or `compute_target_ssl_proxies_delete` for simplest API.
 
-pub fn compute_target_ssl_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}",
@@ -169480,11 +172223,14 @@ pub fn compute_target_ssl_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_get_execute()` to send, or `compute_target_ssl_proxies_get` for simplest API.
 
-pub fn compute_target_ssl_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}",
@@ -169645,11 +172391,14 @@ pub fn compute_target_ssl_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_insert_execute()` to send, or `compute_target_ssl_proxies_insert` for simplest API.
 
-pub fn compute_target_ssl_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies",
@@ -169817,15 +172566,18 @@ pub fn compute_target_ssl_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_list_execute()` to send, or `compute_target_ssl_proxies_list` for simplest API.
 
-pub fn compute_target_ssl_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies",
@@ -170024,12 +172776,15 @@ pub fn compute_target_ssl_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_set_backend_service_execute()` to send, or `compute_target_ssl_proxies_set_backend_service` for simplest API.
 
-pub fn compute_target_ssl_proxies_set_backend_service_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_set_backend_service_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setBackendService",
@@ -170204,12 +172959,15 @@ pub fn compute_target_ssl_proxies_set_backend_service(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_set_certificate_map_execute()` to send, or `compute_target_ssl_proxies_set_certificate_map` for simplest API.
 
-pub fn compute_target_ssl_proxies_set_certificate_map_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_set_certificate_map_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setCertificateMap",
@@ -170384,12 +173142,15 @@ pub fn compute_target_ssl_proxies_set_certificate_map(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_set_proxy_header_execute()` to send, or `compute_target_ssl_proxies_set_proxy_header` for simplest API.
 
-pub fn compute_target_ssl_proxies_set_proxy_header_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_set_proxy_header_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setProxyHeader",
@@ -170564,12 +173325,15 @@ pub fn compute_target_ssl_proxies_set_proxy_header(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_set_ssl_certificates_execute()` to send, or `compute_target_ssl_proxies_set_ssl_certificates` for simplest API.
 
-pub fn compute_target_ssl_proxies_set_ssl_certificates_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_set_ssl_certificates_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setSslCertificates",
@@ -170744,12 +173508,15 @@ pub fn compute_target_ssl_proxies_set_ssl_certificates(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_set_ssl_policy_execute()` to send, or `compute_target_ssl_proxies_set_ssl_policy` for simplest API.
 
-pub fn compute_target_ssl_proxies_set_ssl_policy_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_set_ssl_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setSslPolicy",
@@ -170924,11 +173691,14 @@ pub fn compute_target_ssl_proxies_set_ssl_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_ssl_proxies_test_iam_permissions_execute()` to send, or `compute_target_ssl_proxies_test_iam_permissions` for simplest API.
 
-pub fn compute_target_ssl_proxies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_ssl_proxies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/testIamPermissions",
@@ -171093,8 +173863,8 @@ pub fn compute_target_ssl_proxies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_aggregated_list_execute()` to send, or `compute_target_tcp_proxies_aggregated_list` for simplest API.
 
-pub fn compute_target_tcp_proxies_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -171103,7 +173873,10 @@ pub fn compute_target_tcp_proxies_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetTcpProxies",
@@ -171318,12 +174091,15 @@ pub fn compute_target_tcp_proxies_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_delete_execute()` to send, or `compute_target_tcp_proxies_delete` for simplest API.
 
-pub fn compute_target_tcp_proxies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetTcpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}",
@@ -171497,11 +174273,14 @@ pub fn compute_target_tcp_proxies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_get_execute()` to send, or `compute_target_tcp_proxies_get` for simplest API.
 
-pub fn compute_target_tcp_proxies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetTcpProxy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}",
@@ -171662,11 +174441,14 @@ pub fn compute_target_tcp_proxies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_insert_execute()` to send, or `compute_target_tcp_proxies_insert` for simplest API.
 
-pub fn compute_target_tcp_proxies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies",
@@ -171834,15 +174616,18 @@ pub fn compute_target_tcp_proxies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_list_execute()` to send, or `compute_target_tcp_proxies_list` for simplest API.
 
-pub fn compute_target_tcp_proxies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies",
@@ -172041,12 +174826,15 @@ pub fn compute_target_tcp_proxies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_set_backend_service_execute()` to send, or `compute_target_tcp_proxies_set_backend_service` for simplest API.
 
-pub fn compute_target_tcp_proxies_set_backend_service_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_set_backend_service_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetTcpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}/setBackendService",
@@ -172221,12 +175009,15 @@ pub fn compute_target_tcp_proxies_set_backend_service(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_set_proxy_header_execute()` to send, or `compute_target_tcp_proxies_set_proxy_header` for simplest API.
 
-pub fn compute_target_tcp_proxies_set_proxy_header_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_set_proxy_header_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     targetTcpProxy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}/setProxyHeader",
@@ -172401,11 +175192,14 @@ pub fn compute_target_tcp_proxies_set_proxy_header(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_tcp_proxies_test_iam_permissions_execute()` to send, or `compute_target_tcp_proxies_test_iam_permissions` for simplest API.
 
-pub fn compute_target_tcp_proxies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_tcp_proxies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}/testIamPermissions",
@@ -172570,8 +175364,8 @@ pub fn compute_target_tcp_proxies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_vpn_gateways_aggregated_list_execute()` to send, or `compute_target_vpn_gateways_aggregated_list` for simplest API.
 
-pub fn compute_target_vpn_gateways_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_vpn_gateways_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -172580,7 +175374,10 @@ pub fn compute_target_vpn_gateways_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetVpnGateways",
@@ -172795,13 +175592,16 @@ pub fn compute_target_vpn_gateways_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_vpn_gateways_delete_execute()` to send, or `compute_target_vpn_gateways_delete` for simplest API.
 
-pub fn compute_target_vpn_gateways_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_vpn_gateways_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetVpnGateway: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways/{}",
@@ -172978,12 +175778,15 @@ pub fn compute_target_vpn_gateways_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_vpn_gateways_get_execute()` to send, or `compute_target_vpn_gateways_get` for simplest API.
 
-pub fn compute_target_vpn_gateways_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_vpn_gateways_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     targetVpnGateway: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways/{}",
@@ -173150,12 +175953,15 @@ pub fn compute_target_vpn_gateways_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_vpn_gateways_insert_execute()` to send, or `compute_target_vpn_gateways_insert` for simplest API.
 
-pub fn compute_target_vpn_gateways_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_vpn_gateways_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways",
@@ -173329,8 +176135,8 @@ pub fn compute_target_vpn_gateways_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_vpn_gateways_list_execute()` to send, or `compute_target_vpn_gateways_list` for simplest API.
 
-pub fn compute_target_vpn_gateways_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_vpn_gateways_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -173338,7 +176144,10 @@ pub fn compute_target_vpn_gateways_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways",
@@ -173540,13 +176349,16 @@ pub fn compute_target_vpn_gateways_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_vpn_gateways_set_labels_execute()` to send, or `compute_target_vpn_gateways_set_labels` for simplest API.
 
-pub fn compute_target_vpn_gateways_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_target_vpn_gateways_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways/{}/setLabels",
@@ -173725,8 +176537,8 @@ pub fn compute_target_vpn_gateways_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_aggregated_list_execute()` to send, or `compute_url_maps_aggregated_list` for simplest API.
 
-pub fn compute_url_maps_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -173735,7 +176547,10 @@ pub fn compute_url_maps_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/urlMaps",
@@ -173946,12 +176761,15 @@ pub fn compute_url_maps_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_delete_execute()` to send, or `compute_url_maps_delete` for simplest API.
 
-pub fn compute_url_maps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}",
@@ -174121,11 +176939,14 @@ pub fn compute_url_maps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_get_execute()` to send, or `compute_url_maps_get` for simplest API.
 
-pub fn compute_url_maps_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}",
@@ -174281,11 +177102,14 @@ pub fn compute_url_maps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_insert_execute()` to send, or `compute_url_maps_insert` for simplest API.
 
-pub fn compute_url_maps_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps",
@@ -174452,12 +177276,15 @@ pub fn compute_url_maps_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_invalidate_cache_execute()` to send, or `compute_url_maps_invalidate_cache` for simplest API.
 
-pub fn compute_url_maps_invalidate_cache_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_invalidate_cache_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}/invalidateCache",
@@ -174631,15 +177458,18 @@ pub fn compute_url_maps_invalidate_cache(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_list_execute()` to send, or `compute_url_maps_list` for simplest API.
 
-pub fn compute_url_maps_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps",
@@ -174834,12 +177664,15 @@ pub fn compute_url_maps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_patch_execute()` to send, or `compute_url_maps_patch` for simplest API.
 
-pub fn compute_url_maps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}",
@@ -175009,11 +177842,14 @@ pub fn compute_url_maps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_test_iam_permissions_execute()` to send, or `compute_url_maps_test_iam_permissions` for simplest API.
 
-pub fn compute_url_maps_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}/testIamPermissions",
@@ -175175,12 +178011,15 @@ pub fn compute_url_maps_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_update_execute()` to send, or `compute_url_maps_update` for simplest API.
 
-pub fn compute_url_maps_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}",
@@ -175350,11 +178189,14 @@ pub fn compute_url_maps_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_url_maps_validate_execute()` to send, or `compute_url_maps_validate` for simplest API.
 
-pub fn compute_url_maps_validate_builder(
-    client: &SimpleHttpClient,
+pub fn compute_url_maps_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}/validate",
@@ -175514,8 +178356,8 @@ pub fn compute_url_maps_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_aggregated_list_execute()` to send, or `compute_vpn_gateways_aggregated_list` for simplest API.
 
-pub fn compute_vpn_gateways_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -175524,7 +178366,10 @@ pub fn compute_vpn_gateways_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/vpnGateways",
@@ -175735,13 +178580,16 @@ pub fn compute_vpn_gateways_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_delete_execute()` to send, or `compute_vpn_gateways_delete` for simplest API.
 
-pub fn compute_vpn_gateways_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     vpnGateway: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}",
@@ -175918,12 +178766,15 @@ pub fn compute_vpn_gateways_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_get_execute()` to send, or `compute_vpn_gateways_get` for simplest API.
 
-pub fn compute_vpn_gateways_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     vpnGateway: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}",
@@ -176082,12 +178933,15 @@ pub fn compute_vpn_gateways_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_get_status_execute()` to send, or `compute_vpn_gateways_get_status` for simplest API.
 
-pub fn compute_vpn_gateways_get_status_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_get_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     vpnGateway: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}/getStatus",
@@ -176258,12 +179112,15 @@ pub fn compute_vpn_gateways_get_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_insert_execute()` to send, or `compute_vpn_gateways_insert` for simplest API.
 
-pub fn compute_vpn_gateways_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways",
@@ -176433,8 +179290,8 @@ pub fn compute_vpn_gateways_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_list_execute()` to send, or `compute_vpn_gateways_list` for simplest API.
 
-pub fn compute_vpn_gateways_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -176442,7 +179299,10 @@ pub fn compute_vpn_gateways_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways",
@@ -176644,13 +179504,16 @@ pub fn compute_vpn_gateways_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_set_labels_execute()` to send, or `compute_vpn_gateways_set_labels` for simplest API.
 
-pub fn compute_vpn_gateways_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}/setLabels",
@@ -176827,12 +179690,15 @@ pub fn compute_vpn_gateways_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_gateways_test_iam_permissions_execute()` to send, or `compute_vpn_gateways_test_iam_permissions` for simplest API.
 
-pub fn compute_vpn_gateways_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_gateways_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}/testIamPermissions",
@@ -177001,8 +179867,8 @@ pub fn compute_vpn_gateways_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_tunnels_aggregated_list_execute()` to send, or `compute_vpn_tunnels_aggregated_list` for simplest API.
 
-pub fn compute_vpn_tunnels_aggregated_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_tunnels_aggregated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     includeAllScopes: &Option<Option<String>>,
@@ -177011,7 +179877,10 @@ pub fn compute_vpn_tunnels_aggregated_list_builder(
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
     serviceProjectNumber: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/vpnTunnels",
@@ -177222,13 +180091,16 @@ pub fn compute_vpn_tunnels_aggregated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_tunnels_delete_execute()` to send, or `compute_vpn_tunnels_delete` for simplest API.
 
-pub fn compute_vpn_tunnels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_tunnels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     vpnTunnel: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels/{}",
@@ -177405,12 +180277,15 @@ pub fn compute_vpn_tunnels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_tunnels_get_execute()` to send, or `compute_vpn_tunnels_get` for simplest API.
 
-pub fn compute_vpn_tunnels_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_tunnels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     vpnTunnel: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels/{}",
@@ -177569,12 +180444,15 @@ pub fn compute_vpn_tunnels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_tunnels_insert_execute()` to send, or `compute_vpn_tunnels_insert` for simplest API.
 
-pub fn compute_vpn_tunnels_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_tunnels_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels",
@@ -177744,8 +180622,8 @@ pub fn compute_vpn_tunnels_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_tunnels_list_execute()` to send, or `compute_vpn_tunnels_list` for simplest API.
 
-pub fn compute_vpn_tunnels_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_tunnels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     filter: &Option<Option<String>>,
@@ -177753,7 +180631,10 @@ pub fn compute_vpn_tunnels_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels",
@@ -177955,13 +180836,16 @@ pub fn compute_vpn_tunnels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_vpn_tunnels_set_labels_execute()` to send, or `compute_vpn_tunnels_set_labels` for simplest API.
 
-pub fn compute_vpn_tunnels_set_labels_builder(
-    client: &SimpleHttpClient,
+pub fn compute_vpn_tunnels_set_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
     resource: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels/{}/setLabels",
@@ -178138,13 +181022,16 @@ pub fn compute_vpn_tunnels_set_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_wire_groups_delete_execute()` to send, or `compute_wire_groups_delete` for simplest API.
 
-pub fn compute_wire_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_wire_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
     wireGroup: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}/wireGroups/{}",
@@ -178323,12 +181210,15 @@ pub fn compute_wire_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_wire_groups_get_execute()` to send, or `compute_wire_groups_get` for simplest API.
 
-pub fn compute_wire_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_wire_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
     wireGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}/wireGroups/{}",
@@ -178493,13 +181383,16 @@ pub fn compute_wire_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_wire_groups_insert_execute()` to send, or `compute_wire_groups_insert` for simplest API.
 
-pub fn compute_wire_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_wire_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}/wireGroups",
@@ -178680,8 +181573,8 @@ pub fn compute_wire_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_wire_groups_list_execute()` to send, or `compute_wire_groups_list` for simplest API.
 
-pub fn compute_wire_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_wire_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
     filter: &Option<Option<String>>,
@@ -178689,7 +181582,10 @@ pub fn compute_wire_groups_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}/wireGroups",
@@ -178892,15 +181788,18 @@ pub fn compute_wire_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_wire_groups_patch_execute()` to send, or `compute_wire_groups_patch` for simplest API.
 
-pub fn compute_wire_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn compute_wire_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
     wireGroup: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}/wireGroups/{}",
@@ -179091,12 +181990,15 @@ pub fn compute_wire_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_operations_delete_execute()` to send, or `compute_zone_operations_delete` for simplest API.
 
-pub fn compute_zone_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/operations/{}",
@@ -179252,12 +182154,15 @@ pub fn compute_zone_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_operations_get_execute()` to send, or `compute_zone_operations_get` for simplest API.
 
-pub fn compute_zone_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/operations/{}",
@@ -179416,8 +182321,8 @@ pub fn compute_zone_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_operations_list_execute()` to send, or `compute_zone_operations_list` for simplest API.
 
-pub fn compute_zone_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -179425,7 +182330,10 @@ pub fn compute_zone_operations_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/operations",
@@ -179627,12 +182535,15 @@ pub fn compute_zone_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_operations_wait_execute()` to send, or `compute_zone_operations_wait` for simplest API.
 
-pub fn compute_zone_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/operations/{}/wait",
@@ -179791,13 +182702,16 @@ pub fn compute_zone_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_vm_extension_policies_delete_execute()` to send, or `compute_zone_vm_extension_policies_delete` for simplest API.
 
-pub fn compute_zone_vm_extension_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_vm_extension_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     vmExtensionPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/vmExtensionPolicies/{}",
@@ -179974,12 +182888,15 @@ pub fn compute_zone_vm_extension_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_vm_extension_policies_get_execute()` to send, or `compute_zone_vm_extension_policies_get` for simplest API.
 
-pub fn compute_zone_vm_extension_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_vm_extension_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     vmExtensionPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/vmExtensionPolicies/{}",
@@ -180146,12 +183063,15 @@ pub fn compute_zone_vm_extension_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_vm_extension_policies_insert_execute()` to send, or `compute_zone_vm_extension_policies_insert` for simplest API.
 
-pub fn compute_zone_vm_extension_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_vm_extension_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/vmExtensionPolicies",
@@ -180325,8 +183245,8 @@ pub fn compute_zone_vm_extension_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_vm_extension_policies_list_execute()` to send, or `compute_zone_vm_extension_policies_list` for simplest API.
 
-pub fn compute_zone_vm_extension_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_vm_extension_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     filter: &Option<Option<String>>,
@@ -180334,7 +183254,10 @@ pub fn compute_zone_vm_extension_policies_list_builder(
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/vmExtensionPolicies",
@@ -180536,13 +183459,16 @@ pub fn compute_zone_vm_extension_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zone_vm_extension_policies_update_execute()` to send, or `compute_zone_vm_extension_policies_update` for simplest API.
 
-pub fn compute_zone_vm_extension_policies_update_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zone_vm_extension_policies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
     vmExtensionPolicy: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/vmExtensionPolicies/{}",
@@ -180719,11 +183645,14 @@ pub fn compute_zone_vm_extension_policies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zones_get_execute()` to send, or `compute_zones_get` for simplest API.
 
-pub fn compute_zones_get_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zones_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}",
@@ -180879,15 +183808,18 @@ pub fn compute_zones_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_zones_list_execute()` to send, or `compute_zones_list` for simplest API.
 
-pub fn compute_zones_list_builder(
-    client: &SimpleHttpClient,
+pub fn compute_zones_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones",

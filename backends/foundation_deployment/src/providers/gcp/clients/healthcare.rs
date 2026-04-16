@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_get_execute()` to send, or `healthcare_projects_locations_get` for simplest API.
 
-pub fn healthcare_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn healthcare_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_list_execute()` to send, or `healthcare_projects_locations_list` for simplest API.
 
-pub fn healthcare_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations",
@@ -383,11 +390,14 @@ pub fn healthcare_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_create_execute()` to send, or `healthcare_projects_locations_datasets_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     datasetId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets",
@@ -558,10 +568,13 @@ pub fn healthcare_projects_locations_datasets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_deidentify_execute()` to send, or `healthcare_projects_locations_datasets_deidentify` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_deidentify_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_deidentify_builder<R>(
+    client: &SimpleHttpClient<R>,
     sourceDataset: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:deidentify",
@@ -716,10 +729,13 @@ pub fn healthcare_projects_locations_datasets_deidentify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_delete_execute()` to send, or `healthcare_projects_locations_datasets_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -873,10 +889,13 @@ pub fn healthcare_projects_locations_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_get_execute()` to send, or `healthcare_projects_locations_datasets_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -1030,11 +1049,14 @@ pub fn healthcare_projects_locations_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_get_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_get_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:getIamPolicy",
@@ -1205,12 +1227,15 @@ pub fn healthcare_projects_locations_datasets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_list_execute()` to send, or `healthcare_projects_locations_datasets_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets",
@@ -1391,11 +1416,14 @@ pub fn healthcare_projects_locations_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_patch_execute()` to send, or `healthcare_projects_locations_datasets_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
@@ -1563,10 +1591,13 @@ pub fn healthcare_projects_locations_datasets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_set_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_set_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:setIamPolicy",
@@ -1721,10 +1752,13 @@ pub fn healthcare_projects_locations_datasets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_test_iam_permissions_execute()` to send, or `healthcare_projects_locations_datasets_test_iam_permissions` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}:testIamPermissions",
@@ -1889,10 +1923,13 @@ pub fn healthcare_projects_locations_datasets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_check_data_access_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_check_data_access` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     consentStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:checkDataAccess",
@@ -2054,11 +2091,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_create_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     consentStoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores",
@@ -2233,10 +2273,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_delete_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}",
@@ -2391,10 +2434,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents_builder<R>(
+    client: &SimpleHttpClient<R>,
     consentStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:evaluateUserConsents",
@@ -2561,10 +2607,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_evaluate_user_conse
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_get_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}",
@@ -2723,11 +2772,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_get_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_get_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:getIamPolicy",
@@ -2898,13 +2950,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_list_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores",
@@ -3091,11 +3146,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_patch_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}",
@@ -3270,10 +3328,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_query_accessible_data_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_query_accessible_data` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_query_accessible_data_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_query_accessible_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     consentStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:queryAccessibleData",
@@ -3432,10 +3493,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_query_accessible_da
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_set_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_set_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:setIamPolicy",
@@ -3592,10 +3656,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_test_iam_permissions_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_test_iam_permissions` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:testIamPermissions",
@@ -3762,11 +3829,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_test_iam_permission
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     attributeDefinitionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions",
@@ -3947,10 +4019,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions/{attributeDefinitionsId}",
@@ -4112,10 +4189,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions/{attributeDefinitionsId}",
@@ -4279,13 +4359,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions",
@@ -4482,11 +4565,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions/{attributeDefinitionsId}",
@@ -4667,10 +4755,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts",
@@ -4834,10 +4925,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_c
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts/{consentArtifactsId}",
@@ -4996,10 +5090,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts/{consentArtifactsId}",
@@ -5161,13 +5258,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts",
@@ -5360,10 +5460,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_activate_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_activate` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_activate_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:activate",
@@ -5520,10 +5623,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_create_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents",
@@ -5680,10 +5786,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_delete_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}",
@@ -5839,10 +5948,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_delete_revision_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_delete_revision` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_revision_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:deleteRevision",
@@ -6001,10 +6113,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_rev
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_get_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}",
@@ -6160,13 +6275,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_list_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents",
@@ -6353,13 +6471,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_list_revisions_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_list_revisions` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revisions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:listRevisions",
@@ -6553,11 +6674,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_patch_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}",
@@ -6728,10 +6852,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_reject_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_reject` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_reject_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_reject_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:reject",
@@ -6887,10 +7014,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_reject(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_consents_revoke_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_consents_revoke` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_consents_revoke_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_consents_revoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:revoke",
@@ -7046,10 +7176,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_revoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}:archive",
@@ -7219,10 +7352,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings",
@@ -7387,10 +7523,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}",
@@ -7550,10 +7689,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}",
@@ -7715,13 +7857,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings",
@@ -7915,11 +8060,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch_execute()` to send, or `healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}",
@@ -8097,11 +8245,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataMapperWorkspaces/{dataMapperWorkspacesId}:getIamPolicy",
@@ -8274,10 +8425,13 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_pol
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataMapperWorkspaces/{dataMapperWorkspacesId}:setIamPolicy",
@@ -8436,10 +8590,15 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_pol
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions_execute()` to send, or `healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dataMapperWorkspaces/{dataMapperWorkspacesId}:testIamPermissions",
@@ -8610,11 +8769,14 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_pe
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_create_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomStoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores",
@@ -8785,10 +8947,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_deidentify_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_deidentify` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_deidentify_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_deidentify_builder<R>(
+    client: &SimpleHttpClient<R>,
     sourceStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:deidentify",
@@ -8945,10 +9110,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_deidentify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_delete_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}",
@@ -9103,10 +9271,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_export_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_export` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_export_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:export",
@@ -9261,10 +9432,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_get_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}",
@@ -9419,10 +9593,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:getDICOMStoreMetrics",
@@ -9584,11 +9761,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metric
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_get_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:getIamPolicy",
@@ -9759,10 +9939,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_import_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_import` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_import_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:import",
@@ -9917,13 +10100,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_list_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores",
@@ -10110,11 +10296,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_patch_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}",
@@ -10285,11 +10474,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_search_for_instances_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_search_for_instances` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_instances_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/instances",
@@ -10451,11 +10643,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_search_for_series_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_search_for_series` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_series_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_series_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/series",
@@ -10616,11 +10811,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_series(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_search_for_studies_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_search_for_studies` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_studies_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_studies_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies",
@@ -10782,10 +10980,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_studies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:setBlobStorageSettings",
@@ -10945,10 +11146,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_sett
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_set_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_set_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:setIamPolicy",
@@ -11105,11 +11309,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_store_instances_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_store_instances` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_store_instances_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_store_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies",
@@ -11270,10 +11477,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_store_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:testIamPermissions",
@@ -11439,10 +11649,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     study: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}:getStudyMetrics",
@@ -11602,10 +11817,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}:setBlobStorageSettings",
@@ -11759,10 +11979,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     series: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}:getSeriesMetrics",
@@ -11920,10 +12145,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_ser
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}:getStorageInfo",
@@ -12078,11 +12308,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_ser
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_delete_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}",
@@ -12243,11 +12476,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/metadata",
@@ -12411,11 +12647,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_meta
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}",
@@ -12578,11 +12817,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_stud
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/instances",
@@ -12749,11 +12991,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_in
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series",
@@ -12917,11 +13162,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_se
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_store_instances_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_store_instances` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_store_instances_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_store_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}",
@@ -13084,11 +13332,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_store_instanc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_delete_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}",
@@ -13251,11 +13502,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/metadata",
@@ -13417,11 +13673,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrie
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}",
@@ -13588,11 +13849,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrie
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances",
@@ -13751,11 +14017,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_search
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}",
@@ -13917,11 +14188,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}",
@@ -14079,11 +14355,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/metadata",
@@ -14241,12 +14522,17 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
     viewport: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/rendered",
@@ -14417,11 +14703,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/bulkdata/{bulkdataId}/{bulkdataId1}",
@@ -14579,11 +14870,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/frames/{framesId}",
@@ -14741,12 +15037,17 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered_execute()` to send, or `healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
     viewport: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/frames/{framesId}/rendered",
@@ -14917,10 +15218,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:applyAdminConsents",
@@ -15077,10 +15381,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_apply_consents_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_apply_consents` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_apply_consents_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_apply_consents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:applyConsents",
@@ -15236,14 +15543,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_apply_consents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_bulk_export_group` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     _since: &Option<Option<String>>,
     _type: &Option<Option<String>>,
     organizeOutputBy: &Option<Option<String>>,
     outputFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Group/{GroupId}/$export",
@@ -15432,10 +15742,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_export_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_bulk_delete_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_bulk_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:bulkDelete",
@@ -15590,11 +15903,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_create_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     fhirStoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores",
@@ -15765,10 +16081,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_deidentify_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_deidentify` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_deidentify_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_deidentify_builder<R>(
+    client: &SimpleHttpClient<R>,
     sourceStore: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:deidentify",
@@ -15925,10 +16244,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_deidentify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_delete_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}",
@@ -16083,11 +16405,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_explain_data_access_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_explain_data_access` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     resourceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:explainDataAccess",
@@ -16263,10 +16588,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_export_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_export` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_export_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:export",
@@ -16421,10 +16749,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_get_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}",
@@ -16579,10 +16910,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:getFHIRStoreMetrics",
@@ -16743,11 +17077,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_get_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:getIamPolicy",
@@ -16918,10 +17255,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_import_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_import` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_import_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:import",
@@ -17076,13 +17416,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_list_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores",
@@ -17269,11 +17612,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_patch_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}",
@@ -17444,10 +17790,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_rollback_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_rollback` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:rollback",
@@ -17602,10 +17951,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_set_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_set_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:setIamPolicy",
@@ -17762,10 +18114,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:testIamPermissions",
@@ -17929,12 +18284,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions(
 /// Creates a FHIR Binary resource. This method can be used to create a Binary resource either by using one of the accepted FHIR JSON content types, or as a raw data stream. If a resource is created with this method using the FHIR content type this method's behavior is the same as [fhir.create](<https://cloud.google.`com/healthcare-api/docs/reference/rest/v1/projects`.locations.datasets.`fhirStores`.`fhir/create`>). If a resource type other than Binary is used in the request it's treated in the same way as non-FHIR data (e.g., images, zip archives, pdf files, documents). When a non-FHIR content type is used in the request, a Binary resource will be generated, and the uploaded data will be stored in the content field (DSTU2 and STU3), or the data field (R4 and R5). The Binary resource's `contentType` will be filled in using the value of the Content-Type header, and the `securityContext` field (not present in DSTU2) will be populated from the X-Security-Context header if it exists. At this time `securityContext` has no special behavior in the Cloud Healthcare API. Note: the limit on data ingested through this method is 1 GB. For best performance, use a non-FHIR data type instead of wrapping the data in a Binary resource. Some of the Healthcare API features, such as [exporting to BigQuery](<https://cloud.google.`com/healthcare-api/docs/how-tos/fhir-export-bigquery`>) or [P`ub/Sub` notifications](<https://cloud.google.`com/healthcare-api/docs/fhir-pubsub`#behavior_when_a_fhir_resource_is_too_large_or_traffic_is_high>) with full resource content, do not support Binary resources that are larger than 10 MB. In these cases the resource's data field will be omitted. Instead, the "<http://hl7.`org/fhir/StructureDefinition/data-absent-reason`"> extension will be present to indicate that including the data is unsupported. On success, an empty 201 Created response is returned. The newly created resource's ID and version are returned in the Location header. Using Prefer: representation=resource is not allowed for this method. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary",
@@ -17960,17 +18318,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_bu
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -18029,32 +18387,31 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_ta
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_task(builder)?;
+    let task = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryCreateArgs {
     /// Path parameter: parent
@@ -18065,37 +18422,40 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryCreateArgs {
 /// Creates a FHIR Binary resource. This method can be used to create a Binary resource either by using one of the accepted FHIR JSON content types, or as a raw data stream. If a resource is created with this method using the FHIR content type this method's behavior is the same as [fhir.create](<https://cloud.google.`com/healthcare-api/docs/reference/rest/v1/projects`.locations.datasets.`fhirStores`.`fhir/create`>). If a resource type other than Binary is used in the request it's treated in the same way as non-FHIR data (e.g., images, zip archives, pdf files, documents). When a non-FHIR content type is used in the request, a Binary resource will be generated, and the uploaded data will be stored in the content field (DSTU2 and STU3), or the data field (R4 and R5). The Binary resource's `contentType` will be filled in using the value of the Content-Type header, and the `securityContext` field (not present in DSTU2) will be populated from the X-Security-Context header if it exists. At this time `securityContext` has no special behavior in the Cloud Healthcare API. Note: the limit on data ingested through this method is 1 GB. For best performance, use a non-FHIR data type instead of wrapping the data in a Binary resource. Some of the Healthcare API features, such as [exporting to BigQuery](<https://cloud.google.`com/healthcare-api/docs/how-tos/fhir-export-bigquery`>) or [P`ub/Sub` notifications](<https://cloud.google.`com/healthcare-api/docs/fhir-pubsub`#behavior_when_a_fhir_resource_is_too_large_or_traffic_is_high>) with full resource content, do not support Binary resources that are larger than 10 MB. In these cases the resource's data field will be omitted. Instead, the "<http://hl7.`org/fhir/StructureDefinition/data-absent-reason`"> extension will be present to indicate that including the data is unsupported. On success, an empty 201 Created response is returned. The newly created resource's ID and version are returned in the Location header. Using Prefer: representation=resource is not allowed for this method. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_builder(
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_builder(
         client,
         &args.parent,
     )?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_execute(builder)
+    healthcare_projects_locations_datasets_fhir_stores_fhir_binary_create_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}
 /// Gets the contents of a FHIR Binary resource. This method can be used to retrieve a Binary resource either by using the FHIR JSON mimetype as the value for the Accept header, or as a raw data stream. If the FHIR Accept type is used this method will return a Binary resource with the data base64-encoded, regardless of how the resource was created. The resource data can be retrieved in base64-decoded form if the Accept type of the request matches the value of the resource's `contentType` field. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}",
@@ -18121,17 +18481,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_buil
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -18190,31 +18550,31 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_task
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_task(builder)?;
+    let task = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryReadArgs {
     /// Path parameter: name
@@ -18225,36 +18585,39 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryReadArgs {
 /// Gets the contents of a FHIR Binary resource. This method can be used to retrieve a Binary resource either by using the FHIR JSON mimetype as the value for the Accept header, or as a raw data stream. If the FHIR Accept type is used this method will return a Binary resource with the data base64-encoded, regardless of how the resource was created. The resource data can be retrieved in base64-decoded form if the Accept type of the request matches the value of the resource's `contentType` field. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder(
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_builder(
         client, &args.name,
     )?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_execute(builder)
+    healthcare_projects_locations_datasets_fhir_stores_fhir_binary_read_execute(builder)
 }
 
 /// PUT v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}
 /// Updates the entire contents of a Binary resource. If the specified resource does not exist and the FHIR store has enable_update_create set, creates the resource with the client-specified ID. It is strongly advised not to include or encode any sensitive data such as patient identifiers in client-specified resource IDs. Those IDs are part of the FHIR resource path recorded in Cloud Audit Logs and P`ub/Sub` notifications. Those IDs can also be contained in reference fields within other resources. This method can be used to update a Binary resource either by using one of the accepted FHIR JSON content types, or as a raw data stream. If a resource is updated with this method using the FHIR content type this method's behavior is the same as update. If a resource type other than Binary is used in the request it will be treated in the same way as non-FHIR data. When a non-FHIR content type is used in the request, a Binary resource will be generated using the ID from the resource path, and the uploaded data will be stored in the content field (DSTU2 and STU3), or the data field (R4 and R5). The Binary resource's `contentType` will be filled in using the value of the Content-Type header, and the `securityContext` field (not present in DSTU2) will be populated from the X-Security-Context header if it exists. At this time `securityContext` has no special behavior in the Cloud Healthcare API. Note: the limit on data ingested through this method is 2 GB. For best performance, use a non-FHIR data type instead of wrapping the data in a Binary resource. Some of the Healthcare API features, such as [exporting to BigQuery](<https://cloud.google.`com/healthcare-api/docs/how-tos/fhir-export-bigquery`>) or [P`ub/Sub` notifications](<https://cloud.google.`com/healthcare-api/docs/fhir-pubsub`#behavior_when_a_fhir_resource_is_too_large_or_traffic_is_high>) with full resource content, do not support Binary resources that are larger than 10 MB. In these cases the resource's data field will be omitted. Instead, the "<http://hl7.`org/fhir/StructureDefinition/data-absent-reason`"> extension will be present to indicate that including the data is unsupported. On success, an empty 200 `OK` response will be returned, or a 201 Created if the resource did not exit. The resource's ID and version are returned in the Location header. Using Prefer: representation=resource is not allowed for this method. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}",
@@ -18280,17 +18643,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_bu
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -18349,32 +18712,31 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_ta
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_task(builder)?;
+    let task = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryUpdateArgs {
     /// Path parameter: name
@@ -18385,36 +18747,39 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryUpdateArgs {
 /// Updates the entire contents of a Binary resource. If the specified resource does not exist and the FHIR store has enable_update_create set, creates the resource with the client-specified ID. It is strongly advised not to include or encode any sensitive data such as patient identifiers in client-specified resource IDs. Those IDs are part of the FHIR resource path recorded in Cloud Audit Logs and P`ub/Sub` notifications. Those IDs can also be contained in reference fields within other resources. This method can be used to update a Binary resource either by using one of the accepted FHIR JSON content types, or as a raw data stream. If a resource is updated with this method using the FHIR content type this method's behavior is the same as update. If a resource type other than Binary is used in the request it will be treated in the same way as non-FHIR data. When a non-FHIR content type is used in the request, a Binary resource will be generated using the ID from the resource path, and the uploaded data will be stored in the content field (DSTU2 and STU3), or the data field (R4 and R5). The Binary resource's `contentType` will be filled in using the value of the Content-Type header, and the `securityContext` field (not present in DSTU2) will be populated from the X-Security-Context header if it exists. At this time `securityContext` has no special behavior in the Cloud Healthcare API. Note: the limit on data ingested through this method is 2 GB. For best performance, use a non-FHIR data type instead of wrapping the data in a Binary resource. Some of the Healthcare API features, such as [exporting to BigQuery](<https://cloud.google.`com/healthcare-api/docs/how-tos/fhir-export-bigquery`>) or [P`ub/Sub` notifications](<https://cloud.google.`com/healthcare-api/docs/fhir-pubsub`#behavior_when_a_fhir_resource_is_too_large_or_traffic_is_high>) with full resource content, do not support Binary resources that are larger than 10 MB. In these cases the resource's data field will be omitted. Instead, the "<http://hl7.`org/fhir/StructureDefinition/data-absent-reason`"> extension will be present to indicate that including the data is unsupported. On success, an empty 200 `OK` response will be returned, or a 201 Created if the resource did not exit. The resource's ID and version are returned in the Location header. Using Prefer: representation=resource is not allowed for this method. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_builder(
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_builder(
         client, &args.name,
     )?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_execute(builder)
+    healthcare_projects_locations_datasets_fhir_stores_fhir_binary_update_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}/_history/{_historyId}
 /// Gets the contents of a version (current or historical) of a FHIR Binary resource by version ID. This method can be used to retrieve a Binary resource version either by using the FHIR JSON mimetype as the value for the Accept header, or as a raw data stream. If the FHIR Accept type is used this method will return a Binary resource with the data base64-encoded, regardless of how the resource version was created. The resource data can be retrieved in base64-decoded form if the Accept type of the request matches the value of the resource version's `contentType` field. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}/_history/{_historyId}",
@@ -18440,17 +18805,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_bui
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -18509,31 +18874,31 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_tas
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_task(builder)?;
+    let task = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryVreadArgs {
     /// Path parameter: name
@@ -18544,36 +18909,41 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryVreadArgs {
 /// Gets the contents of a version (current or historical) of a FHIR Binary resource by version ID. This method can be used to retrieve a Binary resource version either by using the FHIR JSON mimetype as the value for the Accept header, or as a raw data stream. If the FHIR Accept type is used this method will return a Binary resource with the data base64-encoded, regardless of how the resource version was created. The resource data can be retrieved in base64-decoded form if the Accept type of the request matches the value of the resource version's `contentType` field. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryVreadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_builder(
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_builder(
         client, &args.name,
     )?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_execute(builder)
+    healthcare_projects_locations_datasets_fhir_stores_fhir_binary_vread_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Consent/{ConsentId}/$consent-enforcement-status
 /// Returns the consent enforcement status of a single consent resource. On success, the response body contains a JSON-encoded representation of a Parameters (<http://hl7.`org/fhir/parameters`.html>) FHIR resource, containing the current enforcement status. Does not support DSTU2.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Consent/{ConsentId}/$consent-enforcement-status",
@@ -18599,17 +18969,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcem
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -18668,34 +19038,34 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcem
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let task =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_task(
+        healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_task(
             builder,
         )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirConsentEnforcementStatusArgs {
     /// Path parameter: name
@@ -18706,22 +19076,25 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirConsentEnforcementSt
 /// Returns the consent enforcement status of a single consent resource. On success, the response body contains a JSON-encoded representation of a Parameters (<http://hl7.`org/fhir/parameters`.html>) FHIR resource, containing the current enforcement status. Does not support DSTU2.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirConsentEnforcementStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder(client, &args.name)?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_execute(
+    let builder =
+        healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_builder(
+            client, &args.name,
+        )?;
+    healthcare_projects_locations_datasets_fhir_stores_fhir_consent_enforcement_status_execute(
         builder,
     )
 }
@@ -18730,14 +19103,19 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcem
 /// Returns the consent enforcement status of all consent resources for a patient. On success, the response body contains a JSON-encoded representation of a bundle of Parameters (<http://hl7.`org/fhir/parameters`.html>) FHIR resources, containing the current enforcement status for each consent resource of the patient. Does not support DSTU2.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     _count: &Option<Option<String>>,
     _page_token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Patient/{PatientId}/$consent-enforcement-status",
@@ -18777,17 +19155,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -18846,31 +19224,31 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_task(builder)?;
+    let task = healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientConsentEnforcementStatusArgs {
     /// Path parameter: name
@@ -18885,32 +19263,32 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientConsentEnforc
 /// Returns the consent enforcement status of all consent resources for a patient. On success, the response body contains a JSON-encoded representation of a bundle of Parameters (<http://hl7.`org/fhir/parameters`.html>) FHIR resources, containing the current enforcement status for each consent resource of the patient. Does not support DSTU2.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientConsentEnforcementStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder(client, &args.name, &args._count, &args._page_token)?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_execute(builder)
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_builder(client, &args.name, &args._count, &args._page_token)?;
+    healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_enforcement_status_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Patient/{PatientId}/$everything
 /// Retrieves a Patient resource and resources related to that patient. Implements the FHIR extended operation Patient-everything ([DSTU2](<https://hl7.`org/fhir/DSTU2/patient-operations`.html#everything>), [STU3](<https://hl7.`org/fhir/STU3/patient-operations`.html#everything>), [R4](<https://hl7.`org/fhir/R4/patient-operation-everything`.html>), [R5](<https://hl7.`org/fhir/R5/patient-operation-everything`.html>)). On success, the response body contains a JSON-encoded representation of a Bundle resource of type searchset, containing the results of the operation. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. The resources in scope for the response are: * The patient resource itself. * All the resources directly referenced by the patient resource. * Resources directly referencing the patient resource that meet the inclusion criteria. The inclusion criteria are based on the membership rules in the patient compartment definition ([DSTU2](<http://hl7.`org/fhir/DSTU2/compartment-patient`.html>), [STU3](<http://www.hl7.`org/fhir/stu3/compartmentdefinition-patient`.html>), [R4](<http://hl7.`org/fhir/R4/compartmentdefinition-patient`.html>), [R5](<http://hl7.`org/fhir/R5/compartmentdefinition-patient`.html>)), which details the eligible resource types and referencing search parameters. For samples that show how to call Patient-everything, see [Getting all patient compartment resources](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#getting_all_patient_compartment_resources>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     _count: &Option<Option<String>>,
     _page_token: &Option<Option<String>>,
@@ -18918,7 +19296,10 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
     _type: &Option<Option<String>>,
     end: &Option<Option<String>>,
     start: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Patient/{PatientId}/$everything",
@@ -18970,17 +19351,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -19039,32 +19420,32 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let task =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_task(builder)?;
+        healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientEverythingArgs {
     /// Path parameter: name
@@ -19087,14 +19468,14 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientEverythingArg
 /// Retrieves a Patient resource and resources related to that patient. Implements the FHIR extended operation Patient-everything ([DSTU2](<https://hl7.`org/fhir/DSTU2/patient-operations`.html#everything>), [STU3](<https://hl7.`org/fhir/STU3/patient-operations`.html#everything>), [R4](<https://hl7.`org/fhir/R4/patient-operation-everything`.html>), [R5](<https://hl7.`org/fhir/R5/patient-operation-everything`.html>)). On success, the response body contains a JSON-encoded representation of a Bundle resource of type searchset, containing the results of the operation. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. The resources in scope for the response are: * The patient resource itself. * All the resources directly referenced by the patient resource. * Resources directly referencing the patient resource that meet the inclusion criteria. The inclusion criteria are based on the membership rules in the patient compartment definition ([DSTU2](<http://hl7.`org/fhir/DSTU2/compartment-patient`.html>), [STU3](<http://www.hl7.`org/fhir/stu3/compartmentdefinition-patient`.html>), [R4](<http://hl7.`org/fhir/R4/compartmentdefinition-patient`.html>), [R5](<http://hl7.`org/fhir/R5/compartmentdefinition-patient`.html>)), which details the eligible resource types and referencing search parameters. For samples that show how to call Patient-everything, see [Getting all patient compartment resources](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#getting_all_patient_compartment_resources>).
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientEverythingArgs,
 ) -> Result<
@@ -19102,7 +19483,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
     ApiError,
 > {
     let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_builder(
+        healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_builder(
             client,
             &args.name,
             &args._count,
@@ -19112,19 +19493,22 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
             &args.end,
             &args.start,
         )?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_execute(builder)
+    healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_execute(builder)
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/$purge
 /// Deletes all the historical versions of a resource (excluding the current version) from the FHIR store. To remove all versions of a resource, first delete the current version and then call this method. This is not a FHIR standard operation. For samples that show how to call Resource-purge, see [Deleting historical versions of a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#deleting_historical_versions_of_a_fhir_resource>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/$purge",
@@ -19150,17 +19534,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_b
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -19219,32 +19603,32 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_t
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let task =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_task(builder)?;
+        healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirResourcePurgeArgs {
     /// Path parameter: name
@@ -19255,38 +19639,41 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirResourcePurgeArgs {
 /// Deletes all the historical versions of a resource (excluding the current version) from the FHIR store. To remove all versions of a resource, first delete the current version and then call this method. This is not a FHIR standard operation. For samples that show how to call Resource-purge, see [Deleting historical versions of a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#deleting_historical_versions_of_a_fhir_resource>).
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirResourcePurgeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_builder(
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_builder(
         client, &args.name,
     )?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_execute(builder)
+    healthcare_projects_locations_datasets_fhir_stores_fhir_resource_purge_execute(builder)
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/$validate
 /// Validates an input FHIR resource's conformance to its profiles and the profiles configured on the FHIR store. Implements the FHIR extended operation $validate ([DSTU2](<https://hl7.`org/fhir/DSTU2/resource-operations`.html#validate>), [STU3](<https://hl7.`org/fhir/STU3/resource-operations`.html#validate>), [R4](<https://hl7.`org/fhir/R4/resource-operation-validate`.html>). or [R5](<https://hl7.`org/fhir/R5/resource-operation-validate`.html>)). The request body must contain a JSON-encoded FHIR resource, and the request headers must contain Content-Type: `application/fhir`+json. The Parameters input syntax is not supported. The profile query parameter can be used to request that the resource only be validated against a specific profile. If a profile with the given URL cannot be found in the FHIR store then an error is returned. Errors generated by validation contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate` for simplest API.
+/// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
     profile: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/$validate",
@@ -19324,17 +19711,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validat
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate`.
+/// For direct execution, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_execute()` or `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_task(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -19393,32 +19780,32 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validat
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_builder()` to create the builder,
+/// For full customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_task()`.
-/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_task()`.
+/// For the simplest API, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_execute(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let task =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_task(builder)?;
+        healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate`].
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirResourceValidateArgs {
     /// Path parameter: parent
@@ -19433,14 +19820,14 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirResourceValidateArgs
 /// Validates an input FHIR resource's conformance to its profiles and the profiles configured on the FHIR store. Implements the FHIR extended operation $validate ([DSTU2](<https://hl7.`org/fhir/DSTU2/resource-operations`.html#validate>), [STU3](<https://hl7.`org/fhir/STU3/resource-operations`.html#validate>), [R4](<https://hl7.`org/fhir/R4/resource-operation-validate`.html>). or [R5](<https://hl7.`org/fhir/R5/resource-operation-validate`.html>)). The request body must contain a JSON-encoded FHIR resource, and the request headers must contain Content-Type: `application/fhir`+json. The Parameters input syntax is not supported. The profile query parameter can be used to request that the resource only be validated against a specific profile. If a profile with the given URL cannot be found in the FHIR store then an error is returned. Errors generated by validation contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_execute()`.
-/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_task()`.
+/// For customization, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_builder()` + `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_execute()`.
+/// For task-level control, use `healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate(
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate(
     client: &SimpleHttpClient,
     args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirResourceValidateArgs,
 ) -> Result<
@@ -19448,13 +19835,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validat
     ApiError,
 > {
     let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_builder(
+        healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_builder(
             client,
             &args.parent,
             &args.type_rs,
             &args.profile,
         )?;
-    healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_execute(builder)
+    healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/$export
@@ -19463,13 +19850,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     _since: &Option<Option<String>>,
     _type: &Option<Option<String>>,
     outputFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/$export",
@@ -19652,10 +20042,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/metadata",
@@ -19811,11 +20204,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}",
@@ -19978,11 +20374,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}",
@@ -20145,11 +20544,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}",
@@ -20312,11 +20714,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_updat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_create_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}",
@@ -20477,10 +20882,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_delete_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}",
@@ -20635,10 +21043,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir",
@@ -20796,14 +21207,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_history_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_history` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_history_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_history_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     _at: &Option<Option<String>>,
     _count: &Option<Option<String>>,
     _page_token: &Option<Option<String>>,
     _since: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/_history",
@@ -20992,10 +21406,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_history(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_patch_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}",
@@ -21150,10 +21567,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_read_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_read` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_read_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}",
@@ -21308,11 +21728,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_read(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_search_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_search` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     resourceType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/_search",
@@ -21483,11 +21906,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_search_type_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_search_type` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_type_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_type_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     resourceType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{resourceType}/_search",
@@ -21648,10 +22074,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_type(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_update_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_update` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_update_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}",
@@ -21806,10 +22235,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_fhir_vread_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_fhir_vread` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_vread_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_vread_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/_history/{_historyId}",
@@ -21964,10 +22396,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_vread(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/operations/{operationsId}",
@@ -22126,10 +22563,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status_execute()` to send, or `healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/operations/{operationsId}",
@@ -22285,11 +22727,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_create_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     hl7V2StoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores",
@@ -22460,10 +22905,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_delete_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}",
@@ -22618,10 +23066,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_export_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_export` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_export_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:export",
@@ -22776,10 +23227,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_get_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}",
@@ -22934,10 +23388,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:getHL7v2StoreMetrics",
@@ -23061,7 +23518,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metr
 
 /// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArgs {
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7V2StoreMetricsArgs {
     /// Path parameter: name
     pub name: String,
 }
@@ -23079,7 +23536,7 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArg
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics(
     client: &SimpleHttpClient,
-    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArgs,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7V2StoreMetricsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hl7V2StoreMetrics>, ApiError>, P = ApiPending>
         + Send
@@ -23099,11 +23556,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:getIamPolicy",
@@ -23274,10 +23734,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_import_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_import` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_import_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:import",
@@ -23432,13 +23895,16 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_list_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores",
@@ -23625,11 +24091,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_patch_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}",
@@ -23800,10 +24269,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_rollback_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_rollback` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:rollback",
@@ -23958,10 +24430,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:setIamPolicy",
@@ -24118,10 +24593,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:testIamPermissions",
@@ -24288,10 +24766,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_messages_create_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_messages_create` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_create_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages",
@@ -24448,10 +24929,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}",
@@ -24607,11 +25091,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_messages_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}",
@@ -24780,10 +25267,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages:ingest",
@@ -24944,15 +25434,18 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_messages_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages",
@@ -25151,11 +25644,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_execute()` to send, or `healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}",
@@ -25326,10 +25822,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_operations_cancel_execute()` to send, or `healthcare_projects_locations_datasets_operations_cancel` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}:cancel",
@@ -25484,10 +25983,13 @@ pub fn healthcare_projects_locations_datasets_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_operations_get_execute()` to send, or `healthcare_projects_locations_datasets_operations_get` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}",
@@ -25642,14 +26144,17 @@ pub fn healthcare_projects_locations_datasets_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_datasets_operations_list_execute()` to send, or `healthcare_projects_locations_datasets_operations_list` for simplest API.
 
-pub fn healthcare_projects_locations_datasets_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_datasets_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/datasets/{datasetsId}/operations",
@@ -25842,10 +26347,13 @@ pub fn healthcare_projects_locations_datasets_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `healthcare_projects_locations_services_nlp_analyze_entities_execute()` to send, or `healthcare_projects_locations_services_nlp_analyze_entities` for simplest API.
 
-pub fn healthcare_projects_locations_services_nlp_analyze_entities_builder(
-    client: &SimpleHttpClient,
+pub fn healthcare_projects_locations_services_nlp_analyze_entities_builder<R>(
+    client: &SimpleHttpClient<R>,
     nlpService: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://healthcare.googleapis.com/v1/projects/{}/locations/{locationsId}/services/nlp:analyzeEntities",
@@ -29836,17 +30344,17 @@ impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7V2StoresGetArgs> f
 // ResourceIdentifier implementation for Hl7V2StoreMetrics
 // =============================================================================
 
-/// ResourceIdentifier implementation for Hl7V2StoreMetrics with HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArgs input.
+/// ResourceIdentifier implementation for Hl7V2StoreMetrics with HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7V2StoreMetricsArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArgs>
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7V2StoreMetricsArgs>
     for Hl7V2StoreMetrics
 {
     fn generate_resource_id(
         &self,
-        input: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArgs,
+        input: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7V2StoreMetricsArgs,
     ) -> String {
         format!("gcp::healthcare::Hl7V2StoreMetrics/{}", input.name)
     }

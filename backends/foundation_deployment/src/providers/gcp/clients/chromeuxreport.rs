@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromeuxreport_records_query_history_record_execute()` to send, or `chromeuxreport_records_query_history_record` for simplest API.
 
-pub fn chromeuxreport_records_query_history_record_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn chromeuxreport_records_query_history_record_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://chromeuxreport.googleapis.com/v1/records:queryHistoryRecord",);
@@ -176,9 +180,12 @@ pub fn chromeuxreport_records_query_history_record(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromeuxreport_records_query_record_execute()` to send, or `chromeuxreport_records_query_record` for simplest API.
 
-pub fn chromeuxreport_records_query_record_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn chromeuxreport_records_query_record_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chromeuxreport.googleapis.com/v1/records:queryRecord",);
 

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_apps_count_chrome_app_requests_execute()` to send, or `chromemanagement_customers_apps_count_chrome_app_requests` for simplest API.
 
-pub fn chromemanagement_customers_apps_count_chrome_app_requests_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_apps_count_chrome_app_requests_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     orderBy: &Option<Option<String>>,
     orgUnitId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps:countChromeAppRequests",
@@ -240,14 +244,17 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_apps_fetch_devices_requesting_extension_execute()` to send, or `chromemanagement_customers_apps_fetch_devices_requesting_extension` for simplest API.
 
-pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     extensionId: &Option<Option<String>>,
     orgUnitId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps:fetchDevicesRequestingExtension",
@@ -454,14 +461,17 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_apps_fetch_users_requesting_extension_execute()` to send, or `chromemanagement_customers_apps_fetch_users_requesting_extension` for simplest API.
 
-pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     extensionId: &Option<Option<String>>,
     orgUnitId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps:fetchUsersRequestingExtension",
@@ -668,10 +678,13 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_apps_android_get_execute()` to send, or `chromemanagement_customers_apps_android_get` for simplest API.
 
-pub fn chromemanagement_customers_apps_android_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_apps_android_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps/android/{androidId}",
@@ -833,10 +846,13 @@ pub fn chromemanagement_customers_apps_android_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_apps_chrome_get_execute()` to send, or `chromemanagement_customers_apps_chrome_get` for simplest API.
 
-pub fn chromemanagement_customers_apps_chrome_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_apps_chrome_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps/chrome/{chromeId}",
@@ -998,10 +1014,13 @@ pub fn chromemanagement_customers_apps_chrome_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_apps_web_get_execute()` to send, or `chromemanagement_customers_apps_web_get` for simplest API.
 
-pub fn chromemanagement_customers_apps_web_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_apps_web_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps/web/{webId}",
@@ -1163,10 +1182,13 @@ pub fn chromemanagement_customers_apps_web_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_certificate_provisioning_processes_claim_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_claim` for simplest API.
 
-pub fn chromemanagement_customers_certificate_provisioning_processes_claim_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_certificate_provisioning_processes_claim_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:claim",
@@ -1340,10 +1362,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_claim(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_certificate_provisioning_processes_get_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_get` for simplest API.
 
-pub fn chromemanagement_customers_certificate_provisioning_processes_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_certificate_provisioning_processes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}",
@@ -1517,10 +1542,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_certificate_provisioning_processes_set_failure_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_set_failure` for simplest API.
 
-pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:setFailure",
@@ -1690,10 +1718,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_certificate_provisioning_processes_sign_data_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_sign_data` for simplest API.
 
-pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:signData",
@@ -1858,10 +1889,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_upload_certificate` for simplest API.
 
-pub fn chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:uploadCertificate",
@@ -2041,10 +2075,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_upload_cert
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_certificate_provisioning_processes_operations_get_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_operations_get` for simplest API.
 
-pub fn chromemanagement_customers_certificate_provisioning_processes_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_certificate_provisioning_processes_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}/operations/{operationsId}",
@@ -2210,10 +2247,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_profiles_delete_execute()` to send, or `chromemanagement_customers_profiles_delete` for simplest API.
 
-pub fn chromemanagement_customers_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}",
@@ -2371,10 +2411,13 @@ pub fn chromemanagement_customers_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_profiles_get_execute()` to send, or `chromemanagement_customers_profiles_get` for simplest API.
 
-pub fn chromemanagement_customers_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}",
@@ -2540,14 +2583,17 @@ pub fn chromemanagement_customers_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_profiles_list_execute()` to send, or `chromemanagement_customers_profiles_list` for simplest API.
 
-pub fn chromemanagement_customers_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/profiles",
@@ -2754,10 +2800,13 @@ pub fn chromemanagement_customers_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_profiles_commands_create_execute()` to send, or `chromemanagement_customers_profiles_commands_create` for simplest API.
 
-pub fn chromemanagement_customers_profiles_commands_create_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_profiles_commands_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}/commands",
@@ -2930,10 +2979,13 @@ pub fn chromemanagement_customers_profiles_commands_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_profiles_commands_get_execute()` to send, or `chromemanagement_customers_profiles_commands_get` for simplest API.
 
-pub fn chromemanagement_customers_profiles_commands_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_profiles_commands_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}/commands/{commandsId}",
@@ -3105,12 +3157,15 @@ pub fn chromemanagement_customers_profiles_commands_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_profiles_commands_list_execute()` to send, or `chromemanagement_customers_profiles_commands_list` for simplest API.
 
-pub fn chromemanagement_customers_profiles_commands_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_profiles_commands_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}/commands",
@@ -3305,13 +3360,16 @@ pub fn chromemanagement_customers_profiles_commands_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_active_devices_execute()` to send, or `chromemanagement_customers_reports_count_active_devices` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_active_devices_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_active_devices_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     date_day: &Option<Option<String>>,
     date_month: &Option<Option<String>>,
     date_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countActiveDevices",
@@ -3506,11 +3564,14 @@ pub fn chromemanagement_customers_reports_count_active_devices(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_chrome_browsers_needing_attention_execute()` to send, or `chromemanagement_customers_reports_count_chrome_browsers_needing_attention` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attention_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attention_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     orgUnitId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeBrowsersNeedingAttention",
@@ -3701,13 +3762,16 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_chrome_crash_events_execute()` to send, or `chromemanagement_customers_reports_count_chrome_crash_events` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_chrome_crash_events_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_chrome_crash_events_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     orgUnitId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeCrashEvents",
@@ -3908,13 +3972,18 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_execute()` to send, or `chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     maxAueDate: &Option<Option<String>>,
     minAueDate: &Option<Option<String>>,
     orgUnitId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeDevicesReachingAutoExpirationDate",
@@ -4114,12 +4183,15 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_chrome_devices_that_need_attention_execute()` to send, or `chromemanagement_customers_reports_count_chrome_devices_that_need_attention` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attention_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attention_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     orgUnitId: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeDevicesThatNeedAttention",
@@ -4316,12 +4388,15 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_execute()` to send, or `chromemanagement_customers_reports_count_chrome_hardware_fleet_devices` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     orgUnitId: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeHardwareFleetDevices",
@@ -4517,14 +4592,17 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_chrome_versions_execute()` to send, or `chromemanagement_customers_reports_count_chrome_versions` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_chrome_versions_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_chrome_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     filter: &Option<Option<String>>,
     orgUnitId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeVersions",
@@ -4725,13 +4803,16 @@ pub fn chromemanagement_customers_reports_count_chrome_versions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_devices_per_boot_type_execute()` to send, or `chromemanagement_customers_reports_count_devices_per_boot_type` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_devices_per_boot_type_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_devices_per_boot_type_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     date_day: &Option<Option<String>>,
     date_month: &Option<Option<String>>,
     date_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countDevicesPerBootType",
@@ -4932,13 +5013,16 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_devices_per_release_channel_execute()` to send, or `chromemanagement_customers_reports_count_devices_per_release_channel` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_devices_per_release_channel_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_devices_per_release_channel_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     date_day: &Option<Option<String>>,
     date_month: &Option<Option<String>>,
     date_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countDevicesPerReleaseChannel",
@@ -5139,15 +5223,18 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_installed_apps_execute()` to send, or `chromemanagement_customers_reports_count_installed_apps` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_installed_apps_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_installed_apps_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     orgUnitId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countInstalledApps",
@@ -5354,15 +5441,18 @@ pub fn chromemanagement_customers_reports_count_installed_apps(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_print_jobs_by_printer_execute()` to send, or `chromemanagement_customers_reports_count_print_jobs_by_printer` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     printerOrgUnitId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countPrintJobsByPrinter",
@@ -5575,15 +5665,18 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_count_print_jobs_by_user_execute()` to send, or `chromemanagement_customers_reports_count_print_jobs_by_user` for simplest API.
 
-pub fn chromemanagement_customers_reports_count_print_jobs_by_user_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_count_print_jobs_by_user_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     printerOrgUnitId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countPrintJobsByUser",
@@ -5790,15 +5883,18 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_enumerate_print_jobs_execute()` to send, or `chromemanagement_customers_reports_enumerate_print_jobs` for simplest API.
 
-pub fn chromemanagement_customers_reports_enumerate_print_jobs_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_enumerate_print_jobs_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     printerOrgUnitId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:enumeratePrintJobs",
@@ -6005,8 +6101,8 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_reports_find_installed_app_devices_execute()` to send, or `chromemanagement_customers_reports_find_installed_app_devices` for simplest API.
 
-pub fn chromemanagement_customers_reports_find_installed_app_devices_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_reports_find_installed_app_devices_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
     appId: &Option<Option<String>>,
     appType: &Option<Option<String>>,
@@ -6015,7 +6111,10 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices_builder(
     orgUnitId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:findInstalledAppDevices",
@@ -6240,11 +6339,14 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_devices_get_execute()` to send, or `chromemanagement_customers_telemetry_devices_get` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/devices/{devicesId}",
@@ -6424,14 +6526,17 @@ pub fn chromemanagement_customers_telemetry_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_devices_list_execute()` to send, or `chromemanagement_customers_telemetry_devices_list` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/devices",
@@ -6632,14 +6737,17 @@ pub fn chromemanagement_customers_telemetry_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_events_list_execute()` to send, or `chromemanagement_customers_telemetry_events_list` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/events",
@@ -6840,10 +6948,13 @@ pub fn chromemanagement_customers_telemetry_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_notification_configs_create_execute()` to send, or `chromemanagement_customers_telemetry_notification_configs_create` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_notification_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_notification_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/notificationConfigs",
@@ -7012,10 +7123,13 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_notification_configs_delete_execute()` to send, or `chromemanagement_customers_telemetry_notification_configs_delete` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_notification_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_notification_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/notificationConfigs/{notificationConfigsId}",
@@ -7175,12 +7289,15 @@ pub fn chromemanagement_customers_telemetry_notification_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_notification_configs_list_execute()` to send, or `chromemanagement_customers_telemetry_notification_configs_list` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_notification_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_notification_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/notificationConfigs",
@@ -7375,11 +7492,14 @@ pub fn chromemanagement_customers_telemetry_notification_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_users_get_execute()` to send, or `chromemanagement_customers_telemetry_users_get` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/users/{usersId}",
@@ -7555,14 +7675,17 @@ pub fn chromemanagement_customers_telemetry_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_telemetry_users_list_execute()` to send, or `chromemanagement_customers_telemetry_users_list` for simplest API.
 
-pub fn chromemanagement_customers_telemetry_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_telemetry_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/users",
@@ -7763,10 +7886,13 @@ pub fn chromemanagement_customers_telemetry_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_customers_third_party_profile_users_move_execute()` to send, or `chromemanagement_customers_third_party_profile_users_move` for simplest API.
 
-pub fn chromemanagement_customers_third_party_profile_users_move_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_customers_third_party_profile_users_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/thirdPartyProfileUsers/{thirdPartyProfileUsersId}:move",
@@ -7939,10 +8065,13 @@ pub fn chromemanagement_customers_third_party_profile_users_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_operations_cancel_execute()` to send, or `chromemanagement_operations_cancel` for simplest API.
 
-pub fn chromemanagement_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/operations/{}:cancel",
@@ -8100,10 +8229,13 @@ pub fn chromemanagement_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_operations_delete_execute()` to send, or `chromemanagement_operations_delete` for simplest API.
 
-pub fn chromemanagement_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/operations/{}",
@@ -8261,13 +8393,16 @@ pub fn chromemanagement_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromemanagement_operations_list_execute()` to send, or `chromemanagement_operations_list` for simplest API.
 
-pub fn chromemanagement_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromemanagement_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chromemanagement.googleapis.com/v1/operations",);
 

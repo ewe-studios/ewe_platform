@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_get_execute()` to send, or `migrationcenter_projects_locations_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn migrationcenter_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_get_settings_execute()` to send, or `migrationcenter_projects_locations_get_settings` for simplest API.
 
-pub fn migrationcenter_projects_locations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -340,14 +347,17 @@ pub fn migrationcenter_projects_locations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_list_execute()` to send, or `migrationcenter_projects_locations_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations",
@@ -540,12 +550,15 @@ pub fn migrationcenter_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_update_settings_execute()` to send, or `migrationcenter_projects_locations_update_settings` for simplest API.
 
-pub fn migrationcenter_projects_locations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -722,10 +735,13 @@ pub fn migrationcenter_projects_locations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_aggregate_values_execute()` to send, or `migrationcenter_projects_locations_assets_aggregate_values` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_aggregate_values_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_aggregate_values_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets:aggregateValues",
@@ -888,10 +904,13 @@ pub fn migrationcenter_projects_locations_assets_aggregate_values(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_batch_delete_execute()` to send, or `migrationcenter_projects_locations_assets_batch_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets:batchDelete",
@@ -1046,10 +1065,13 @@ pub fn migrationcenter_projects_locations_assets_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_batch_update_execute()` to send, or `migrationcenter_projects_locations_assets_batch_update` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets:batchUpdate",
@@ -1208,11 +1230,14 @@ pub fn migrationcenter_projects_locations_assets_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_delete_execute()` to send, or `migrationcenter_projects_locations_assets_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets/{assetsId}",
@@ -1383,11 +1408,14 @@ pub fn migrationcenter_projects_locations_assets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_get_execute()` to send, or `migrationcenter_projects_locations_assets_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets/{assetsId}",
@@ -1555,8 +1583,8 @@ pub fn migrationcenter_projects_locations_assets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_list_execute()` to send, or `migrationcenter_projects_locations_assets_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
@@ -1564,7 +1592,10 @@ pub fn migrationcenter_projects_locations_assets_list_builder(
     pageToken: &Option<Option<String>>,
     showHidden: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets",
@@ -1769,12 +1800,15 @@ pub fn migrationcenter_projects_locations_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_patch_execute()` to send, or `migrationcenter_projects_locations_assets_patch` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets/{assetsId}",
@@ -1951,11 +1985,14 @@ pub fn migrationcenter_projects_locations_assets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_report_asset_frames_execute()` to send, or `migrationcenter_projects_locations_assets_report_asset_frames` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_report_asset_frames_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_report_asset_frames_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assets:reportAssetFrames",
@@ -2130,12 +2167,15 @@ pub fn migrationcenter_projects_locations_assets_report_asset_frames(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_export_jobs_create_execute()` to send, or `migrationcenter_projects_locations_assets_export_jobs_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_export_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_export_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     assetsExportJobId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assetsExportJobs",
@@ -2312,10 +2352,13 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_export_jobs_delete_execute()` to send, or `migrationcenter_projects_locations_assets_export_jobs_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_export_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_export_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assetsExportJobs/{assetsExportJobsId}",
@@ -2470,10 +2513,13 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_export_jobs_get_execute()` to send, or `migrationcenter_projects_locations_assets_export_jobs_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_export_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_export_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assetsExportJobs/{assetsExportJobsId}",
@@ -2632,12 +2678,15 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_export_jobs_list_execute()` to send, or `migrationcenter_projects_locations_assets_export_jobs_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_export_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_export_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assetsExportJobs",
@@ -2822,10 +2871,13 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_assets_export_jobs_run_execute()` to send, or `migrationcenter_projects_locations_assets_export_jobs_run` for simplest API.
 
-pub fn migrationcenter_projects_locations_assets_export_jobs_run_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_assets_export_jobs_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/assetsExportJobs/{assetsExportJobsId}:run",
@@ -2980,12 +3032,15 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_discovery_clients_create_execute()` to send, or `migrationcenter_projects_locations_discovery_clients_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_discovery_clients_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_discovery_clients_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     discoveryClientId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveryClients",
@@ -3162,11 +3217,14 @@ pub fn migrationcenter_projects_locations_discovery_clients_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_discovery_clients_delete_execute()` to send, or `migrationcenter_projects_locations_discovery_clients_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_discovery_clients_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_discovery_clients_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveryClients/{discoveryClientsId}",
@@ -3337,10 +3395,13 @@ pub fn migrationcenter_projects_locations_discovery_clients_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_discovery_clients_get_execute()` to send, or `migrationcenter_projects_locations_discovery_clients_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_discovery_clients_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_discovery_clients_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveryClients/{discoveryClientsId}",
@@ -3499,14 +3560,17 @@ pub fn migrationcenter_projects_locations_discovery_clients_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_discovery_clients_list_execute()` to send, or `migrationcenter_projects_locations_discovery_clients_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_discovery_clients_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_discovery_clients_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveryClients",
@@ -3703,12 +3767,15 @@ pub fn migrationcenter_projects_locations_discovery_clients_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_discovery_clients_patch_execute()` to send, or `migrationcenter_projects_locations_discovery_clients_patch` for simplest API.
 
-pub fn migrationcenter_projects_locations_discovery_clients_patch_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_discovery_clients_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveryClients/{discoveryClientsId}",
@@ -3885,10 +3952,13 @@ pub fn migrationcenter_projects_locations_discovery_clients_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_discovery_clients_send_heartbeat_execute()` to send, or `migrationcenter_projects_locations_discovery_clients_send_heartbeat` for simplest API.
 
-pub fn migrationcenter_projects_locations_discovery_clients_send_heartbeat_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_discovery_clients_send_heartbeat_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveryClients/{discoveryClientsId}:sendHeartbeat",
@@ -4044,10 +4114,13 @@ pub fn migrationcenter_projects_locations_discovery_clients_send_heartbeat(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_groups_add_assets_execute()` to send, or `migrationcenter_projects_locations_groups_add_assets` for simplest API.
 
-pub fn migrationcenter_projects_locations_groups_add_assets_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_groups_add_assets_builder<R>(
+    client: &SimpleHttpClient<R>,
     group: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}:addAssets",
@@ -4202,12 +4275,15 @@ pub fn migrationcenter_projects_locations_groups_add_assets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_groups_create_execute()` to send, or `migrationcenter_projects_locations_groups_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     groupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/groups",
@@ -4384,11 +4460,14 @@ pub fn migrationcenter_projects_locations_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_groups_delete_execute()` to send, or `migrationcenter_projects_locations_groups_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}",
@@ -4559,10 +4638,13 @@ pub fn migrationcenter_projects_locations_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_groups_get_execute()` to send, or `migrationcenter_projects_locations_groups_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}",
@@ -4716,14 +4798,17 @@ pub fn migrationcenter_projects_locations_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_groups_list_execute()` to send, or `migrationcenter_projects_locations_groups_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/groups",
@@ -4916,12 +5001,15 @@ pub fn migrationcenter_projects_locations_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_groups_patch_execute()` to send, or `migrationcenter_projects_locations_groups_patch` for simplest API.
 
-pub fn migrationcenter_projects_locations_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}",
@@ -5098,10 +5186,13 @@ pub fn migrationcenter_projects_locations_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_groups_remove_assets_execute()` to send, or `migrationcenter_projects_locations_groups_remove_assets` for simplest API.
 
-pub fn migrationcenter_projects_locations_groups_remove_assets_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_groups_remove_assets_builder<R>(
+    client: &SimpleHttpClient<R>,
     group: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/groups/{groupsId}:removeAssets",
@@ -5256,12 +5347,15 @@ pub fn migrationcenter_projects_locations_groups_remove_assets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_create_execute()` to send, or `migrationcenter_projects_locations_import_jobs_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     importJobId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs",
@@ -5438,12 +5532,15 @@ pub fn migrationcenter_projects_locations_import_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_delete_execute()` to send, or `migrationcenter_projects_locations_import_jobs_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}",
@@ -5620,11 +5717,14 @@ pub fn migrationcenter_projects_locations_import_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_get_execute()` to send, or `migrationcenter_projects_locations_import_jobs_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}",
@@ -5792,15 +5892,18 @@ pub fn migrationcenter_projects_locations_import_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_list_execute()` to send, or `migrationcenter_projects_locations_import_jobs_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs",
@@ -5999,12 +6102,15 @@ pub fn migrationcenter_projects_locations_import_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_patch_execute()` to send, or `migrationcenter_projects_locations_import_jobs_patch` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}",
@@ -6181,10 +6287,13 @@ pub fn migrationcenter_projects_locations_import_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_run_execute()` to send, or `migrationcenter_projects_locations_import_jobs_run` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_run_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}:run",
@@ -6338,10 +6447,13 @@ pub fn migrationcenter_projects_locations_import_jobs_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_validate_execute()` to send, or `migrationcenter_projects_locations_import_jobs_validate` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_validate_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}:validate",
@@ -6496,12 +6608,15 @@ pub fn migrationcenter_projects_locations_import_jobs_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_import_data_files_create_execute()` to send, or `migrationcenter_projects_locations_import_jobs_import_data_files_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     importDataFileId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles",
@@ -6679,11 +6794,14 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_import_data_files_delete_execute()` to send, or `migrationcenter_projects_locations_import_jobs_import_data_files_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_import_data_files_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_import_data_files_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles/{importDataFilesId}",
@@ -6855,10 +6973,13 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_import_data_files_get_execute()` to send, or `migrationcenter_projects_locations_import_jobs_import_data_files_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_import_data_files_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_import_data_files_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles/{importDataFilesId}",
@@ -7018,14 +7139,17 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_import_jobs_import_data_files_list_execute()` to send, or `migrationcenter_projects_locations_import_jobs_import_data_files_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles",
@@ -7222,10 +7346,13 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_operations_cancel_execute()` to send, or `migrationcenter_projects_locations_operations_cancel` for simplest API.
 
-pub fn migrationcenter_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -7379,10 +7506,13 @@ pub fn migrationcenter_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_operations_delete_execute()` to send, or `migrationcenter_projects_locations_operations_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7536,10 +7666,13 @@ pub fn migrationcenter_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_operations_get_execute()` to send, or `migrationcenter_projects_locations_operations_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7693,14 +7826,17 @@ pub fn migrationcenter_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_operations_list_execute()` to send, or `migrationcenter_projects_locations_operations_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -7893,12 +8029,15 @@ pub fn migrationcenter_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_preference_sets_create_execute()` to send, or `migrationcenter_projects_locations_preference_sets_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_preference_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_preference_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     preferenceSetId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/preferenceSets",
@@ -8075,11 +8214,14 @@ pub fn migrationcenter_projects_locations_preference_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_preference_sets_delete_execute()` to send, or `migrationcenter_projects_locations_preference_sets_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_preference_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_preference_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/preferenceSets/{preferenceSetsId}",
@@ -8250,10 +8392,13 @@ pub fn migrationcenter_projects_locations_preference_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_preference_sets_get_execute()` to send, or `migrationcenter_projects_locations_preference_sets_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_preference_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_preference_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/preferenceSets/{preferenceSetsId}",
@@ -8412,13 +8557,16 @@ pub fn migrationcenter_projects_locations_preference_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_preference_sets_list_execute()` to send, or `migrationcenter_projects_locations_preference_sets_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_preference_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_preference_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/preferenceSets",
@@ -8609,12 +8757,15 @@ pub fn migrationcenter_projects_locations_preference_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_preference_sets_patch_execute()` to send, or `migrationcenter_projects_locations_preference_sets_patch` for simplest API.
 
-pub fn migrationcenter_projects_locations_preference_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_preference_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/preferenceSets/{preferenceSetsId}",
@@ -8791,10 +8942,13 @@ pub fn migrationcenter_projects_locations_preference_sets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_relations_get_execute()` to send, or `migrationcenter_projects_locations_relations_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_relations_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_relations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/relations/{relationsId}",
@@ -8948,14 +9102,17 @@ pub fn migrationcenter_projects_locations_relations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_relations_list_execute()` to send, or `migrationcenter_projects_locations_relations_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_relations_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_relations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/relations",
@@ -9148,12 +9305,15 @@ pub fn migrationcenter_projects_locations_relations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_create_execute()` to send, or `migrationcenter_projects_locations_report_configs_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     reportConfigId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs",
@@ -9330,12 +9490,15 @@ pub fn migrationcenter_projects_locations_report_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_delete_execute()` to send, or `migrationcenter_projects_locations_report_configs_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs/{reportConfigsId}",
@@ -9512,10 +9675,13 @@ pub fn migrationcenter_projects_locations_report_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_get_execute()` to send, or `migrationcenter_projects_locations_report_configs_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs/{reportConfigsId}",
@@ -9674,14 +9840,17 @@ pub fn migrationcenter_projects_locations_report_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_list_execute()` to send, or `migrationcenter_projects_locations_report_configs_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs",
@@ -9874,12 +10043,15 @@ pub fn migrationcenter_projects_locations_report_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_reports_create_execute()` to send, or `migrationcenter_projects_locations_report_configs_reports_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_reports_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_reports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     reportId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports",
@@ -10056,11 +10228,14 @@ pub fn migrationcenter_projects_locations_report_configs_reports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_reports_delete_execute()` to send, or `migrationcenter_projects_locations_report_configs_reports_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_reports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_reports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports/{reportsId}",
@@ -10231,11 +10406,14 @@ pub fn migrationcenter_projects_locations_report_configs_reports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_reports_get_execute()` to send, or `migrationcenter_projects_locations_report_configs_reports_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports/{reportsId}",
@@ -10404,15 +10582,18 @@ pub fn migrationcenter_projects_locations_report_configs_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_report_configs_reports_list_execute()` to send, or `migrationcenter_projects_locations_report_configs_reports_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_report_configs_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_report_configs_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports",
@@ -10611,12 +10792,15 @@ pub fn migrationcenter_projects_locations_report_configs_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_sources_create_execute()` to send, or `migrationcenter_projects_locations_sources_create` for simplest API.
 
-pub fn migrationcenter_projects_locations_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     sourceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/sources",
@@ -10793,11 +10977,14 @@ pub fn migrationcenter_projects_locations_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_sources_delete_execute()` to send, or `migrationcenter_projects_locations_sources_delete` for simplest API.
 
-pub fn migrationcenter_projects_locations_sources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_sources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}",
@@ -10968,10 +11155,13 @@ pub fn migrationcenter_projects_locations_sources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_sources_get_execute()` to send, or `migrationcenter_projects_locations_sources_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}",
@@ -11125,14 +11315,17 @@ pub fn migrationcenter_projects_locations_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_sources_list_execute()` to send, or `migrationcenter_projects_locations_sources_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/sources",
@@ -11325,12 +11518,15 @@ pub fn migrationcenter_projects_locations_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_sources_patch_execute()` to send, or `migrationcenter_projects_locations_sources_patch` for simplest API.
 
-pub fn migrationcenter_projects_locations_sources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_sources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}",
@@ -11507,11 +11703,14 @@ pub fn migrationcenter_projects_locations_sources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_sources_error_frames_get_execute()` to send, or `migrationcenter_projects_locations_sources_error_frames_get` for simplest API.
 
-pub fn migrationcenter_projects_locations_sources_error_frames_get_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_sources_error_frames_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/errorFrames/{errorFramesId}",
@@ -11680,13 +11879,16 @@ pub fn migrationcenter_projects_locations_sources_error_frames_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `migrationcenter_projects_locations_sources_error_frames_list_execute()` to send, or `migrationcenter_projects_locations_sources_error_frames_list` for simplest API.
 
-pub fn migrationcenter_projects_locations_sources_error_frames_list_builder(
-    client: &SimpleHttpClient,
+pub fn migrationcenter_projects_locations_sources_error_frames_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://migrationcenter.googleapis.com/v1/projects/{}/locations/{locationsId}/sources/{sourcesId}/errorFrames",

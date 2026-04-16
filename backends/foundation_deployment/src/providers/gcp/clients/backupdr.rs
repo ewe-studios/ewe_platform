@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_get_execute()` to send, or `backupdr_projects_locations_get` for simplest API.
 
-pub fn backupdr_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn backupdr_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_get_trial_execute()` to send, or `backupdr_projects_locations_get_trial` for simplest API.
 
-pub fn backupdr_projects_locations_get_trial_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_get_trial_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/trial",
@@ -340,14 +347,17 @@ pub fn backupdr_projects_locations_get_trial(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_list_execute()` to send, or `backupdr_projects_locations_list` for simplest API.
 
-pub fn backupdr_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations",
@@ -540,12 +550,15 @@ pub fn backupdr_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plan_associations_create_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_create` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plan_associations_create_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plan_associations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupPlanAssociationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations",
@@ -722,11 +735,14 @@ pub fn backupdr_projects_locations_backup_plan_associations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plan_associations_delete_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_delete` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plan_associations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plan_associations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}",
@@ -897,15 +913,18 @@ pub fn backupdr_projects_locations_backup_plan_associations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations:fetchForResourceType",
@@ -1114,10 +1133,13 @@ pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_t
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plan_associations_get_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_get` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plan_associations_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plan_associations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}",
@@ -1276,13 +1298,16 @@ pub fn backupdr_projects_locations_backup_plan_associations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plan_associations_list_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_list` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plan_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plan_associations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations",
@@ -1473,12 +1498,15 @@ pub fn backupdr_projects_locations_backup_plan_associations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plan_associations_patch_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_patch` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plan_associations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plan_associations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}",
@@ -1655,10 +1683,13 @@ pub fn backupdr_projects_locations_backup_plan_associations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plan_associations_trigger_backup_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_trigger_backup` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}:triggerBackup",
@@ -1814,12 +1845,15 @@ pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plans_create_execute()` to send, or `backupdr_projects_locations_backup_plans_create` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plans_create_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plans_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupPlanId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
@@ -1996,11 +2030,14 @@ pub fn backupdr_projects_locations_backup_plans_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plans_delete_execute()` to send, or `backupdr_projects_locations_backup_plans_delete` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plans_delete_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plans_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
@@ -2171,10 +2208,13 @@ pub fn backupdr_projects_locations_backup_plans_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plans_get_execute()` to send, or `backupdr_projects_locations_backup_plans_get` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plans_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plans_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
@@ -2328,14 +2368,17 @@ pub fn backupdr_projects_locations_backup_plans_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plans_list_execute()` to send, or `backupdr_projects_locations_backup_plans_list` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plans_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plans_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
@@ -2528,12 +2571,15 @@ pub fn backupdr_projects_locations_backup_plans_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plans_patch_execute()` to send, or `backupdr_projects_locations_backup_plans_patch` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plans_patch_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plans_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
@@ -2710,10 +2756,13 @@ pub fn backupdr_projects_locations_backup_plans_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plans_revisions_get_execute()` to send, or `backupdr_projects_locations_backup_plans_revisions_get` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plans_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plans_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions/{revisionsId}",
@@ -2872,12 +2921,15 @@ pub fn backupdr_projects_locations_backup_plans_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_plans_revisions_list_execute()` to send, or `backupdr_projects_locations_backup_plans_revisions_list` for simplest API.
 
-pub fn backupdr_projects_locations_backup_plans_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_plans_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions",
@@ -3062,13 +3114,16 @@ pub fn backupdr_projects_locations_backup_plans_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_create_execute()` to send, or `backupdr_projects_locations_backup_vaults_create` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_create_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupVaultId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
@@ -3251,8 +3306,8 @@ pub fn backupdr_projects_locations_backup_vaults_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_delete_execute()` to send, or `backupdr_projects_locations_backup_vaults_delete` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_delete_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
@@ -3260,7 +3315,10 @@ pub fn backupdr_projects_locations_backup_vaults_delete_builder(
     ignoreBackupPlanReferences: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
@@ -3461,14 +3519,17 @@ pub fn backupdr_projects_locations_backup_vaults_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_fetch_usable_execute()` to send, or `backupdr_projects_locations_backup_vaults_fetch_usable` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_fetch_usable_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_fetch_usable_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults:fetchUsable",
@@ -3665,11 +3726,14 @@ pub fn backupdr_projects_locations_backup_vaults_fetch_usable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_get_execute()` to send, or `backupdr_projects_locations_backup_vaults_get` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
@@ -3837,15 +3901,18 @@ pub fn backupdr_projects_locations_backup_vaults_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_list_execute()` to send, or `backupdr_projects_locations_backup_vaults_list` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
@@ -4044,15 +4111,18 @@ pub fn backupdr_projects_locations_backup_vaults_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_patch_execute()` to send, or `backupdr_projects_locations_backup_vaults_patch` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_patch_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     forceUpdateAccessRestriction: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
@@ -4247,10 +4317,13 @@ pub fn backupdr_projects_locations_backup_vaults_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_test_iam_permissions_execute()` to send, or `backupdr_projects_locations_backup_vaults_test_iam_permissions` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}:testIamPermissions",
@@ -4415,10 +4488,13 @@ pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataSource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:abandonBackup",
@@ -4575,10 +4651,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:fetchAccessToken",
@@ -4740,10 +4819,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataSource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:finalizeBackup",
@@ -4901,10 +4983,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_get_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_get` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}",
@@ -5059,10 +5144,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataSource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:initiateBackup",
@@ -5224,14 +5312,17 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_list_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_list` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources",
@@ -5424,13 +5515,16 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_patch_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_patch` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}",
@@ -5613,10 +5707,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_remove_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_remove` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_remove_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:remove",
@@ -5771,10 +5868,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataSource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:setInternalStatus",
@@ -5933,11 +6033,14 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_statu
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_delete` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}",
@@ -6108,8 +6211,10 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
@@ -6117,7 +6222,10 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_
     pageToken: &Option<Option<String>>,
     resourceType: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups:fetchForResourceType",
@@ -6319,11 +6427,14 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_get_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_get` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}",
@@ -6492,15 +6603,18 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_list_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_list` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups",
@@ -6699,12 +6813,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_patch` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}",
@@ -6881,10 +6998,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_restore` for simplest API.
 
-pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}:restore",
@@ -7041,15 +7161,18 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_data_source_references_fetch_for_resource_type_execute()` to send, or `backupdr_projects_locations_data_source_references_fetch_for_resource_type` for simplest API.
 
-pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSourceReferences:fetchForResourceType",
@@ -7255,10 +7378,13 @@ pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_typ
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_data_source_references_get_execute()` to send, or `backupdr_projects_locations_data_source_references_get` for simplest API.
 
-pub fn backupdr_projects_locations_data_source_references_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_data_source_references_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSourceReferences/{dataSourceReferencesId}",
@@ -7417,14 +7543,17 @@ pub fn backupdr_projects_locations_data_source_references_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_data_source_references_list_execute()` to send, or `backupdr_projects_locations_data_source_references_list` for simplest API.
 
-pub fn backupdr_projects_locations_data_source_references_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_data_source_references_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSourceReferences",
@@ -7621,12 +7750,15 @@ pub fn backupdr_projects_locations_data_source_references_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_create_execute()` to send, or `backupdr_projects_locations_management_servers_create` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_create_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     managementServerId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers",
@@ -7803,11 +7935,14 @@ pub fn backupdr_projects_locations_management_servers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_delete_execute()` to send, or `backupdr_projects_locations_management_servers_delete` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}",
@@ -7978,10 +8113,13 @@ pub fn backupdr_projects_locations_management_servers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_get_execute()` to send, or `backupdr_projects_locations_management_servers_get` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}",
@@ -8139,11 +8277,14 @@ pub fn backupdr_projects_locations_management_servers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_get_iam_policy_execute()` to send, or `backupdr_projects_locations_management_servers_get_iam_policy` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}:getIamPolicy",
@@ -8314,14 +8455,17 @@ pub fn backupdr_projects_locations_management_servers_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_list_execute()` to send, or `backupdr_projects_locations_management_servers_list` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers",
@@ -8518,10 +8662,13 @@ pub fn backupdr_projects_locations_management_servers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_ms_compliance_metadata_execute()` to send, or `backupdr_projects_locations_management_servers_ms_compliance_metadata` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers:msComplianceMetadata",
@@ -8686,10 +8833,13 @@ pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_set_iam_policy_execute()` to send, or `backupdr_projects_locations_management_servers_set_iam_policy` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}:setIamPolicy",
@@ -8846,10 +8996,13 @@ pub fn backupdr_projects_locations_management_servers_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_management_servers_test_iam_permissions_execute()` to send, or `backupdr_projects_locations_management_servers_test_iam_permissions` for simplest API.
 
-pub fn backupdr_projects_locations_management_servers_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_management_servers_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}:testIamPermissions",
@@ -9014,10 +9167,13 @@ pub fn backupdr_projects_locations_management_servers_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_operations_cancel_execute()` to send, or `backupdr_projects_locations_operations_cancel` for simplest API.
 
-pub fn backupdr_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -9171,10 +9327,13 @@ pub fn backupdr_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_operations_delete_execute()` to send, or `backupdr_projects_locations_operations_delete` for simplest API.
 
-pub fn backupdr_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -9328,10 +9487,13 @@ pub fn backupdr_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_operations_get_execute()` to send, or `backupdr_projects_locations_operations_get` for simplest API.
 
-pub fn backupdr_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -9485,14 +9647,17 @@ pub fn backupdr_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_operations_list_execute()` to send, or `backupdr_projects_locations_operations_list` for simplest API.
 
-pub fn backupdr_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -9685,14 +9850,17 @@ pub fn backupdr_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_resource_backup_configs_list_execute()` to send, or `backupdr_projects_locations_resource_backup_configs_list` for simplest API.
 
-pub fn backupdr_projects_locations_resource_backup_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_resource_backup_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/resourceBackupConfigs",
@@ -9889,10 +10057,13 @@ pub fn backupdr_projects_locations_resource_backup_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_service_config_initialize_execute()` to send, or `backupdr_projects_locations_service_config_initialize` for simplest API.
 
-pub fn backupdr_projects_locations_service_config_initialize_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_service_config_initialize_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConfig:initialize",
@@ -10047,10 +10218,13 @@ pub fn backupdr_projects_locations_service_config_initialize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_trial_end_execute()` to send, or `backupdr_projects_locations_trial_end` for simplest API.
 
-pub fn backupdr_projects_locations_trial_end_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_trial_end_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/trial:end",
@@ -10204,10 +10378,13 @@ pub fn backupdr_projects_locations_trial_end(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `backupdr_projects_locations_trial_subscribe_execute()` to send, or `backupdr_projects_locations_trial_subscribe` for simplest API.
 
-pub fn backupdr_projects_locations_trial_subscribe_builder(
-    client: &SimpleHttpClient,
+pub fn backupdr_projects_locations_trial_subscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/trial:subscribe",

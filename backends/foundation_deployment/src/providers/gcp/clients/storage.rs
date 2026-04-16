@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_anywhere_caches_disable_execute()` to send, or `storage_anywhere_caches_disable` for simplest API.
 
-pub fn storage_anywhere_caches_disable_builder(
-    client: &SimpleHttpClient,
+pub fn storage_anywhere_caches_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     anywhereCacheId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}/disable",
@@ -191,11 +195,14 @@ pub fn storage_anywhere_caches_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_anywhere_caches_get_execute()` to send, or `storage_anywhere_caches_get` for simplest API.
 
-pub fn storage_anywhere_caches_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_anywhere_caches_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     anywhereCacheId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}",
@@ -355,10 +362,13 @@ pub fn storage_anywhere_caches_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_anywhere_caches_insert_execute()` to send, or `storage_anywhere_caches_insert` for simplest API.
 
-pub fn storage_anywhere_caches_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_anywhere_caches_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches",
@@ -520,12 +530,15 @@ pub fn storage_anywhere_caches_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_anywhere_caches_list_execute()` to send, or `storage_anywhere_caches_list` for simplest API.
 
-pub fn storage_anywhere_caches_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_anywhere_caches_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches",
@@ -706,11 +719,14 @@ pub fn storage_anywhere_caches_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_anywhere_caches_pause_execute()` to send, or `storage_anywhere_caches_pause` for simplest API.
 
-pub fn storage_anywhere_caches_pause_builder(
-    client: &SimpleHttpClient,
+pub fn storage_anywhere_caches_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     anywhereCacheId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}/pause",
@@ -871,11 +887,14 @@ pub fn storage_anywhere_caches_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_anywhere_caches_resume_execute()` to send, or `storage_anywhere_caches_resume` for simplest API.
 
-pub fn storage_anywhere_caches_resume_builder(
-    client: &SimpleHttpClient,
+pub fn storage_anywhere_caches_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     anywhereCacheId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}/resume",
@@ -1036,11 +1055,14 @@ pub fn storage_anywhere_caches_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_anywhere_caches_update_execute()` to send, or `storage_anywhere_caches_update` for simplest API.
 
-pub fn storage_anywhere_caches_update_builder(
-    client: &SimpleHttpClient,
+pub fn storage_anywhere_caches_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     anywhereCacheId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}",
@@ -1205,12 +1227,15 @@ pub fn storage_anywhere_caches_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_bucket_access_controls_delete_execute()` to send, or `storage_bucket_access_controls_delete` for simplest API.
 
-pub fn storage_bucket_access_controls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_bucket_access_controls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
@@ -1381,12 +1406,15 @@ pub fn storage_bucket_access_controls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_bucket_access_controls_get_execute()` to send, or `storage_bucket_access_controls_get` for simplest API.
 
-pub fn storage_bucket_access_controls_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_bucket_access_controls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
@@ -1564,11 +1592,14 @@ pub fn storage_bucket_access_controls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_bucket_access_controls_insert_execute()` to send, or `storage_bucket_access_controls_insert` for simplest API.
 
-pub fn storage_bucket_access_controls_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_bucket_access_controls_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/acl", bucket,);
 
@@ -1737,11 +1768,14 @@ pub fn storage_bucket_access_controls_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_bucket_access_controls_list_execute()` to send, or `storage_bucket_access_controls_list` for simplest API.
 
-pub fn storage_bucket_access_controls_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_bucket_access_controls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/acl", bucket,);
 
@@ -1910,12 +1944,15 @@ pub fn storage_bucket_access_controls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_bucket_access_controls_patch_execute()` to send, or `storage_bucket_access_controls_patch` for simplest API.
 
-pub fn storage_bucket_access_controls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn storage_bucket_access_controls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
@@ -2093,12 +2130,15 @@ pub fn storage_bucket_access_controls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_bucket_access_controls_update_execute()` to send, or `storage_bucket_access_controls_update` for simplest API.
 
-pub fn storage_bucket_access_controls_update_builder(
-    client: &SimpleHttpClient,
+pub fn storage_bucket_access_controls_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
@@ -2276,13 +2316,16 @@ pub fn storage_bucket_access_controls_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_delete_execute()` to send, or `storage_buckets_delete` for simplest API.
 
-pub fn storage_buckets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
 
@@ -2459,8 +2502,8 @@ pub fn storage_buckets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_get_execute()` to send, or `storage_buckets_get` for simplest API.
 
-pub fn storage_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     generation: &Option<Option<String>>,
     ifMetagenerationMatch: &Option<Option<String>>,
@@ -2468,7 +2511,10 @@ pub fn storage_buckets_get_builder(
     projection: &Option<Option<String>>,
     softDeleted: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
 
@@ -2666,12 +2712,15 @@ pub fn storage_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_get_iam_policy_execute()` to send, or `storage_buckets_get_iam_policy` for simplest API.
 
-pub fn storage_buckets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/iam", bucket,);
 
@@ -2845,11 +2894,14 @@ pub fn storage_buckets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_get_storage_layout_execute()` to send, or `storage_buckets_get_storage_layout` for simplest API.
 
-pub fn storage_buckets_get_storage_layout_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_get_storage_layout_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     prefix: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/storageLayout",
@@ -3020,15 +3072,18 @@ pub fn storage_buckets_get_storage_layout(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_insert_execute()` to send, or `storage_buckets_insert` for simplest API.
 
-pub fn storage_buckets_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     enableObjectRetention: &Option<Option<String>>,
     predefinedAcl: &Option<Option<String>>,
     predefinedDefaultObjectAcl: &Option<Option<String>>,
     project: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b",);
 
@@ -3223,8 +3278,8 @@ pub fn storage_buckets_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_list_execute()` to send, or `storage_buckets_list` for simplest API.
 
-pub fn storage_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     prefix: &Option<Option<String>>,
@@ -3233,7 +3288,10 @@ pub fn storage_buckets_list_builder(
     returnPartialSuccess: &Option<Option<String>>,
     softDeleted: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b",);
 
@@ -3440,12 +3498,15 @@ pub fn storage_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_lock_retention_policy_execute()` to send, or `storage_buckets_lock_retention_policy` for simplest API.
 
-pub fn storage_buckets_lock_retention_policy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_lock_retention_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/lockRetentionPolicy",
@@ -3622,8 +3683,8 @@ pub fn storage_buckets_lock_retention_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_patch_execute()` to send, or `storage_buckets_patch` for simplest API.
 
-pub fn storage_buckets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
@@ -3631,7 +3692,10 @@ pub fn storage_buckets_patch_builder(
     predefinedDefaultObjectAcl: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
 
@@ -3829,10 +3893,13 @@ pub fn storage_buckets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_relocate_execute()` to send, or `storage_buckets_relocate` for simplest API.
 
-pub fn storage_buckets_relocate_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_relocate_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/relocate",
@@ -3994,13 +4061,16 @@ pub fn storage_buckets_relocate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_restore_execute()` to send, or `storage_buckets_restore` for simplest API.
 
-pub fn storage_buckets_restore_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     generation: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/restore",
@@ -4183,11 +4253,14 @@ pub fn storage_buckets_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_set_iam_policy_execute()` to send, or `storage_buckets_set_iam_policy` for simplest API.
 
-pub fn storage_buckets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/iam", bucket,);
 
@@ -4351,12 +4424,15 @@ pub fn storage_buckets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_test_iam_permissions_execute()` to send, or `storage_buckets_test_iam_permissions` for simplest API.
 
-pub fn storage_buckets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     permissions: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/iam/testPermissions",
@@ -4541,8 +4617,8 @@ pub fn storage_buckets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_update_execute()` to send, or `storage_buckets_update` for simplest API.
 
-pub fn storage_buckets_update_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
@@ -4550,7 +4626,10 @@ pub fn storage_buckets_update_builder(
     predefinedDefaultObjectAcl: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
 
@@ -4748,9 +4827,12 @@ pub fn storage_buckets_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_channels_stop_execute()` to send, or `storage_channels_stop` for simplest API.
 
-pub fn storage_channels_stop_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn storage_channels_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/channels/stop",);
 
@@ -4890,12 +4972,15 @@ pub fn storage_channels_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_default_object_access_controls_delete_execute()` to send, or `storage_default_object_access_controls_delete` for simplest API.
 
-pub fn storage_default_object_access_controls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_default_object_access_controls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
@@ -5066,12 +5151,15 @@ pub fn storage_default_object_access_controls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_default_object_access_controls_get_execute()` to send, or `storage_default_object_access_controls_get` for simplest API.
 
-pub fn storage_default_object_access_controls_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_default_object_access_controls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
@@ -5249,11 +5337,14 @@ pub fn storage_default_object_access_controls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_default_object_access_controls_insert_execute()` to send, or `storage_default_object_access_controls_insert` for simplest API.
 
-pub fn storage_default_object_access_controls_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_default_object_access_controls_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl",
@@ -5428,13 +5519,16 @@ pub fn storage_default_object_access_controls_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_default_object_access_controls_list_execute()` to send, or `storage_default_object_access_controls_list` for simplest API.
 
-pub fn storage_default_object_access_controls_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_default_object_access_controls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl",
@@ -5621,12 +5715,15 @@ pub fn storage_default_object_access_controls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_default_object_access_controls_patch_execute()` to send, or `storage_default_object_access_controls_patch` for simplest API.
 
-pub fn storage_default_object_access_controls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn storage_default_object_access_controls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
@@ -5804,12 +5901,15 @@ pub fn storage_default_object_access_controls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_default_object_access_controls_update_execute()` to send, or `storage_default_object_access_controls_update` for simplest API.
 
-pub fn storage_default_object_access_controls_update_builder(
-    client: &SimpleHttpClient,
+pub fn storage_default_object_access_controls_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
@@ -5987,13 +6087,16 @@ pub fn storage_default_object_access_controls_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_folders_delete_execute()` to send, or `storage_folders_delete` for simplest API.
 
-pub fn storage_folders_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_folders_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     folder: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders/{}",
@@ -6170,13 +6273,16 @@ pub fn storage_folders_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_folders_delete_recursive_execute()` to send, or `storage_folders_delete_recursive` for simplest API.
 
-pub fn storage_folders_delete_recursive_builder(
-    client: &SimpleHttpClient,
+pub fn storage_folders_delete_recursive_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     folder: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders/{}/deleteRecursive",
@@ -6364,13 +6470,16 @@ pub fn storage_folders_delete_recursive(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_folders_get_execute()` to send, or `storage_folders_get` for simplest API.
 
-pub fn storage_folders_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_folders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     folder: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders/{}",
@@ -6550,11 +6659,14 @@ pub fn storage_folders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_folders_insert_execute()` to send, or `storage_folders_insert` for simplest API.
 
-pub fn storage_folders_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_folders_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     recursive: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders",
@@ -6721,8 +6833,8 @@ pub fn storage_folders_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_folders_list_execute()` to send, or `storage_folders_list` for simplest API.
 
-pub fn storage_folders_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_folders_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     delimiter: &Option<Option<String>>,
     endOffset: &Option<Option<String>>,
@@ -6730,7 +6842,10 @@ pub fn storage_folders_list_builder(
     pageToken: &Option<Option<String>>,
     prefix: &Option<Option<String>>,
     startOffset: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders",
@@ -6931,14 +7046,17 @@ pub fn storage_folders_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_folders_rename_execute()` to send, or `storage_folders_rename` for simplest API.
 
-pub fn storage_folders_rename_builder(
-    client: &SimpleHttpClient,
+pub fn storage_folders_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     sourceFolder: &String,
     destinationFolder: &String,
     ifSourceMetagenerationMatch: &Option<Option<String>>,
     ifSourceMetagenerationNotMatch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders/{}/renameTo/folders/{}",
@@ -7129,14 +7247,17 @@ pub fn storage_folders_rename(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_managed_folders_delete_execute()` to send, or `storage_managed_folders_delete` for simplest API.
 
-pub fn storage_managed_folders_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_managed_folders_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
     allowNonEmpty: &Option<Option<String>>,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}",
@@ -7319,13 +7440,16 @@ pub fn storage_managed_folders_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_managed_folders_get_execute()` to send, or `storage_managed_folders_get` for simplest API.
 
-pub fn storage_managed_folders_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_managed_folders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}",
@@ -7509,13 +7633,16 @@ pub fn storage_managed_folders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_managed_folders_get_iam_policy_execute()` to send, or `storage_managed_folders_get_iam_policy` for simplest API.
 
-pub fn storage_managed_folders_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_managed_folders_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
     optionsRequestedPolicyVersion: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}/iam",
@@ -7695,10 +7822,13 @@ pub fn storage_managed_folders_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_managed_folders_insert_execute()` to send, or `storage_managed_folders_insert` for simplest API.
 
-pub fn storage_managed_folders_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_managed_folders_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders",
@@ -7856,13 +7986,16 @@ pub fn storage_managed_folders_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_managed_folders_list_execute()` to send, or `storage_managed_folders_list` for simplest API.
 
-pub fn storage_managed_folders_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_managed_folders_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     prefix: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders",
@@ -8049,12 +8182,15 @@ pub fn storage_managed_folders_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_managed_folders_set_iam_policy_execute()` to send, or `storage_managed_folders_set_iam_policy` for simplest API.
 
-pub fn storage_managed_folders_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_managed_folders_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}/iam",
@@ -8228,13 +8364,16 @@ pub fn storage_managed_folders_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_managed_folders_test_iam_permissions_execute()` to send, or `storage_managed_folders_test_iam_permissions` for simplest API.
 
-pub fn storage_managed_folders_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn storage_managed_folders_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
     permissions: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}/iam/testPermissions",
@@ -8422,12 +8561,15 @@ pub fn storage_managed_folders_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_notifications_delete_execute()` to send, or `storage_notifications_delete` for simplest API.
 
-pub fn storage_notifications_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_notifications_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     notification: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs/{}",
@@ -8598,12 +8740,15 @@ pub fn storage_notifications_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_notifications_get_execute()` to send, or `storage_notifications_get` for simplest API.
 
-pub fn storage_notifications_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_notifications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     notification: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs/{}",
@@ -8781,11 +8926,14 @@ pub fn storage_notifications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_notifications_insert_execute()` to send, or `storage_notifications_insert` for simplest API.
 
-pub fn storage_notifications_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_notifications_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs",
@@ -8956,11 +9104,14 @@ pub fn storage_notifications_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_notifications_list_execute()` to send, or `storage_notifications_list` for simplest API.
 
-pub fn storage_notifications_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_notifications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs",
@@ -9131,14 +9282,17 @@ pub fn storage_notifications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_object_access_controls_delete_execute()` to send, or `storage_object_access_controls_delete` for simplest API.
 
-pub fn storage_object_access_controls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_object_access_controls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     entity: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
@@ -9318,14 +9472,17 @@ pub fn storage_object_access_controls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_object_access_controls_get_execute()` to send, or `storage_object_access_controls_get` for simplest API.
 
-pub fn storage_object_access_controls_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_object_access_controls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     entity: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
@@ -9512,13 +9669,16 @@ pub fn storage_object_access_controls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_object_access_controls_insert_execute()` to send, or `storage_object_access_controls_insert` for simplest API.
 
-pub fn storage_object_access_controls_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_object_access_controls_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl",
@@ -9702,13 +9862,16 @@ pub fn storage_object_access_controls_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_object_access_controls_list_execute()` to send, or `storage_object_access_controls_list` for simplest API.
 
-pub fn storage_object_access_controls_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_object_access_controls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl",
@@ -9892,14 +10055,17 @@ pub fn storage_object_access_controls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_object_access_controls_patch_execute()` to send, or `storage_object_access_controls_patch` for simplest API.
 
-pub fn storage_object_access_controls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn storage_object_access_controls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     entity: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
@@ -10086,14 +10252,17 @@ pub fn storage_object_access_controls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_object_access_controls_update_execute()` to send, or `storage_object_access_controls_update` for simplest API.
 
-pub fn storage_object_access_controls_update_builder(
-    client: &SimpleHttpClient,
+pub fn storage_object_access_controls_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     entity: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
@@ -10280,10 +10449,13 @@ pub fn storage_object_access_controls_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_bulk_restore_execute()` to send, or `storage_objects_bulk_restore` for simplest API.
 
-pub fn storage_objects_bulk_restore_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_bulk_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/bulkRestore",
@@ -10445,8 +10617,8 @@ pub fn storage_objects_bulk_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_compose_execute()` to send, or `storage_objects_compose` for simplest API.
 
-pub fn storage_objects_compose_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_compose_builder<R>(
+    client: &SimpleHttpClient<R>,
     destinationBucket: &String,
     destinationObject: &String,
     destinationPredefinedAcl: &Option<Option<String>>,
@@ -10455,7 +10627,10 @@ pub fn storage_objects_compose_builder(
     ifMetagenerationMatch: &Option<Option<String>>,
     kmsKeyName: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/compose",
@@ -10659,8 +10834,8 @@ pub fn storage_objects_compose(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_copy_execute()` to send, or `storage_objects_copy` for simplest API.
 
-pub fn storage_objects_copy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_copy_builder<R>(
+    client: &SimpleHttpClient<R>,
     sourceBucket: &String,
     sourceObject: &String,
     destinationBucket: &String,
@@ -10678,7 +10853,10 @@ pub fn storage_objects_copy_builder(
     projection: &Option<Option<String>>,
     sourceGeneration: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/copyTo/b/{}/o/{}",
@@ -10930,8 +11108,8 @@ pub fn storage_objects_copy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_delete_execute()` to send, or `storage_objects_delete` for simplest API.
 
-pub fn storage_objects_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
@@ -10940,7 +11118,10 @@ pub fn storage_objects_delete_builder(
     ifMetagenerationMatch: &Option<Option<String>>,
     ifMetagenerationNotMatch: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
@@ -11141,8 +11322,8 @@ pub fn storage_objects_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_get_execute()` to send, or `storage_objects_get` for simplest API.
 
-pub fn storage_objects_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
@@ -11154,7 +11335,10 @@ pub fn storage_objects_get_builder(
     restoreToken: &Option<Option<String>>,
     softDeleted: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
@@ -11376,13 +11560,16 @@ pub fn storage_objects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_get_iam_policy_execute()` to send, or `storage_objects_get_iam_policy` for simplest API.
 
-pub fn storage_objects_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/iam",
@@ -11562,8 +11749,8 @@ pub fn storage_objects_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_insert_execute()` to send, or `storage_objects_insert` for simplest API.
 
-pub fn storage_objects_insert_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     contentEncoding: &Option<Option<String>>,
     ifGenerationMatch: &Option<Option<String>>,
@@ -11575,7 +11762,10 @@ pub fn storage_objects_insert_builder(
     predefinedAcl: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/o", bucket,);
 
@@ -11797,8 +11987,8 @@ pub fn storage_objects_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_list_execute()` to send, or `storage_objects_list` for simplest API.
 
-pub fn storage_objects_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     delimiter: &Option<Option<String>>,
     endOffset: &Option<Option<String>>,
@@ -11814,7 +12004,10 @@ pub fn storage_objects_list_builder(
     startOffset: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
     versions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/o", bucket,);
 
@@ -12060,8 +12253,8 @@ pub fn storage_objects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_move_execute()` to send, or `storage_objects_move` for simplest API.
 
-pub fn storage_objects_move_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     sourceObject: &String,
     destinationObject: &String,
@@ -12075,7 +12268,10 @@ pub fn storage_objects_move_builder(
     ifSourceMetagenerationNotMatch: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/moveTo/o/{}",
@@ -12306,8 +12502,8 @@ pub fn storage_objects_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_patch_execute()` to send, or `storage_objects_patch` for simplest API.
 
-pub fn storage_objects_patch_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
@@ -12319,7 +12515,10 @@ pub fn storage_objects_patch_builder(
     predefinedAcl: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
@@ -12541,8 +12740,8 @@ pub fn storage_objects_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_restore_execute()` to send, or `storage_objects_restore` for simplest API.
 
-pub fn storage_objects_restore_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     copySourceAcl: &Option<Option<String>>,
@@ -12554,7 +12753,10 @@ pub fn storage_objects_restore_builder(
     projection: &Option<Option<String>>,
     restoreToken: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/restore",
@@ -12776,8 +12978,8 @@ pub fn storage_objects_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_rewrite_execute()` to send, or `storage_objects_rewrite` for simplest API.
 
-pub fn storage_objects_rewrite_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_rewrite_builder<R>(
+    client: &SimpleHttpClient<R>,
     sourceBucket: &String,
     sourceObject: &String,
     destinationBucket: &String,
@@ -12798,7 +13000,10 @@ pub fn storage_objects_rewrite_builder(
     rewriteToken: &Option<Option<String>>,
     sourceGeneration: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/rewriteTo/b/{}/o/{}",
@@ -13072,13 +13277,16 @@ pub fn storage_objects_rewrite(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_set_iam_policy_execute()` to send, or `storage_objects_set_iam_policy` for simplest API.
 
-pub fn storage_objects_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/iam",
@@ -13258,14 +13466,17 @@ pub fn storage_objects_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_test_iam_permissions_execute()` to send, or `storage_objects_test_iam_permissions` for simplest API.
 
-pub fn storage_objects_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
     permissions: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/iam/testPermissions",
@@ -13459,8 +13670,8 @@ pub fn storage_objects_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_update_execute()` to send, or `storage_objects_update` for simplest API.
 
-pub fn storage_objects_update_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
     generation: &Option<Option<String>>,
@@ -13472,7 +13683,10 @@ pub fn storage_objects_update_builder(
     predefinedAcl: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
@@ -13694,8 +13908,8 @@ pub fn storage_objects_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_watch_all_execute()` to send, or `storage_objects_watch_all` for simplest API.
 
-pub fn storage_objects_watch_all_builder(
-    client: &SimpleHttpClient,
+pub fn storage_objects_watch_all_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     delimiter: &Option<Option<String>>,
     endOffset: &Option<Option<String>>,
@@ -13707,7 +13921,10 @@ pub fn storage_objects_watch_all_builder(
     startOffset: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
     versions: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/watch",
@@ -13932,11 +14149,14 @@ pub fn storage_objects_watch_all(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_operations_advance_relocate_bucket_execute()` to send, or `storage_buckets_operations_advance_relocate_bucket` for simplest API.
 
-pub fn storage_buckets_operations_advance_relocate_bucket_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_operations_advance_relocate_bucket_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     operationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations/{}/advanceRelocateBucket",
@@ -14093,11 +14313,14 @@ pub fn storage_buckets_operations_advance_relocate_bucket(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_operations_cancel_execute()` to send, or `storage_buckets_operations_cancel` for simplest API.
 
-pub fn storage_buckets_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     operationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations/{}/cancel",
@@ -14251,11 +14474,14 @@ pub fn storage_buckets_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_operations_get_execute()` to send, or `storage_buckets_operations_get` for simplest API.
 
-pub fn storage_buckets_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     operationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations/{}",
@@ -14419,13 +14645,16 @@ pub fn storage_buckets_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_buckets_operations_list_execute()` to send, or `storage_buckets_operations_list` for simplest API.
 
-pub fn storage_buckets_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_buckets_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations",
@@ -14617,12 +14846,15 @@ pub fn storage_buckets_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_hmac_keys_create_execute()` to send, or `storage_projects_hmac_keys_create` for simplest API.
 
-pub fn storage_projects_hmac_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn storage_projects_hmac_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     serviceAccountEmail: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys",
@@ -14799,12 +15031,15 @@ pub fn storage_projects_hmac_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_hmac_keys_delete_execute()` to send, or `storage_projects_hmac_keys_delete` for simplest API.
 
-pub fn storage_projects_hmac_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn storage_projects_hmac_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     accessId: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys/{}",
@@ -14975,12 +15210,15 @@ pub fn storage_projects_hmac_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_hmac_keys_get_execute()` to send, or `storage_projects_hmac_keys_get` for simplest API.
 
-pub fn storage_projects_hmac_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_projects_hmac_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     accessId: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys/{}",
@@ -15158,15 +15396,18 @@ pub fn storage_projects_hmac_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_hmac_keys_list_execute()` to send, or `storage_projects_hmac_keys_list` for simplest API.
 
-pub fn storage_projects_hmac_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn storage_projects_hmac_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     serviceAccountEmail: &Option<Option<String>>,
     showDeletedKeys: &Option<Option<String>>,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys",
@@ -15365,12 +15606,15 @@ pub fn storage_projects_hmac_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_hmac_keys_update_execute()` to send, or `storage_projects_hmac_keys_update` for simplest API.
 
-pub fn storage_projects_hmac_keys_update_builder(
-    client: &SimpleHttpClient,
+pub fn storage_projects_hmac_keys_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     accessId: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys/{}",
@@ -15548,11 +15792,14 @@ pub fn storage_projects_hmac_keys_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_service_account_get_execute()` to send, or `storage_projects_service_account_get` for simplest API.
 
-pub fn storage_projects_service_account_get_builder(
-    client: &SimpleHttpClient,
+pub fn storage_projects_service_account_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     userProject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/serviceAccount",

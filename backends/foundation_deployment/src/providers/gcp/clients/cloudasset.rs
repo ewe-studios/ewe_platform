@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_assets_list_execute()` to send, or `cloudasset_assets_list` for simplest API.
 
-pub fn cloudasset_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     assetTypes: &Option<Option<String>>,
     contentType: &Option<Option<String>>,
@@ -35,7 +36,10 @@ pub fn cloudasset_assets_list_builder(
     pageToken: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
     relationshipTypes: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/assets",
@@ -240,11 +244,14 @@ pub fn cloudasset_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_effective_iam_policies_batch_get_execute()` to send, or `cloudasset_effective_iam_policies_batch_get` for simplest API.
 
-pub fn cloudasset_effective_iam_policies_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_effective_iam_policies_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     names: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/effectiveIamPolicies:batchGet",
@@ -420,10 +427,13 @@ pub fn cloudasset_effective_iam_policies_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_feeds_create_execute()` to send, or `cloudasset_feeds_create` for simplest API.
 
-pub fn cloudasset_feeds_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_feeds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/feeds",
@@ -577,10 +587,13 @@ pub fn cloudasset_feeds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_feeds_delete_execute()` to send, or `cloudasset_feeds_delete` for simplest API.
 
-pub fn cloudasset_feeds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_feeds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/feeds/{feedsId}",
@@ -734,10 +747,13 @@ pub fn cloudasset_feeds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_feeds_get_execute()` to send, or `cloudasset_feeds_get` for simplest API.
 
-pub fn cloudasset_feeds_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_feeds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/feeds/{feedsId}",
@@ -891,10 +907,13 @@ pub fn cloudasset_feeds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_feeds_list_execute()` to send, or `cloudasset_feeds_list` for simplest API.
 
-pub fn cloudasset_feeds_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_feeds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/feeds",
@@ -1052,10 +1071,13 @@ pub fn cloudasset_feeds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_feeds_patch_execute()` to send, or `cloudasset_feeds_patch` for simplest API.
 
-pub fn cloudasset_feeds_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_feeds_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/feeds/{feedsId}",
@@ -1209,10 +1231,13 @@ pub fn cloudasset_feeds_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_operations_get_execute()` to send, or `cloudasset_operations_get` for simplest API.
 
-pub fn cloudasset_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/operations/{operationsId}/{operationsId1}",
@@ -1366,11 +1391,14 @@ pub fn cloudasset_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_saved_queries_create_execute()` to send, or `cloudasset_saved_queries_create` for simplest API.
 
-pub fn cloudasset_saved_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_saved_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     savedQueryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/savedQueries",
@@ -1538,10 +1566,13 @@ pub fn cloudasset_saved_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_saved_queries_delete_execute()` to send, or `cloudasset_saved_queries_delete` for simplest API.
 
-pub fn cloudasset_saved_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_saved_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/savedQueries/{savedQueriesId}",
@@ -1695,10 +1726,13 @@ pub fn cloudasset_saved_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_saved_queries_get_execute()` to send, or `cloudasset_saved_queries_get` for simplest API.
 
-pub fn cloudasset_saved_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_saved_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/savedQueries/{savedQueriesId}",
@@ -1852,13 +1886,16 @@ pub fn cloudasset_saved_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_saved_queries_list_execute()` to send, or `cloudasset_saved_queries_list` for simplest API.
 
-pub fn cloudasset_saved_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_saved_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/savedQueries",
@@ -2045,11 +2082,14 @@ pub fn cloudasset_saved_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_saved_queries_patch_execute()` to send, or `cloudasset_saved_queries_patch` for simplest API.
 
-pub fn cloudasset_saved_queries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_saved_queries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}/savedQueries/{savedQueriesId}",
@@ -2216,8 +2256,8 @@ pub fn cloudasset_saved_queries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_analyze_iam_policy_execute()` to send, or `cloudasset_analyze_iam_policy` for simplest API.
 
-pub fn cloudasset_analyze_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_analyze_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     analysisQuery_accessSelector_permissions: &Option<Option<String>>,
     analysisQuery_accessSelector_roles: &Option<Option<String>>,
@@ -2232,7 +2272,10 @@ pub fn cloudasset_analyze_iam_policy_builder(
     analysisQuery_resourceSelector_fullResourceName: &Option<Option<String>>,
     executionTimeout: &Option<Option<String>>,
     savedAnalysisQuery: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:analyzeIamPolicy",
@@ -2485,10 +2528,13 @@ pub fn cloudasset_analyze_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_analyze_iam_policy_longrunning_execute()` to send, or `cloudasset_analyze_iam_policy_longrunning` for simplest API.
 
-pub fn cloudasset_analyze_iam_policy_longrunning_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_analyze_iam_policy_longrunning_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:analyzeIamPolicyLongrunning",
@@ -2642,12 +2688,15 @@ pub fn cloudasset_analyze_iam_policy_longrunning(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_analyze_move_execute()` to send, or `cloudasset_analyze_move` for simplest API.
 
-pub fn cloudasset_analyze_move_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_analyze_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     destinationParent: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:analyzeMove",
@@ -2828,14 +2877,17 @@ pub fn cloudasset_analyze_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_analyze_org_policies_execute()` to send, or `cloudasset_analyze_org_policies` for simplest API.
 
-pub fn cloudasset_analyze_org_policies_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_analyze_org_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     constraint: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:analyzeOrgPolicies",
@@ -3032,14 +3084,17 @@ pub fn cloudasset_analyze_org_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_analyze_org_policy_governed_assets_execute()` to send, or `cloudasset_analyze_org_policy_governed_assets` for simplest API.
 
-pub fn cloudasset_analyze_org_policy_governed_assets_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_analyze_org_policy_governed_assets_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     constraint: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:analyzeOrgPolicyGovernedAssets",
@@ -3236,14 +3291,17 @@ pub fn cloudasset_analyze_org_policy_governed_assets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_analyze_org_policy_governed_containers_execute()` to send, or `cloudasset_analyze_org_policy_governed_containers` for simplest API.
 
-pub fn cloudasset_analyze_org_policy_governed_containers_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_analyze_org_policy_governed_containers_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     constraint: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:analyzeOrgPolicyGovernedContainers",
@@ -3441,15 +3499,18 @@ pub fn cloudasset_analyze_org_policy_governed_containers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_batch_get_assets_history_execute()` to send, or `cloudasset_batch_get_assets_history` for simplest API.
 
-pub fn cloudasset_batch_get_assets_history_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_batch_get_assets_history_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     assetNames: &Option<Option<String>>,
     contentType: &Option<Option<String>>,
     readTimeWindow_endTime: &Option<Option<String>>,
     readTimeWindow_startTime: &Option<Option<String>>,
     relationshipTypes: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:batchGetAssetsHistory",
@@ -3652,10 +3713,13 @@ pub fn cloudasset_batch_get_assets_history(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_export_assets_execute()` to send, or `cloudasset_export_assets` for simplest API.
 
-pub fn cloudasset_export_assets_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_export_assets_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:exportAssets",
@@ -3809,10 +3873,13 @@ pub fn cloudasset_export_assets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_query_assets_execute()` to send, or `cloudasset_query_assets` for simplest API.
 
-pub fn cloudasset_query_assets_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_query_assets_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:queryAssets",
@@ -3970,15 +4037,18 @@ pub fn cloudasset_query_assets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_search_all_iam_policies_execute()` to send, or `cloudasset_search_all_iam_policies` for simplest API.
 
-pub fn cloudasset_search_all_iam_policies_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_search_all_iam_policies_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     assetTypes: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:searchAllIamPolicies",
@@ -4181,8 +4251,8 @@ pub fn cloudasset_search_all_iam_policies(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_search_all_resources_execute()` to send, or `cloudasset_search_all_resources` for simplest API.
 
-pub fn cloudasset_search_all_resources_builder(
-    client: &SimpleHttpClient,
+pub fn cloudasset_search_all_resources_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     assetTypes: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
@@ -4190,7 +4260,10 @@ pub fn cloudasset_search_all_resources_builder(
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudasset.googleapis.com/v1/{}/{v1Id1}:searchAllResources",

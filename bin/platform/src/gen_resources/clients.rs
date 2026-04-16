@@ -16,6 +16,7 @@
 //! - Apply valtron combinators: `map_ready()`, `map_pending()`, `execute()`
 //! - Task functions return `TaskIterator` for user composition before `execute()`
 
+use foundation_openapi::to_pascal_case;
 use regex::Regex;
 use std::fmt::Write as FmtWrite;
 use std::path::{Path, PathBuf};
@@ -404,7 +405,7 @@ impl ClientGenerator {
         let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
         writeln!(out, "use foundation_core::valtron::{{execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt}};")?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{")?;
-        writeln!(out, "    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,")?;
+        writeln!(out, "    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient, SystemDnsResolver,")?;
         writeln!(out, "}};")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out, "use serde::Serialize;")?;
@@ -413,14 +414,30 @@ impl ClientGenerator {
         writeln!(out, "use foundation_db::state::resource_identifier::ResourceIdentifier;")?;
         writeln!(out)?;
 
-        // Deduplicate endpoints by generated struct name to avoid duplicate definitions
-        // (e.g., indicator-types and indicatorTypes both become IndicatorTypes)
-        let mut seen_struct_names = std::collections::HashSet::new();
+        // Deduplicate endpoints by all generated function names to avoid collisions.
+        // Each endpoint generates 4 functions: {fn_name}_builder, {fn_name}_task, {fn_name}_execute, {fn_name}
+        // We need to check all of these for potential collisions.
+        let mut seen_names = std::collections::HashSet::new();
         let mut unique_endpoints = Vec::new();
         for endpoint in &endpoints {
             let fn_name = self.endpoint_to_fn_name(endpoint);
-            let struct_name = format!("{}Args", self.to_pascal_case(&fn_name));
-            if seen_struct_names.insert(struct_name) {
+
+            // Generate all function names this endpoint would create
+            let func_names = vec![
+                format!("{}_builder", fn_name),
+                format!("{}_task", fn_name),
+                format!("{}_execute", fn_name),
+                fn_name.clone(),
+            ];
+
+            // Check if any of these names would collide
+            let would_collide = func_names.iter().any(|name| seen_names.contains(name));
+
+            if !would_collide {
+                // Add all function names to the seen set
+                for name in func_names {
+                    seen_names.insert(name);
+                }
                 unique_endpoints.push(endpoint);
             }
         }
@@ -460,8 +477,8 @@ impl ClientGenerator {
         writeln!(out, "/// Use `{}_execute()` to send, or `{}` for simplest API.", fn_name, fn_name)?;
         writeln!(out)?;
 
-        // Function signature - take borrowed references to avoid cloning
-        write!(out, "pub fn {}_builder(\n    client: &SimpleHttpClient,", fn_name)?;
+        // Function signature - generic over DNS resolver type
+        write!(out, "pub fn {}_builder<R>(\n    client: &SimpleHttpClient<R>,", fn_name)?;
 
         // Path parameters - borrowed references
         for param in &endpoint.path_params {
@@ -484,7 +501,10 @@ impl ClientGenerator {
         }
 
         writeln!(out)?;
-        writeln!(out, ") -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {{")?;
+        writeln!(out, ") -> Result<ClientRequestBuilder<R>, ApiError>")?;
+        writeln!(out, "where")?;
+        writeln!(out, "    R: DnsResolver + Clone,")?;
+        writeln!(out, "{{")?;
 
         // Build URL
         writeln!(out)?;
@@ -776,7 +796,7 @@ impl ClientGenerator {
     fn generate_convenience_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
         let fn_name = self.endpoint_to_fn_name(endpoint);
         let return_type = endpoint.response_type.as_deref().unwrap_or("()");
-        let struct_name = format!("{}Args", self.to_pascal_case(&fn_name));
+        let struct_name = format!("{}Args", to_pascal_case(&fn_name));
 
         // Generate argument struct with JsonHash
         let has_params = !endpoint.path_params.is_empty()
@@ -874,7 +894,7 @@ impl ClientGenerator {
         label: &str,
     ) -> Result<(), GenClientError> {
         let fn_name = self.endpoint_to_fn_name(endpoint);
-        let args_struct_name = format!("{}Args", self.to_pascal_case(&fn_name));
+        let args_struct_name = format!("{}Args", to_pascal_case(&fn_name));
 
         // Extract provider and kind from the label and response type
         // e.g., "gcp/cloudkms" -> provider="gcp", kind_prefix="gcp::cloudkms"
@@ -1121,27 +1141,6 @@ impl ClientGenerator {
 
     fn label_to_feature_name(label: &str) -> String {
         label.split('/').next().unwrap_or(label).replace('-', "_")
-    }
-
-    fn to_pascal_case(&self, s: &str) -> String {
-        // First normalize special characters to underscores
-        let normalized = s
-            .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_");  // Replace slashes
-
-        normalized.split('_')
-            .filter(|part| !part.is_empty())
-            .map(|part| {
-                let mut chars = part.chars();
-                match chars.next() {
-                    Some(c) => {
-                        let mut result = c.to_uppercase().to_string();
-                        result.extend(chars);
-                        result
-                    }
-                    None => String::new(),
-                }
-            })
-            .collect()
     }
 
     fn escape_keyword(&self, name: &str) -> String {

@@ -110,22 +110,15 @@ use crate::providers::gcp::clients::cloudsearch::CloudsearchIndexingDatasourcesI
 use crate::providers::gcp::clients::cloudsearch::CloudsearchIndexingDatasourcesItemsUnreserveArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchIndexingDatasourcesItemsUploadArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchIndexingDatasourcesUpdateSchemaArgs;
-use crate::providers::gcp::clients::cloudsearch::CloudsearchInitializeCustomerArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchMediaUploadArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchOperationsGetArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchOperationsLroListArgs;
-use crate::providers::gcp::clients::cloudsearch::CloudsearchQueryRemoveActivityArgs;
-use crate::providers::gcp::clients::cloudsearch::CloudsearchQuerySearchArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchQuerySourcesListArgs;
-use crate::providers::gcp::clients::cloudsearch::CloudsearchQuerySuggestArgs;
-use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsDatasourcesCreateArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsDatasourcesDeleteArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsDatasourcesGetArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsDatasourcesListArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsDatasourcesPatchArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsDatasourcesUpdateArgs;
-use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsGetCustomerArgs;
-use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsSearchapplicationsCreateArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsSearchapplicationsDeleteArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsSearchapplicationsGetArgs;
 use crate::providers::gcp::clients::cloudsearch::CloudsearchSettingsSearchapplicationsListArgs;
@@ -144,7 +137,7 @@ use crate::providers::gcp::clients::cloudsearch::CloudsearchStatsSessionSearchap
 use crate::providers::gcp::clients::cloudsearch::CloudsearchStatsUserSearchapplicationsGetArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -153,34 +146,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = CloudsearchProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = CloudsearchProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct CloudsearchProvider<S>
+pub struct CloudsearchProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> CloudsearchProvider<S>
+impl<S, R> CloudsearchProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new CloudsearchProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new CloudsearchProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Cloudsearch debug datasources items check access.
@@ -212,7 +215,7 @@ where
         let builder = cloudsearch_debug_datasources_items_check_access_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -289,7 +292,7 @@ where
         let builder = cloudsearch_debug_datasources_items_unmappedids_list_builder(
             &self.http_client,
             &args.parent,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.pageSize,
             &args.pageToken,
         )
@@ -330,7 +333,7 @@ where
         let builder = cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder(
             &self.http_client,
             &args.parent,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.groupResourceName,
             &args.pageSize,
             &args.pageToken,
@@ -373,7 +376,7 @@ where
         let builder = cloudsearch_debug_identitysources_unmappedids_list_builder(
             &self.http_client,
             &args.parent,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.pageSize,
             &args.pageToken,
             &args.resolutionStatusCode,
@@ -415,7 +418,7 @@ where
         let builder = cloudsearch_indexing_datasources_delete_schema_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -454,7 +457,7 @@ where
         let builder = cloudsearch_indexing_datasources_get_schema_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -532,7 +535,7 @@ where
             &self.http_client,
             &args.name,
             &args.connectorName,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.mode,
             &args.version,
         )
@@ -612,7 +615,7 @@ where
             &self.http_client,
             &args.name,
             &args.connectorName,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -691,7 +694,7 @@ where
             &args.name,
             &args.brief,
             &args.connectorName,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.pageSize,
             &args.pageToken,
         )
@@ -1113,10 +1116,10 @@ where
         let builder = cloudsearch_query_sources_list_builder(
             &self.http_client,
             &args.pageToken,
-            &args.requestOptions.debugOptions.enableDebugging,
-            &args.requestOptions.languageCode,
-            &args.requestOptions.searchApplicationId,
-            &args.requestOptions.timeZone,
+            &args.requestOptions_debugOptions_enableDebugging,
+            &args.requestOptions_languageCode,
+            &args.requestOptions_searchApplicationId,
+            &args.requestOptions_timeZone,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1272,7 +1275,7 @@ where
         let builder = cloudsearch_settings_datasources_delete_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1311,7 +1314,7 @@ where
         let builder = cloudsearch_settings_datasources_get_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1349,7 +1352,7 @@ where
     > {
         let builder = cloudsearch_settings_datasources_list_builder(
             &self.http_client,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.pageSize,
             &args.pageToken,
         )
@@ -1390,7 +1393,7 @@ where
         let builder = cloudsearch_settings_datasources_patch_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.updateMask,
         )
         .map_err(ProviderError::Api)?;
@@ -1510,7 +1513,7 @@ where
         let builder = cloudsearch_settings_searchapplications_delete_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1549,7 +1552,7 @@ where
         let builder = cloudsearch_settings_searchapplications_get_builder(
             &self.http_client,
             &args.name,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1587,7 +1590,7 @@ where
     > {
         let builder = cloudsearch_settings_searchapplications_list_builder(
             &self.http_client,
-            &args.debugOptions.enableDebugging,
+            &args.debugOptions_enableDebugging,
             &args.pageSize,
             &args.pageToken,
         )
@@ -1743,12 +1746,12 @@ where
     > {
         let builder = cloudsearch_stats_get_index_builder(
             &self.http_client,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1786,12 +1789,12 @@ where
     > {
         let builder = cloudsearch_stats_get_query_builder(
             &self.http_client,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1829,12 +1832,12 @@ where
     > {
         let builder = cloudsearch_stats_get_searchapplication_builder(
             &self.http_client,
-            &args.endDate.day,
-            &args.endDate.month,
-            &args.endDate.year,
-            &args.startDate.day,
-            &args.startDate.month,
-            &args.startDate.year,
+            &args.endDate_day,
+            &args.endDate_month,
+            &args.endDate_year,
+            &args.startDate_day,
+            &args.startDate_month,
+            &args.startDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1872,12 +1875,12 @@ where
     > {
         let builder = cloudsearch_stats_get_session_builder(
             &self.http_client,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1915,12 +1918,12 @@ where
     > {
         let builder = cloudsearch_stats_get_user_builder(
             &self.http_client,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1959,12 +1962,12 @@ where
         let builder = cloudsearch_stats_index_datasources_get_builder(
             &self.http_client,
             &args.name,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -2003,12 +2006,12 @@ where
         let builder = cloudsearch_stats_query_searchapplications_get_builder(
             &self.http_client,
             &args.name,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -2047,12 +2050,12 @@ where
         let builder = cloudsearch_stats_session_searchapplications_get_builder(
             &self.http_client,
             &args.name,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -2091,12 +2094,12 @@ where
         let builder = cloudsearch_stats_user_searchapplications_get_builder(
             &self.http_client,
             &args.name,
-            &args.fromDate.day,
-            &args.fromDate.month,
-            &args.fromDate.year,
-            &args.toDate.day,
-            &args.toDate.month,
-            &args.toDate.year,
+            &args.fromDate_day,
+            &args.fromDate_month,
+            &args.fromDate_year,
+            &args.toDate_day,
+            &args.toDate_month,
+            &args.toDate_year,
         )
         .map_err(ProviderError::Api)?;
 

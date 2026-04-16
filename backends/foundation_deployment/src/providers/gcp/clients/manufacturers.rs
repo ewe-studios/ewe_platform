@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_languages_product_certifications_delete_execute()` to send, or `manufacturers_accounts_languages_product_certifications_delete` for simplest API.
 
-pub fn manufacturers_accounts_languages_product_certifications_delete_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_languages_product_certifications_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications/{productCertificationsId}",
@@ -184,10 +188,13 @@ pub fn manufacturers_accounts_languages_product_certifications_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_languages_product_certifications_get_execute()` to send, or `manufacturers_accounts_languages_product_certifications_get` for simplest API.
 
-pub fn manufacturers_accounts_languages_product_certifications_get_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_languages_product_certifications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications/{productCertificationsId}",
@@ -346,12 +353,15 @@ pub fn manufacturers_accounts_languages_product_certifications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_languages_product_certifications_list_execute()` to send, or `manufacturers_accounts_languages_product_certifications_list` for simplest API.
 
-pub fn manufacturers_accounts_languages_product_certifications_list_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_languages_product_certifications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications",
@@ -536,11 +546,14 @@ pub fn manufacturers_accounts_languages_product_certifications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_languages_product_certifications_patch_execute()` to send, or `manufacturers_accounts_languages_product_certifications_patch` for simplest API.
 
-pub fn manufacturers_accounts_languages_product_certifications_patch_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_languages_product_certifications_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications/{productCertificationsId}",
@@ -715,11 +728,14 @@ pub fn manufacturers_accounts_languages_product_certifications_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_products_delete_execute()` to send, or `manufacturers_accounts_products_delete` for simplest API.
 
-pub fn manufacturers_accounts_products_delete_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_products_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",
@@ -875,12 +891,15 @@ pub fn manufacturers_accounts_products_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_products_get_execute()` to send, or `manufacturers_accounts_products_get` for simplest API.
 
-pub fn manufacturers_accounts_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &String,
     include: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",
@@ -1054,13 +1073,16 @@ pub fn manufacturers_accounts_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_products_list_execute()` to send, or `manufacturers_accounts_products_list` for simplest API.
 
-pub fn manufacturers_accounts_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     include: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/products",
@@ -1247,11 +1269,14 @@ pub fn manufacturers_accounts_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `manufacturers_accounts_products_update_execute()` to send, or `manufacturers_accounts_products_update` for simplest API.
 
-pub fn manufacturers_accounts_products_update_builder(
-    client: &SimpleHttpClient,
+pub fn manufacturers_accounts_products_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",

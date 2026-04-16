@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_get_execute()` to send, or `cloudscheduler_projects_locations_get` for simplest API.
 
-pub fn cloudscheduler_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn cloudscheduler_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_get_cmek_config_execute()` to send, or `cloudscheduler_projects_locations_get_cmek_config` for simplest API.
 
-pub fn cloudscheduler_projects_locations_get_cmek_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_get_cmek_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfig",
@@ -340,14 +347,17 @@ pub fn cloudscheduler_projects_locations_get_cmek_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_list_execute()` to send, or `cloudscheduler_projects_locations_list` for simplest API.
 
-pub fn cloudscheduler_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations",
@@ -540,11 +550,14 @@ pub fn cloudscheduler_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_update_cmek_config_execute()` to send, or `cloudscheduler_projects_locations_update_cmek_config` for simplest API.
 
-pub fn cloudscheduler_projects_locations_update_cmek_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_update_cmek_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/cmekConfig",
@@ -715,10 +728,13 @@ pub fn cloudscheduler_projects_locations_update_cmek_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_create_execute()` to send, or `cloudscheduler_projects_locations_jobs_create` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs",
@@ -872,10 +888,13 @@ pub fn cloudscheduler_projects_locations_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_delete_execute()` to send, or `cloudscheduler_projects_locations_jobs_delete` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -1029,10 +1048,13 @@ pub fn cloudscheduler_projects_locations_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_get_execute()` to send, or `cloudscheduler_projects_locations_jobs_get` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -1186,12 +1208,15 @@ pub fn cloudscheduler_projects_locations_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_list_execute()` to send, or `cloudscheduler_projects_locations_jobs_list` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs",
@@ -1372,11 +1397,14 @@ pub fn cloudscheduler_projects_locations_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_patch_execute()` to send, or `cloudscheduler_projects_locations_jobs_patch` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -1544,10 +1572,13 @@ pub fn cloudscheduler_projects_locations_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_pause_execute()` to send, or `cloudscheduler_projects_locations_jobs_pause` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_pause_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}:pause",
@@ -1701,10 +1732,13 @@ pub fn cloudscheduler_projects_locations_jobs_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_resume_execute()` to send, or `cloudscheduler_projects_locations_jobs_resume` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_resume_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}:resume",
@@ -1858,10 +1892,13 @@ pub fn cloudscheduler_projects_locations_jobs_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_jobs_run_execute()` to send, or `cloudscheduler_projects_locations_jobs_run` for simplest API.
 
-pub fn cloudscheduler_projects_locations_jobs_run_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_jobs_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}:run",
@@ -2015,10 +2052,13 @@ pub fn cloudscheduler_projects_locations_jobs_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_operations_cancel_execute()` to send, or `cloudscheduler_projects_locations_operations_cancel` for simplest API.
 
-pub fn cloudscheduler_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2172,10 +2212,13 @@ pub fn cloudscheduler_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_operations_delete_execute()` to send, or `cloudscheduler_projects_locations_operations_delete` for simplest API.
 
-pub fn cloudscheduler_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2329,10 +2372,13 @@ pub fn cloudscheduler_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_operations_get_execute()` to send, or `cloudscheduler_projects_locations_operations_get` for simplest API.
 
-pub fn cloudscheduler_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2486,14 +2532,17 @@ pub fn cloudscheduler_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudscheduler_projects_locations_operations_list_execute()` to send, or `cloudscheduler_projects_locations_operations_list` for simplest API.
 
-pub fn cloudscheduler_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudscheduler_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudscheduler.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

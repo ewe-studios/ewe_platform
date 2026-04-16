@@ -1217,8 +1217,6 @@ use crate::providers::gcp::clients::aiplatform::AiplatformEndpointsOperationsWai
 use crate::providers::gcp::clients::aiplatform::AiplatformEndpointsPredictArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformEndpointsPredictLongRunningArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformEndpointsStreamGenerateContentArgs;
-use crate::providers::gcp::clients::aiplatform::AiplatformEvaluateDatasetArgs;
-use crate::providers::gcp::clients::aiplatform::AiplatformEvaluateInstancesArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformFeatureGroupsFeaturesOperationsDeleteArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformFeatureGroupsFeaturesOperationsGetArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformFeatureGroupsFeaturesOperationsListWaitArgs;
@@ -1250,7 +1248,6 @@ use crate::providers::gcp::clients::aiplatform::AiplatformFeaturestoresOperation
 use crate::providers::gcp::clients::aiplatform::AiplatformFeaturestoresOperationsGetArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformFeaturestoresOperationsListArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformFeaturestoresOperationsWaitArgs;
-use crate::providers::gcp::clients::aiplatform::AiplatformGenerateInstanceRubricsArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformHyperparameterTuningJobsOperationsCancelArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformHyperparameterTuningJobsOperationsDeleteArgs;
 use crate::providers::gcp::clients::aiplatform::AiplatformHyperparameterTuningJobsOperationsGetArgs;
@@ -2107,7 +2104,7 @@ use crate::providers::gcp::clients::aiplatform::AiplatformTuningJobsOperationsGe
 use crate::providers::gcp::clients::aiplatform::AiplatformTuningJobsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -2116,34 +2113,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = AiplatformProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = AiplatformProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct AiplatformProvider<S>
+pub struct AiplatformProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> AiplatformProvider<S>
+impl<S, R> AiplatformProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new AiplatformProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new AiplatformProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Aiplatform batch prediction jobs create.
@@ -11991,7 +11998,7 @@ where
         let builder = aiplatform_projects_locations_datasets_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -12167,8 +12174,8 @@ where
             &args.dataLabelingJob,
             &args.fieldMask,
             &args.orderBy,
-            &args.orderByAnnotation.orderBy,
-            &args.orderByAnnotation.savedQuery,
+            &args.orderByAnnotation_orderBy,
+            &args.orderByAnnotation_savedQuery,
             &args.orderByDataItem,
             &args.pageSize,
             &args.pageToken,
@@ -16440,7 +16447,7 @@ where
         let builder = aiplatform_projects_locations_feature_groups_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -17363,7 +17370,7 @@ where
         let builder = aiplatform_projects_locations_feature_online_stores_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -17815,7 +17822,7 @@ where
         let builder = aiplatform_projects_locations_feature_online_stores_feature_views_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -18686,7 +18693,7 @@ where
         let builder = aiplatform_projects_locations_featurestores_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -19142,7 +19149,7 @@ where
         let builder = aiplatform_projects_locations_featurestores_entity_types_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -25194,7 +25201,7 @@ where
         let builder = aiplatform_projects_locations_models_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -27071,7 +27078,7 @@ where
         let builder = aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
@@ -30862,7 +30869,7 @@ where
         let builder = aiplatform_projects_locations_reasoning_engines_get_iam_policy_builder(
             &self.http_client,
             &args.resource,
-            &args.options.requestedPolicyVersion,
+            &args.options_requestedPolicyVersion,
         )
         .map_err(ProviderError::Api)?;
 
